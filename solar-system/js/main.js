@@ -11,34 +11,56 @@ import { CameraController } from './camera.js';
 
 class SolarSystemApp {
   constructor() {
-    this.container = document.getElementById('canvas-container');
-    this.clock = new THREE.Clock();
+    try {
+      this.container = document.getElementById('canvas-container');
+      this.clock = new THREE.Clock();
 
-    // Simulation Clock
-    this.isPaused = false;
-    this.timeScale = 50.0; // Simulation speed (default: 50 days per real second)
-    this.simDaysElapsed = 0;
-    this.simEpochDate = new Date(2026, 8, 14); // Sep 14, 2026
+      // Simulation Clock
+      this.isPaused = false;
+      this.timeScale = 50.0; // Simulation speed (default: 50 days per real second)
+      this.simDaysElapsed = 0;
+      this.simEpochDate = new Date(2026, 8, 14); // Sep 14, 2026
 
-    // Raycaster for 3D picking
-    this.raycaster = new THREE.Raycaster();
-    this.mouse = new THREE.Vector2();
+      // Raycaster for 3D picking
+      this.raycaster = new THREE.Raycaster();
+      this.mouse = new THREE.Vector2();
 
-    this.initThree();
-    this.initModules();
-    this.initUI();
-    this.bindEvents();
+      this.initThree();
+      this.initModules();
+      this.initUI();
+      this.bindEvents();
 
-    // Start render loop
-    this.animate();
+      // Start render loop
+      this.animate();
+    } catch (err) {
+      console.error('Fatal SolarSystemApp startup error:', err);
+      const loader = document.getElementById('loading-overlay');
+      if (loader) {
+        loader.innerHTML = `
+          <div style="font-size: 32px; margin-bottom: 8px;">⚠️</div>
+          <div style="font-size: 16px; font-weight: bold; color: #f87171; margin-bottom: 8px;">3D 场景加载失败</div>
+          <div style="font-size: 12px; color: #94a3b8; max-width: 480px; text-align: center; line-height: 1.5; margin-bottom: 16px;">${err.message || err}</div>
+          <button onclick="location.reload()" style="padding: 8px 16px; background: rgba(56,189,248,0.2); border: 1px solid #38bdf8; color: #fff; border-radius: 6px; cursor: pointer;">刷新重试</button>
+        `;
+      }
+    }
   }
 
   initThree() {
-    // 1. Renderer Setup
-    this.renderer = new THREE.WebGLRenderer({
-      antialias: true,
-      powerPreference: 'high-performance'
-    });
+    if (!this.container) {
+      this.container = document.getElementById('canvas-container') || document.body;
+    }
+
+    // 1. Renderer Setup with fallback
+    try {
+      this.renderer = new THREE.WebGLRenderer({
+        antialias: true,
+        powerPreference: 'high-performance'
+      });
+    } catch (e) {
+      console.warn('High-performance WebGL init failed, falling back to basic renderer:', e);
+      this.renderer = new THREE.WebGLRenderer({ antialias: false });
+    }
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -89,12 +111,13 @@ class SolarSystemApp {
     this.showBodyDetails('earth');
 
     // Hide Loading screen
+    window.__solarSystemReady = true;
     const loader = document.getElementById('loading-overlay');
     if (loader) {
       setTimeout(() => {
         loader.style.opacity = '0';
         setTimeout(() => loader.remove(), 600);
-      }, 350);
+      }, 250);
     }
   }
 
@@ -438,7 +461,14 @@ class SolarSystemApp {
   }
 }
 
-// Instantiate once DOM is ready
-window.addEventListener('DOMContentLoaded', () => {
-  new SolarSystemApp();
-});
+// Reliable Booting (handles loading, interactive, and complete document states)
+function boot() {
+  if (window.__solarSystemApp) return;
+  window.__solarSystemApp = new SolarSystemApp();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', boot);
+} else {
+  boot();
+}

@@ -6,6 +6,22 @@
   <title>太阳系探索者 — 八大行星与卫星群 3D 漫游及航天轨道规划</title>
   <link rel="stylesheet" href="css/style.css" />
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪐</text></svg>" />
+  <script>
+    window.__solarSystemReady = false;
+    window.addEventListener('error', function(e) {
+      if (!window.__solarSystemReady) {
+        const loader = document.getElementById('loading-overlay');
+        if (loader) {
+          loader.innerHTML = `
+            <div style="font-size: 32px; margin-bottom: 8px;">⚠️</div>
+            <div style="font-size: 16px; font-weight: bold; color: #f87171; margin-bottom: 8px;">3D 场景加载遇到异常</div>
+            <div style="font-size: 12px; color: #94a3b8; max-width: 480px; text-align: center; line-height: 1.5; margin-bottom: 16px;">${e.message || '模块加载或脚本执行失败'}</div>
+            <button onclick="location.reload()" style="padding: 8px 16px; background: rgba(56,189,248,0.2); border: 1px solid #38bdf8; color: #fff; border-radius: 6px; cursor: pointer;">刷新页面重试</button>
+          `;
+        }
+      }
+    });
+  </script>
 </head>
 <body>
   <!-- Standard Science Suite Back-to-Home Link -->
@@ -194,6 +210,8 @@
     });
   </script>
 
+  <!-- Polyfill for older browsers / es-module-shims -->
+  <script async src="https://cdn.jsdelivr.net/npm/es-module-shims@1.10.0/dist/es-module-shims.js"></script>
   <!-- Native ES Module Three.js Import Map -->
   <script type="importmap">
   {
