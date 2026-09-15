@@ -1,15 +1,21 @@
 /* ============================================================================
  * ui.js — premium dark UI: tabs, system switches, stage chips, transport,
- * education panel, per-view legends, help modal, toasts.
+ * education panel, per-view legends, help modal, toasts, ZH/EN toggle.
+ * All copy resolves through APP.L() / APP.tr() at render time, so the whole
+ * UI can be re-rendered live when the language flips.
  * ==========================================================================*/
 (function () {
-  const U = APP.U, D = APP.DATA;
+  const U = APP.U;
   const $ = (s) => document.querySelector(s);
   const $$ = (s) => Array.from(document.querySelectorAll(s));
+  const tr = APP.tr, L = APP.L;
 
   APP.UI = { init };
 
+  let appRef = null;
+
   function init(app) {
+    appRef = app;
     buildSystemsList(app);
     buildStageChips(app);
     wireTabs(app);
@@ -17,26 +23,107 @@
     wireRing(app);
     wireCollision(app);
     wireHelp();
+    wireLang(app);
+    applyLang(app);
+    showEdu(app, 'overview');
+  }
+
+  /* ---------------- language ----------------------------------------------*/
+  function wireLang(app) {
+    const setLang = (lang) => {
+      if (APP.lang === lang) return;
+      APP.lang = lang;
+      try { localStorage.setItem('collider_lang', lang); } catch (e) {}
+      applyLang(app);
+      showEdu(app, APP.UI._edu ? APP.UI._edu.kind : 'overview', APP.UI._edu && APP.UI._edu.sys);
+      if (APP.app && APP.app.collision && APP.app.collision.refreshCaption) APP.app.collision.refreshCaption();
+      APP.UI.toast(tr('toast.lang'));
+    };
+    const zhBtn = $('#btnLangZh'), enBtn = $('#btnLangEn');
+    if (zhBtn) zhBtn.addEventListener('click', () => setLang('zh'));
+    if (enBtn) enBtn.addEventListener('click', () => setLang('en'));
+  }
+
+  function applyLang(app) {
+    document.documentElement.lang = APP.lang === 'zh' ? 'zh-CN' : 'en';
+    const zhBtn = $('#btnLangZh'), enBtn = $('#btnLangEn');
+    if (zhBtn) zhBtn.classList.toggle('active', APP.lang === 'zh');
+    if (enBtn) enBtn.classList.toggle('active', APP.lang === 'en');
+    /* tabs */
+    $$('.tab').forEach((t) => { t.textContent = tr('tab.' + t.dataset.view); });
+    /* chrome */
+    const brandH1 = $('.brand h1');
+    if (brandH1) brandH1.textContent = tr('brand.title');
+    $('.brand p').textContent = tr('brand.sub');
+    $('#leftPanel h2').textContent = tr('panel.systems');
+    $('#leftPanel .panelnote').textContent = tr('panel.note');
+    $('#rightPanel h2').textContent = tr('panel.edu');
+    $('#disclaimer').textContent = L().disclaimer;
+    $('#aboutText').textContent = L().about;
+    $('#statsParts').textContent = U.fmt(appRef.detector.total) + tr('stats.parts');
+    $('#btnOverview').textContent = tr('btn.assemble');
+    const cutBtn = $('#btnCutaway');
+    if (cutBtn) cutBtn.textContent = tr('btn.cutaway');
+    $('#btnFlight').innerHTML = tr('btn.flight');
+    $('#btnTrigger').textContent = tr('btn.trigger');
+    const autoLbl = $('#chkAuto');
+    if (autoLbl) {
+      const tn = [...autoLbl.parentElement.childNodes].find((n) => n.nodeType === 3);
+      if (tn) tn.textContent = ' ' + tr('autorenew');
+    }
+    $('#ringbar .sliderRow').childNodes[0].textContent = tr('beamspeed') + ' ';
+    $('#ringbar .hint').textContent = tr('hint.ring');
+    $('#collbar .badge').textContent = tr('badge');
+    /* evstats labels: first text node of each span */
+    $$('#collbar .evstats span').forEach((sp) => {
+      const b = sp.querySelector('b');
+      let label = '';
+      if (b && b.id === 'evNum') label = tr('ev.event') + ' ';
+      else if (b && b.id === 'evTracks') label = tr('ev.tracks') + ' ';
+      else if (b && b.id === 'evJets') label = tr('ev.jets') + ' ';
+      else if (b && b.id === 'evEt') label = '\u03A3E';   /* the <sub>T</sub> after it stays untouched */
+      else if (b && b.id === 'evMuons') label = tr('ev.muons') + ' ';
+      sp.childNodes[0].textContent = label;
+    });
+    /* help modal */
+    $('#helpClose').textContent = tr('btn.close');
+    const hs = $$('#helpModal h2');
+    if (hs.length >= 3) { hs[0].textContent = tr('help.about'); hs[1].textContent = tr('help.controls'); hs[2].textContent = tr('help.refs'); }
+    $('.helpfoot').textContent = tr('help.foot');
+    const rows = [
+      ['ctl.cutaway', 'ctl.cutaway.d'],
+      ['ctl.scroll', 'ctl.scroll.d'], ['ctl.drag', 'ctl.drag.d'], ['ctl.wheel', 'ctl.wheel.d'],
+      ['ctl.space', 'ctl.space.d'], ['ctl.arrows', 'ctl.arrows.d'], ['ctl.views', 'ctl.views.d'],
+      ['ctl.fe', 'ctl.fe.d'], ['ctl.esc', 'ctl.esc.d']
+    ];
+    $('#controlsRows').innerHTML = rows
+      .map(([a, b]) => `<tr><td>${tr(a)}</td><td>${tr(b)}</td></tr>`).join('');
+    $('#creditLinks').innerHTML = L().credits.map((c) => `<li><a href="${c.u}" target="_blank" rel="noopener">${c.t}</a></li>`).join('');
+    /* dynamic panels */
+    buildSystemsList(app);
+    buildStageChips(app);
     setLegend('ring', ringLegend());
     setLegend('collision', collisionLegend());
-    showEdu(app, 'overview');
-    $('#disclaimer').textContent = D.disclaimer;
-    $('#aboutText').textContent = D.about;
-    $('#statsParts').textContent = U.fmt(app.detector.total) + ' parts';
+    /* force syncPlayback to rewrite cached strings */
+    APP.UI.syncPlayback._sn = null;
+    APP.UI.updateStageEdu._k = null;
   }
+  APP.UI.applyLang = applyLang;
 
   /* ---------------- systems list ------------------------------------------*/
   function buildSystemsList(app) {
     const box = $('#systemsList');
+    const checked = {};
+    $$('#systemsList input[data-sys]').forEach((i) => { checked[i.dataset.sys] = i.checked; });
     box.innerHTML = '';
-    for (const s of D.systems) {
+    for (const s of L().systems) {
       const rendered = app.detector.systems[s.id] ? app.detector.systems[s.id].count : 0;
       const row = document.createElement('div');
       row.className = 'sysrow';
       row.innerHTML = `
         <span class="dot" style="background:${s.color}"></span>
         <label class="sysname" title="${s.real.replace(/"/g, '&quot;')}">
-          <input type="checkbox" checked data-sys="${s.id}"><span>${s.name}</span>
+          <input type="checkbox" ${checked[s.id] === false ? '' : 'checked'} data-sys="${s.id}"><span>${s.name}</span>
         </label>
         <span class="syscount" title="${s.real.replace(/"/g, '&quot;')}">${U.fmt(rendered)}</span>`;
       row.querySelector('input').addEventListener('change', (e) => {
@@ -52,8 +139,8 @@
     }
     const actions = document.createElement('div');
     actions.className = 'sysactions';
-    actions.innerHTML = `<button class="btn mini" id="sysAll">All</button>
-                         <button class="btn mini" id="sysNone">Solo core</button>`;
+    actions.innerHTML = `<button class="btn mini" id="sysAll">${tr('btn.all')}</button>
+                         <button class="btn mini" id="sysNone">${tr('btn.solo')}</button>`;
     box.appendChild(actions);
     actions.querySelector('#sysAll').addEventListener('click', () => {
       $$('#systemsList input[data-sys]').forEach(i => { i.checked = true; app.setSystemVisible(i.dataset.sys, true); });
@@ -69,7 +156,8 @@
   /* ---------------- stage chips + scrubber ---------------------------------*/
   function buildStageChips(app) {
     const box = $('#stageChips');
-    D.stages.forEach((st, i) => {
+    box.innerHTML = '';
+    L().stages.forEach((st, i) => {
       const b = document.createElement('button');
       b.className = 'chip';
       b.innerHTML = `<b>${i + 1}</b>${st.chip}`;
@@ -89,6 +177,8 @@
     const scrub = $('#scrub');
     scrub.addEventListener('input', () => { app.scrubTo(scrub.value / 1000); });
     $('#btnOverview').addEventListener('click', () => app.gotoStage(0));
+    const cutBtn = $('#btnCutaway');
+    if (cutBtn) cutBtn.addEventListener('click', () => { if (app.toggleCutaway) app.toggleCutaway(); });
   }
 
   /* ---------------- tabs ---------------------------------------------------*/
@@ -123,22 +213,25 @@
 
   /* ---------------- education panel ----------------------------------------*/
   function showEdu(app, kind, sys) {
+    APP.UI._edu = { kind, sys };
     const t = $('#eduTitle'), b = $('#eduBody'), f = $('#eduFacts');
     if (kind === 'overview' || kind === 'stage') {
-      const st = kind === 'overview' ? D.overview : D.stages[app.stageIndex()];
+      const st = kind === 'overview' ? L().overview : L().stages[app.stageIndex()];
       t.textContent = st.title; b.textContent = st.body;
       f.innerHTML = st.facts.map(x => `<li>${x}</li>`).join('');
     } else if (kind === 'system') {
       t.textContent = sys.name; b.textContent = sys.blurb;
       f.innerHTML = sys.facts.map(x => `<li>${x}</li>`).join('') +
-        `<li class="srcline">Real detector: ${sys.real}</li>`;
+        `<li class="srcline">${APP.lang === 'zh' ? '真实探测器：' : 'Real detector: '}${sys.real}</li>`;
     } else if (kind === 'ring') {
-      t.textContent = D.ring.title; b.textContent = D.ring.body;
-      f.innerHTML = D.ring.facts.map(x => `<li>${x}</li>`).join('');
+      const R = L().ring;
+      t.textContent = R.title; b.textContent = R.body;
+      f.innerHTML = R.facts.map(x => `<li>${x}</li>`).join('');
     } else if (kind === 'collision') {
-      t.textContent = D.collision.title; b.textContent = D.collision.body;
-      f.innerHTML = D.collision.facts.map(x => `<li>${x}</li>`).join('') +
-        `<li class="srcline">${D.triggerNote}</li>`;
+      const C = L().collision;
+      t.textContent = C.title; b.textContent = C.body;
+      f.innerHTML = C.facts.map(x => `<li>${x}</li>`).join('') +
+        `<li class="srcline">${L().triggerNote}</li>`;
     }
   }
   APP.UI.showEduForView = (view) => {
@@ -148,7 +241,7 @@
   };
   APP.UI.updateStageEdu = (app, stageIdx) => {
     if (document.body.dataset.view !== 'detector') return;
-    const key = 'stage:' + stageIdx;
+    const key = 'stage:' + stageIdx + ':' + APP.lang;
     if (APP.UI.updateStageEdu._k === key) return;
     APP.UI.updateStageEdu._k = key;
     showEdu(app, stageIdx < 0 ? 'overview' : 'stage');
@@ -170,7 +263,8 @@
     const idx = stageIndex(pb.t);
     const active = pb.t > 0.0001;
     $$('#stageChips .chip').forEach((c, i) => c.classList.toggle('active', active && i === idx));
-    const sn = !active ? 'Assembled' : `Stage ${idx + 1} / 6 — ${D.stages[idx].chip}`;
+    const sn = !active ? tr('stage.assembled')
+      : tr('stage.fmt').replace('{n}', idx + 1).replace('{chip}', L().stages[idx].chip);
     if (APP.UI.syncPlayback._sn !== sn) { $('#stageName').textContent = sn; APP.UI.syncPlayback._sn = sn; }
   };
   function stageIndex(t) { return U.clamp(Math.ceil(t * 6) - 1, 0, 5); }
@@ -178,22 +272,23 @@
   /* ---------------- legends ------------------------------------------------*/
   function setLegend(view, html) {
     const el = document.getElementById('legend-' + view);
-    if (el) el.innerHTML = html;
+    if (el) el.innerHTML = `<h2>${tr(view === 'ring' ? 'legend.ring' : 'legend.collision')}</h2>` + html;
   }
   function ringLegend() {
+    const R = L().ring;
     return `
-      <div class="legrow"><span class="swatch" style="background:#d8b25c"></span>${D.ring.legendBeamA}</div>
-      <div class="legrow"><span class="swatch" style="background:#6fd3e8"></span>${D.ring.legendBeamB}</div>
-      <div class="legnote">Schematic — ring radius compressed ≈60×; magnet boxes represent clusters of the 1,232 real dipoles.</div>`;
+      <div class="legrow"><span class="swatch" style="background:#d8b25c"></span>${R.legendBeamA}</div>
+      <div class="legrow"><span class="swatch" style="background:#6fd3e8"></span>${R.legendBeamB}</div>
+      <div class="legnote">${tr('leg.note')}</div>`;
   }
   function collisionLegend() {
     return `
-      <div class="legrow"><span class="swatch" style="background:#bfd8ea"></span>charged hadron track</div>
-      <div class="legrow"><span class="swatch" style="background:#6fe3c4"></span>electron / EM tower</div>
-      <div class="legrow"><span class="swatch" style="background:#e8c874"></span>muon (reaches outer layers)</div>
-      <div class="legrow"><span class="swatch" style="background:#d8b25c"></span>jet energy towers</div>
-      <div class="legrow"><span class="swatch" style="background:#e8eaed"></span>missing E\u209C (vector sum)</div>
-      <div class="legnote">${D.collision.badge}.</div>`;
+      <div class="legrow"><span class="swatch" style="background:#bfd8ea"></span>${tr('leg.hadron')}</div>
+      <div class="legrow"><span class="swatch" style="background:#6fe3c4"></span>${tr('leg.em')}</div>
+      <div class="legrow"><span class="swatch" style="background:#e8c874"></span>${tr('leg.muon')}</div>
+      <div class="legrow"><span class="swatch" style="background:#d8b25c"></span>${tr('leg.jet')}</div>
+      <div class="legrow"><span class="swatch" style="background:#e8eaed"></span>${tr('leg.met')}</div>
+      <div class="legnote">${L().collision.badge}.</div>`;
   }
 
   /* ---------------- help modal ---------------------------------------------*/
@@ -202,7 +297,6 @@
     $('#btnHelp').addEventListener('click', () => modal.classList.add('open'));
     $('#helpClose').addEventListener('click', () => modal.classList.remove('open'));
     modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
-    $('#creditLinks').innerHTML = D.credits.map(c => `<li><a href="${c.u}" target="_blank" rel="noopener">${c.t}</a></li>`).join('');
   }
 
   /* ---------------- toast ---------------------------------------------------*/

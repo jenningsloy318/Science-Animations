@@ -63,13 +63,15 @@
 
         /* magnets */
         coil: std({ color: 0x39424e, metalness: 0.9, roughness: 0.35, emissive: 0x1a2a3a, emissiveIntensity: 0.35 }),
-        solenoidShell: std({ color: 0x39424e, metalness: 0.92, roughness: 0.3, side: THREE.DoubleSide }),
+        solenoidShell: std({ color: 0x39424e, metalness: 0.92, roughness: 0.3, side: THREE.DoubleSide, transparent: true, opacity: 0.45, depthWrite: false }),
 
         /* calorimeters */
         emLead: shimmer((() => { const m = inst(); m.color = new THREE.Color(0x8f7a45); m.metalness = 0.9; m.roughness = 0.42; return m; })(), 0xe0c07a, 0.10, 6.0),
-        emGirder: std({ color: 0x454f5c, metalness: 0.85, roughness: 0.5 }),
+        emGirder: std({ color: 0x454f5c, metalness: 0.85, roughness: 0.5,
+      transparent: true, opacity: 0.5, side: THREE.DoubleSide, depthWrite: false }),
         tile: shimmer((() => { const m = inst(); m.color = new THREE.Color(0x515a66); m.metalness = 0.75; m.roughness = 0.5; return m; })(), 0xe0a84c, 0.07, 5.0),
-        tileSteel: std({ color: 0x57626f, metalness: 0.7, roughness: 0.5 }),
+        tileSteel: std({ color: 0x57626f, metalness: 0.7, roughness: 0.5,
+      transparent: true, opacity: 0.34, side: THREE.DoubleSide, depthWrite: false }),
 
         /* trackers */
         straw: shimmer((() => { const m = inst(); m.color = new THREE.Color(P.straw); m.metalness = 0.35; m.roughness = 0.5; return m; })(), 0x9fd8e8, 0.045, 9.0),
@@ -82,8 +84,8 @@
         tgc: std({ color: 0x6b5a2e, metalness: 0.9, roughness: 0.4, emissive: 0x3d3208, emissiveIntensity: 0.4 }),
 
         /* beam pipe */
-        pipe: std({ color: 0xc9ccd2, metalness: 1.0, roughness: 0.15 }),
-        pipeGlow: new THREE.MeshBasicMaterial({ color: 0x9fe8ff, transparent: true, opacity: 0.28, blending: THREE.AdditiveBlending, depthWrite: false }),
+        pipe: std({ color: 0x88c0d8, metalness: 0.85, roughness: 0.2, transparent: true, opacity: 0.65, depthWrite: false }),
+        pipeGlow: new THREE.MeshBasicMaterial({ color: 0x9fe8ff, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending, depthWrite: false }),
       };
       return this.m;
     },

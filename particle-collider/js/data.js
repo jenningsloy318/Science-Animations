@@ -1,5 +1,5 @@
 /* ============================================================================
- * data.js — verified facts & educational copy
+ * data.js — verified facts & educational copy (EN + 中文)
  * Sources (consulted 2026-09, official CERN references):
  *   https://home.cern/science/accelerators/large-hadron-collider
  *   https://home.cern/science/experiments/atlas
@@ -8,6 +8,15 @@
  * This is an educational fan visualization. Not affiliated with or endorsed by CERN.
  * ==========================================================================*/
 window.APP = window.APP || {};
+
+/* language: 'zh' | 'en' — defaults to 'zh', persisted in localStorage */
+const savedLang = (typeof localStorage !== 'undefined' && localStorage.getItem('collider_lang'));
+APP.lang = (savedLang === 'en' || savedLang === 'zh') ? savedLang : 'zh';
+APP.L = () => (APP.lang === 'zh' ? APP.DATA.zh : APP.DATA);
+APP.tr = (k) => {
+  const e = APP.DATA.ui[k];
+  return e ? (e[APP.lang] || e.en) : k;
+};
 
 APP.DATA = {
   about:
@@ -191,7 +200,16 @@ APP.DATA = {
     facts:['Charged tracks curve in the 2 T solenoid field \u2014 curvature \u221D 1/p\u209C',
            'Sprays of hadrons = \u201Cjets\u201D, shown as energy towers on the calorimeter skins',
            'Gold tracks reaching the outer rings are muons \u2014 they traverse the whole detector'],
-    badge:'SYNTHETIC EVENT \u2014 not real data' },
+    badge:'SYNTHETIC EVENT \u2014 not real data',
+    /* the step-by-step sequence played on every trigger */
+    seq:[
+      { phase:'approach', cap:'Two protons race toward each other along the beam pipe at almost the speed of light\u2026' },
+      { phase:'impact',   cap:'IMPACT! All their energy concentrates at one point \u2014 and becomes new particles (E = mc\u00B2).' },
+      { phase:'shower',   cap:'Quarks and gluons burst out \u2014 but free quarks cannot exist alone\u2026' },
+      { phase:'hadron',   cap:'Hadronization: each quark drags new particles out of empty space, spraying into \u201Cjets\u201D.' },
+      { phase:'layers',   cap:'Each detector layer flashes as the particles cross it \u2014 pixel \u2192 tracker \u2192 calorimeters \u2192 muon chambers.' },
+      { phase:'done',     cap:'Event measured. Only muons (gold) reach the outermost layer.' },
+    ] },
 
   credits: [
     { t:'CERN \u2014 The Large Hadron Collider', u:'https://home.cern/science/accelerators/large-hadron-collider' },
@@ -206,4 +224,283 @@ APP.DATA = {
 
   triggerNote:'Trigger & DAQ (real ATLAS): L1 hardware decides in < 2.5 \u03BCs; the software farm '
     + '(~40,000 CPU cores) narrows up to 100,000 accepted events/s down to ~1,000 recorded/s. '
-    + 'Here, every event is shown \u2014 a luxury no physicist has.' };
+    + 'Here, every event is shown \u2014 a luxury no physicist has.'};
+
+/* ======================= 中文（简体）镜像文案 =============================
+ * 结构与英文树完全一致 — APP.L() 按当前语言返回对应树。
+ * ==========================================================================*/
+APP.DATA.zh = {
+  about:'这是一个受 CERN 大型强子对撞机（LHC）与 ATLAS 探测器启发的交互式简化模型。'
+      + '几何为示意性质：比例（尤其是内层半径）经过夸大，以便每一层都清晰可读。'
+      + '所有对撞事件均为合成事件 —— 由数学生成，绝非真实数据。',
+  disclaimer:'简化几何 · 合成事件 · 非官方 CERN 产品',
+
+  systems:[
+    { id:'muon',   name:'缪子谱仪', color:'#9fb4c9',
+      real:'1,171 个 MDT 腔室 · 354,240 根漂移管 · TGC + CSC 触发腔室',
+      blurb:'最外层的壳体。巨大的漂移管腔室排成桶部环带，加上两端两个\u201C大轮\u201D，'
+          + '在环形磁铁弯折缪子径迹之后重新测量它们。缪子是唯一有能力穿越所有内层、'
+          + '抵达这里的带电粒子。',
+      facts:['1,171 个 MDT 腔室，共 354,240 根漂移管（直径 3 cm，长 0.85\u20136.5 m）',
+             '漂移管分辨率：80 \u03BCm',
+             '薄隙室（TGC）与阴极条室（CSC）提供快速触发'] },
+    { id:'toroid', name:'环形磁铁', color:'#d8b25c',
+      real:'桶部：8 个线圈 · 长 25.3 m · 830 吨 · 端盖：各 8 个线圈 · 各 240 吨',
+      blurb:'三个巨大的空气芯环形磁铁 —— 一个桶部 + 两个端盖 —— 产生环绕束流轴的磁场，'
+          + '把缪子径迹向侧面弯折，从而通过弯曲程度测出动量。'
+          + '这是迄今建成的最大环形磁铁系统。',
+      facts:['桶部环形磁铁：长 25.3 m，外径 20.1 m，重 830 吨，8 个线圈',
+             '每个端盖环形磁铁：直径 10.7 m，厚 5.0 m，重 240 吨，8 个线圈共用低温恒温器',
+             '磁场最高约 3.5 T；电流 20.5 kA；冷却至 4.7 K'] },
+    { id:'hadcal', name:'强子量能器', color:'#8b95a2',
+      real:'Tile：420,000 片闪烁体 · 2,900 吨 · 9,500 支光电倍增管 + LAr 端盖',
+      blurb:'钢板吸收体与塑料闪烁体 tiles 交错叠放，把强子（质子、中子、π 介子）停下来，'
+          + '通过 tiles 产生的荧光测量能量。前向则由铜/液氩轮完成同样的工作。'
+          + '它是 ATLAS 最重的部分。',
+      facts:['约 420,000 片塑料闪烁 tile（40 吨）+ 钢吸收体 → 总重 2,900 吨',
+             '中心桶部：64 个楔形块，长 5.6 m；两个加长桶部：各 64 个楔形块，长 2.6 m',
+             '9,500 支光电倍增管读出闪烁光'] },
+    { id:'emcal',  name:'电磁量能器（LAr）', color:'#e0c07a',
+      real:'铅/液氩手风琴结构 · 桶部长 6.4 m · 110,000 通道 · \u2212184 \u00B0C',
+      blurb:'铅吸收板折叠成 ATLAS 标志性的手风琴形状，浸在 \u2212184 \u00B0C 的液氩浴中。'
+          + '电子和光子在铅中簇射；板间被电离的液氩被完整读出，没有死角 —— '
+          + '没有粒子能逃过它的测量。',
+      facts:['手风琴结构：铅吸收体 + 液氩探测介质',
+             '桶部：长 6.4 m，厚 53 cm，110,000 通道，保持 \u2212184 \u00B0C',
+             '端盖还有电磁、强子与前向（FCAL）轮'] },
+    { id:'solenoid', name:'中心螺线管', color:'#d8b25c',
+      real:'2 T · 长 5.3 m · 直径 2.56 m · 5 吨 · 9 km NbTi 线材',
+      blurb:'一根细长的 2 特斯拉超导螺线管，包裹在内探测器外侧。它沿束流轴产生近乎均匀的磁场，'
+          + '使带电粒子的径迹发生弯曲，从而测量动量。它只有 4.5 cm 厚 —— '
+          + '刻意设计得几乎不干扰它要测量的粒子。',
+      facts:['磁场 2 T，储能 38 MJ，电流 7.73 kA',
+             '长 5.3 m，外径 2.56 m，仅厚 4.5 cm，重约 5 吨',
+             '9 km 铌钛超导线材镶嵌在铝带中'] },
+    { id:'trt',    name:'TRT — 转换辐射径迹器', color:'#c9d2dc',
+      real:'约 300,000 根 straw 管 · 350,000 通道 · 4 mm 管 + 30 \u03BCm 金丝',
+      blurb:'数十万根细长的充气 straw 管。带电粒子电离管内气体，每根管中央的镀金丝接收信号。'
+          + '它还能探测\u201C转换辐射\u201D —— 主要由电子发出的 X 射线 —— '
+          + '帮助区分电子和 π 介子。',
+      facts:['约 300,000 根 straw：桶部 50,000 根（长 144 cm），端盖 250,000 根（长 39 cm）',
+             'straw 直径 4 mm，中央是 30 \u03BCm 镀金钨丝',
+             '径迹精度 0.17 mm；体积 12 m\u00B3'] },
+    { id:'sct',    name:'SCT — 半导体径迹器', color:'#7fd8e8',
+      real:'4,088 个模块 · 600 万条读出条 · 60 m\u00B2 硅 · 4 层桶部 + 18 个端盘',
+      blurb:'间距 80 \u03BCm 的硅微条，排成四层桶部与十八个端盖圆盘。'
+          + '每个粒子至少穿过四层，使 ATLAS 能以约 25 \u03BCm 的精度重建径迹 —— '
+          + '不到头发丝直径的一半。',
+      facts:['4,088 个双面模块，超过 600 万条读出条',
+             '60 m\u00B2 硅面积 —— 四层圆柱桶部 + 18 片端盖圆盘',
+             '读出条间距 80 \u03BCm；精度最高 25 \u03BCm'] },
+    { id:'pixel',  name:'像素探测器', color:'#6fe3c4',
+      real:'约 2,000 个模块 · 9,200 万像素 · 1.9 m\u00B2 · 距束流 3.3 cm',
+      blurb:'第一探测点，距束流仅 3.3 cm。四层桶部 + 每侧三片端盘，'
+          + '像素比沙粒还小，把每个粒子的起点定位到约 10 \u03BCm —— '
+          + '这对发现 b 强子衰变的位移顶点至关重要。',
+      facts:['9,200 万像素，约 1,736 个桶部 + 288 个端盖模块',
+             '像素尺寸 50\u00D7400 \u03BCm\u00B2（最内层 50\u00D7250 \u03BCm\u00B2）',
+             '硅面积约 1.9 m\u00B2；命中精度约 10 \u03BCm'] },
+    { id:'pipe',   name:'束流管与对撞点', color:'#e8eaed',
+      real:'束团每 25 ns 对撞一次 · ATLAS 中每秒约 15 亿次对撞',
+      blurb:'在最中心，反向旋转的质子束团每 25 纳秒在对撞点交汇一次。'
+          + '细长的铍-铝束流管维持超高真空，载着束流穿过探测器。',
+      facts:['束团每 25 ns 交汇一次；每秒最多约 15 亿次对撞',
+             '对撞能量 13.6 TeV（Run 3）',
+             '质子以 99.999999% 光速运动'] },
+    { id:'support', name:'支撑结构与底座', color:'#5c646e',
+      real:'探测器：长 46 m · 高 25 m · 宽 25 m · 7,000 吨',
+      blurb:'承载 7,000 吨重量的钢骨架 —— 差不多等于一座埃菲尔铁塔 —— '
+          + '在 LHC 1 号点地下 100 m 的洞室里，以不到一毫米的误差精确对齐。',
+      facts:['ATLAS：长 46 m，高宽各 25 m，重 7,000 吨',
+             '安装在瑞士梅兰附近地下 100 m 处',
+             '六个子系统按同心层排列'] },
+  ],
+
+  stages:[
+    { key:'muon',  chip:'缪子大轮',
+      title:'第 1 阶段 · 缪子谱仪',
+      body:'我们从外向内\u201C剥开\u201D探测器。首先是巨大的端盖\u201C大轮\u201D —— 约 25 m 的'
+         + '漂移管腔室 —— 沿束流轴滑出，八个桶部缪子扇区向外展开。'
+         + '只有缪子能到达这一层。',
+      facts:['最外层 —— 在 1 TeV 处把缪子动量测到约 10% 精度',
+             '桶部腔室位于环形磁场内；大轮在端盖环形磁铁之后'] },
+    { key:'toroid', chip:'环形磁铁',
+      title:'第 2 阶段 · 环形磁铁系统',
+      body:'八个巨大的 D 形桶部线圈（总长 25.3 m，重 830 吨）与两个端盖环形磁铁分开，'
+         + '露出它们通常遮住的量能器低温恒温器。磁场环绕束流轴 —— '
+         + '这就是\u201C环形（toroidal）\u201D磁场，在 r\u2013z 平面弯折缪子。',
+      facts:['迄今建成的最大环形磁铁',
+             '磁场最高约 3.5 T；仅桶部储能就达 1.08 GJ'] },
+    { key:'calo',  chip:'量能器',
+      title:'第 3 阶段 · 量能器',
+      body:'两个桶部量能器分开滑出：内侧是铅/液氩电磁手风琴，外侧是 2,900 吨的'
+         + '钢-闪烁体 Tile 量能器。前向液氩轮沿束流管退后。'
+         + '它们共同测量几乎所有粒子的能量。',
+      facts:['电磁桶部：长 6.4 m，110,000 通道，\u2212184 \u00B0C',
+             'Tile 量能器：420,000 片闪烁 tile，2,900 吨 —— 最重的一层'] },
+    { key:'solenoid', chip:'螺线管',
+      title:'第 4 阶段 · 中心螺线管与支撑结构',
+      body:'细长的 2 T 超导螺线管沿接缝打开。它只有 4.5 cm 厚、5 吨重，'
+         + '坐在量能器内孔中，沿束流轴弯折内探测器径迹。支撑底座与导轨展开，'
+         + '展示 7,000 吨塔是如何被托起的。',
+      facts:['9 km NbTi 超导线；储能 38 MJ',
+             '磁场 2 T，在径迹器体积内近乎均匀'] },
+    { key:'trackers', chip:'TRT + SCT',
+      title:'第 5 阶段 · 硅微条与 straw 管',
+      body:'径迹器各层沿径向分开：TRT 的约 300,000 根 straw 管呈扇形展开，'
+         + 'SCT 的四层硅桶部拉开，十八片端盖圆盘滑离束流轴。'
+         + '粒子径迹就是在这里以最高 25 \u03BCm 的精度被描绘出来的。',
+      facts:['TRT：350,000 通道；SCT：4,088 模块，600 万读出条',
+             '每个粒子至少穿过 4 层硅'] },
+    { key:'pixel', chip:'像素 + 束流管',
+      title:'第 6 阶段 · 像素探测器与对撞点',
+      body:'最后是最内层：四层像素桶部与端盘向外漂移，露出束流管和对撞点 —— '
+         + '质子束团在这里每 25 ns 以 13.6 TeV 对撞一次。'
+         + '9,200 万个像素在 3.3 cm 外注视着这些\u201C碎片\u201D。',
+      facts:['9,200 万像素，约 10 \u03BCm 命中精度，1.9 m\u00B2 硅',
+             '束团每 25 ns 交汇 —— 每秒最多 15 亿次对撞'] },
+  ],
+
+  overview:{
+    title:'组装完成的探测器',
+    body:'这是受 CERN LHC 的 ATLAS 探测器启发的简化分层模型 —— 长 46 m，高 25 m，'
+       + '重 7,000 吨，安装在地下 100 m。滚动滚轮可分六个阶段拆解，或使用播放控制。'
+       + '左侧开关控制各系统；点击系统名称可以聚焦并阅读介绍。',
+    facts:['滚轮 = 拆解 · 空格 = 播放/暂停 · R = 反向',
+           '比例为可读性做了夸大 —— 几何为示意性质'] },
+
+  ring:{
+    title:'大型强子对撞机 — 示意图',
+    body:'两束反向旋转的质子束共用一条 26,659 m 的超导磁铁环，位于地下 100 m。'
+       + '四个实验大厅坐落在对撞点上。此图把环半径压缩了约 60 倍，'
+       + '让整台机器装进一块屏幕 —— 真实隧道的占地面积将远超埃菲尔铁塔。',
+    facts:['周长 26,659 m · 隧道位于地下 100 m',
+           '1,232 块主二极磁铁 + 392 块主四极磁铁（共 9,593 块磁铁）',
+           '二极磁铁运行在 1.9 K（\u2212271.3 \u00B0C）—— 比外太空还冷',
+           '每束约 2,500 个束团 · 每束团 1.6\u00D710\u00B9\u00B9 个质子 · 间隔 25 ns',
+           '每束 6.8 TeV → 对撞能量 13.6 TeV · 每秒转 11,245 圈'],
+    points:[
+      { name:'ATLAS', pt:'1 号点', angle:0,    fact:'7,000 吨通用型探测器' },
+      { name:'ALICE', pt:'2 号点', angle:90,   fact:'重离子物理，夸克-胶子等离子体' },
+      { name:'射频腔', pt:'4 号点', angle:135, small:true, fact:'每束 8 个腔体，每圈为束流补充能量' },
+      { name:'束流垃圾站', pt:'6 号点', angle:225, small:true, fact:'在 89 \u03BCs 内吸收整条束流' },
+      { name:'CMS',   pt:'5 号点', angle:180,  fact:'通用型，巨型螺线管' },
+      { name:'LHCb',  pt:'8 号点', angle:270,  fact:'b 强子（底夸克）物理' },
+    ],
+    flight:[
+      { caption:'LHC —— 26,659 m 的超导磁铁环，位于地下 100 m', at:0.00 },
+      { caption:'1 号点 · ATLAS —— 7,000 吨通用型探测器', at:0.16 },
+      { caption:'反向旋转的束流 —— 每束约 2,500 个束团，每团 1.6\u00D710\u00B9\u00B9 个质子', at:0.34 },
+      { caption:'1,232 块二极磁铁在 1.9 K 下引导束流 —— 比外太空还冷', at:0.50 },
+      { caption:'5 号点 · CMS 与 2 号点 · ALICE 与 ATLAS 共用这条环', at:0.66 },
+      { caption:'4 号点射频腔每圈为束流补充能量 —— 每秒转 11,245 圈', at:0.84 },
+      { caption:'13.6 TeV 对撞 —— ATLAS 与 CMS 中每秒最多 15 亿次', at:0.95 },
+    ],
+    legendBeamA:'束流 1 —— 顺时针', legendBeamB:'束流 2 —— 逆时针' },
+
+  collision:{
+    title:'合成对撞显示',
+    body:'探测器的示意剖面图，配上一个数学生成的事件。这不是真实的 ATLAS 数据：'
+       + '径迹弯曲、喷注和能量塔都采样自简化的物理启发分布。',
+    facts:['带电径迹在 2 T 螺线管磁场中弯曲 —— 曲率 ∝ 1/p\u209C',
+           '强子喷雾 = \u201C喷注（jet）\u201D，显示为量能器表皮上的能量塔',
+           '到达外环的金色径迹是缪子 —— 它们贯穿整个探测器'],
+    badge:'合成事件 —— 非真实数据',
+    seq:[
+      { phase:'approach', cap:'两个质子以接近光速沿束流管相向飞来\u2026\u2026' },
+      { phase:'impact',   cap:'对撞！全部能量集中在一点 —— 并转化为新的粒子（E = mc\u00B2）。' },
+      { phase:'shower',   cap:'夸克和胶子喷涌而出 —— 但自由的夸克无法单独存在\u2026\u2026' },
+      { phase:'hadron',   cap:'强子化：每个夸克从真空中\u201C拽\u201D出新粒子，喷洒成一道道\u201C喷注\u201D。' },
+      { phase:'layers',   cap:'粒子穿过时，每层探测器依次闪亮 —— 像素 → 径迹器 → 量能器 → 缪子腔室。' },
+      { phase:'done',     cap:'事件测量完成。只有缪子（金色）到达最外层。' },
+    ] },
+
+  credits:[
+    { t:'CERN — 大型强子对撞机（英文）', u:'https://home.cern/science/accelerators/large-hadron-collider' },
+    { t:'CERN — ATLAS 实验（英文）', u:'https://home.cern/science/experiments/atlas' },
+    { t:'ATLAS — 探测器与技术（英文）', u:'https://atlas.cern/Discover/Detector' },
+    { t:'ATLAS — 内探测器（英文）', u:'https://atlas.cern/Discover/Detector/Inner-Detector' },
+    { t:'ATLAS — 量能器（英文）', u:'https://atlas.cern/Discover/Detector/Calorimeter' },
+    { t:'ATLAS — 磁铁系统（英文）', u:'https://atlas.cern/Discover/Detector/Magnet-System' },
+    { t:'ATLAS — 缪子谱仪（英文）', u:'https://atlas.cern/Discover/Detector/Muon-Spectrometer' },
+    { t:'ATLAS — 触发与数据采集（英文）', u:'https://atlas.cern/Discover/Detector/Trigger-DAQ' },
+  ],
+
+  triggerNote:'触发与数据采集（真实 ATLAS）：一级硬件触发在 2.5 \u03BCs 内做出判断；'
+    + '软件农场（约 40,000 个 CPU 核心）把每秒最多 100,000 个候选事件筛选到每秒约 1,000 个记录在案。'
+    + '而在这里，每个事件都会被展示 —— 物理学家可没这待遇。'};
+
+/* ======================= UI chrome strings ===============================
+ * Static interface labels, keyed for APP.tr().
+ * ==========================================================================*/
+APP.DATA.ui = {
+  'brand.title':     { en:'COLLIDER EXPLORER', zh:'粒子对撞机探秘' },
+  'tab.detector':    { en:'Detector',    zh:'探测器' },
+  'tab.ring':        { en:'Accelerator', zh:'加速器' },
+  'tab.collision':   { en:'Collisions',  zh:'对撞' },
+  'brand.sub':       { en:'LHC · ATLAS-inspired — educational', zh:'LHC · ATLAS 灵感 — 科普可视化' },
+  'panel.systems':   { en:'Detector systems', zh:'探测器系统' },
+  'panel.note':      { en:'Counts = parts rendered in this simplified model — hover a row for the real CERN figures. Click a system name to focus the camera and read about it.',
+                       zh:'数字 = 此简化模型渲染的部件数 —— 悬停一行可查看真实 CERN 数据。点击系统名称可聚焦相机并阅读介绍。' },
+  'panel.edu':       { en:'Education', zh:'科普专栏' },
+  'btn.all':         { en:'All', zh:'全选' },
+  'btn.solo':        { en:'Solo core', zh:'只看芯部' },
+  'btn.assemble':    { en:'Assemble', zh:'复原' },
+  'btn.cutaway':     { en:'✂️ Cutaway', zh:'✂️ 剖切视图' },
+  'btn.flight':      { en:'\u25B6\u00A0 Camera flight around the ring', zh:'\u25B6\u00A0 环形加速器镜头巡礼' },
+  'btn.trigger':     { en:'Trigger event', zh:'触发对撞事件' },
+  'btn.close':       { en:'Close \u2715', zh:'关闭 \u2715' },
+  'beamspeed':       { en:'Beam speed', zh:'束流速度' },
+  'hint.ring':       { en:'drag to orbit · wheel to zoom · F to fly', zh:'拖拽旋转 · 滚轮缩放 · F 键巡礼' },
+  'autorenew':       { en:'auto-renew', zh:'自动刷新' },
+  'ev.event':        { en:'event', zh:'事件' },
+  'ev.tracks':       { en:'tracks', zh:'径迹' },
+  'ev.jets':         { en:'jets', zh:'喷注' },
+  'ev.muons':        { en:'muons', zh:'\u03BC 子' },
+  'badge':           { en:'SYNTHETIC EVENT \u2014 NOT REAL DATA', zh:'合成事件 —— 非真实数据' },
+  'legend.ring':     { en:'Counter-rotating beams', zh:'反向旋转的质子束' },
+  'legend.collision':{ en:'Event legend', zh:'事件图例' },
+  'leg.hadron':      { en:'charged hadron track', zh:'带电强子径迹' },
+  'leg.em':          { en:'electron / EM tower', zh:'电子 / 电磁塔' },
+  'leg.muon':        { en:'muon (reaches outer layers)', zh:'\u03BC 子（到达外层）' },
+  'leg.jet':         { en:'jet energy towers', zh:'喷注能量塔' },
+  'leg.met':         { en:'missing E\u209C (vector sum)', zh:'丢失横向能量 E\u209C（矢量和）' },
+  'leg.note':        { en:'Schematic — ring radius compressed \u224860\u00D7; magnet boxes represent clusters of the 1,232 real dipoles.',
+                       zh:'示意图 —— 环半径压缩约 60 倍；磁铁方块代表 1,232 块真实二极磁铁的集群。' },
+  'stage.assembled': { en:'Assembled', zh:'完整组装' },
+  'stage.fmt':       { en:'Stage {n} / 6 \u2014 {chip}', zh:'第 {n} / 6 阶段 — {chip}' },
+  'stats.parts':     { en:' parts', zh:' 个部件' },
+  'help.about':      { en:'About', zh:'关于' },
+  'help.controls':   { en:'Controls', zh:'操作' },
+  'help.refs':       { en:'Official CERN references', zh:'CERN 官方参考资料' },
+  'help.foot':       { en:'Educational visualization by an independent author — not affiliated with or endorsed by CERN. Geometry is simplified (proportions exaggerated for readability; ring radius compressed \u224860\u00D7). All collision events are synthetic, generated from physics-inspired math — never real detector data. Facts sourced from home.cern and atlas.cern (2026). Rendering: Three.js r158 (MIT). Local, offline, no tracking.',
+                       zh:'由独立作者制作的科普可视化 —— 与 CERN 无关，亦未获其认可。几何经过简化（比例为可读性而夸大；环半径压缩约 60 倍）。所有对撞事件均为合成事件，由物理启发的数学生成 —— 绝非真实探测器数据。事实来源：home.cern 与 atlas.cern（2026）。渲染：Three.js r158（MIT）。本地离线运行，无追踪。' },
+  'ctl.scroll':      { en:'scroll (Detector)', zh:'滚轮（探测器）' },
+  'ctl.scroll.d':    { en:'disassemble / assemble the detector in six stages', zh:'分六个阶段拆解 / 组装探测器' },
+  'ctl.drag':        { en:'drag · right-drag', zh:'拖拽 · 右键拖拽' },
+  'ctl.drag.d':      { en:'orbit · pan (all views)', zh:'旋转 · 平移（所有视图）' },
+  'ctl.wheel':       { en:'wheel (Accelerator / Collisions)', zh:'滚轮（加速器 / 对撞）' },
+  'ctl.wheel.d':     { en:'zoom', zh:'缩放' },
+  'ctl.space':       { en:'Space · R', zh:'空格 · R' },
+  'ctl.space.d':     { en:'play/pause · reverse assembly', zh:'播放/暂停 · 反向组装' },
+  'ctl.arrows':      { en:'\u2190 / \u2192', zh:'\u2190 / \u2192' },
+  'ctl.arrows.d':    { en:'previous / next stage', zh:'上一阶段 / 下一阶段' },
+  'ctl.views':       { en:'1 · 2 · 3', zh:'1 · 2 · 3' },
+  'ctl.views.d':     { en:'Detector · Accelerator · Collisions views', zh:'探测器 · 加速器 · 对撞视图' },
+  'ctl.cutaway':     { en:'C', zh:'C' },
+  'ctl.cutaway.d':   { en:'toggle 3D cutaway view (reveals interior & center)', zh:'切换 3D 剖切视图（展示内部构造与中空核心）' },
+  'ctl.fe':          { en:'F · E', zh:'F · E' },
+  'ctl.fe.d':        { en:'ring camera flight · trigger synthetic event', zh:'环形相机巡礼 · 触发合成事件' },
+  'ctl.esc':         { en:'H · Esc', zh:'H · Esc' },
+  'ctl.esc.d':       { en:'help · close', zh:'帮助 · 关闭' },
+  'toast.assembled': { en:'Assembled view', zh:'完整组装视图' },
+  'toast.stage':     { en:'Stage {n} \u2014 {chip}', zh:'第 {n} 阶段 — {chip}' },
+  'toast.dirFwd':    { en:'Disassembly direction', zh:'拆解方向' },
+  'toast.dirRev':    { en:'Assembly direction (reverse)', zh:'组装方向（反向）' },
+  'toast.playback':  { en:'Playback: {d} s full cycle', zh:'播放：完整周期 {d} 秒' },
+  'toast.cutawayOn': { en:'Cutaway view enabled', zh:'剖切视图已开启（展示中空核心）' },
+  'toast.cutawayOff':{ en:'Cutaway view disabled', zh:'剖切视图已关闭' },
+  'toast.flightOff': { en:'Flight cancelled', zh:'巡礼已取消' },
+  'toast.flight':    { en:'Camera flight — drag to cancel', zh:'镜头巡礼 —— 拖拽可取消' },
+  'toast.lang':      { en:'Language: English', zh:'语言已切换为：中文' },
+};

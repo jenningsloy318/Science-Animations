@@ -95,6 +95,22 @@
       setExplode(t) { explode.setT(t); } };
 
     /* ====================================================================== */
+    /* hollow cylinder centered at origin, aligned along Z axis (beam line) */
+    function makeHollowCylinder(rIn, rOut, height, segments = 36) {
+      const shape = new THREE.Shape();
+      shape.absarc(0, 0, rOut, 0, Math.PI * 2, false);
+      const hole = new THREE.Path();
+      hole.absarc(0, 0, rIn, 0, Math.PI * 2, true);
+      shape.holes.push(hole);
+      const geo = new THREE.ExtrudeGeometry(shape, {
+        depth: height,
+        bevelEnabled: false,
+        curveSegments: Math.max(12, Math.floor(segments / 2)),
+      });
+      geo.center();
+      return geo;
+    }
+
     function buildPipe() {
       const seg = (z0, z1, r) => new THREE.Mesh(
         new THREE.CylinderGeometry(r, r, z1 - z0, 24, 1, true).rotateX(Math.PI / 2), M.pipe);
@@ -120,8 +136,8 @@
         blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.85 }));
       glowSpr.scale.set(5, 5, 1);
       reg('pipe', glowSpr, 0, U.zDir(1), 0);
-      const lbl = U.makeLabel('Interaction point', { size: 40, color: '#bfeaff', height: 2.6, depthTest: true });
-      lbl.position.set(0, 4.6, 0);
+      const lbl = U.makeLabel('Interaction point / 对撞点', { size: 36, color: '#bfeaff', height: 2.2, depthTest: false });
+      lbl.position.set(0, -2.4, 0);
       reg('pipe', lbl, 6, U.zDir(1), 4);
     }
 
@@ -313,6 +329,7 @@
         reg('emcal', makeIM(plateGeo, M.emLead, items), 3, U.zDir(sgn), 12);
         const girder = new THREE.Mesh(
           new THREE.CylinderGeometry(14.35, 14.35, 13, 64, 1, true).rotateX(Math.PI / 2), M.emGirder);
+        girder.renderOrder = 4;
         girder.position.z = sgn * 6.55;
         reg('emcal', girder, 3, U.zDir(sgn), 12);
       }
@@ -327,7 +344,8 @@
           });
         }
         reg('emcal', makeIM(ecPlate, M.emLead, items), 3, U.zDir(sgn), 15);
-        const disk = new THREE.Mesh(new THREE.CylinderGeometry(10.4, 10.4, 0.8, 48).rotateX(Math.PI / 2), M.emGirder);
+        const disk = new THREE.Mesh(new THREE.CylinderGeometry(10.4, 10.4, 0.8, 48, 1, true).rotateX(Math.PI / 2), M.emGirder);
+        disk.renderOrder = 3;
         disk.position.z = sgn * 19.9;
         reg('emcal', disk, 3, U.zDir(sgn), 15);
       }
@@ -347,6 +365,7 @@
         reg('hadcal', makeIM(tileGeo, M.tile, items), 3, U.zDir(sgn), 9.5);
         const skin = new THREE.Mesh(
           new THREE.CylinderGeometry(18.2, 18.2, 13.4, 64, 1, true).rotateX(Math.PI / 2), M.tileSteel);
+        skin.renderOrder = 5;
         skin.position.z = sgn * 6.75;
         reg('hadcal', skin, 3, U.zDir(sgn), 9.5);
       }
@@ -365,6 +384,7 @@
         reg('hadcal', makeIM(tileGeo, M.tile, items), 3, U.zDir(sgn), 6.5);
         const skin = new THREE.Mesh(
           new THREE.CylinderGeometry(18.2, 18.2, 6.4, 64, 1, true).rotateX(Math.PI / 2), M.tileSteel);
+        skin.renderOrder = 5;
         skin.position.z = sgn * 17.3;
         reg('hadcal', skin, 3, U.zDir(sgn), 6.5);
       }
@@ -379,14 +399,15 @@
           }
         }
         reg('hadcal', makeIM(new THREE.BoxGeometry(3.4, 0.8, 2.6), M.copper, items), 3, U.zDir(sgn), 11);
-        const wheel = new THREE.Mesh(new THREE.CylinderGeometry(14.4, 14.4, 2.4, 48).rotateX(Math.PI / 2), M.tileSteel);
+        const wheel = new THREE.Mesh(new THREE.CylinderGeometry(14.4, 14.4, 2.4, 48, 1, true).rotateX(Math.PI / 2), M.tileSteel);
+        wheel.renderOrder = 4;
         wheel.position.z = sgn * 21.6;
         reg('hadcal', wheel, 3, U.zDir(sgn), 11);
       }
-      /* FCAL stacks */
+      /* FCAL stacks (hollow central bore for beam line) */
       for (const sgn of [1, -1]) {
         for (let k = 0; k < 3; k++) {
-          const f = new THREE.Mesh(new THREE.CylinderGeometry(4.2 - k * 0.3, 4.2 - k * 0.3, 0.5, 32).rotateX(Math.PI / 2), M.copper);
+          const f = new THREE.Mesh(makeHollowCylinder(0.85, 4.2 - k * 0.3, 0.5, 32), M.copper);
           f.position.z = sgn * (23.6 + k * 0.9);
           reg('hadcal', f, 3, U.zDir(sgn), 7 + k * 1.5);
         }
@@ -431,7 +452,7 @@
       const ecGeo = coilGeo(5.35, 10.7, 5, 2, 1.6);
       for (const sgn of [1, -1]) {
         const g = new THREE.Group();
-        const hub = new THREE.Mesh(new THREE.CylinderGeometry(4.6, 4.6, 8, 36).rotateX(Math.PI / 2), M.structure);
+        const hub = new THREE.Mesh(makeHollowCylinder(1.0, 4.6, 8, 36), M.structure);
         g.add(hub);
         for (let i = 0; i < 8; i++) {
           const a = (i / 8) * TAU;
@@ -503,7 +524,7 @@
         g.add(makeIM(new THREE.CylinderGeometry(0.115, 0.115, 1.6, 6, 1, true), M.mdtTube, tubes));
         g.add(makeIM(new THREE.BoxGeometry(1, 0.85, 2.9), M.mdtFrame, frames));
         const cnt = tubes.length + frames.length;
-        const hub = new THREE.Mesh(new THREE.CylinderGeometry(4.6, 4.6, 7.5, 36).rotateX(Math.PI / 2), M.structure);
+        const hub = new THREE.Mesh(makeHollowCylinder(1.0, 4.6, 7.5, 36), M.structure);
         hub.position.z = sgn * 41;
         g.add(hub);
         for (let i = 0; i < 16; i++) {

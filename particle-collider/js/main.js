@@ -15,6 +15,7 @@
     if ('useLegacyLights' in renderer) renderer.useLegacyLights = true;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.24;
+    renderer.localClippingEnabled = true;
 
     APP.MATS.build(renderer);
 
@@ -27,6 +28,26 @@
       detector, ring, collision,
       view: 'detector',
       stageIndex: () => U.clamp(Math.ceil(pb.t * 6) - 1, 0, 5),
+    };
+
+    /* ---- 3D cutaway plane for detector view (reveals hollow core) ---- */
+    const cutawayPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -0.05);
+    let cutawayEnabled = true;
+
+    function updateCutaway() {
+      if (cutawayEnabled && app.view === 'detector') {
+        renderer.clippingPlanes = [cutawayPlane];
+      } else {
+        renderer.clippingPlanes = [];
+      }
+      const cutBtn = document.getElementById('btnCutaway');
+      if (cutBtn) cutBtn.classList.toggle('active', cutawayEnabled && app.view === 'detector');
+    }
+
+    app.toggleCutaway = () => {
+      cutawayEnabled = !cutawayEnabled;
+      updateCutaway();
+      APP.UI.toast(cutawayEnabled ? APP.tr('toast.cutawayOn') : APP.tr('toast.cutawayOff'));
     };
 
     /* ---- orbit cameras (one camera, per-view state) ---- */
@@ -64,7 +85,8 @@
       pb.playing = false;
       const target = s === 0 ? 0 : s / 6;
       tweens.add(0.7, (k) => setT(U.lerp(pb.t, target, k), false));
-      APP.UI.toast(s === 0 ? 'Assembled view' : `Stage ${s} — ${APP.DATA.stages[s - 1].chip}`);
+      APP.UI.toast(s === 0 ? APP.tr('toast.assembled')
+        : APP.tr('toast.stage').replace('{n}', s).replace('{chip}', APP.L().stages[s - 1].chip));
     };
     app.togglePlay = () => {
       if (!pb.playing) {
@@ -78,9 +100,9 @@
       pb.dir *= -1;
       if (!pb.playing) { pb.playing = true; }
       APP.UI.syncPlayback(pb);
-      APP.UI.toast(pb.dir > 0 ? 'Disassembly direction' : 'Assembly direction (reverse)');
+      APP.UI.toast(pb.dir > 0 ? APP.tr('toast.dirFwd') : APP.tr('toast.dirRev'));
     };
-    app.setDuration = (d) => { pb.duration = d; APP.UI.toast(`Playback: ${d} s full cycle`); };
+    app.setDuration = (d) => { pb.duration = d; APP.UI.toast(APP.tr('toast.playback').replace('{d}', d)); };
 
     /* ---- systems ---- */
     app.setSystemVisible = (id, vis) => {
@@ -118,6 +140,9 @@
         document.body.dataset.view = v;
         $$('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === v));
         APP.UI.showEduForView(v);
+        updateCutaway();
+        if (v === 'collision' && collision.refreshCaption) collision.refreshCaption();
+        else document.getElementById('collCaption').classList.remove('show');
         if (v !== 'ring') cancelFlight();
       });
     };
@@ -134,19 +159,25 @@
       if (!ring.flight.active) return;
       ring.flight.cancel();
       capEl.classList.remove('show');
-      APP.UI.toast('Flight cancelled');
+      APP.UI.toast(APP.tr('toast.flightOff'));
     }
     app.startFlight = () => {
       if (app.view !== 'ring') app.setView('ring');
       setTimeout(() => {
         orbits.ring.desTarget.set(0, 0, 0);
         ring.flight.start();
-        APP.UI.toast('Camera flight — drag to cancel');
+        APP.UI.toast(APP.tr('toast.flight'));
       }, app.view === 'ring' ? 0 : 220);
     };
     app.setBeamSpeed = (m) => ring.setSpeed(m);
 
     /* ---- collision ---- */
+    const collCap = document.getElementById('collCaption');
+    collision.setCaptionSink((text) => {
+      if (!text) { collCap.classList.remove('show'); return; }
+      collCap.textContent = text;
+      collCap.classList.add('show');
+    });
     app.triggerEvent = () => collision.trigger();
     app.setAuto = (v) => collision.setAuto(v);
     app.eventInfo = () => collision.getInfo();
@@ -155,6 +186,7 @@
     const tweens = APP.tweens = new U.Tweens();
     APP.UI.init(app);
     APP.UI.syncPlayback(pb);
+    updateCutaway();
 
     /* ---- keyboard ---- */
     window.addEventListener('keydown', (e) => {
@@ -162,6 +194,7 @@
       switch (e.key) {
         case ' ': e.preventDefault(); if (app.view === 'detector') app.togglePlay(); break;
         case 'r': case 'R': if (app.view === 'detector') app.toggleReverse(); break;
+        case 'c': case 'C': if (app.view === 'detector') app.toggleCutaway(); break;
         case '1': app.setView('detector'); break;
         case '2': app.setView('ring'); break;
         case '3': app.setView('collision'); break;
@@ -208,7 +241,7 @@
       }
 
       if (app.view === 'ring') ring.update(dt, camera);
-      collision.update(dt, orbits.collision);
+      collision.update(dt, orbits.collision, app.view === 'collision');
       renderer.render(views()[app.view].scene, camera);
 
       /* fps */

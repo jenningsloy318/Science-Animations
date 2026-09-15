@@ -1,7 +1,9 @@
 /* ============================================================================
  * collision.js — SYNTHETIC collision display (math-generated, not real data)
- * Schematic cut-away detector + helix tracks (curvature ∝ 1/pT in the 2 T
- * solenoid), jets as energy towers, long gold muon tracks, missing-Et arrow.
+ * Schematic cut-away detector + a staged, narrated collision sequence:
+ *   approach → impact → parton shower → hadronization → layer flashes → done
+ * Helix tracks (curvature ∝ 1/pT in the 2 T solenoid), jets as energy towers,
+ * long gold muon tracks, missing-Et arrow.
  * ==========================================================================*/
 (function () {
   const U = APP.U, TAU = U.TAU;
@@ -20,6 +22,10 @@
     { r: 13.5, mat: { color: 0x2a3138, emissive: 0xd8b25c, emissiveIntensity: 0.07 } },
   ];
 
+  /* sequence timing (seconds) */
+  const PHASE_T = { approach: 2.2, impact: 0.55, shower: 1.5, hadron: 1.7, layers: 2.4 };
+  const Z_START = 17, Z_HIT = 0.25, DONE_HOLD = 4.2, AUTO_AFTER = 4.5;
+
   APP.Collision = { build };
 
   function build(renderer) {
@@ -33,7 +39,8 @@
     const rim = new THREE.DirectionalLight(0x6fd3e8, 0.8); rim.position.set(-35, 15, -30); scene.add(rim);
     const ipLight = new THREE.PointLight(0xffe9b0, 0, 40, 2); scene.add(ipLight);
 
-    buildCutaway();
+    const shellMats = buildCutaway();   /* one material per shell, radial order */
+    const shellBase = shellMats.map((m) => m.emissiveIntensity);
     const ipGlow = addIPGlow();
 
     /* dynamic event group */
@@ -42,7 +49,12 @@
 
     const state = {
       num: 0, tracks: 0, jets: 0, sumET: 0, muons: 0,
-      drawT: 1, auto: true, timer: 2.0, trackLines: [], towers: [], misc: [],
+      phase: 'approach', pt: 0, doneT: 0,
+      pEarly: 0, pLate: 0,
+      auto: true, timer: 2.0,
+      trackLines: [], towers: [], misc: [],
+      protons: [], shock: null,
+      onCaption: null, capShown: false,
     };
     const matsTrack = {};
     for (const k of Object.keys(COL)) {
@@ -54,14 +66,15 @@
     const towerMatEM = towerMat.clone(); towerMatEM.emissive = new THREE.Color(0x7adfe8);
 
     function clearEvent() {
-      for (const o of [...state.trackLines, ...state.towers, ...state.misc]) {
+      for (const o of [...state.trackLines, ...state.towers, ...state.misc, ...state.protons, ...(state.shock ? [state.shock] : [])]) {
         eventGroup.remove(o);
         if (o.geometry) o.geometry.dispose();
       }
       state.trackLines = []; state.towers = []; state.misc = [];
+      state.protons = []; state.shock = null;
     }
 
-    function addTrack(params, type) {
+    function addTrack(params, type, group) {
       const { rho, phi0, q, slope, sMax } = params;
       const n = 88, pos = new Float32Array(n * 3);
       for (let i = 0; i < n; i++) {
@@ -81,7 +94,8 @@
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
       const line = new THREE.Line(geo, matsTrack[type]);
-      line.geometry.setDrawRange(0, 2);
+      line.geometry.setDrawRange(0, 0);
+      line.userData.g = group;            /* 'early' | 'late' */
       eventGroup.add(line);
       state.trackLines.push(line);
       return line;
@@ -99,7 +113,38 @@
       state.towers.push(m);
     }
 
-    function trigger(seed) {
+    /* ---- sequence pieces -------------------------------------------------*/
+    function makeProton() {
+      const g = new THREE.Group();
+      const core = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 12),
+        new THREE.MeshBasicMaterial({ color: 0xffedd0 }));
+      const spr = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: U.glowTexture('rgba(255,225,160,1)'), transparent: true,
+        blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.95 }));
+      spr.scale.set(2.4, 2.4, 1);
+      g.add(core); g.add(spr);
+      return g;
+    }
+
+    function makeShockRing() {
+      const m = new THREE.Mesh(new THREE.RingGeometry(0.96, 1.0, 72),
+        new THREE.MeshBasicMaterial({ color: 0xffe9b0, transparent: true, opacity: 0.85,
+          side: THREE.DoubleSide, blending: THREE.AdditiveBlending, depthWrite: false }));
+      m.scale.setScalar(0.001);
+      return m;
+    }
+
+    function emitCaption() {
+      if (!state.onCaption) return;
+      const step = APP.L().collision.seq.find((s) => s.phase === state.phase);
+      if (step) { state.onCaption(step.cap); state.capShown = true; }
+      else { state.onCaption(null); state.capShown = false; }
+    }
+
+    function setPhase(p) { state.phase = p; state.pt = 0; emitCaption(); }
+
+    /* ---- the event itself ------------------------------------------------*/
+    function startSequence(seed) {
       clearEvent();
       state.num++;
       const rnd = U.rng(seed === undefined ? (Date.now() & 0xffff) * 2654435761 + state.num : seed);
@@ -117,7 +162,7 @@
           const pT = 1.5 + rnd() * 4.5;
           const phi0 = phiJ + (rnd() - 0.5) * 0.55;
           const eta = etaJ + (rnd() - 0.5) * 0.7;
-          addTrack(helix(pT, phi0, eta, R_STOP.had, rnd), 'hadron');
+          addTrack(helix(pT, phi0, eta, R_STOP.had, rnd), k === 0 ? 'early' : 'late', 'hadron');
           info.tracks++;
         }
         /* towers */
@@ -132,11 +177,11 @@
         }
         info.jets++;
       }
-      /* muons: 2–4, long gold tracks */
+      /* muons: 2–4, long gold tracks — always 'early' (they punch straight out) */
       const nMu = 2 + Math.floor(rnd() * 3);
       for (let k = 0; k < nMu; k++) {
         const pT = 3.5 + rnd() * 6;
-        addTrack(helix(pT, rnd() * TAU, (rnd() - 0.5) * 2.2, R_STOP.muon, rnd), 'muon');
+        addTrack(helix(pT, rnd() * TAU, (rnd() - 0.5) * 2.2, R_STOP.muon, rnd), 'muon', 'early');
         info.tracks++; info.muons++;
       }
       /* extra scattered tracks */
@@ -146,7 +191,8 @@
         const pT = 0.5 + 3.2 * r * r;
         const type = r > 0.93 ? 'electron' : (pT > 3.4 ? 'muon' : 'hadron');
         const stop = type === 'electron' ? R_STOP.em : (type === 'muon' ? R_STOP.muon : (rnd() > 0.5 ? R_STOP.trt : R_STOP.had));
-        addTrack(helix(pT, rnd() * TAU, (rnd() - 0.5) * 3.4, stop, rnd), type === 'muon' ? 'hadron' : type);
+        addTrack(helix(pT, rnd() * TAU, (rnd() - 0.5) * 3.4, stop, rnd), type === 'muon' ? 'hadron' : type,
+          k % 3 === 0 ? 'early' : 'late');
         info.tracks++;
       }
       state.tracks = info.tracks; state.jets = info.jets; state.sumET = info.sumET; state.muons = info.muons;
@@ -165,11 +211,23 @@
       eventGroup.add(arrow);
       state.misc.push(arrow);
 
-      /* flash */
-      ipGlow.material.opacity = 1;
-      ipGlow.scale.set(7, 7, 1);
-      ipLight.intensity = 3.2;
-      state.drawT = 0;
+      /* the two incoming protons */
+      const pa = makeProton(), pb = makeProton();
+      pa.position.set(0, 0, Z_START); pb.position.set(0, 0, -Z_START);
+      eventGroup.add(pa); eventGroup.add(pb);
+      state.protons = [pa, pb];
+
+      /* reset visuals for the run */
+      state.pEarly = 0; state.pLate = 0;
+      for (const line of state.trackLines) line.geometry.setDrawRange(0, 0);
+      for (const t of state.towers) t.scale.y = 0.001;
+      ipGlow.material.opacity = 0.12;
+      ipGlow.scale.set(3.2, 3.2, 1);
+      ipLight.intensity = 0.15;
+      for (let i = 0; i < shellMats.length; i++) shellMats[i].emissiveIntensity = shellBase[i];
+
+      state.doneT = 0;
+      setPhase('approach');
     }
 
     function helix(pT, phi0, eta, rStop, rnd) {
@@ -191,10 +249,12 @@
 
     function buildCutaway() {
       const zHalf = 7;
+      const mats = [];
       for (const sh of SHELLS) {
         const mat = new THREE.MeshStandardMaterial(Object.assign({
           metalness: 0.75, roughness: 0.5, side: THREE.DoubleSide, envMap: APP.MATS.env,
-          transparent: true, opacity: 0.9 }, sh.mat));
+          transparent: true, opacity: 0.55 }, sh.mat));
+        mats.push(mat);
         for (const start of [120, 300]) {  /* solid sectors centered ±y; gaps face ±x (camera) */
           const cyl = new THREE.Mesh(
             new THREE.CylinderGeometry(sh.r, sh.r, zHalf * 2, 40, 1, true, start * Math.PI / 180, 120 * Math.PI / 180).rotateX(Math.PI / 2),
@@ -214,6 +274,7 @@
       const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 17.5, 10).rotateX(Math.PI / 2),
         new THREE.MeshBasicMaterial({ color: 0x9fe8ff, transparent: true, opacity: 0.5 }));
       scene.add(beam);
+      return mats;
     }
 
     function addIPGlow() {
@@ -225,39 +286,93 @@
       return spr;
     }
 
-    function update(dt, orbit) {
-      /* draw-in animation */
-      if (state.drawT < 1) {
-        state.drawT = Math.min(1, state.drawT + dt / 1.4);
-        const e = U.smooth(state.drawT);
-        for (const line of state.trackLines) {
-          line.geometry.setDrawRange(0, Math.max(2, Math.floor(e * 89)));
-        }
-        for (const t of state.towers) {
-          t.scale.y = Math.max(0.001, t.userData.targetH * U.smooth(U.clamp(state.drawT * 1.6 - 0.3, 0, 1)));
-        }
-      }
-      /* flash decay */
-      ipGlow.material.opacity = Math.max(0.28, ipGlow.material.opacity - dt * 1.2);
-      ipGlow.scale.setScalar(Math.max(3.2, ipGlow.scale.x - dt * 4));
-      ipLight.intensity = Math.max(0.25, ipLight.intensity - dt * 3);
+    /* flash curve: instant attack, exponential decay */
+    function flashPulse(tSince) { return tSince < 0 ? 0 : Math.exp(-tSince * 4.2); }
 
-      /* auto trigger */
-      if (state.auto) {
-        state.timer -= dt;
-        if (state.timer <= 0) { state.timer = 7.5; trigger(); }
+    function update(dt, orbit, active) {
+      if (active === false) return;          /* frozen when the view is not shown */
+
+      /* ---- sequence state machine ---- */
+      state.pt += dt;
+      if (state.phase === 'approach') {
+        const k = U.clamp(state.pt / PHASE_T.approach, 0, 1);
+        const e = k * k;                     /* accelerating */
+        const z = U.lerp(Z_START, Z_HIT, e);
+        state.protons[0].position.z = z;
+        state.protons[1].position.z = -z;
+        const g = 1 + k * 1.6;
+        state.protons[0].children[1].scale.set(g, g, 1);
+        state.protons[1].children[1].scale.set(g, g, 1);
+        ipGlow.material.opacity = 0.12 + k * 0.5;
+        if (state.pt >= PHASE_T.approach) {
+          /* impact: protons vanish, flash + shock ring */
+          for (const p of state.protons) p.visible = false;
+          state.shock = makeShockRing();
+          eventGroup.add(state.shock);
+          ipGlow.material.opacity = 1;
+          ipGlow.scale.set(11, 11, 1);
+          ipLight.intensity = 4.2;
+          setPhase('impact');
+        }
+      } else if (state.phase === 'impact') {
+        if (state.shock) {
+          const k = U.clamp(state.pt / PHASE_T.impact, 0, 1);
+          state.shock.scale.setScalar(0.3 + k * 14);
+          state.shock.material.opacity = 0.85 * (1 - k);
+        }
+        if (state.pt >= PHASE_T.impact) { if (state.shock) { state.shock.visible = false; } setPhase('shower'); }
+      } else if (state.phase === 'shower') {
+        state.pEarly = U.smooth(U.clamp(state.pt / PHASE_T.shower, 0, 1));
+        if (state.pt >= PHASE_T.shower) setPhase('hadron');
+      } else if (state.phase === 'hadron') {
+        state.pLate = U.smooth(U.clamp(state.pt / PHASE_T.hadron, 0, 1));
+        if (state.pt >= PHASE_T.hadron) setPhase('layers');
+      } else if (state.phase === 'layers') {
+        if (state.pt >= PHASE_T.layers) setPhase('done');
+      } else if (state.phase === 'done') {
+        state.doneT += dt;
+        if (state.capShown && state.doneT > DONE_HOLD) { state.onCaption(null); state.capShown = false; }
       }
+
+      /* ---- per-frame visual application ---- */
+      /* track draw-in: two waves */
+      const ne = Math.floor(state.pEarly * 89), nl = Math.floor(state.pLate * 89);
+      for (const line of state.trackLines) {
+        line.geometry.setDrawRange(0, Math.max(0, line.userData.g === 'early' ? ne : nl));
+      }
+      /* towers rise during 'hadron' and stay up */
+      const towerK = state.pLate;
+      for (const t of state.towers) {
+        t.scale.y = Math.max(0.001, t.userData.targetH * towerK);
+      }
+      /* shell flashes: radial wave through 'layers' (and decaying after) */
+      if (state.phase === 'layers' || state.phase === 'done') {
+        const t0 = state.phase === 'layers' ? state.pt : PHASE_T.layers + state.doneT;
+        for (let i = 0; i < shellMats.length; i++) {
+          shellMats[i].emissiveIntensity = shellBase[i] + 1.5 * flashPulse(t0 - i * 0.2);
+        }
+      }
+      /* flash decay after the burst */
+      if (state.phase !== 'approach' && state.phase !== 'impact') {
+        ipGlow.material.opacity = Math.max(0.28, ipGlow.material.opacity - dt * 1.2);
+        ipGlow.scale.setScalar(Math.max(3.2, ipGlow.scale.x - dt * 4));
+        ipLight.intensity = Math.max(0.25, ipLight.intensity - dt * 3);
+      }
+
+      /* auto trigger — only once the sequence has settled */
+      if (state.auto && state.phase === 'done' && state.doneT > AUTO_AFTER) startSequence();
       /* idle orbit drift */
       if (orbit && orbit.idleT > 4) orbit.des.az += dt * 0.06;
     }
 
-    function setAuto(v) { state.auto = v; if (v) state.timer = 2; }
+    function setAuto(v) { state.auto = v; }
     function getInfo() {
       return { num: state.num, tracks: state.tracks, jets: state.jets, sumET: state.sumET, muons: state.muons };
     }
+    function refreshCaption() { if (state.phase === 'done' ? state.capShown : true) emitCaption(); }
 
-    trigger(1337); /* opening event */
+    startSequence(1337); /* opening event (frozen until the view is shown) */
 
-    return { scene, update, trigger, setAuto, getInfo };
+    return { scene, update, trigger: startSequence, setAuto, getInfo, refreshCaption, phase: () => state.phase, setCaptionSink: (fn) => { state.onCaption = fn; } };
   }
 })();

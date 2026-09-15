@@ -1,8 +1,12 @@
-# Collider Explorer
+# Collider Explorer 对撞机探秘
 
 An interactive, **Three.js** particle-collider experience inspired by **CERN's Large Hadron
 Collider** and the **ATLAS detector** — packaged as **one self-contained HTML file** that runs
-fully offline.
+fully offline. **Bilingual: 中文 / English** — toggle with the **EN / 中文** button in the top
+bar; the whole UI, education panel and captions switch live.
+
+一个受 CERN 大型强子对撞机（LHC）与 ATLAS 探测器启发的交互式 Three.js 科普可视化，
+可完全离线运行。内置中英双语切换（顶栏 EN / 中文 按钮，全界面即时生效）。
 
 > **What it is / isn't.** This is an independent educational visualization. It is **not**
 > affiliated with or endorsed by CERN. Geometry is deliberately **simplified** (proportions —
@@ -33,7 +37,10 @@ js/utils.js         orbit camera, tweens, label sprites, staged-explode engine
 js/materials.js     metallic/gold palette, procedural PMREM environment, GPU shimmer
 js/detector.js      ~37,000 individually placed parts, 6-stage disassembly
 js/ring.js          LHC ring, counter-rotating bunch trains, camera flight
-js/collision.js     synthetic event display (helices, jets, towers, missing-Et)
+js/collision.js     synthetic event display + staged collision sequence
+                    (approach → impact → shower → hadronization → layer
+                    flashes → measured), narrated step by step in the
+                    current language
 js/ui.js            panels, toggles, transport, legends, help modal
 js/main.js          renderer, view switching, playback engine, input
 vendor/three.min.js Three.js r158 (MIT license)
@@ -113,3 +120,17 @@ All figures quoted in the UI were taken from these official pages (consulted 202
 Project code: MIT. `vendor/three.min.js` is Three.js r158 — MIT License,
 © 2010–2023 Three.js authors (<https://threejs.org>), kept unmodified except for inlining.
 CERN/ATLAS names and facts belong to CERN; this project simply cites them for education.
+
+## Collision sequence 对撞过程动画
+
+Every trigger plays a narrated, step-by-step sequence (captions in the current
+language): two protons race in along the beam pipe → flash impact (E = mc²) →
+quarks and gluons burst out → hadronization into jets → each detector layer
+flashes in radial order (pixel → tracker → calorimeters → muon chambers) →
+event measured. The outer detector skins (EM / tile barrels) are rendered
+semi-transparent so the hollow onion structure and the beam axis stay visible.
+
+每次触发都会播放一段分步讲解动画（字幕跟随当前语言）：两个质子沿束流管相向飞入 →
+对撞闪光（E = mc²）→ 夸克胶子喷出 → 强子化形成喷注 → 探测器各层由内向外依次闪亮 →
+事件测量完成。外层筒壁（电磁/强子量能器）做了半透明处理，
+空心中轴与层层套叠的结构一目了然。

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Collider Explorer — LHC &amp; ATLAS-inspired (educational)</title>
+<title>Collider Explorer 对撞机探秘 — LHC &amp; ATLAS-inspired (educational)</title>
 <style>
   :root{
     --bg:#05070a; --panel:rgba(13,16,22,.78); --panel2:rgba(10,13,18,.92);
@@ -140,6 +140,16 @@
     box-shadow:0 8px 30px rgba(0,0,0,.5), 0 0 18px rgba(216,178,92,.12); white-space:nowrap}
   #flightCaption.show{opacity:1}
 
+  /* ---------- collision sequence caption ---------- */
+  #collCaption{position:fixed; z-index:18; left:50%; bottom:150px; transform:translateX(-50%);
+    width:min(720px, calc(100vw - 40px)); text-align:center;
+    background:var(--panel2); border:1px solid rgba(216,178,92,.45); color:#f0e6c8;
+    padding:12px 24px; border-radius:16px; font-size:14px; line-height:1.55; letter-spacing:.02em;
+    opacity:0; transition:opacity .35s ease; pointer-events:none; backdrop-filter:blur(12px);
+    box-shadow:0 8px 30px rgba(0,0,0,.5), 0 0 18px rgba(216,178,92,.14)}
+  #collCaption.show{opacity:1}
+  #collCaption b{color:var(--gold)}
+
   /* ---------- bottom bars ---------- */
   #bottombar{position:fixed; left:50%; bottom:16px; transform:translateX(-50%); z-index:20;
     width:min(920px, calc(100vw - 28px))}
@@ -227,6 +237,12 @@
     transition:all .25s ease; backdrop-filter:blur(10px)}
   #toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
 
+  .lang-switch{display:inline-flex; align-items:center; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.16); border-radius:999px; padding:2px; gap:2px}
+  .lang-btn{background:transparent; border:none; color:var(--text-dim); padding:3px 9px; font-size:11.5px; font-weight:500; border-radius:999px; cursor:pointer; transition:all 0.18s ease; line-height:1.2}
+  .lang-btn:hover{color:#fff}
+  .lang-btn.active{background:rgba(111,211,232,0.22); color:#6fd3e8; font-weight:600; box-shadow:0 0 8px rgba(111,211,232,0.28)}
+  #btnCutaway.active{background:rgba(111,211,232,0.22); color:#6fd3e8; border-color:rgba(111,211,232,0.5); box-shadow:0 0 8px rgba(111,211,232,0.25)}
+
   @media (max-width:1100px){
     #rightPanel{display:none}
     #stageName{display:none}
@@ -249,7 +265,7 @@
     <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
     <div class="brand">
       <span class="logo"></span>
-      <div><h1>COLLIDER&nbsp;EXPLORER</h1><p>LHC · ATLAS-inspired — educational</p></div>
+      <div><h1>粒子对撞机探秘</h1><p>LHC · ATLAS 灵感 — 科普可视化</p></div>
     </div>
     <nav id="tabs" aria-label="Views">
       <button class="tab active" data-view="detector">Detector</button>
@@ -258,6 +274,10 @@
     </nav>
     <div class="topright">
       <span id="disclaimer" class="disclaimer"></span>
+      <div class="lang-switch" role="group" aria-label="Language 语言切换">
+        <button id="btnLangZh" class="lang-btn active" data-lang="zh">🇨🇳 中文</button>
+        <button id="btnLangEn" class="lang-btn" data-lang="en">🇬🇧 EN</button>
+      </div>
       <span class="statbox"><b id="statsParts">–</b> · <span id="statsFps">–</span></span>
       <button id="btnHelp" class="btn icon" aria-label="Help" title="Help (H)">?</button>
     </div>
@@ -281,6 +301,7 @@
   <section id="legend-collision" class="legend"><h2>Event legend</h2></section>
 
   <div id="flightCaption"></div>
+  <div id="collCaption"></div>
 
   <footer id="bottombar">
     <div id="transport">
@@ -302,6 +323,7 @@
         <span id="tReadout">0%</span>
         <span id="stageName">Assembled</span>
         <button id="btnOverview" class="btn mini" title="Reassemble everything">Assemble</button>
+        <button id="btnCutaway" class="btn mini active" title="3D 剖切视图 (C) / Toggle Cutaway (C)">✂️ 剖切</button>
       </div>
     </div>
 
@@ -333,16 +355,7 @@
       <h2>About</h2>
       <p id="aboutText"></p>
       <h2>Controls</h2>
-      <table>
-        <tr><td>scroll (Detector)</td><td>disassemble / assemble the detector in six stages</td></tr>
-        <tr><td>drag · right-drag</td><td>orbit · pan (all views)</td></tr>
-        <tr><td>wheel (Accelerator / Collisions)</td><td>zoom</td></tr>
-        <tr><td>Space · R</td><td>play/pause · reverse assembly</td></tr>
-        <tr><td>← / →</td><td>previous / next stage</td></tr>
-        <tr><td>1 · 2 · 3</td><td>Detector · Accelerator · Collisions views</td></tr>
-        <tr><td>F · E</td><td>ring camera flight · trigger synthetic event</td></tr>
-        <tr><td>H · Esc</td><td>help · close</td></tr>
-      </table>
+      <table><tbody id="controlsRows"></tbody></table>
       <h2>Official CERN references</h2>
       <ul id="creditLinks"></ul>
       <p class="helpfoot">Educational visualization by an independent author — not affiliated with or
