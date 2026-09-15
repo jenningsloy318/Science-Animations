@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Collider Explorer — LHC &amp; ATLAS-inspired (educational)</title>
+<style>
+  :root{
+    --bg:#05070a; --panel:rgba(13,16,22,.78); --panel2:rgba(10,13,18,.92);
+    --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14);
+    --gold:#d8b25c; --gold-dim:#8a6f35; --text:#e8eaed; --muted:#9aa3ad;
+    --cyan:#6fd3e8; --mint:#6fe3c4; --danger:#e0a84c;
+    --radius:14px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--text); overflow:hidden;
+    font:14px/1.5 "Segoe UI", system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  #gl{position:fixed; inset:0; width:100%; height:100%; display:block; cursor:grab}
+  #gl:active{cursor:grabbing}
+  #fader{position:fixed; inset:0; background:#000; opacity:0; pointer-events:none;
+    transition:opacity .16s ease; z-index:40}
+  /* cinematic vignette */
+  #vignette{position:fixed; inset:0; pointer-events:none; z-index:5;
+    background:radial-gradient(ellipse at 50% 42%, transparent 58%, rgba(0,0,0,.34) 100%)}
+
+  /* ---------- top bar ---------- */
+  #topbar{position:fixed; top:0; left:0; right:0; z-index:20;
+    display:flex; align-items:center; gap:18px; padding:10px 18px;
+    background:linear-gradient(180deg, rgba(5,7,10,.92), rgba(5,7,10,.55) 75%, transparent);
+  }
+  #homeBtn{
+    text-decoration:none; white-space:nowrap; flex:none;
+    display:inline-flex; align-items:center; gap:6px;
+    padding:6px 14px; border-radius:999px;
+    background:var(--panel); border:1px solid var(--line2);
+    color:var(--text); font-size:12.5px; font-weight:500;
+    transition:all .18s ease; backdrop-filter:blur(10px);
+  }
+  #homeBtn:hover{
+    border-color:rgba(216,178,92,.6); color:#f0e6c8;
+    box-shadow:0 0 12px rgba(216,178,92,.22); transform:translateY(-1px);
+  }
+  #homeBtn:active{transform:translateY(0)}
+  .brand{display:flex; align-items:center; gap:12px; min-width:230px}
+  .logo{width:26px; height:26px; border-radius:50%; position:relative; flex:none;
+    background:radial-gradient(circle at 35% 35%, #f0dfae, var(--gold) 45%, #6b5423 90%);
+    box-shadow:0 0 14px rgba(216,178,92,.45), inset 0 0 4px rgba(0,0,0,.4)}
+  .logo::after{content:""; position:absolute; inset:-5px; border-radius:50%;
+    border:1px solid rgba(216,178,92,.35)}
+  .brand h1{font-size:15px; letter-spacing:.16em; font-weight:600}
+  .brand p{font-size:10.5px; color:var(--muted); letter-spacing:.08em}
+  #tabs{display:flex; gap:4px; background:var(--panel); border:1px solid var(--line);
+    border-radius:999px; padding:4px; backdrop-filter:blur(14px)}
+  .tab{border:0; background:transparent; color:var(--muted); font:inherit; font-size:13px;
+    padding:7px 20px; border-radius:999px; cursor:pointer; letter-spacing:.04em;
+    transition:all .18s ease}
+  .tab:hover{color:var(--text)}
+  .tab.active{background:linear-gradient(180deg, rgba(216,178,92,.22), rgba(216,178,92,.10));
+    color:#f0e6c8; box-shadow:inset 0 0 0 1px rgba(216,178,92,.45)}
+  .topright{margin-left:auto; display:flex; align-items:center; gap:12px}
+  .disclaimer{font-size:10.5px; color:var(--muted); border:1px solid var(--line);
+    padding:5px 12px; border-radius:999px; background:var(--panel); letter-spacing:.03em}
+  .statbox{font-size:11.5px; color:var(--muted); font-variant-numeric:tabular-nums;
+    background:var(--panel); border:1px solid var(--line); padding:5px 12px; border-radius:999px}
+  .statbox b{color:var(--gold); font-weight:600}
+
+  /* ---------- buttons ---------- */
+  .btn{border:1px solid var(--line2); background:var(--panel); color:var(--text);
+    font:inherit; font-size:13px; padding:8px 16px; border-radius:10px; cursor:pointer;
+    transition:all .18s ease; display:inline-flex; align-items:center; gap:8px;
+    backdrop-filter:blur(10px)}
+  .btn:hover{border-color:rgba(216,178,92,.6); color:#f0e6c8;
+    box-shadow:0 0 12px rgba(216,178,92,.18)}
+  .btn.primary{border-color:rgba(216,178,92,.55);
+    background:linear-gradient(180deg, rgba(216,178,92,.20), rgba(216,178,92,.08)); color:#f0e6c8}
+  .btn.icon{width:36px; height:36px; justify-content:center; padding:0; border-radius:10px}
+  .btn.mini{padding:4px 10px; font-size:11.5px; border-radius:8px}
+  .btn.active{border-color:var(--gold); color:#f0e6c8;
+    background:rgba(216,178,92,.16)}
+  .btn svg{display:block}
+
+  /* ---------- side panels ---------- */
+  .panel{position:fixed; z-index:15; background:var(--panel); border:1px solid var(--line);
+    border-radius:var(--radius); backdrop-filter:blur(16px); padding:14px 16px;
+    box-shadow:0 12px 40px rgba(0,0,0,.45)}
+  .panel h2{font-size:11px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--gold); margin-bottom:10px; font-weight:600}
+  #leftPanel{left:14px; top:74px; width:280px; max-height:calc(100vh - 210px);
+    display:flex; flex-direction:column}
+  #systemsList{overflow-y:auto; margin:0 -6px; padding:0 6px}
+  #systemsList::-webkit-scrollbar{width:8px}
+  #systemsList::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12); border-radius:4px}
+  .sysrow{display:flex; align-items:center; gap:9px; padding:6px 6px; border-radius:9px;
+    transition:background .15s}
+  .sysrow:hover{background:rgba(255,255,255,.05)}
+  .dot{width:9px; height:9px; border-radius:50%; flex:none;
+    box-shadow:0 0 8px currentColor}
+  .sysname{display:flex; align-items:center; gap:8px; cursor:pointer; flex:1;
+    font-size:12.5px; color:var(--text)}
+  .sysname:hover span{text-decoration:underline; text-decoration-color:rgba(216,178,92,.5);
+    text-underline-offset:3px}
+  .sysname input{accent-color:var(--gold); width:14px; height:14px; cursor:pointer}
+  .syscount{font-size:11px; color:var(--muted); font-variant-numeric:tabular-nums}
+  .sysactions{display:flex; gap:8px; margin-top:10px}
+  .panelnote{font-size:10.5px; color:var(--muted); margin-top:10px; line-height:1.45}
+
+  #rightPanel{right:14px; top:74px; width:330px; max-height:calc(100vh - 200px);
+    overflow-y:auto}
+  #rightPanel::-webkit-scrollbar{width:8px}
+  #rightPanel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12); border-radius:4px}
+  #eduTitle{font-size:15px; color:#f0e6c8; margin-bottom:8px; letter-spacing:.02em}
+  #eduBody{font-size:12.5px; color:#c4cad2; line-height:1.6}
+  #eduFacts{margin-top:12px; list-style:none}
+  #eduFacts li{font-size:11.5px; color:var(--muted); padding:7px 0 7px 18px; position:relative;
+    border-top:1px solid rgba(255,255,255,.05); line-height:1.5}
+  #eduFacts li::before{content:""; position:absolute; left:2px; top:13px; width:7px; height:7px;
+    border:1.5px solid var(--gold-dim); transform:rotate(45deg)}
+  #eduFacts li.srcline{color:#8b95a2; font-style:italic}
+
+  /* ---------- legends ---------- */
+  .legend{position:fixed; z-index:15; left:14px; top:74px; width:280px;
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    backdrop-filter:blur(16px); padding:14px 16px; display:none}
+  .legrow{display:flex; align-items:center; gap:10px; font-size:12px; color:#c4cad2;
+    padding:4px 0}
+  .swatch{width:14px; height:14px; border-radius:4px; flex:none;
+    box-shadow:0 0 8px rgba(255,255,255,.15)}
+  .legnote{font-size:10.5px; color:var(--muted); margin-top:10px; line-height:1.5;
+    border-top:1px solid rgba(255,255,255,.06); padding-top:10px}
+
+  /* ---------- flight caption ---------- */
+  #flightCaption{position:fixed; z-index:18; left:50%; bottom:118px; transform:translateX(-50%);
+    background:var(--panel2); border:1px solid rgba(216,178,92,.4); color:#f0e6c8;
+    padding:10px 22px; border-radius:999px; font-size:13.5px; letter-spacing:.02em;
+    opacity:0; transition:opacity .3s ease; pointer-events:none; backdrop-filter:blur(12px);
+    box-shadow:0 8px 30px rgba(0,0,0,.5), 0 0 18px rgba(216,178,92,.12); white-space:nowrap}
+  #flightCaption.show{opacity:1}
+
+  /* ---------- bottom bars ---------- */
+  #bottombar{position:fixed; left:50%; bottom:16px; transform:translateX(-50%); z-index:20;
+    width:min(920px, calc(100vw - 28px))}
+  #transport, #ringbar, #collbar{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    backdrop-filter:blur(16px); padding:12px 16px; box-shadow:0 12px 40px rgba(0,0,0,.45);
+    display:none}
+  body[data-view="detector"] #transport{display:block}
+  body[data-view="ring"] #ringbar{display:flex; align-items:center; gap:16px}
+  body[data-view="collision"] #collbar{display:flex; align-items:center; gap:16px; flex-wrap:wrap}
+  body[data-view="ring"] #legend-ring{display:block}
+  body[data-view="collision"] #legend-collision{display:block}
+  body[data-view="ring"] #leftPanel{display:none}
+  body[data-view="collision"] #leftPanel{display:none}
+
+  #stageChips{display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap}
+  .chip{border:1px solid var(--line); background:rgba(255,255,255,.03); color:var(--muted);
+    font:inherit; font-size:11px; padding:4px 12px 4px 6px; border-radius:999px; cursor:pointer;
+    display:inline-flex; align-items:center; gap:7px; transition:all .15s}
+  .chip b{width:16px; height:16px; border-radius:50%; background:rgba(255,255,255,.08);
+    display:inline-flex; align-items:center; justify-content:center; font-size:9.5px;
+    color:var(--muted)}
+  .chip:hover{color:var(--text); border-color:var(--line2)}
+  .chip.active{color:#f0e6c8; border-color:rgba(216,178,92,.6); background:rgba(216,178,92,.12)}
+  .chip.active b{background:var(--gold); color:#141005}
+
+  .transportRow{display:flex; align-items:center; gap:10px}
+  .durs{display:flex; gap:4px}
+  .dur.active{border-color:var(--gold); color:#f0e6c8; background:rgba(216,178,92,.14)}
+  #scrubWrap{position:relative; flex:1; height:22px; display:flex; align-items:center}
+  .segs{position:absolute; inset:8px 0; display:flex; pointer-events:none}
+  .segs span{flex:1; border-right:1px solid rgba(216,178,92,.28)}
+  .segs span:first-child{border-radius:3px 0 0 3px}
+  .segs span:last-child{border-right:0}
+  #scrub{width:100%; -webkit-appearance:none; appearance:none; background:transparent; height:22px; cursor:pointer; z-index:2}
+  #scrub::-webkit-slider-runnable-track{height:6px; border-radius:3px;
+    background:linear-gradient(90deg, var(--gold) var(--fill,0%), rgba(255,255,255,.12) var(--fill,0%))}
+  #scrub::-webkit-slider-thumb{-webkit-appearance:none; width:14px; height:14px; border-radius:50%;
+    background:var(--gold); margin-top:-4px; box-shadow:0 0 10px rgba(216,178,92,.7)}
+  #scrub::-moz-range-track{height:6px; border-radius:3px; background:rgba(255,255,255,.12)}
+  #scrub::-moz-range-progress{height:6px; border-radius:3px; background:var(--gold)}
+  #scrub::-moz-range-thumb{width:14px; height:14px; border-radius:50%; border:0;
+    background:var(--gold); box-shadow:0 0 10px rgba(216,178,92,.7)}
+  #tReadout{font-size:11.5px; color:var(--gold); min-width:38px; text-align:right;
+    font-variant-numeric:tabular-nums}
+  #stageName{font-size:11.5px; color:var(--muted); min-width:170px; letter-spacing:.02em}
+
+  .sliderRow{display:flex; align-items:center; gap:10px; font-size:12px; color:var(--muted)}
+  .sliderRow input{accent-color:var(--gold); width:140px}
+  .hint{font-size:11px; color:var(--muted); margin-left:auto}
+  .chkRow{display:flex; align-items:center; gap:7px; font-size:12px; color:var(--muted); cursor:pointer}
+  .chkRow input{accent-color:var(--gold)}
+  .evstats{display:flex; gap:16px; font-size:12px; color:var(--muted);
+    font-variant-numeric:tabular-nums}
+  .evstats b{color:var(--text); font-weight:600}
+  .badge{font-size:10px; letter-spacing:.14em; color:var(--danger);
+    border:1px solid rgba(224,168,76,.5); background:rgba(224,168,76,.08);
+    padding:4px 12px; border-radius:999px}
+
+  /* ---------- help modal ---------- */
+  #helpModal{position:fixed; inset:0; z-index:50; display:none; align-items:center;
+    justify-content:center; background:rgba(2,3,5,.72); backdrop-filter:blur(6px)}
+  #helpModal.open{display:flex}
+  .helpcard{width:min(640px, calc(100vw - 40px)); max-height:82vh; overflow-y:auto;
+    background:var(--panel2); border:1px solid var(--line2); border-radius:18px;
+    padding:26px 30px; box-shadow:0 30px 80px rgba(0,0,0,.6)}
+  .helpcard h2{font-size:13px; letter-spacing:.2em; text-transform:uppercase; color:var(--gold);
+    margin:18px 0 8px}
+  .helpcard h2:first-child{margin-top:0}
+  .helpcard p{font-size:12.5px; color:#c4cad2; line-height:1.6}
+  .helpcard table{width:100%; border-collapse:collapse; font-size:12px; color:#c4cad2}
+  .helpcard td{padding:5px 4px; border-top:1px solid rgba(255,255,255,.06)}
+  .helpcard td:first-child{color:var(--gold); width:130px; font-variant-numeric:tabular-nums}
+  .helpcard ul{list-style:none}
+  .helpcard li{font-size:12px; padding:4px 0; border-top:1px solid rgba(255,255,255,.06)}
+  .helpcard a{color:var(--cyan); text-decoration:none}
+  .helpcard a:hover{text-decoration:underline}
+  #helpClose{float:right}
+  .helpfoot{font-size:10.5px; color:var(--muted); margin-top:14px; line-height:1.5}
+
+  /* ---------- toast ---------- */
+  #toast{position:fixed; z-index:45; left:50%; top:64px; transform:translateX(-50%) translateY(-8px);
+    background:var(--panel2); border:1px solid rgba(216,178,92,.45); color:#f0e6c8;
+    font-size:12.5px; padding:8px 20px; border-radius:999px; opacity:0; pointer-events:none;
+    transition:all .25s ease; backdrop-filter:blur(10px)}
+  #toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+
+  @media (max-width:1100px){
+    #rightPanel{display:none}
+    #stageName{display:none}
+    .disclaimer{display:none}
+  }
+  @media (max-width:768px){
+    #topbar{gap:10px; padding:8px 12px}
+    .brand p{display:none}
+    .brand{min-width:auto}
+    #homeBtn{padding:5px 10px; font-size:11.5px}
+  }
+</style>
+</head>
+<body data-view="detector">
+  <canvas id="gl"></canvas>
+  <div id="vignette"></div>
+  <div id="fader"></div>
+
+  <header id="topbar">
+    <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
+    <div class="brand">
+      <span class="logo"></span>
+      <div><h1>COLLIDER&nbsp;EXPLORER</h1><p>LHC · ATLAS-inspired — educational</p></div>
+    </div>
+    <nav id="tabs" aria-label="Views">
+      <button class="tab active" data-view="detector">Detector</button>
+      <button class="tab" data-view="ring">Accelerator</button>
+      <button class="tab" data-view="collision">Collisions</button>
+    </nav>
+    <div class="topright">
+      <span id="disclaimer" class="disclaimer"></span>
+      <span class="statbox"><b id="statsParts">–</b> · <span id="statsFps">–</span></span>
+      <button id="btnHelp" class="btn icon" aria-label="Help" title="Help (H)">?</button>
+    </div>
+  </header>
+
+  <aside id="leftPanel" class="panel">
+    <h2>Detector systems</h2>
+    <div id="systemsList"></div>
+    <p class="panelnote">Counts = parts rendered in this simplified model — hover a row for the
+    real CERN figures. Click a system name to focus the camera and read about it.</p>
+  </aside>
+
+  <aside id="rightPanel" class="panel">
+    <h2>Education</h2>
+    <div id="eduTitle"></div>
+    <p id="eduBody"></p>
+    <ul id="eduFacts"></ul>
+  </aside>
+
+  <section id="legend-ring" class="legend"><h2>Counter-rotating beams</h2></section>
+  <section id="legend-collision" class="legend"><h2>Event legend</h2></section>
+
+  <div id="flightCaption"></div>
+
+  <footer id="bottombar">
+    <div id="transport">
+      <div id="stageChips"></div>
+      <div class="transportRow">
+        <button id="btnReverse" class="btn icon" title="Reverse assembly (R)" aria-label="Reverse">
+          <svg viewBox="0 0 24 24" width="15" height="15"><path fill="currentColor" d="M11 8.4 6.6 4 2.2 8.4l1.4 1.4L5.6 7.8H13V18h2v-6h3.4l-2 2 1.4 1.4L22.2 11l-4.4-4.4-1.4 1.4 2 2H15V6.8h-4v1.6z" transform="translate(0,1)"/></svg>
+        </button>
+        <button id="btnPlay" class="btn primary icon" title="Play / pause (Space)" aria-label="Play or pause"></button>
+        <div class="durs" role="group" aria-label="Playback duration">
+          <button class="btn mini dur" data-dur="30">30 s</button>
+          <button class="btn mini dur active" data-dur="60">60 s</button>
+          <button class="btn mini dur" data-dur="90">90 s</button>
+        </div>
+        <div id="scrubWrap">
+          <div class="segs" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span></div>
+          <input id="scrub" type="range" min="0" max="1000" value="0" aria-label="Disassembly progress">
+        </div>
+        <span id="tReadout">0%</span>
+        <span id="stageName">Assembled</span>
+        <button id="btnOverview" class="btn mini" title="Reassemble everything">Assemble</button>
+      </div>
+    </div>
+
+    <div id="ringbar">
+      <button id="btnFlight" class="btn primary">▶&nbsp; Camera flight around the ring</button>
+      <label class="sliderRow">Beam speed
+        <input id="beamSpeed" type="range" min="0.1" max="3" step="0.1" value="1">
+      </label>
+      <span class="hint">drag to orbit · wheel to zoom · F to fly</span>
+    </div>
+
+    <div id="collbar">
+      <button id="btnTrigger" class="btn primary">Trigger event</button>
+      <label class="chkRow"><input id="chkAuto" type="checkbox" checked> auto-renew</label>
+      <div class="evstats">
+        <span>event <b id="evNum">#–</b></span>
+        <span>tracks <b id="evTracks">–</b></span>
+        <span>jets <b id="evJets">–</b></span>
+        <span>ΣE<sub>T</sub> <b id="evEt">–</b></span>
+        <span>muons <b id="evMuons">–</b></span>
+      </div>
+      <span class="badge">SYNTHETIC EVENT — NOT REAL DATA</span>
+    </div>
+  </footer>
+
+  <div id="helpModal" role="dialog" aria-modal="true">
+    <div class="helpcard">
+      <button id="helpClose" class="btn mini">Close ✕</button>
+      <h2>About</h2>
+      <p id="aboutText"></p>
+      <h2>Controls</h2>
+      <table>
+        <tr><td>scroll (Detector)</td><td>disassemble / assemble the detector in six stages</td></tr>
+        <tr><td>drag · right-drag</td><td>orbit · pan (all views)</td></tr>
+        <tr><td>wheel (Accelerator / Collisions)</td><td>zoom</td></tr>
+        <tr><td>Space · R</td><td>play/pause · reverse assembly</td></tr>
+        <tr><td>← / →</td><td>previous / next stage</td></tr>
+        <tr><td>1 · 2 · 3</td><td>Detector · Accelerator · Collisions views</td></tr>
+        <tr><td>F · E</td><td>ring camera flight · trigger synthetic event</td></tr>
+        <tr><td>H · Esc</td><td>help · close</td></tr>
+      </table>
+      <h2>Official CERN references</h2>
+      <ul id="creditLinks"></ul>
+      <p class="helpfoot">Educational visualization by an independent author — not affiliated with or
+      endorsed by CERN. Geometry is simplified (proportions exaggerated for readability; ring radius
+      compressed ≈60×). All collision events are synthetic, generated from physics-inspired math —
+      never real detector data. Facts sourced from home.cern and atlas.cern (2026).
+      Rendering: Three.js r158 (MIT). Local, offline, no tracking.</p>
+    </div>
+  </div>
+
+  <div id="toast" role="status"></div>
+
+  <!-- SCRIPTS:START -->
+  <script src="vendor/three.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/materials.js"></script>
+  <script src="js/detector.js"></script>
+  <script src="js/ring.js"></script>
+  <script src="js/collision.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/main.js"></script>
+  <!-- SCRIPTS:END -->
+  <script>
+    document.getElementById('homeBtn')?.addEventListener('click', (e) => {
+      if (window.location.pathname.includes('/particle-collider')) {
+        e.preventDefault();
+        const basePath = window.location.pathname.substring(0, window.location.pathname.indexOf('/particle-collider'));
+        window.location.href = (basePath || '') + '/index.html';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>太阳系探索者 — 八大行星与卫星群 3D 漫游及航天轨道规划</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪐</text></svg>" />
+</head>
+<body>
+  <!-- Standard Science Suite Back-to-Home Link -->
+  <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
+
+  <!-- Loading Overlay -->
+  <div id="loading-overlay">
+    <div class="spinner"></div>
+    <div class="loading-text">正在实时生成太阳系八大行星与卫星群三维宇宙空间...</div>
+  </div>
+
+  <!-- Three.js Canvas Container -->
+  <div id="canvas-container"></div>
+
+  <!-- Top Header Bar -->
+  <header id="top-header">
+    <div class="title-badge">
+      <span style="font-size: 18px;">🪐</span>
+      <h1>太阳系探索者 · Solar System Explorer</h1>
+      <span class="tag">8大行星 · 22颗卫星</span>
+    </div>
+    <div class="date-badge" id="hud-date">2026-09-14 (+0 天)</div>
+  </header>
+
+  <!-- Left Celestial Navigator Panel -->
+  <aside id="left-panel">
+    <div class="panel-header">
+      <span>🌌 天体导航</span>
+      <span style="font-size: 11px; color: var(--accent-cyan); font-weight: normal;">点击居中跟踪</span>
+    </div>
+    <div class="filter-tabs">
+      <button class="filter-tab active" data-filter="all">全部</button>
+      <button class="filter-tab" data-filter="planets">八大行星</button>
+      <button class="filter-tab" data-filter="moons">卫星群 (22颗)</button>
+    </div>
+    <div id="celestial-list"></div>
+  </aside>
+
+  <!-- Right Educational Info Panel -->
+  <aside id="right-panel">
+    <div class="info-header">
+      <h2 id="info-title">地球 · Earth</h2>
+      <p id="info-sub">5.972 × 10²⁴ kg</p>
+    </div>
+
+    <div class="specs-grid">
+      <div class="spec-cell">
+        <span class="spec-label">天体类型</span>
+        <span class="spec-val" id="info-type">行星</span>
+      </div>
+      <div class="spec-cell">
+        <span class="spec-label">平均半径</span>
+        <span class="spec-val" id="info-radius">6,371 km</span>
+      </div>
+      <div class="spec-cell">
+        <span class="spec-label">距日半长轴</span>
+        <span class="spec-val" id="info-dist">1.496 亿 km</span>
+      </div>
+      <div class="spec-cell">
+        <span class="spec-label">公转周期</span>
+        <span class="spec-val" id="info-period">365.26 天</span>
+      </div>
+      <div class="spec-cell">
+        <span class="spec-label">表面重力</span>
+        <span class="spec-val" id="info-gravity">9.81 m/s²</span>
+      </div>
+    </div>
+
+    <div class="facts-box">
+      <h3>🔭 科学档案与探索发现</h3>
+      <ul id="info-facts">
+        <li>目前已知宇宙中唯一孕育生命的星球，表面约71%被液态水海洋覆盖。</li>
+        <li>强大的地磁场阻挡了致命宇宙射线与太阳风暴。</li>
+      </ul>
+    </div>
+  </aside>
+
+  <!-- Spaceflight Planning Dock -->
+  <section id="mission-panel">
+    <div class="mission-title">
+      <span>🚀 简易航天轨道规划 (Hohmann Transfer)</span>
+    </div>
+
+    <div class="planner-controls">
+      <div class="select-group">
+        <label for="flight-origin">出发天体 (Origin):</label>
+        <select id="flight-origin" class="select-input"></select>
+      </div>
+      <div class="select-group">
+        <label for="flight-dest">目标天体 (Destination):</label>
+        <select id="flight-dest" class="select-input"></select>
+      </div>
+    </div>
+
+    <div class="plan-stats">
+      <div class="plan-row">
+        <span>转移飞行时间:</span>
+        <span id="plan-time">259 天</span>
+      </div>
+      <div class="plan-row">
+        <span>总推进量需求 (Δv):</span>
+        <span id="plan-deltav">5.59 km/s</span>
+      </div>
+      <div class="plan-row">
+        <span>发射窗口相位角:</span>
+        <span id="plan-phase">44.3°</span>
+      </div>
+      <p id="plan-desc" style="font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
+        规划霍曼转移椭圆轨道：从地球出发切向加速脱离，经日心转移弧线交会于火星轨道。
+      </p>
+    </div>
+
+    <div class="mission-actions">
+      <button id="btn-launch-mission" class="btn-launch">🚀 发射飞行任务</button>
+      <button id="btn-chase-cam" class="btn-sec" title="锁定飞船跟飞视角">🛰️ 跟飞</button>
+      <button id="btn-abort-mission" class="btn-sec">⏹️ 中止</button>
+    </div>
+
+    <!-- Active Flight Telemetry HUD -->
+    <div id="telemetry-card">
+      <div style="display: flex; justify-content: space-between; font-size: 11.5px;">
+        <span id="telem-status" style="color: var(--accent-cyan); font-weight: 600;">🚀 霍曼转移轨道巡航中...</span>
+        <span id="telem-progress" style="font-family: monospace; font-weight: 700;">0%</span>
+      </div>
+      <div class="progress-track">
+        <div id="telem-progress-bar" class="progress-fill"></div>
+      </div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 11px; color: var(--text-muted);">
+        <div>飞行速度: <b id="telem-speed" style="color: #fff;">0 km/s</b></div>
+        <div>任务天数: <b id="telem-time" style="color: #fff;">0 天</b></div>
+        <div style="grid-column: span 2;">距目标剩余: <b id="telem-dist" style="color: #fff;">0 km</b></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom Floating Toolbar -->
+  <nav id="bottom-toolbar">
+    <!-- Time Controls -->
+    <div class="time-ctrls">
+      <button id="btn-play-pause" class="btn-icon">⏸️ 暂停</button>
+      <button id="btn-speed-down" class="btn-icon" title="减速">⏪</button>
+      <span class="speed-tag" id="speed-multiplier-text">50x</span>
+      <button id="btn-speed-up" class="btn-icon" title="加速">⏩</button>
+    </div>
+
+    <!-- Camera Presets -->
+    <div class="presets-row">
+      <button class="preset-btn" data-preset="overview">👁️ 全景</button>
+      <button class="preset-btn" data-preset="inner">🪨 内行星</button>
+      <button class="preset-btn" data-preset="earth_moon">🌍 地月系</button>
+      <button class="preset-btn" data-preset="jupiter_system">🪐 木星系</button>
+      <button class="preset-btn" data-preset="saturn_system">✨ 土星环</button>
+      <button class="preset-btn" data-preset="giants">🌀 巨行星</button>
+    </div>
+
+    <!-- Visibility & Scale Toggles -->
+    <div class="toggles-row">
+      <label class="toggle-label">
+        <input type="checkbox" id="toggle-planet-orbits" checked />
+        <span>行星轨道</span>
+      </label>
+      <label class="toggle-label">
+        <input type="checkbox" id="toggle-moon-orbits" checked />
+        <span>卫星轨道</span>
+      </label>
+      <label class="toggle-label">
+        <input type="checkbox" id="toggle-labels" checked />
+        <span>天体标注</span>
+      </label>
+      <label class="toggle-label" title="调整行星放大比例以便清晰观察细节">
+        <span>天体缩放:</span>
+        <input type="range" id="slider-planet-scale" min="0.5" max="3.0" step="0.1" value="1.0" style="width: 70px;" />
+        <span id="planet-scale-val" style="font-family: monospace; font-size: 11px;">1.0x</span>
+      </label>
+    </div>
+  </nav>
+
+  <!-- HomeBtn Multi-environment navigation protection -->
+  <script>
+    document.getElementById('homeBtn')?.addEventListener('click', (e) => {
+      if (window.location.pathname.includes('/solar-system')) {
+        e.preventDefault();
+        const basePath = window.location.pathname.substring(0, window.location.pathname.indexOf('/solar-system'));
+        window.location.href = (basePath || '') + '/index.html';
+      }
+    });
+  </script>
+
+  <!-- Native ES Module Three.js Import Map -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three.module.js",
+      "three/addons/": "./vendor/addons/"
+    }
+  }
+  </script>
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>

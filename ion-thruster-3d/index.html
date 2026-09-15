@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>离子推进器 · 3D 交互式工作原理</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Back to home (shared) -->
+  <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
+
+<div id="stage"></div>
+
+<header>
+  <h1>🚀 离子推进器 · 3D 交互式工作原理</h1>
+  <p class="subtitle">参考 NASA NSTAR / NEXT 栅格离子推进器 — “黎明号”深空探测器同款技术</p>
+</header>
+
+<nav id="tools">
+  <button class="tool-btn" id="btnExplore"  title="自由探索">🖱️</button>
+  <button class="tool-btn" id="btnTour"     title="引导浏览（分步讲解）">🎬</button>
+  <button class="tool-btn" id="btnCut"      title="剖面视图">✂️</button>
+  <button class="tool-btn" id="btnExplode"  title="爆炸视图">💥</button>
+  <button class="tool-btn" id="btnFollow"   title="跟随一颗离子飞出栅格">🎯</button>
+  <button class="tool-btn active" id="btnLabels" title="部件标签">🏷️</button>
+  <button class="tool-btn" id="btnMag"      title="磁力线">🧲</button>
+  <button class="tool-btn active" id="btnField"  title="栅格间电场">⚡</button>
+</nav>
+
+<div id="followChip">🎯 正在跟随一颗 Xe⁺ 离子穿越栅格…（再次点击 🎯 退出）</div>
+
+<div id="bottomBar">
+  <div class="row" id="stats">
+    <div>推力 <b id="sThrust">92 mN</b></div>
+    <div>比冲 <b id="sIsp">3100 s</b></div>
+    <div>排气速度 <b id="sVe">46.9 km/s</b></div>
+    <div>质量流量 <b id="sMdot">3.0 mg/s</b></div>
+    <div>功率 <b id="sPow">2.3 kW</b></div>
+  </div>
+  <div class="row">
+    <button class="ctrl-btn" id="toggleBtn">⏸ 暂停</button>
+    <button class="ctrl-btn" id="resetBtn">🔄 重置粒子</button>
+    <button class="ctrl-btn" id="camBtn">🎥 重置视角</button>
+    <div class="ctrl-group">
+      <span>电场强度</span>
+      <input type="range" id="voltageSlider" min="800" max="2500" step="50" value="1500">
+      <span class="val" id="voltageVal">1500 V</span>
+    </div>
+    <div class="ctrl-group">
+      <span>流量</span>
+      <input type="range" id="flowSlider" min="1" max="8" step="0.5" value="4">
+      <span class="val" id="flowVal">3.0 mg/s</span>
+    </div>
+    <div class="ctrl-group">
+      <span>时间流速</span>
+      <input type="range" id="timeSlider" min="0.2" max="3" step="0.1" value="1">
+      <span class="val" id="timeVal">1.0×</span>
+    </div>
+  </div>
+  <div class="row legend">
+    <div class="legend-item"><div class="dot" style="background:#94a3b8"></div>氙原子</div>
+    <div class="legend-item"><div class="dot" style="background:#38bdf8;box-shadow:0 0 5px #38bdf8"></div>Xe⁺ 离子</div>
+    <div class="legend-item"><div class="dot" style="background:#a855f7;box-shadow:0 0 5px #a855f7"></div>中和后</div>
+    <div class="legend-item"><div class="dot" style="background:#f43f5e;box-shadow:0 0 4px #f43f5e"></div>轰击电子</div>
+    <div class="legend-item"><div class="dot" style="background:#facc15;box-shadow:0 0 4px #facc15"></div>中和电子</div>
+    <div class="legend-item"><div class="dot" style="background:transparent;border:1.5px solid #22d3ee"></div>磁力线</div>
+  </div>
+</div>
+
+<aside id="infoPanel">
+  <button id="infoClose">✕</button>
+  <h3 id="infoName"></h3>
+  <div class="en" id="infoEn"></div>
+  <div class="desc" id="infoDesc"></div>
+  <div class="chips" id="infoChips"></div>
+</aside>
+
+<div id="tourPanel">
+  <div id="tourTitle"></div>
+  <div id="tourText"></div>
+  <div id="tourNav">
+    <button class="ctrl-btn" id="tourPrev">← 上一步</button>
+    <div class="dots-nav" id="tourDots"></div>
+    <button class="ctrl-btn" id="tourNext">下一步 →</button>
+    <button class="ctrl-btn" id="tourExit">退出</button>
+  </div>
+</div>
+
+<div id="hint">拖拽旋转 · 滚轮缩放 · 右键平移<br>点击任意部件查看详解 · 空格暂停 · Esc 退出模式</div>
+<div id="tooltip"></div>
+<div id="loading"><div><div class="spin"></div>正在构建 3D 场景…</div></div>
+
+<script>
+  window.__errs = [];
+  window.addEventListener('error', e => window.__errs.push(e.message));
+</script>
+<script async src="https://ga.jspm.io/npm:es-module-shims@1.10.0/dist/es-module-shims.js"></script>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

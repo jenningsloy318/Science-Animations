@@ -1,0 +1,2397 @@
+{
+  "stages": {
+    "requirements": {
+      "timestamp": "2026-08-27T12:59:29.737Z",
+      "agent": "requirements",
+      "data": {
+        "title": "Requirements: 核裂变交互动画页（nuclear-fission-3d）——对齐核聚变站点架构的三阶段讲解动画",
+        "date": "2026-08-27",
+        "type": "feature",
+        "priority": "medium",
+        "executiveSummary": "新建独立纯静态目录 nuclear-fission-3d/，复刻已实测验证的 nuclear-fusion-3d 成品架构（同一 import map、#homeBtn/#stage/#tools/#bottomBar/#btnTour/#tourPanel 外壳、单一 rAF 主循环、首页卡片强调色模式），交付面向学生的三阶段核裂变交互动画：atoms（原子结构）→ neutron（中子俘获形成激发复核铀-236*）→ fission（裂变为 Ba-141 + Kr-92 + 3 个中子并释放约 200 MeV ≈ 3.2e-11 J），支持循环翻页、自动/手动换幕、暂停/重置/重置视角与 4 步导览。范围边界：仅在根 index.html 纯追加一张 card--fission 入口卡（锚点级唯一、不新增 .card--X::before 规则，故既有计数基线保持原值）；nuclear-fusion-3d/** 连同其全部测试一律零改动——本规范不授权任何例外。",
+        "acceptanceCriteria": [
+          {
+            "id": "AC-01",
+            "statement": "新建独立纯静态目录 nuclear-fission-3d/，包含 index.html、css/style.css、js/main.js 及 tests/ 下不少于 3 个 *.test.mjs 套件文件；页面可直接以 file:// 打开运行，无构建步骤、无 npm 依赖（测试沿用 node:test + node:assert）。",
+            "verifiedBy": "deterministic"
+          },
+          {
+            "id": "AC-02",
+            "statement": "外壳与依赖完全镜像实测存在的 nuclear-fusion-3d/index.html：含 #homeBtn（href=\"../index.html\"）、#stage、#tools、#btnTour（🎬 引导浏览按钮）、#bottomBar（#toggleBtn「⏸ 暂停」、#resetBtn「🔄 重置」、#camBtn「🎥 重置视角」）与 #tourPanel 覆盖层。量化钉定（均限于新建的 nuclear-fission-3d/index.html 内）：script type=\"importmap\" 恰好出现 1 次；字符串 three@0.160.0 恰好出现 2 次且两条为逐字相同的 jsdelivr 地址；加载器 es-module-shims@1.10.0 至少出现 1 次——与兄弟页运行时环境逐项一致。",
+            "verifiedBy": "deterministic"
+          },
+          {
+            "id": "AC-03",
+            "statement": "剧情状态机恰有三个相位（镜像兄弟站 PHASES 数据形态）：key 依次为 atoms（原子结构·初始相）→ neutron（中子俘获·形成激发复核铀-236*）→ fission（裂变反应·分裂成 Ba/Kr+3n 并释放能量），各相带 duration 与中文标签。运行时句柄必须命名为 window.fissionSim 且方法名集合与 window.fusionSim 实测表面（nuclear-fusion-3d/js/main.js:703-727：getPhase, getPhaseTime, getSimTime, isPaused, pause, resume, reset, isTourActive, getTourStep, getMode, setAutoAdvance(on), gotoPhase(key)）完全一致；明确禁止使用不存在的 setPhase/toggleAuto 名称。gotoPhase 合法键即跳相并在导览激活时先退出导览；非法键静默忽略保持当前相（镜像 jumpToPhase 行为）；reset() 从 atoms 相重启且不动导览状态。",
+            "verifiedBy": "test"
+          },
+          {
+            "id": "AC-04",
+            "statement": "交互控制齐全且有状态反馈：上一步/下一步按 atoms↔neutron↔fission 循环环绕；#toggleBtn 在 ⏸ 暂停/▶ 继续 间切换并在暂停期间冻结时间累积（pause 后 getSimTime 读数不再增长，resume 后从冻结点原样续播）；#camBtn 恢复默认机位；自动/手动换幕由 setAutoAdvance 切换且按钮文案与 aria-pressed 同步刷新；这些控件均可键盘操作并获得 :focus-visible 焦点样式。",
+            "verifiedBy": "test"
+          },
+          {
+            "id": "AC-05",
+            "statement": "科学文案逐字锚定人教版口径：在 nuclear-fission-3d/** 的 html/js 源码中须同时包含子串「铀-235」「钡-141」「氪-92」「3 个中子」「200 MeV」「3.2e-11」（可作 ≈3.2e-11 J 表述）「质量数」「电荷数」，并展示守恒验算：质量数 236 = 141 + 92 + 3，电荷数 92 = 56 + 36。故事节奏按相推进：原子结构 → 中子被俘获形成激发复核铀-236* → 复核分裂、能量闪光。",
+            "verifiedBy": "test"
+          },
+          {
+            "id": "AC-06",
+            "statement": "跨题污染守卫（自足规定，不做任何关于兄弟站点测试内容的类比声明）：直接规定 nuclear-fission-3d/** 下全部 html/css/js 源码中，D-T 聚变专属字面量 '0.018884'、'0.0189 u'、'17.6 MeV'、'2.82e-12'、'氘'、'氚' 的出现次数均必须为 0（聚变站点防错误聚变常数、本站点防聚变常数误入裂变页面，两者方向不同、互不等价）。",
+            "verifiedBy": "deterministic"
+          },
+          {
+            "id": "AC-07",
+            "statement": "导览映射钉死（步骤数 ≠ 相位数）：点击 #btnTour 打开 #tourPanel，恰有 4 条有序步骤，映射固定为 步骤①→atoms、步骤②→neutron、步骤③→fission、步骤④→fission（总结步场景停留在 fission）；进入任一步骤立即把场景切至对应相位（导览进行中 window.fissionSim.getPhase() 必须等于该步映射值）；再次点击 #btnTour 或关闭面板退出导览，退出后 getTourStep() 返回 null 且 isTourActive() 返回 false。",
+            "verifiedBy": "test"
+          },
+          {
+            "id": "AC-08",
+            "statement": "回归门禁一律使用经实证的 glob 形式：变更前后分别运行 node --test nuclear-fusion-3d/tests/*.test.mjs 均 exit 0（基线实测 33/33 通过；Node v24.15.0 下目录参数形式 node --test <dir>/ 会确定性失败，明令禁止）；新套件以 node --test nuclear-fission-3d/tests/*.test.mjs 运行并全绿。兼容语义修正（本条全文撤销此前『允许修正 SCENARIO-004 数值常数』的唯一例外授权，回应审查发现 REQ-F-003）：SCENARIO-004 实际统计的是根 index.html 中 /\\.card--\\w+::before\\s*\\{/g 强调规则的条数（当前实测恰为 7），并非卡片数目；由于 AC-09 禁止为 card--fission 新增此类规则，该计数在改动后保持 7 不变，因此 nuclear-fusion-3d/** 全部文件（含全部测试文件与任何常量）零改动。边界枚举：本规范 AC-01..AC-10 及非功能需求中，唯一触及既有文件的条款是 AC-09 对根 index.html 的纯追加；不存在任何授权削弱、删除或上调既有断言常数的条款——若任一门禁转红，只允许修正新增物自身使之兼容既有断言。",
+            "verifiedBy": "deterministic"
+          },
+          {
+            "id": "AC-09",
+            "statement": "根 index.html 仅做纯追加，全部量化词按实测正则界定范围（回应审查发现 REQ-F-004）：a) 新增锚点模式 <a class=\"card card--fission\" 在根 index.html 中恰好匹配 1 处；b) 字符串 id=\"link-nuclear-fission-3d\" 恰好出现 1 次；c) 该卡置于 solar-cell 卡片（id=\"link-solar-cell\"）之后；d) 现有七张卡片锚点及其 href 全部原样保留，七个 id=\"link-*\" 字符串各恰好出现 1 次；e) 既有 card--fusion 卡片锚点 <a class=\"card card--fusion\" 仍恰好 1 处（CSS 样式规则中的 .card--fusion 类引用不计入『恰好一处』——与 SCENARIO-003 的锚点级正则口径一致）；f) 禁止在根 index.html 引入新的 `.card--X::before {` 规则：改动后正则 /\\.card--\\w+::before\\s*\\{/g 匹配数必须仍恰为 7（零增量），强调色只允许落在不受该计数管制的规则上，例如 .card--fission .card__icon { background: … } 或 :hover 边框描边；g) 卡片内容含 ☢️ 图标、双语文案 Nuclear Fission 核裂变、一句描述与 Open → 箭头，href=\"nuclear-fission-3d/\"。",
+            "verifiedBy": "deterministic"
+          },
+          {
+            "id": "AC-10",
+            "statement": "运行时约定对齐兄弟站：在 nuclear-fission-3d/js/main.js 中 requestAnimationFrame( 恰好出现 1 次（单一主循环驱动全部三个相位的渲染与时钟），setInterval( 与 setTimeout( 出现次数均为 0，相位时钟由 clock.getDelta() 驱动；错误路径带守卫：页面初始化 window.__errs = [] 并注册 error 监听收集异常，启动流程末尾置 window.__ready = true；WebGL 能力检测/上下文创建失败时显示友好降级文字提示而非白屏或未捕获异常（镜像兄弟站 SCENARIO-024 的 bootstrap 契约）。",
+            "verifiedBy": "test"
+          }
+        ],
+        "nonFunctional": [
+          "性能：单一 requestAnimationFrame 主循环；全场景粒子硬上限 ≤ 2000（沿用兄弟站 MAX_PARTICLES 约定，优先合并绘制调用）；目标中端笔电 60fps；纯静态资源，外部域名仅限继承的 cdn.jsdelivr.net/three@0.160.0 与 es-module-shims@1.10.0（import map 逐字一致，不新增第三方来源），file:// 直开可用，首帧 < 2 秒。",
+          "可访问性：全部工具栏/底栏控件键盘可达且有可见焦点态；图标按钮具备描述性 title/aria-label；状态切换（自动换幕、暂停）同步 aria-pressed 与文字标签；粒子身份主要靠大小与图例区分而非仅颜色（镜像兄弟站低色盲依赖约定）；正文对比度满足 WCAG AA。",
+          "健壮性：WebGL2/上下文不可用时优雅降级显示文字提示（不得白屏/未捕获异常）；暂停期间时钟与粒子完全冻结、恢复后从冻结点原样继续；未知 gotoPhase 键静默容错。",
+          "安全：零新增网络请求与远程取数、不使用 eval/new Function；测试与生产均零第三方依赖（node:test + node:assert/strict，浏览器端仅既有 three 模块与 es-module-shims 加载器）。",
+          "语言与受众：界面与讲解文案以中文为主、术语附英文（延续 Nuclear Fission 核裂变 双语卡片风格），解说面向初学者使用生活化类比，科学常数严格限定在 AC-05 逐字锚定范围内。"
+        ],
+        "openQuestions": [],
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/02-nuclear-fission-animation/docs/specifications/02-nuclear-fission-animation/01-requirements.md"
+      }
+    },
+    "requirementsReview": {
+      "timestamp": "2026-08-27T13:02:16.687Z",
+      "agent": "requirementsReview",
+      "data": {
+        "date": "2026-08-27",
+        "dimensions": [
+          {
+            "name": "D1 Testability",
+            "notes": "Every AC carries objectively verifiable assertions: exact regex counts (importmap ×1, three@0.160.0 ×2, card--fission anchor ×1, ::before count stays 7), pinned API surface, verbatim science literals, and exit-code gates with the empirically validated glob form. No metric-free adjectives remain.",
+            "status": "pass"
+          },
+          {
+            "name": "D2 Unambiguity",
+            "notes": "Pass with one advisory (REQ-F-005): AC-06's forbidden-literal scope ('nuclear-fission-3d/** 下全部 html/css/js 源码') admits a reading that includes the enforcing test files, creating a self-referential gate; recommend scoping to production sources. All other ACs state inputs, outputs, error behavior, and edge boundaries explicitly.",
+            "status": "pass-with-notes"
+          },
+          {
+            "name": "D3 Consistency",
+            "notes": "The prior AC-08/AC-09 contradiction is eliminated: the sole-exception clause is revoked, and both ACs now independently imply the ::before count stays 7 and nuclear-fusion-3d/** needs zero edits — no clause authorizes weakening existing assertions. Terminology uniform (相位 keys, window.fissionSim, card--fission).",
+            "status": "pass"
+          },
+          {
+            "name": "D4 Completeness",
+            "notes": "Error/edge paths present: WebGL degradation, pause-freeze/resume semantics, illegal gotoPhase keys, tour exit states. NFRs cover performance (≤2000 particles, single rAF, 60fps target, <2s first frame), accessibility (keyboard, focus-visible, aria-pressed, WCAG AA), robustness, and security (no eval/new Function, zero new third-party origins).",
+            "status": "pass"
+          },
+          {
+            "name": "D5 Feasibility/Scope",
+            "notes": "Bounded and achievable: mirrors the proven nuclear-fusion-3d architecture, root index.html change is pure-append of one card, no build step, no hidden mega-requirement or gold-plating.",
+            "status": "pass"
+          },
+          {
+            "name": "D6 Resolved decisions",
+            "notes": "No openQuestions section rendered; no deferred design work masquerading as requirements. All formerly contested semantics (SCENARIO-004 counting rules, exception revocation) are resolved in-document.",
+            "status": "pass"
+          },
+          {
+            "name": "D7 Existence grounding",
+            "notes": "All cited baselines verified live: 7 card anchors incl. card--fusion and card--ion3d; ::before accent-rule count exactly 7; window.fusionSim surface incl. gotoPhase (main.js:731) matches AC-03 with setPhase/toggleAuto absent; 33 fusion tests; three@0.160.0 ×2 and es-module-shims@1.10.0 in sibling index.html; #homeBtn href=\"../index.html\" present; SCENARIO-004 counts rules, as the corrected AC-08 now states.",
+            "status": "pass"
+          }
+        ],
+        "findings": [
+          {
+            "blocking": false,
+            "confidence": 0.85,
+            "defectClass": "self-referential-forbidden-literal-gate",
+            "detail": "AC-06 规定「nuclear-fusion-3d/** 下全部 html/css/js 源码中，D-T 聚变专属字面量 '0.018884'、'0.0189 u'、'17.6 MeV'、'2.82e-12'、'氘'、'氚' 的出现次数均必须为 0」。按字面读取，nuclear-fusion-3d/tests/*.test.mjs 属于该路径下的 js 源码；而执行该守卫的确定性测试文件自身必然以断言字符串形式引用这些禁用字面量（如 includes('氘')），按全树口径自证违规、套件恒红。兄弟站同类守卫（phase1-shell.test.mjs 的 forbidden-literals sweep）通过 walkProduction 只扫描生产文件（html+css+js，排除 tests/），规避了同一陷阱。建议非阻塞澄清：明确 AC-06 范围为生产源文件（index.html、css/style.css、js/main.js），排除 tests/ 下断言源码自身（或显式允许测试文件以断言字符串形式引用禁用字面量）。下游 BDD 大概率按生产文件口径实现（镜像兄弟站），故不构成阻塞。",
+            "evidence": [
+              "AC-06 原文：「直接规定 nuclear-fusion-3d/** 下全部 html/css/js 源码中，D-T 聚变专属字面量 '0.018884'、'0.0189 u'、'17.6 MeV'、'2.82e-12'、'氘'、'氚' 的出现次数均必须为 0」",
+              "AC-01 要求新测试套件位于 nuclear-fission-3d/tests/（*.test.mjs，属 js 源码）",
+              "nuclear-fusion-3d/tests/phase1-shell.test.mjs 的 forbidden-literals 扫描使用 walkProduction(pageDir)（仅生产文件，排除 tests/），存在可镜像的安全口径"
+            ],
+            "file": "docs/specifications/02-nuclear-fission-animation/01-requirements.md",
+            "id": "REQ-F-005",
+            "lens": "D2 Unambiguity",
+            "line": "AC-06",
+            "ownerStage": "requirements",
+            "recommendation": "在 AC-06 增加一句范围界定：「本守卫扫描范围为 nuclear-fission-3d/ 的生产源文件（index.html、css/style.css、js/main.js），不含 tests/ 断言源码自身」，或将 tests/*.test.mjs 中的断言字符串形式显式豁免，与兄弟站 walkProduction 口径对齐。",
+            "severity": "P3",
+            "status": "open",
+            "title": "AC-06 禁用字面量守卫的字面范围可读为包含 tests/*.mjs，执行该守卫的测试文件将自证违规"
+          }
+        ],
+        "priorFindingResolutions": [
+          {
+            "evidence": "当前 AC-08：「兼容语义修正（本条全文撤销此前『允许修正 SCENARIO-004 数值常数』的唯一例外授权，回应审查发现 REQ-F-003）：SCENARIO-004 实际统计的是根 index.html 中 /\\.card--\\w+::before\\s*\\{/g 强调规则的条数（当前实测恰为 7），并非卡片数目；由于 AC-09 禁止为 card--fission 新增此类规则，该计数在改动后保持 7 不变，因此 nuclear-fusion-3d/** 全部文件（含全部测试文件与任何常量）零改动。」实测复核：grep -oE '\\.card--\\w+::before[[:space:]]*\\{' index.html | wc -l → 7；phase1-shell.test.mjs:147-148 统计的正是该正则的规则条数；AC-09 f) 明令该计数零增量，两 AC 现互恰。",
+            "findingId": "REQ-F-003",
+            "ownerStage": "requirements",
+            "response": "修订版 AC-08 全文撤销了『允许修正 SCENARIO-004 数值常数』的唯一例外授权，并正确改述语义：SCENARIO-004 统计的是根 index.html 中 .card--X::before 强调规则条数（实测恰为 7），并非卡片数；由于 AC-09 禁止新增此类规则，计数保持 7，nuclear-fusion-3d/** 全部文件零改动。此修复消除了与 AC-09『正则匹配计数零增量』及 AC-08 自身『禁止削弱既有断言』的双重矛盾，也消除了『改常数到 8 将使聚变套件永久红』的门禁自毁路径。执行摘要同步声明『nuclear-fusion-3d/** 连同其全部测试一律零改动——本规范不授权任何例外』。",
+            "status": "verified"
+          },
+          {
+            "evidence": "当前 AC-09 原文：「根 index.html 仅做纯追加，全部量化词按实测正则界定范围（回应审查发现 REQ-F-004）：a) <a class=\"card card--fission\" 恰好 1 处；b) id=\"link-nuclear-fission-3d\" 恰好 1 次；c) 置于 link-solar-cell 之后；d) 七个 id=\"link-*\" 各恰好 1 次；e) card--fusion 锚点仍恰 1 处（排除 CSS 类引用）；f) ::before 计数零增量；g) ☢️ 双语卡面与 href」",
+            "findingId": "REQ-F-004",
+            "ownerStage": "requirements",
+            "response": "AC-09 现将根 index.html 的改动逐项量化为可判定的正则计数（锚点模式恰 1 处、id 字符串恰 1 次、置于 solar-cell 卡之后、七张既有卡锚点与 href 原样保留、card--fusion 锚点口径与 SCENARIO-003 一致排除 CSS 规则引用、::before 规则计数零增量、强调色只落在不受计数的规则上），范围界定与实测基线一致。",
+            "status": "verified"
+          }
+        ],
+        "summary": "Round-2 review of the revised requirements for 核裂变交互动画页 (nuclear-fission-3d). The prior blocking defect REQ-F-003 is RESOLVED in this revision: AC-08 now explicitly revokes the sole-exception clause that authorized editing SCENARIO-004's numeric constant, correctly restates that SCENARIO-004 counts .card--X::before accent RULES in root index.html (live count exactly 7, not cards), and pins nuclear-fusion-3d/** to zero changes outright — eliminating the prior contradiction with AC-09's zero-increment mandate and with AC-08's own no-weakening sentence. The red-suite trap (bumping 7→8 under a rule that forbids an 8th ::before rule) is gone. REQ-F-004 is likewise addressed: AC-09 now quantifies every root-index.html assertion with concrete regex scopes (anchor exactly 1, id exactly once, placement after link-solar-cell, seven link-* ids each exactly once, card--fusion anchor exactly 1 excluding CSS references, ::before count stays exactly 7). All D7 existence-grounding claims verified live against the repo: 7 card anchors including card--ion3d, ::before rule count = 7, window.fusionSim method surface at main.js:703-731 matches AC-03 exactly (getPhase/getPhaseTime/getSimTime/isPaused/pause/resume/reset/isTourActive/getTourStep/getMode/setAutoAdvance/gotoPhase; no setPhase/toggleAuto), three@0.160.0 ×2 verbatim-identical jsdelivr addresses, es-module-shims@1.10.0 present, #homeBtn href=\"../index.html\", 33 sibling tests. AC-08 and AC-09 are now mutually consistent (both imply the ::before count stays 7 and the fusion tree needs zero edits). One new advisory (non-blocking) remains: AC-06's literal scope \"nuclear-fission-3d/** 下全部 html/css/js 源码\" can be read to include the enforcing tests/*.mjs, whose assertion strings must reference the forbidden fusion literals — recommend clarifying the scope to production sources (mirroring the sibling's walkProduction approach) to avoid a self-referential gate. No blocking findings remain.",
+        "title": "Requirements Review — 核裂变交互动画页（nuclear-fission-3d）修订版审查（第 2 轮）",
+        "verdict": "Approved with Comments",
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/02-nuclear-fission-animation/docs/specifications/02-nuclear-fission-animation/02-requirements-review.md"
+      }
+    },
+    "bdd": {
+      "timestamp": "2026-08-27T13:06:05.062Z",
+      "agent": "bdd",
+      "data": {
+        "title": "核裂变交互动画页（nuclear-fission-3d）",
+        "date": "2026-08-27",
+        "source": "docs/specifications/02-nuclear-fission-animation/01-requirements.md",
+        "features": [
+          {
+            "name": "站点骨架与依赖外壳",
+            "scenarios": [
+              {
+                "id": "001",
+                "title": "纯静态目录可直接以 file:// 打开运行",
+                "acRef": "AC-01",
+                "priority": "high",
+                "given": "新建独立目录 nuclear-fission-3d/ 中包含 index.html、css/style.css、js/main.js，以及 tests/ 下不少于 3 个 *.test.mjs 测试套件文件",
+                "when": "学习者直接以 file:// 协议打开该 index.html",
+                "then": "页面无需任何构建步骤或本地服务即可正常加载运行动画",
+                "andClauses": [
+                  "测试仅依赖 node:test 与 node:assert，零 npm 依赖"
+                ]
+              },
+              {
+                "id": "002",
+                "title": "外壳元素与运行时依赖逐项镜像聚变兄弟页",
+                "acRef": "AC-02",
+                "priority": "high",
+                "given": "以实测存在的 nuclear-fusion-3d/index.html 作为外壳与依赖基准",
+                "when": "逐项核对新建的 nuclear-fission-3d/index.html 的外壳结构与外部依赖声明",
+                "then": "页面包含返回首页入口、三维舞台区、工具区、🎬 引导浏览按钮、底部控制栏（⏸ 暂停 / 🔄 重置 / 🎥 重置视角）以及导览面板覆盖层",
+                "andClauses": [
+                  "script type=\"importmap\" 恰好出现 1 次",
+                  "字符串 three@0.160.0 恰好出现 2 次且两条为逐字相同的 jsdelivr 地址",
+                  "加载器 es-module-shims@1.10.0 至少出现 1 次"
+                ]
+              },
+              {
+                "id": "003",
+                "title": "任一量化钉定项不满足即判定外壳不合规",
+                "acRef": "AC-02",
+                "priority": "medium",
+                "given": "新建的 nuclear-fission-3d/index.html 已按镜像要求生成",
+                "when": "对照量化钉定口径核查发现 importmap 数量不为 1、three.js 地址不为恰好两条逐字相同的 jsdelivr 地址、或缺失 es-module-shims 加载器中的任意一项",
+                "then": "该页面判定为不合规必须修正后重验"
+              }
+            ]
+          },
+          {
+            "name": "三相位剧情状态机",
+            "scenarios": [
+              {
+                "id": "004",
+                "title": "剧情恰按三个相位顺序推进",
+                "acRef": "AC-03",
+                "priority": "high",
+                "given": "模拟从初始状态启动",
+                "when": "剧情随各相时长自动推进",
+                "then": "相位依次经历 atoms（原子结构·初始相）、neutron（中子俘获·形成激发复核铀-236*）、fission（裂变反应·分裂成 Ba/Kr+3n 并释放能量），总数恰为三个",
+                "andClauses": [
+                  "每个相位带有自己的 duration 时长与中文标签"
+                ]
+              },
+              {
+                "id": "005",
+                "title": "window.fissionSim 方法表面与聚变站完全一致",
+                "acRef": "AC-03",
+                "priority": "high",
+                "given": "页面加载完成后浏览器全局存在句柄 window.fissionSim",
+                "when": "枚举其对外暴露的方法名集合",
+                "then": "该集合与 window.fusionSim 的实测表面完全一致：getPhase、getPhaseTime、getSimTime、isPaused、pause、resume、reset、isTourActive、getTourStep、getMode、setAutoAdvance(on)、gotoPhase(key)",
+                "andClauses": [
+                  "集合中不存在 setPhase 或 toggleAuto 等禁用名称"
+                ]
+              },
+              {
+                "id": "006",
+                "title": "gotoPhase 合法键立即跳相并优先退出导览",
+                "acRef": "AC-03",
+                "priority": "medium",
+                "given": "导览处于激活状态、场景停在中间相位",
+                "when": "以合法相位键调用 gotoPhase(\"fission\")",
+                "then": "场景立即切换到 fission 相位",
+                "andClauses": [
+                  "若导览激活则先退出导览再完成跳相"
+                ]
+              },
+              {
+                "id": "007",
+                "title": "gotoPhase 非法键被静默忽略",
+                "acRef": "AC-03",
+                "priority": "medium",
+                "given": "场景正处于 neutron 相位",
+                "when": "以不存在的键调用 gotoPhase(\"meltdown\")",
+                "then": "当前相位保持 neutron 不变",
+                "andClauses": [
+                  "不抛出异常也不产生任何报错提示（静默容错）"
+                ]
+              },
+              {
+                "id": "008",
+                "title": "reset 从初始相重启且不影响导览状态",
+                "acRef": "AC-03",
+                "priority": "medium",
+                "given": "剧情已推进到 fission 相位",
+                "when": "调用 reset()",
+                "then": "场景回到 atoms 初始相位重新计时",
+                "andClauses": [
+                  "导览激活状态与当前导览步骤不受 reset 影响"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "播放控制与可及交互",
+            "scenarios": [
+              {
+                "id": "009",
+                "title": "上一步/下一步按相位环绕循环",
+                "acRef": "AC-04",
+                "priority": "high",
+                "given": "场景处于 neutron 相位",
+                "when": "连续执行两次下一步切换",
+                "then": "相位经 fission 后环绕回到 atoms",
+                "andClauses": [
+                  "反向执行上一步时同样自 atoms 环绕回 fission，形成 atoms↔neutron↔fission 闭环"
+                ]
+              },
+              {
+                "id": "010",
+                "title": "暂停冻结时间累积并在恢复后原样续播",
+                "acRef": "AC-04",
+                "priority": "high",
+                "given": "剧情正在播放且模拟时间持续累积",
+                "when": "学习者请求暂停后再读数，然后恢复播放",
+                "then": "暂停期间 getSimTime 读数完全停止增长、画面时钟冻结",
+                "andClauses": [
+                  "resume 后时间从冻结点原样继续累加而非重新计时",
+                  "⏸ 暂停 与 ▶ 继续 文案随播放状态来回切换"
+                ]
+              },
+              {
+                "id": "011",
+                "title": "重置视角恢复默认机位",
+                "acRef": "AC-04",
+                "priority": "medium",
+                "given": "相机已被拖转或缩放到偏离初始观察角度的位置",
+                "when": "学习者请求重置视角",
+                "then": "相机回到默认机位"
+              },
+              {
+                "id": "012",
+                "title": "自动换幕开关同步刷新按钮文案与 aria-pressed",
+                "acRef": "AC-04",
+                "priority": "medium",
+                "given": "换幕模式处于手动档",
+                "when": "学习者将自动换幕开启或关闭",
+                "then": "按钮文案即时反映当前档位",
+                "andClauses": [
+                  "aria-pressed 状态与实际档位严格同步"
+                ]
+              },
+              {
+                "id": "013",
+                "title": "控件键盘可达并具备可见焦点态",
+                "acRef": "AC-04",
+                "priority": "medium",
+                "given": "页面包含全部工具栏与底栏控制件",
+                "when": "学习者仅用键盘把焦点移动到任一控件上",
+                "then": "该控件获得清晰的 :focus-visible 可见焦点样式",
+                "andClauses": [
+                  "键盘触发与指针触发的行为结果完全一致"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "科学文案与守恒验算",
+            "scenarios": [
+              {
+                "id": "014",
+                "title": "讲解文案逐字锚定人教版术语与常数",
+                "acRef": "AC-05",
+                "priority": "high",
+                "given": "nuclear-fission-3d/** 下的 html/js 讲解文案已定稿",
+                "when": "检索其中的科学术语与能量常数表述",
+                "then": "同时出现「铀-235」「钡-141」「氪-92」「3 个中子」「200 MeV」与「≈3.2e-11 J」形式的能量表述",
+                "andClauses": [
+                  "同时包含「质量数」与「电荷数」两个术语"
+                ]
+              },
+              {
+                "id": "015",
+                "title": "守恒验算可视化呈现且数字自洽",
+                "acRef": "AC-05",
+                "priority": "high",
+                "given": "激发复核铀-236* 分裂成钡、氪与中子的画面正在讲解",
+                "when": "页面展示质量数与电荷数的守恒验算",
+                "then": "呈现 质量数 236 = 141 + 92 + 3 与 电荷数 92 = 56 + 36 两组验算式"
+              },
+              {
+                "id": "016",
+                "title": "解说节奏按相位推进讲述裂变故事",
+                "acRef": "AC-05",
+                "priority": "low",
+                "given": "剧情依次进入三个相位",
+                "when": "各相位解说随之展开",
+                "then": "讲解顺序为原子结构 → 中子被俘获形成激发复核铀-236* → 复核分裂并伴随能量闪光，与相位推进一致"
+              }
+            ]
+          },
+          {
+            "name": "跨题污染守卫",
+            "scenarios": [
+              {
+                "id": "017",
+                "title": "裂变源码中聚变专属字面量零出现",
+                "acRef": "AC-06",
+                "priority": "high",
+                "given": "nuclear-fission-3d/** 下全部 html/css/js 源码作为受检范围",
+                "when": "逐一扫描 D-T 聚变专属字面量 '0.018884'、'0.0189 u'、'17.6 MeV'、'2.82e-12'、「氘」、「氚」",
+                "then": "每个字面量的出现次数均为 0",
+                "andClauses": [
+                  "发现任何一次出现即视为污染违规，必须清除后重验"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "四步导览映射",
+            "scenarios": [
+              {
+                "id": "018",
+                "title": "导览面板恰有 4 条有序步骤且映射固定",
+                "acRef": "AC-07",
+                "priority": "high",
+                "given": "学习者在动画页发起引导浏览",
+                "when": "导览面板展开并列出步骤序列",
+                "then": "恰有 4 条有序步骤，映射固定为 步骤①→atoms、步骤②→neutron、步骤③→fission、步骤④→fission（总结步场景停留在 fission）"
+              },
+              {
+                "id": "019",
+                "title": "进入任一导览步骤即时切换至映射相位",
+                "acRef": "AC-07",
+                "priority": "high",
+                "given": "导览进行中",
+                "when": "进入任意一个导览步骤",
+                "then": "window.fissionSim.getPhase() 立即等于该步所映射的相位键，无需等待过渡"
+              },
+              {
+                "id": "020",
+                "title": "再次发起导览或关闭面板即退出导览",
+                "acRef": "AC-07",
+                "priority": "medium",
+                "given": "导览处于激活状态且停在某一步骤上",
+                "when": "学习者再次发起导览或关闭导览面板",
+                "then": "导览退出，getTourStep() 返回 null 且 isTourActive() 返回 false"
+              }
+            ]
+          },
+          {
+            "name": "回归门禁",
+            "scenarios": [
+              {
+                "id": "021",
+                "title": "变更前后聚变测试套件经 glob 形式全绿",
+                "acRef": "AC-08",
+                "priority": "high",
+                "given": "既有基线实测 node --test nuclear-fusion-3d/tests/*.test.mjs 为 33/33 通过",
+                "when": "分别在本次变更前与变更后以同一 glob 形式重跑聚变测试套件",
+                "then": "两次运行均 exit 0 且全部通过"
+              },
+              {
+                "id": "022",
+                "title": "禁止目录参数形式运行回归门禁",
+                "acRef": "AC-08",
+                "priority": "medium",
+                "given": "回归门禁的执行方式待选择",
+                "when": "误用目录参数形式 node --test <dir>/ 在 Node v24.15.0 下执行",
+                "then": "该形式因确定性失败被明令禁止，门禁一律采用经实证的 glob 形式"
+              },
+              {
+                "id": "023",
+                "title": "新套件全绿且既有断言常数零改动",
+                "acRef": "AC-08",
+                "priority": "high",
+                "given": "tests/ 下新增不少于 3 个 *.test.mjs 裂变套件，且本规范唯一触及既有文件的条款是根 index.html 的纯追加",
+                "when": "运行 node --test nuclear-fission-3d/tests/*.test.mjs 并核对 nuclear-fusion-3d/** 全部文件",
+                "then": "新增套件全部通过且聚变站点连同其全部测试文件与常量保持零改动（根 index.html 强调规则计数在改动后保持恰为 7 不变）",
+                "andClauses": [
+                  "若任一门禁转红只允许修正本次新增物自身使之兼容既有断言，不得削弱、删除或上调任何既有断言常数"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "首页入口卡片纯追加",
+            "scenarios": [
+              {
+                "id": "024",
+                "title": "核裂变卡片恰好一处追加于 solar-cell 之后",
+                "acRef": "AC-09",
+                "priority": "high",
+                "given": "根 index.html 现有七张卡片锚点及其 href 完好",
+                "when": "在 solar-cell 卡片之后追加新的核裂变入口卡",
+                "then": "锚点模式 <a class=\"card card--fission\" 恰好匹配 1 处，字符串 id=\"link-nuclear-fission-3d\" 恰好出现 1 次",
+                "andClauses": [
+                  "卡片内容含 ☢️ 图标、双语文案 Nuclear Fission 核裂变、一句描述与 Open → 箭头，href 指向 nuclear-fission-3d/",
+                  "现有七张卡片锚点原样保留、七个 id=\"link-*\" 字符串各恰好出现 1 次，card--fusion 锚点仍恰好 1 处（CSS 规则中的 .card--fusion 类引用不计入）"
+                ]
+              },
+              {
+                "id": "025",
+                "title": "追加改动不新增强调规则且计数仍为 7",
+                "acRef": "AC-09",
+                "priority": "high",
+                "given": "改动前根 index.html 中正则 /\\.card--\\w+::before\\s*\\{/g 匹配恰为 7 处",
+                "when": "完成核裂变卡片的纯追加改动",
+                "then": "该正则匹配数保持 7 不变（零增量），未引入新的 .card--X::before { 规则",
+                "andClauses": [
+                  "核裂变卡的强调色只落在不受该计数管制的规则上，例如 .card--fission .card__icon { background: … } 或 hover 边框描边"
+                ]
+              }
+            ]
+          },
+          {
+            "name": "运行时约定与健壮性",
+            "scenarios": [
+              {
+                "id": "026",
+                "title": "单一主循环驱动全部相位渲染与时钟",
+                "acRef": "AC-10",
+                "priority": "high",
+                "given": "nuclear-fission-3d/js/main.js 已实现三个相位的渲染与时钟逻辑",
+                "when": "审查其动画循环实现方式",
+                "then": "requestAnimationFrame( 恰好出现 1 次，setInterval( 与 setTimeout( 出现次数均为 0",
+                "andClauses": [
+                  "相位时钟由 clock.getDelta() 驱动，全场景粒子数不超过硬上限 2000"
+                ]
+              },
+              {
+                "id": "027",
+                "title": "启动流程末尾置就绪标记并收集异常",
+                "acRef": "AC-10",
+                "priority": "medium",
+                "given": "页面初始化时创建 window.__errs = [] 并注册 error 监听收集异常",
+                "when": "启动流程走到末尾成功完成",
+                "then": "window.__ready 被置为 true",
+                "andClauses": [
+                  "运行期异常由收集机制捕获而非未捕获逃逸破坏页面"
+                ]
+              },
+              {
+                "id": "028",
+                "title": "WebGL 不可用时显示友好降级提示",
+                "acRef": "AC-10",
+                "priority": "high",
+                "given": "学习者设备的浏览器不支持 WebGL2 或上下文创建失败",
+                "when": "页面尝试初始化三维场景",
+                "then": "界面显示友好的降级文字提示说明无法渲染立体画面",
+                "andClauses": [
+                  "不出现白屏也不产生未捕获异常"
+                ]
+              }
+            ]
+          }
+        ],
+        "traceability": [
+          {
+            "acId": "AC-01",
+            "description": "独立纯静态目录结构、file:// 直开可用、无构建无 npm 依赖、tests/ 下 ≥3 个 *.test.mjs",
+            "scenarios": [
+              "SCENARIO-001"
+            ]
+          },
+          {
+            "acId": "AC-02",
+            "description": "外壳元素镜像 fusion 兄弟页；importmap ×1、three@0.160.0 jsdelivr 地址 ×2 逐字相同、es-module-shims ≥1 的量化钉定",
+            "scenarios": [
+              "SCENARIO-002",
+              "SCENARIO-003"
+            ]
+          },
+          {
+            "acId": "AC-03",
+            "description": "三相位状态机 atoms→neutron→fission（各带 duration 与中文标签）；window.fissionSim 方法表面与 fusionSim 完全一致且禁 setPhase/toggleAuto；gotoPhase 合法键跳相退导览、非法键静默忽略；reset 从 atoms 重启不动导览",
+            "scenarios": [
+              "SCENARIO-004",
+              "SCENARIO-005",
+              "SCENARIO-006",
+              "SCENARIO-007",
+              "SCENARIO-008"
+            ]
+          },
+          {
+            "acId": "AC-04",
+            "description": "上一步/下一步环绕循环；暂停冻结时间并从冻结点续播（⏸/▶ 文案切换）；重置视角默认机位；自动换幕文案与 aria-pressed 同步；控件键盘可达并有 :focus-visible 焦点态",
+            "scenarios": [
+              "SCENARIO-009",
+              "SCENARIO-010",
+              "SCENARIO-011",
+              "SCENARIO-012",
+              "SCENARIO-013"
+            ]
+          },
+          {
+            "acId": "AC-05",
+            "description": "人教版口径逐字锚定「铀-235」「钡-141」「氪-92」「3 个中子」「200 MeV」「≈3.2e-11 J」「质量数」「电荷数」；守恒验算 236=141+92+3 与 92=56+36；故事节奏按相推进",
+            "scenarios": [
+              "SCENARIO-014",
+              "SCENARIO-015",
+              "SCENARIO-016"
+            ]
+          },
+          {
+            "acId": "AC-06",
+            "description": "nuclear-fission-3d/** 内 D-T 聚变专属字面量出现次数均为 0 的跨题污染守卫",
+            "scenarios": [
+              "SCENARIO-017"
+            ]
+          },
+          {
+            "acId": "AC-07",
+            "description": "导览面板恰 4 步且映射钉死 ①atoms②neutron③fission④fission；入步即时切相；退出后 getTourStep 为 null、isTourActive 为 false",
+            "scenarios": [
+              "SCENARIO-018",
+              "SCENARIO-019",
+              "SCENARIO-020"
+            ]
+          },
+          {
+            "acId": "AC-08",
+            "description": "glob 形式回归门禁前后均 exit 0（禁目录参数形式）；新裂变套件全绿；fusion 站零改动、根 index.html 强调规则计数保持 7；门禁转红仅许修正新增物",
+            "scenarios": [
+              "SCENARIO-021",
+              "SCENARIO-022",
+              "SCENARIO-023"
+            ]
+          },
+          {
+            "acId": "AC-09",
+            "description": "根 index.html 纯追加 card--fission 卡：锚点与 id 各恰 1 次、置于 solar-cell 后、七卡原样保留、fusion 卡锚点仍 1 处、::before 规则计数恒为 7、☢️ 双语卡内容齐全",
+            "scenarios": [
+              "SCENARIO-024",
+              "SCENARIO-025"
+            ]
+          },
+          {
+            "acId": "AC-10",
+            "description": "rAF 恰 1 次、无 setInterval/setTimeout、clock.getDelta() 驱动时钟；__errs/__ready 引导守卫；WebGL 失败友好降级不白屏",
+            "scenarios": [
+              "SCENARIO-026",
+              "SCENARIO-027",
+              "SCENARIO-028"
+            ]
+          }
+        ],
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/02-nuclear-fission-animation/docs/specifications/02-nuclear-fission-animation/03-bdd-scenarios.md"
+      }
+    },
+    "bddReview": {
+      "timestamp": "2026-08-27T13:09:23.069Z",
+      "agent": "bddReview",
+      "data": {
+        "date": "2026-08-27",
+        "dimensions": [
+          {
+            "name": "D1 AC coverage",
+            "notes": "All 10 ACs covered by 28 scenarios; every acRef names a real AC; traceability section is bidirectionally complete and consistent with the coverage summary.",
+            "status": "pass"
+          },
+          {
+            "name": "D2 Path completeness",
+            "notes": "Happy, edge, and error paths all present: illegal gotoPhase key (SC-007), wraparound both directions (SC-009), frozen-time resume (SC-010), shell pin violations (SC-003), gate-red compatibility rule (SC-023), WebGL failure fallback (SC-028).",
+            "status": "pass"
+          },
+          {
+            "name": "D3 Observable behavior",
+            "notes": "Then-clauses are overwhelmingly observable (counts, method sets, getPhase/getTourStep/getSimTime values, exit codes). Two audit-style scenarios (SC-003, SC-022) assert a compliance verdict/policy rather than a runtime outcome — advisory only since the underlying ACs are gate-methodology rules already enforced by SC-021/SC-023.",
+            "status": "pass-with-notes"
+          },
+          {
+            "name": "D4 Given/When/Then integrity",
+            "notes": "Concrete and self-consistent throughout. One asymmetry: SC-024 places the after-solar-cell ordering (AC-09c) in the When rather than asserting it in the Then; SC-002 drops the href=\"../index.html\" pin present in AC-02.",
+            "status": "pass-with-notes"
+          },
+          {
+            "name": "D5 Consistency",
+            "notes": "No contradictions; terminology, literals, counts (7 cards, 4 tour steps, 3 phases, 12-method API surface), and phase keys all match requirements verbatim; externally verified against the actual fusion main.js and root index.html.",
+            "status": "pass"
+          }
+        ],
+        "findings": [
+          {
+            "blocking": false,
+            "confidence": 0.85,
+            "defectClass": "quantified-pin-weakened-in-then",
+            "detail": "SCENARIO-024 embeds AC-09 clause c) — the new card must sit after the solar-cell card (id=\"link-solar-cell\") — only in the When clause ('在 solar-cell 卡片之后追加新的核裂变入口卡'). The Then asserts anchor/id counts, card content, and preservation of existing anchors, but never asserts relative position. A wrong implementation that appends the card anywhere else in the file would still satisfy the Then, leaving AC-09c unverified by any scenario outcome.",
+            "evidence": [
+              "03-bdd-scenarios.md SCENARIO-024 Given/When/Then",
+              "01-requirements.md AC-09 clause c)"
+            ],
+            "file": "docs/specifications/02-nuclear-fission-animation/03-bdd-scenarios.md",
+            "id": "BDD-F-001",
+            "lens": "D3 Observable behavior",
+            "line": "SCENARIO-024",
+            "ownerStage": "bdd",
+            "recommendation": "Add a Then clause asserting the card--fission anchor appears immediately after the id=\"link-solar-cell\" card (e.g., document-order assertion), so placement is an observable outcome rather than a precondition of the action.",
+            "severity": "P3",
+            "status": "open",
+            "title": "SCENARIO-024 leaves card position after solar-cell unasserted in Then"
+          },
+          {
+            "blocking": false,
+            "confidence": 0.85,
+            "defectClass": "quantified-pin-weakened-in-then",
+            "detail": "AC-02 quantifies the home entry as #homeBtn with href=\"../index.html\", but SCENARIO-002's Then only requires '页面包含返回首页入口'. A wrong href (e.g., absolute path or missing ../ prefix) would pass the scenario, weakening the mirror-the-sibling-shell contract that the AC pins deterministically. All other shell elements in this scenario (🎬 引导浏览按钮, ⏸/🔄/🎥 texts) keep their quantified wording.",
+            "evidence": [
+              "03-bdd-scenarios.md SCENARIO-002 Then",
+              "01-requirements.md AC-02: '#homeBtn（href=\"../index.html\"）'"
+            ],
+            "file": "docs/specifications/02-nuclear-fission-animation/03-bdd-scenarios.md",
+            "id": "BDD-F-002",
+            "lens": "D3 Observable behavior",
+            "line": "SCENARIO-002",
+            "ownerStage": "bdd",
+            "recommendation": "Tighten the Then to '包含 #homeBtn 且 href=\"../index.html\"' so the deterministic pin from AC-02 survives into the scenario and downstream tests.",
+            "severity": "P3",
+            "status": "open",
+            "title": "SCENARIO-002 drops the href=\"../index.html\" pin for the home button"
+          },
+          {
+            "blocking": false,
+            "confidence": 0.8,
+            "defectClass": "policy-then-not-observable",
+            "detail": "SCENARIO-022's Then asserts '该形式因确定性失败被明令禁止，门禁一律采用经实证的 glob 形式' — a policy statement about gate methodology, not an observable runtime outcome; the observable fact (directory-form run exits non-zero on Node v24.15.0) is only implied. Similarly, SCENARIO-003's Then ('判定为不合规必须修正后重验') asserts an audit verdict rather than a system effect. Both bind to real ACs (AC-08/AC-02) so coverage holds, and the observable enforcement lives in SCENARIO-021/SC-023; this is wording polish only.",
+            "evidence": [
+              "03-bdd-scenarios.md SCENARIO-022 Then",
+              "03-bdd-scenarios.md SCENARIO-003 Then",
+              "01-requirements.md AC-08"
+            ],
+            "file": "docs/specifications/02-nuclear-fission-animation/03-bdd-scenarios.md",
+            "id": "BDD-F-003",
+            "lens": "D3 Observable behavior",
+            "line": "SCENARIO-022",
+            "ownerStage": "bdd",
+            "recommendation": "Optionally reformulate SC-022's Then as the observable outcome (directory-form invocation exits non-zero on Node v24.15.0, so gates use the glob form which exits 0), keeping the prohibition language in the AC only.",
+            "severity": "P3",
+            "status": "open",
+            "title": "SCENARIO-022 (and SCENARIO-003) Then states policy rather than an observable outcome"
+          }
+        ],
+        "priorFindingResolutions": [],
+        "summary": "Reviewed 28 scenarios against 10 acceptance criteria. D1 is fully satisfied: every AC-01..AC-10 maps to at least one scenario, every acRef is valid, and the traceability/coverage sections are internally consistent. Externally pinned facts were spot-verified against reality: window.fusionSim's measured surface (nuclear-fusion-3d/js/main.js:704-731) matches SCENARIO-005's 12-method set exactly (incl. gotoPhase and absence of setPhase/toggleAuto), and root index.html baselines (7 × .card--X::before rules, 7 link-* ids each ×1, exactly 1 card--fusion anchor) match the counts pinned in SCENARIO-021/023/024/025. Path completeness is strong: error paths exist for illegal gotoPhase keys (SC-007), pin violations (SC-003), gate-red compatibility (SC-023), and WebGL failure (SC-028); the requirements-stage corrections REQ-F-003/REQ-F-004 are correctly folded into SC-023/024/025 (count stays 7, fusion untouched, anchor-level regex scope). Terminology and all quantified literals match requirements verbatim. Three advisory items remain (none blocks implementation): SC-024 asserts card counts/content but leaves the after-solar-cell placement only in the When; SC-002 weakens the #homeBtn href=\\\"../index.html\\\" pin; SC-022/SC-003 state a policy/audit verdict rather than an observable outcome. This is round 1 of the BDD review loop — no prior BDD findings exist, so priorFindingResolutions is intentionally empty. All items are P3 suggestion-only — verdict: Approved with Comments.",
+        "title": "BDD Scenario Review — 核裂变交互动画页（nuclear-fission-3d）03-bdd-scenarios.md",
+        "verdict": "Approved with Comments",
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/02-nuclear-fission-animation/docs/specifications/02-nuclear-fission-animation/04-bdd-review.md"
+      }
+    },
+    "research": {
+      "timestamp": "2026-08-27T13:20:52.739Z",
+      "agent": "research",
+      "data": {
+        "title": "核裂变交互动画（nuclear-fission-3d）外部知识研究：物理常数锚定、three@0.160.0+es-module-shims 依赖外壳、file:// 运行时与单 rAF 时钟模式、node:test 门禁形式",
+        "date": "2026-08-27",
+        "summary": "在线研究确认本规格的全部外锚点均可落地。(1) 物理常数：AC-05 锚定的 n+²³⁵U→激发复核²³⁶U*→钡-141+氪-92+3个中子链条与守恒验算（质量数236=141+92+3、电荷数92=56+36）经 OpenStax College Physics 2e §32.6、Wikipedia/U-235(NPL Kaye&Laby 数据) 及人教版配套课件交叉核实，能量口径「200 MeV ≈ 3.2×10⁻¹¹ J」成立（Wikipedia 给出精确值 202.5 MeV = 3.24×10⁻¹¹ J；人教版教辅以 Δm≈0.3578×10⁻²⁷kg 算得 ≈3.22×10⁻¹¹ J）；需留意教材插图用的是钡144/氪89 变体并自称『铀核裂变的产物是多样的』，AC-05 钉定的钡141/氪92 同样是真实典型裂变道，文案照抄 AC 即可并建议补一句教科书原话消歧。(2) 依赖外壳：三个被钉定的 CDN 产物当日实测均 HTTP 200 且返回 access-control-allow-origin:*（jsdelivr three@0.160.0 build/three.module.js、examples/jsm/ 前缀映射、es-module-shims@1.10.0），这正是 import map + 远程模块能在 file:// 不透明源下工作的关键；MDN 明确告诫纯本地 ES 模块在 CORS 执行严格的浏览器中会报错，es-module-shims 在原生支持 import map 的现代浏览器里惰性不动——故 SCENARIO-001 的 file:// 直开可用性与降级提示的可达性取决于外壳如何拉起 main.js，须在实现阶段逐字镜像兄弟站既有机制，并把友好降级提示做成默认可见、JS 成功后再隐藏。(3) 运行时：three.js r160 官方 Clock 文档证实 getDelta() 每次调用都会重置 oldTime、getElapsedTime() 也共享该内部状态，因此暂停冻结必须走「每帧一次 getDelta + 受门控累加器」而非切换 clock.running；r152+ 需用 outputColorSpace，useLegacyLights 到 r165 已移除、r160 时代只能接受其弃用警告。(4) 门禁：Node v24 测试运行器文档背书 glob 参数形式（默认匹配族包含 **/*.test.{cjs,mjs,js}），与 AC-08 的实测基线方向一致。aria-pressed 切换按钮、:focus-visible 可见焦点样式均有 MDN/W3C C45 权威出处。未发现需要再一轮联网研究的阻塞性问题。",
+        "options": [
+          {
+            "name": "OPT-01 | 依赖外壳：逐字镜像聚变站 import map（three@0.160.0 ×2 指向 jsdelivr build/three.module.js 与 examples/jsm/ 前缀映射 + es-module-shims@1.10.0 加载器）【推荐】",
+            "tradeoffs": "推荐：已实测验证（2026-08-27 当日 HTTP 探测）cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js、examples/jsm/controls/OrbitControls.js、es-module-shims@1.10.0/dist/es-module-shims.js 三者均 200 且 access-control-allow-origin:*——正是 ACAO:* 使 CDN 模块能被 file:// 不透明源(null)页面加载；import map 形状遵循官方三件套：\"three\" 映射 build/three.module.js、\"three/addons/\" 尾斜杠路径前缀映射 examples/jsm/（MDN 确认尾斜杠键按最长前缀匹配），这正解释了 AC-02 要求 three@0.160.0 字符串恰好出现 2 次。备选方案均不合规：升级到 r165+ 会撞上 useLegacyLights 已在 r165 移除、光照物理化默认值变化与 AC-02 的版本钉定双重冲突；换成 unpkg 则违反 jsdelivr 逐字地址钉定。es-module-shims 在支持原生 import map 的浏览器（Chromium≥89/Firefox≥108/Safari≥16.4）里经特征检测后完全惰性、不产生额外开销，仅在旧浏览器进入基于 fetch 的 shim 重载（该模式在 file:// 下无法工作）。服务于 AC-01/AC-02/SCENARIO-001~003。"
+          },
+          {
+            "name": "OPT-02 | 科学文案：采用 AC-05 钉定的 铀-235→铀-236*→钡-141+氪-92+3个中子 通道并展示 质量数236=141+92+3、电荷数92=56+36 【必须，且可加一句教科书原话消歧】",
+            "tradeoffs": "必须：守恒验算自洽（Ba Z=56、Kr Z=36 为元素周期表事实，多份资料方程中直接标出 ₅₆Ba、₃₆Kr），能量口径获权威数据支撑：Wikipedia(U-235) 引 NPL Kaye&Laby 给出每次裂变 202.5 MeV＝3.24×10⁻¹¹ J，OpenStax 例32.4 以『average fission produces 200 MeV、1 MeV=1.60×10⁻¹³ J』演算，人教版教辅以 Δm≈0.3578×10⁻²⁷kg 算得 ≈3.2×10⁻¹¹ J(≈201MeV)，故「200 MeV」「≈3.2e-11 J」逐字锚定无科学错误。注意点：人教版教材正文插图（图5.4-1，电子扫描见 Scribd 全本）画的是 钡144+氪89+3n，而课件/教辅最典型方程又写 ¹⁴¹Ba+⁹²Kr——教材自己声明『铀核裂变的产物是多样的，一种典型的铀核裂变是生成钡和氪』，两对产物都是真实裂变道。建议文案照搬该句消歧，既贴近人教版原文又不与 AC-05 字面冲突。禁止改用 Ba-144/Kr-89，否则违反 AC-05 逐字锚定。服务 AC-05/SCENARIO-014~016。"
+          },
+          {
+            "name": "OPT-03 | 启动健壮性：把 window.__errs=[] 收集器注册进 index.html 里一段早于模块的代码，且降级提示层默认可见、由 JS 成功后再隐藏【推荐】",
+            "tradeoffs": "推荐：MDN《JavaScript Guide — Modules》明确指出以 file:// 打开含模块的本地页会因模块安全(CORS/不透明源)要求报错，Chromium 下外部 file:// 模块脚本会被 CORS 拦截（Firefox 对同目录子树放行、Safari 宽松），es-module-shims 又在原生支持 import map 的现代浏览器中完全不接管加载——因此若所有防御逻辑都写在 js/main.js 里，一旦模块本身没被加载就全部失效。把错误收集器与降级提示做成 HTML 内联/默认可见，可同时满足 SCENARIO-001（无需本地服务）、SCENARIO-027（__errs 监听先于运行期异常）与 SCENARIO-028/AC-10（WebGL 失败友好文字而非白屏），并与镜像兄弟站的既有行为一致（实现阶段须以代码评估阶段实测的兄弟站机制为准逐字复制，勿自行发明第三种加载方式以免破坏 AC-02 镜像断言）。WebGL 检测沿用 Three 场景创建 try/catch + WebGL2 能力探测即可。服务 AC-10/SCENARIO-001/026~028。"
+          },
+          {
+            "name": "OPT-04 | 相位时钟：getDelta() 每帧调用一次，用受门控的累加器驱动暂停冻结（simTime += paused ? 0 : Math.min(delta, 上限)），不要碰 getElapsedTime() 或手动开关 clock.running【推荐】",
+            "tradeoffs": "推荐：r160 版 Clock 文档（仓库内 Clock.html 源文，已逐字核对）明确 getDelta() 返回自 oldTime 以来的秒数并把 oldTime 重置为当前时间，而 getElapsedTime() 同样会写 oldTime——两者同帧混用必然互相污染 delta；社区共识（threejs 论坛/Timer 文档）为每帧只调一次 getDelta 并避免随意改 running 标志（start() 会清零 elapsedTime、resume 时序不当会产生大 delta 尖峰）。门控累加器天然满足 AC-04 的语义：pause 后 getSimTime 读数零增长、resume 从冻结点续算、reset 归零回到 atoms 相重新计时；delta 用 Math.min(~50ms) 截顶防止标签页后台节流恢复后相位跳变。该方案同时守住 AC-10 的量化约束：requestAnimationFrame( 恰好 1 次、setInterval(/setTimeout( 为 0、时钟由 clock.getDelta() 驱动。gotoPhase 合法键立即切相、非法键静默忽略、reset 不动导览，均为纯状态机分支，不引入任何额外定时器。服务 AC-03/AC-04/AC-10/SCENARIO-008~010/026。"
+          },
+          {
+            "name": "OPT-05 | 回归门禁执行形式：坚持 node --test nuclear-fusion-3d/tests/*.test.mjs 与 nuclear-fission-3d/tests/*.test.mjs 的 glob 参数形式，禁用目录参数形式【照办】",
+            "tradeoffs": "照办并有文档背书：Node v24 官方测试运行器文档写明可在命令行最后位置提供一个或多个 glob 模式参数、模式遵循 glob(7)、建议加引号防 shell 展开（默认发现模式族恰好包含 **/*.test.{cjs,mjs,js}，*.test.mjs 属一等公民）；因此未加引号时由 shell 展开成显式文件路径列表、加了引号时由 Node 自建 glob，两条路径都成立且跨版本稳定。目录参数形式（node --test <dir>/）在基线环境 Node v24.15.0 被实测确定性失败，属项目钉定事实，规范明令禁止即采信；文档并未赋予目录形式更优保证。新增 3 个以上套件文件沿用同一 glob 门禁全绿，且任何转红仅允许修正新增物自身（AC-08 兼容边界条款）。服务 AC-08/SCENARIO-021~023。"
+          }
+        ],
+        "sources": [
+          {
+            "title": "OpenStax College Physics 2e — 32.6 Fission（典型中子诱发裂变式 n+²³⁵U→¹⁴²Ba+⁹¹Kr+3n 的 Z/A 守恒演算；200 MeV 平均值与 1 MeV=1.60×10⁻¹³ J 换算示例）",
+            "url": "https://openstax.org/books/college-physics-2e/pages/32-6-fission"
+          },
+          {
+            "title": "Wikipedia: Uranium-235（每次裂变 202.5 MeV = 3.24×10⁻¹¹ J；复合核 ²³⁶U 中间态；分项能量预算表）",
+            "url": "https://en.wikipedia.org/wiki/Uranium-235"
+          },
+          {
+            "title": "LBL Isotopes Project — Nuclear Fission Energy wallchart chapter（搜索结果来源）",
+            "url": "https://www2.lbl.gov/nsd/education/ABC/wallchart/chapters/14/1.html"
+          },
+          {
+            "title": "夸克文档 — 人教版高中物理选修三 5.4 核裂变核聚变课件（最典型核反应方程式 ²³⁵U+n→¹⁴¹₅₆Ba+⁹²₃₆Kr+3n）",
+            "url": "https://doc.quark.cn/preview/577164FEEBE532F004F98A87374DC1A9"
+          },
+          {
+            "title": "Scribd — 普通高中教科书·物理选择性必修第三册全本扫描（图5.4-1 示意图为 钡144/氪89；『铀核裂变的产物是多样的』原文表述）",
+            "url": "https://www.scribd.com/document/1027646632/%E6%99%AE%E9%80%9A%E9%AB%98%E4%B8%AD%E6%95%99%E7%A7%91%E4%B9%A6-%E7%89%A9%E7%90%86%E9%80%89%E6%8B%A9%E6%80%A7%E5%BF%85%E4%BF%AE-%E7%AC%AC%E4%B8%89%E5%86%8C"
+          },
+          {
+            "title": "学科网 — 5.4 核裂变与核聚变 教学课件（中间产物铀236 讲解口径）",
+            "url": "https://www.zxxk.com/soft/51611043.html"
+          },
+          {
+            "title": "jsdelivr CDN 实测：three@0.160.0 build/three.module.js（HTTP 200, ACAO *, 1.27MB）",
+            "url": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+          },
+          {
+            "title": "jsdelivr CDN 实测：three@0.160.0 examples/jsm/controls/OrbitControls.js（HTTP 200, ACAO *）",
+            "url": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js"
+          },
+          {
+            "title": "jsdelivr CDN 实测：es-module-shims@1.10.0 dist/es-module-shims.js（HTTP 200, ACAO *；2024-04-28 发布）",
+            "url": "https://cdn.jsdelivr.net/npm/es-module-shims@1.10.0/dist/es-module-shims.js"
+          },
+          {
+            "title": "MDN — JavaScript Guide: Modules（file:// 本地打开会遇到 CORS 错误需经服务器测试；import map 尾斜杠路径前缀匹配语义；inline module 可行性）",
+            "url": "https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules"
+          },
+          {
+            "title": "GitHub guybedford/es-module-shims README（polyfill 经特性检测，基线满足时不做任何事；动态导入不被 polyfill）",
+            "url": "https://github.com/guybedford/es-module-shims"
+          },
+          {
+            "title": "Three.js r160 仓库源文档 — Clock（getDelta/getElapsedTime 均重置 oldTime；autoStart/start/reset 语义）",
+            "url": "https://raw.githubusercontent.com/mrdoob/three.js/r160/docs/api/en/core/Clock.html"
+          },
+          {
+            "title": "Node.js v24 Test Runner 文档（glob 模式作为末位参数、遵循 glob(7)、建议引号；默认匹配 **/*.test.{cjs,mjs,js} 等）",
+            "url": "https://nodejs.org/docs/latest-v24.x/api/test.html"
+          },
+          {
+            "title": "Three.js Wiki — Migration Guide（r152 起 outputColorSpace 取代 outputEncoding；useLegacyLights 时间线）",
+            "url": "https://github.com/mrdoob/three.js/wiki/Migration-Guide"
+          },
+          {
+            "title": "Three.js r165 Release Notes（useLegacyLights 在 r165 被移除——r160 页面不得依赖它）",
+            "url": "https://github.com/mrdoob/three.js/releases/tag/r165"
+          },
+          {
+            "title": "StackOverflow — Access to script at 'file://...' from origin 'null' blocked by CORS policy（经典案例帖；页面抓取被 403 拒，结论以 MDN 主源为准）",
+            "url": "https://stackoverflow.com/questions/52919331/access-to-script-at-from-origin-null-has-been-blocked-by-cors-policy"
+          },
+          {
+            "title": "Three.js Discourse — CDN ES6 module import requires importmap (vanilla JS)",
+            "url": "https://discourse.threejs.org/t/cdn-es6-module-import-requires-importmap-vanilla-js/68353"
+          },
+          {
+            "title": "MDN — ARIA button role（aria-pressed 将按钮定义为切换按钮；accName 来源规则）",
+            "url": "https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Reference/Roles/button_role"
+          },
+          {
+            "title": "MDN — :focus-visible CSS 伪类（键盘焦点可见样式）",
+            "url": "https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Selectors/:focus-visible"
+          },
+          {
+            "title": "W3C WAI — WCAG22 CSS Technique C45: Using CSS :focus-visible to provide keyboard focus indication",
+            "url": "https://www.w3.org/WAI/WCAG22/Techniques/css/C45"
+          }
+        ],
+        "openIssues": [],
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/02-nuclear-fission-animation/docs/specifications/02-nuclear-fission-animation/05-research-report.md"
+      }
+    },
+    "assessment": {
+      "timestamp": "2026-08-27T13:22:37.987Z",
+      "agent": "assessment",
+      "data": {
+        "title": "Codebase Assessment — nuclear-fission-3d feature (mirror of nuclear-fusion-3d static site)",
+        "date": "2026-08-27",
+        "summary": "This repo is a zero-build collection of pure-static 3D educational animation sites: a root index.html hub links one subdirectory per topic (each dir = index.html + css/style.css + js/main.js [+ tests/]). There is no package.json, no npm dependency, and no bundler anywhere — three.js r160 arrives exclusively via a CDN import map + es-module-shims so pages even work over file://. The task (\"create 核裂变 animation like 核聚变\") maps directly onto requirements already drafted in docs/specifications/02-nuclear-fission-animation/: create nuclear-fission-3d/ as a structural clone of nuclear-fusion-3d/ (the canonical, most complete sibling, 123-line HTML shell / 783-line single-file JS runtime / 220-line dark-space stylesheet / 3 node:test suites) with a fission story: 3 phases atoms→neutron→fission, window.fissionSim API mirroring window.fusionSim's exact method surface (main.js:703-727), 4-step guided tour, verbatim 人教版 physics copy (铀-235→铀-236*→钡-141+氪-92+3个中子, 200 MeV ≈ 3.2e-11 J), plus a pure-append card in the root hub. Strong quantitative invariants dominate: importmap/three@0.160.0/es-module-shims string counts, zero D-T fusion literals in fission files (cross-pollution guard), requestAnimationFrame( exactly once and setInterval(/setTimeout( = 0 in main.js, glob-form node --test gates only, and the root-index /\\.card--\\w+::before\\s*\\{/g count frozen at 7. Serving is by Caddy (make dev, port 8321 hardcoded); tests are content-assertion scripts run by Node's built-in runner (Node v24.15.0).",
+        "patterns": [
+          {
+            "name": "Per-topic self-contained site directories behind a static hub index.html (no build system, no package.json)",
+            "example": "index.html:192-218 (cards per site) alongside sibling dirs solar-cell/, gravity-slingshot/, nuclear-fusion-3d/",
+            "consistency": "Very consistent — every existing feature is one folder with index.html + css/ + js/(+ tests/)"
+          },
+          {
+            "name": "CDN-only ES-module dependency shell: es-module-shims loader + import map pinning three@0.160.0 (build + 'three/addons/' prefix), making file:// opening possible",
+            "example": "nuclear-fusion-3d/index.html:104-117 (async es-module-shims@1.10.0 script, then type=importmap with two verbatim jsdelivr URLs)",
+            "consistency": "Consistent across 3D siblings; requirement AC-02 pins the same counts (importmap ×1, three@0.160.0 ×2, es-module-shims@1.10.0 ≥1) verbatim into the new fission page"
+          },
+          {
+            "name": "Inline pre-module error trap + ready flag bootstrap contract",
+            "example": "nuclear-fusion-3d/index.html:99-102 registers window.__errs=[] and an error listener BEFORE any module code; nuclear-fusion-3d/js/main.js:782 sets window.__ready = true last",
+            "consistency": "Consistent (SCENARIO-001/024 in fusion); AC-10 requires the identical arrangement so degradation works even if module loading fails"
+          },
+          {
+            "name": "Single-rAF simulation loop with gated getDelta accumulator for pause/resume — never clock.running toggles, never timers",
+            "example": "nuclear-fusion-3d/js/main.js:758-772 (requestAnimationFrame(animate) once; const dt = Math.min(clock.getDelta(), 0.05); if (!state.paused) { state.simTime += dt; ... advancePhase(); })",
+            "consistency": "Consistent (SCENARIO-022); AC-10 quantifies it: requestAnimationFrame( exactly 1×, setInterval(/setTimeout( exactly 0× in fission main.js"
+          },
+          {
+            "name": "Plain-data constants drive everything: PHYS physics numbers, PHASES array {key, zh, duration}, TOUR_STEPS narration array with phaseKey mapping",
+            "example": "nuclear-fusion-3d/js/main.js:26-43 (PHYS), :47-52 (PHASES atoms/plasma/fusion), :57-67 (TOUR_STEPS)",
+            "consistency": "Consistent (SCENARIO-010/011/012); fission must use key sequence atoms→neutron→fission and a 4-step tour mapping ①→atoms ②→neutron ③→fission ④→fission (steps ≠ phases)"
+          },
+          {
+            "name": "Observable runtime handle on window with a fixed method surface for deterministic testing",
+            "example": "nuclear-fusion-3d/js/main.js:700-727 (window.fusionSim = { getPhase, getPhaseTime, getSimTime, isPaused, pause, resume, reset, isTourActive, getTourStep, getMode, setAutoAdvance(on), gotoPhase(key) })",
+            "consistency": "Consistent; AC-03 mandates window.fissionSim with EXACTLY these method names (setPhase/toggleAuto forbidden), gotoPhase ignores invalid keys silently, reset() restarts at atoms without touching tour state"
+          },
+          {
+            "name": "Traceability comments everywhere: // SCENARIO-XXX (AC-YY): precedes every owning code section; HTML elements carry data-phase and ids like #homeBtn/#stage/#tools/#btnTour/#bottomBar/#tourPanel",
+            "example": "nuclear-fusion-3d/index.html:29-42 (#tools nav, #tempHud, #bottomBar rows) and nuclear-fusion-3d/js/main.js:5-16 header comment enumerating scenario tags",
+            "consistency": "Uniform convention in all fusion files; fission page should reuse the same chrome element IDs since AC-02 requires them verbatim"
+          },
+          {
+            "name": "Content-assertion test suites via node:test reading production files as strings (fs.readFileSync + regex), including negative 'forbidden literal' sweeps walked over the production tree excluding tests/",
+            "example": "nuclear-fusion-3d/tests/phase1-shell.test.mjs:26-49 (mustRead, walkProduction skipping tests/node_modules/dotfiles, MINUS unicode-hyphen helper)",
+            "consistency": "Consistent (phase1/2/3 suite trio mirrors requirements); AC-06 demands the same sweep style forbidding fusion literals ('0.018884','17.6 MeV','2.82e-12','氘','氚') in all fission html/css/js"
+          },
+          {
+            "name": "Dark-space CSS theme: full-viewport #stage canvas, fixed glassmorphism overlay bars (#homeBtn, header gradient title, .ctrl-bar bottom bar, #tourPanel slide-in, focus-visible outlines), Google Fonts Outfit @import",
+            "example": "nuclear-fusion-3d/css/style.css:1-40 (#stage vignette ::after, gradient h1 clip, fixed #homeBtn pill)",
+            "consistency": "Shared across 3D siblings; new page copies selectors/IDs so shell-mirror tests pass"
+          },
+          {
+            "name": "Root hub cards follow <a class=\"card card--<topic>\" href=\"<dir>/\" id=\"link-<dir>\"> with card__icon/card__title/card__desc/card__arrow children",
+            "example": "index.html:206-211 (card--ion ⚡ Ion Thruster entry)",
+            "consistency": "Consistent (7 cards currently); AC-09: append card--fission ☢️ Nuclear Fission 核裂变 AFTER the solar-cell card, id=\"link-nuclear-fission-3d\", href=\"nuclear-fission-3d/\", and add NO new `.card--X::before {` rule (count must stay exactly 7)"
+          }
+        ],
+        "recommendations": [
+          "Build nuclear-fission-3d/ as a deliberate structural clone of nuclear-fusion-3d/ (same file set incl. ≥3 tests/*.test.mjs): keep the exact HTML chrome (#homeBtn, #stage, #tools/#btnTour, #bottomBar, #tourPanel) and the byte-exact import-map block (importmap ×1, three@0.160.0 exactly 2× jsdelivr URLs, es-module-shims@1.10.0 ≥1), then change ONLY story content: PHASES = [{atoms 原子结构},{neutron 中子俘获·激发复核铀-236*},{fission 裂变反应}] and expose window.fissionSim with the exact 12-method surface copied from nuclear-fusion-3d/js/main.js:703-727.",
+          "Honor both directions of the cross-pollution guards: embed verbatim AC-05 substrings 「铀-235」「钡-141」「氪-92」「3 个中子」「200 MeV」「3.2e-11」(≈3.2e-11 J)「质量数」「电荷数」 plus conservation lines 236 = 141 + 92 + 3 and 92 = 56 + 36, while keeping 0 occurrences of '0.018884'/'0.0189 u'/'17.6 MeV'/'2.82e-12'/'氘'/'氚' anywhere in nuclear-fission-3d/**/*.html/css/js.",
+          "Treat root index.html as append-only: insert the ☢️ card (`<a class=\"card card--fission\" … id=\"link-nuclear-fission-3d\" href=\"nuclear-fission-3d/\">`) immediately after the id=\"link-solar-cell\" card; style its accent WITHOUT introducing a new `.card--X::before {` rule — e.g. `.card--fission .card__icon { background: … }` or a :hover border — because the regex /\\.card--\\w+::before\\s*\\{/g must still match exactly 7 times.",
+          "Keep runtime and gate invariants mechanical from the start: exactly ONE requestAnimationFrame( call site in js/main.js driving all three phases, ZERO setInterval(/setTimeout(, clock-driven delta clamped (~Math.min(delta, 0.05)) accumulated only when not paused, window.__errs=[] collector inline BEFORE the module tag and window.__ready=true at the end, WebGL2 fallback message mirroring main.js init(); validate with glob-form commands only — `node --test nuclear-fusion-3d/tests/*.test.mjs` (baseline 33/33, suite stays untouched) and `node --test nuclear-fission-3d/tests/*.test.mjs` — never the directory-argument form, which deterministically fails on Node v24.15.0 (AC-08)."
+        ],
+        "filesAssessed": [
+          "index.html",
+          "Makefile",
+          "Caddyfile",
+          "nuclear-fusion-3d/index.html",
+          "nuclear-fusion-3d/js/main.js",
+          "nuclear-fusion-3d/css/style.css",
+          "nuclear-fusion-3d/tests/phase1-shell.test.mjs",
+          "docs/specifications/02-nuclear-fission-animation/01-requirements.md",
+          "docs/specifications/02-nuclear-fission-animation/05-research-report.md"
+        ],
+        "services": {
+          "ui": {
+            "cmd": "make dev   # = caddy run --config Caddyfile (foreground; alt: make start/stop). NOTE: Caddyfile root points at the PARENT dir /home/jenningsl/Documents/儿子学习/science, so pages serve at http://localhost:8321/.worktree/02-nuclear-fission-animation/<site>/ ; pages are equally runnable by opening index.html directly via file:// (import-map shell supports it)",
+            "portEnv": "none — port :8321 hardcoded in Caddyfile (:8321 block)",
+            "readyPath": "/ (hub index.html served by file_server browse; HTTP 200 = ready)"
+          }
+        },
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/02-nuclear-fission-animation/docs/specifications/02-nuclear-fission-animation/06-code-assessment.md"
+      }
+    },
+    "design": {
+      "timestamp": "2026-08-27T14:00:29.145Z",
+      "agent": "design",
+      "data": {
+        "title": "02-nuclear-fission-animation UI/UX 设计规格（核裂变 3D 交互动画）",
+        "date": "2026-08-27",
+        "summary": "为「核裂变」新建独立纯静态 3D 交互动画站 nuclear-fission-3d/（index.html + css/style.css + js/main.js + tests/*.test.mjs ≥3 套件），并在根 index.html 纯追加一张 card--fission 门户卡。整体镜像实测存在的兄弟站 nuclear-fusion-3d：外壳 DOM id 集、importmap(×1)/three@0.160.0(×2 同一 jsdelivr 地址)/es-module-shims@1.10.0(≥1) 运行时钉定、window.fissionSim 与 window.fusionSim 实测 12 方法面逐一同名（getPhase,getPhaseTime,getSimTime,isPaused,pause,resume,reset,isTourActive,getTourStep,getMode,setAutoAdvance,gotoPhase；禁用不存在的 setPhase/toggleAuto）。三相位状态机 atoms→neutron→fission（中文标签+duration），rAF×1 单主循环 + clock.getDelta() 相位时钟，setInterval/setTimeout×0；导览 4 步固定映射 ①atoms②neutron③fission④fission(总结)；科学文案逐字锚定人教版（铀-235/钡-141/氪-92/3 个中子/200 MeV/3.2e-11/质量数/电荷数 + 守恒验算 236=141+92+3、92=56+36）；聚变专属 6 常数（0.018884/0.0189 u/17.6 MeV/2.82e-12/氘/氚）在本站出现次数必须为 0。接口面：①window.fissionSim 12 方法；②PHASES 数据形态 {key,duration,label[]}；③DOM id 契约（23 个镜像 id）；④根卡 8 个 id=\"link-*\" 各恰 1。数据流：键盘/指针 → 控制层 → fissionSim 状态机（getDelta 累积相位时钟）→ 单 rAF 循环渲染 Three.js 场景与 HUD 文案；导览 → gotoPhase 切相；异常 → window.__errs 收集 → 友好降级 + __ready 终置。【本轮修订（reviewResponses）】F-D-05：`Open →` 标记全文件「恰 1」系门禁自败（先存 7 处 span.card__arrow，行 196/203/210/217/224/232/239，追加后必为 8）——已将该单一标记改为增量断言「改动前 7 → 改动后恰 8（纯追加 delta 恰 +1）」，并在契约 root-card-addition-markers 的 derivationRule、模块 root-portal-card 审计项、模块 fission-test-suite S3 断言三处同步；其余 6 标记实测改前为 0，维持「改后恰 1」。AC-09g 原文仅要求卡片内容含 Open →（存在性），本口径不削弱任何既有断言、零改动融合站。CF-design-0krjds9 / CF-design-1hml9qh / CF-design-0grq8g9：三个契约的 sourceAnchor 已从行号（L196/L60/L111）改为经本次实测验证真实存在于目标文件中的符号——root-card-addition-markers→index.html#link-solar-cell、card-before-rule-count-preservation→index.html#card--fusion、fission-mirror-runtime-tokens→nuclear-fusion-3d/index.html#es-module-shims@1.10.0，全部枚举值由 grep 实测派生（非手写）。",
+        "designer": "ui-ux-designer",
+        "modules": [
+          {
+            "name": "fission-site-shell",
+            "description": "nuclear-fission-3d/index.html：静态外壳，镜像融合站实测结构——#homeBtn(href=\"../index.html\")、#stage(Three.js 画布容器)、#tools(#btnTour 🎬)、#bottomBar(#toggleBtn ⏸ 暂停 / #resetBtn 🔄 重置 / #camBtn 🎥 重置视角)、#tourPanel 覆盖层及 tourTitle/tourText/tourNav/tourPrev/tourDots/tourNext/tourExit 内部件。量化钉定（仅限本文件）：<script type=\"importmap\"> 恰 1 次；字符串 three@0.160.0 恰 2 次且为逐字相同的 jsdelivr 地址；es-module-shims@1.10.0 ≥1 次。file:// 直开可运行，无构建、无 npm。输入：无（自足静态）；输出：挂载 #stage 与全部控件供运行时绑定。"
+          },
+          {
+            "name": "fission-3d-scene",
+            "description": "Three.js 视觉编排（js/main.js 渲染层）：相① atoms——铀-235 原子核为质子/中子核子簇 + 轨道电子示意；相② neutron——一颗中子入射被俘获，俘获闪光，形成激发复核铀-236*（整体震颤/泛红提示激发态）；相③ fission——复核非对称分裂为钡-141 + 氪-92 + 3 个中子四散，伴随能量闪光。HUD 覆盖层同步中文相名标签与守恒验算文本：质量数 236 = 141 + 92 + 3，电荷数 92 = 56 + 36。默认机位 + #camBtn 一键复位；相机参数为设计 token（见 design-tokens）。输入：状态机相位与相位时钟；输出：每帧场景图元变换。"
+          },
+          {
+            "name": "fission-story-machine",
+            "description": "剧情状态机（js/main.js 逻辑层）：PHASES = [{key:'atoms',…},{key:'neutron',…},{key:'fission',…}] 恰三相，各带 duration 与中文标签（原子结构/中子俘获·形成激发复核铀-236*/裂变反应·分裂成 Ba/Kr+3n 并释放能量），数据形态镜像融合站 PHASES（main.js:52）。window.fissionSim 方法面与 window.fusionSim 实测表面（main.js:703-731）逐一同名同语义：getPhase/getPhaseTime/getSimTime/isPaused/pause/resume/reset/isTourActive/getTourStep/getMode/setAutoAdvance(on)/gotoPhase(key)；明确禁止 setPhase/toggleAuto。gotoPhase 合法键即跳相（导览激活时先退出导览），非法键静默忽略保持当前相（镜像 jumpToPhase, main.js:638 行为）；reset() 从 atoms 相重启且不动导览状态。输入：控件事件/导览步进；输出：state{phaseKey,phaseTime,simTime,paused,autoAdvance}。"
+          },
+          {
+            "name": "fission-controls-hud",
+            "description": "交互控制层：上一步/下一步按 atoms↔neutron↔fission 循环环绕（AC-04 明文，与融合站 clamp 行为有意不同）；#toggleBtn 在「⏸ 暂停/▶ 继续」间切换，文案与 aria-pressed 同步刷新，暂停冻结时间累积（pause 后 getSimTime() 读数不再增长，resume 后自冻结点原样续播）；#camBtn 恢复默认机位；#autoBtn 经 setAutoAdvance 切换自动/手动换幕并同步按钮文案。全部控件键盘可操作并具 :focus-visible 可见焦点样式。输入：键盘/指针事件；输出：状态机命令 + ARIA 状态。"
+          },
+          {
+            "name": "fission-tour-system",
+            "description": "导览系统：点击 #btnTour 打开 #tourPanel，恰 4 条有序步骤，映射钉死：步骤①→atoms、步骤②→neutron、步骤③→fission、步骤④→fission（总结步场景停留在 fission）。进入任一步骤立即把场景切至对应相位（导览进行中 fissionSim.getPhase() === 该步映射值）；再次点击 #btnTour 或 tourExit 关闭面板退出导览，退出后 getTourStep() 返回 null 且 isTourActive() 返回 false。面板文案逐步骤给出中文科学解说（锚定人教版口径）。输入：btnTour/tourPrev/tourNext/tourExit 事件；输出：gotoPhase 调用 + 面板 DOM 更新。"
+          },
+          {
+            "name": "fission-bootstrap-guard",
+            "description": "启动与错误守卫（镜像融合站 SCENARIO-024 bootstrap 契约）：初始化 window.__errs = [] 并注册 error 监听收集异常；启动流程末尾置 window.__ready = true（融合站 main.js:783 同语义）；WebGL 能力检测/上下文创建失败时在 #stage 显示友好中文降级文字提示，绝不白屏或抛未捕获异常。计时纪律：requestAnimationFrame( 恰 1 次（单一主循环驱动三相渲染与时钟），setInterval( 与 setTimeout( 均为 0 次，相位时钟由 clock.getDelta() 累积驱动（暂停=停止累积）。输入：DOMContentLoaded；输出：__ready 标志 + 主循环句柄。"
+          },
+          {
+            "name": "root-portal-card",
+            "description": "根 index.html 纯追加模块（唯一被授权触及的既有文件）：在 solar-cell 卡（id=\"link-solar-cell\"，行 235）之后插入 <a class=\"card card--fission\" href=\"nuclear-fission-3d/\" id=\"link-nuclear-fission-3d\">，内部结构逐字段复刻兄弟卡模式：div.card__icon（☢️）+ div.card__title（Nuclear Fission）+ 双语副题（核裂变）+ 一句 div.card__desc + <span class=\"card__arrow\">Open →</span>。审计口径（F-D-05 修订版）：☢️、Nuclear Fission、核裂变、card--fission 锚点、id=\"link-nuclear-fission-3d\"、href=\"nuclear-fission-3d/\" 六者改前实测 0 → 改后各恰 1；Open → 改前实测 7 → 改后恰 8（增量恰 +1，不作「恰 1」断言）；既有七卡锚点、href 与 7 个 id=\"link-*\" 逐字保留各恰 1。CSS 纪律：禁新增 .card--fission::before（\\.card--\\w+::before\\s*\\{ 计数改后仍恰 7），强调色只落在 .card--fission .card__icon { background: … } 与 :hover 边框描边。输入：无；输出：门户卡 DOM + 少量增量 CSS 规则。"
+          },
+          {
+            "name": "fission-design-tokens",
+            "description": "设计令牌（css/style.css + 根卡增量样式）：间距 8px 栅格（0/4/8/16/24/32/48）；字号 xs 12/sm 14/md 16/lg 18/xl 24/2xl 32/3xl 40px，字重 400/500/600/700；语义色——primary 裂变主题琥珀-橙（main #f59e0b/light #fbbf24/dark #b45309）、error #dc2626、warning #d97706、success #16a34a、surface 深空底色沿用兄弟站暗色调性；圆角 none/sm 4/md 8/lg 12/full；断点 sm 640/md 768/lg 1024（根卡栅格自动随既有 .grid 断点流式换行，无需新增媒体查询）；触控目标 ≥44×44；正文对比 ≥4.5:1、大字 ≥3:1。输出：CSS 自定义属性集，供场景 HUD 与根卡消费。"
+          },
+          {
+            "name": "fission-a11y-layer",
+            "description": "可访问性层（WCAG 2.1 AA）：全部交互元素原生 button/a 承载、键盘可达、逻辑 Tab 序、:focus-visible 高亮环；#toggleBtn/#autoBtn 带 aria-pressed，#stage 容器 aria-label「核裂变 3D 演示」，相位切换经 aria-live=polite 区域播报中文相名；prefers-reduced-motion 用户降级：禁用裂变闪光频闪（改为单次淡入）、默认低速播放；触控目标 ≥44×44；颜色对比满足 4.5:1（正文）/3:1（大字）。输入：系统偏好 + 用户输入；输出：ARIA 状态与降级渲染参数。"
+          },
+          {
+            "name": "fission-test-suite",
+            "description": "测试套件（tests/ 下 ≥3 个 *.test.mjs，node:test + node:assert，零 npm）：S1 runtime-mirror——AC-02/AC-03/AC-10 全量化词（importmap 恰 1、three@0.160.0 恰 2、es-module-shims@1.10.0 ≥1、rAF( 恰 1、setInterval(/setTimeout( 均 0、__errs/__ready、fissionSim 12 方法名集合）+ 非法键静默/导览退出语义；S2 science-copy——AC-05 八锚点子串 + 守恒验算式 + AC-06 六禁词计数为 0；S3 root-card——AC-09 全量化词：六标记各恰 1、Open → 增量断言（改前 7 → 改后恰 8，delta 恰 +1；F-D-05 修订口径，绝不断言恰 1）、::before 规则计数恰 7、七 link id 各恰 1、新卡位于 link-solar-cell 之后；S4 tour-controls——AC-04/AC-07 语义断言。运行一律 glob 形式：node --test nuclear-fission-3d/tests/*.test.mjs；回归门禁：node --test nuclear-fusion-3d/tests/*.test.mjs 前后均 exit 0（基线 33/33，Node v24.15.0；禁 <dir>/ 目录参数形式）；既有 fusion 文件零改动，若门禁转红只许修正新增物。"
+          }
+        ],
+        "hasNumericConstants": "true",
+        "contracts": [
+          {
+            "name": "root-card-addition-markers",
+            "pattern": "^(<a class=\"card card--fission\"|id=\"link-nuclear-fission-3d\"|href=\"nuclear-fission-3d/\"|Nuclear Fission|核裂变|☢️|Open →)$",
+            "enumerates": [
+              "<a class=\"card card--fission\"",
+              "id=\"link-nuclear-fission-3d\"",
+              "href=\"nuclear-fission-3d/\"",
+              "Nuclear Fission",
+              "核裂变",
+              "☢️",
+              "Open →"
+            ],
+            "sourceAnchor": "index.html#link-solar-cell",
+            "derivationRule": "新增卡逐字段复刻根 index.html 行 192-240 七张兄弟卡的实测标记模式（每卡含 <span class=\"card__arrow\">Open →</span>）。六个新贡献标记经 grep 实测改前计数为 0（☢️=0、核裂变=0、Nuclear Fission=0、card--fission=0），故断言为 0→1（改后各恰 1）；第七个标记 Open → 经 grep -c 实测改前已存在 7 次（行 196/203/210/217/224/232/239，均为既有兄弟卡 span.card__arrow），故其断言为增量口径：改前 7 → 改后恰 8（纯追加 delta 恰 +1），绝不作「恰 1」断言（修订 F-D-05 门禁自败；AC-09g 原文仅要求卡片内容含 Open → 的存在性）。新卡置于 id=\"link-solar-cell\"（行 235）之后。",
+            "uniqueness": true
+          },
+          {
+            "name": "card-before-rule-count-preservation",
+            "pattern": "^\\.card--\\w+::before\\s*\\{$",
+            "enumerates": [
+              ".card--slingshot::before {",
+              ".card--car::before {",
+              ".card--ion::before {",
+              ".card--ion3d::before {",
+              ".card--atom::before {",
+              ".card--solar::before {",
+              ".card--fusion::before {"
+            ],
+            "sourceAnchor": "index.html#card--fusion",
+            "derivationRule": "对根 index.html 应用正则 /\\.card--\\w+::before\\s*\\{/g 实测提取（行 119-125 内联样式表），恰得 7 条：slingshot/car/ion/ion3d/atom/solar/fusion。改动后全文件匹配数必须仍恰为 7（零增量）：禁止为 card--fission 新增 ::before 强调规则，强调色只允许落在不受该正则管制的 .card--fission .card__icon 背景 / :hover 边框描边上（与 SCENARIO-003/AC-09f 口径一致）。",
+            "uniqueness": true
+          },
+          {
+            "name": "root-link-id-allowlist",
+            "pattern": "^id=\"link-[a-z0-9-]+\"$",
+            "enumerates": [
+              "id=\"link-gravity-slingshot\"",
+              "id=\"link-how-cars-work\"",
+              "id=\"link-ion-thruster\"",
+              "id=\"link-ion-thruster-3d\"",
+              "id=\"link-atomic-model\"",
+              "id=\"link-nuclear-fusion-3d\"",
+              "id=\"link-solar-cell\"",
+              "id=\"link-nuclear-fission-3d\""
+            ],
+            "sourceAnchor": "index.html#link-solar-cell",
+            "derivationRule": "对根 index.html 应用 grep -o 'id=\"link-[a-z0-9-]*\"' 实测得改前 7 值（行 192/199/206/213/220/228/235，各恰 1）；追加新卡后集合新增第 8 值 id=\"link-nuclear-fission-3d\"（恰 1）。改后 8 值各恰出现 1 次，既有 7 卡锚点与 href 逐字节保留。",
+            "uniqueness": true
+          },
+          {
+            "name": "fission-mirror-runtime-tokens",
+            "pattern": "^(importmap|three@0\\.160\\.0|es-module-shims@1\\.10\\.0)$",
+            "enumerates": [
+              "importmap",
+              "three@0.160.0",
+              "es-module-shims@1.10.0"
+            ],
+            "sourceAnchor": "nuclear-fusion-3d/index.html#es-module-shims@1.10.0",
+            "derivationRule": "对兄弟站 nuclear-fusion-3d/index.html 实测计数并镜像到新建 nuclear-fission-3d/index.html：'importmap'（type=\"importmap\" script 标签）改后在 fission 站恰 1 次；'three@0.160.0' 恰 2 次且两处为逐字相同的 jsdelivr 地址；'es-module-shims@1.10.0' 加载器至少 1 次。三值均由融合站文件 grep 实测（1/2/1）派生，非手写。",
+            "uniqueness": true
+          },
+          {
+            "name": "fusion-runtime-api-surface",
+            "pattern": "^[a-z][A-Za-z0-9]*$",
+            "enumerates": [
+              "getPhase",
+              "getPhaseTime",
+              "getSimTime",
+              "isPaused",
+              "pause",
+              "resume",
+              "reset",
+              "isTourActive",
+              "getTourStep",
+              "getMode",
+              "setAutoAdvance",
+              "gotoPhase"
+            ],
+            "sourceAnchor": "nuclear-fusion-3d/js/main.js#fusionSim",
+            "derivationRule": "从 nuclear-fusion-3d/js/main.js 行 703-731 的 window.fusionSim 对象字面量逐键实测提取（gotoPhase 在行 731 委托 jumpToPhase，行 638）；window.fissionSim 键集合必须与之完全一致且仅此 12 个；setPhase/toggleAuto 等不存在的方法名禁止出现。",
+            "uniqueness": true
+          },
+          {
+            "name": "fission-shell-dom-ids",
+            "pattern": "^[a-z][A-Za-z0-9]*$",
+            "enumerates": [
+              "homeBtn",
+              "stage",
+              "tools",
+              "btnTour",
+              "bottomBar",
+              "phaseTabs",
+              "prevPhaseBtn",
+              "nextPhaseBtn",
+              "autoBtn",
+              "phaseBar",
+              "phaseLabel",
+              "toggleBtn",
+              "resetBtn",
+              "camBtn",
+              "tourPanel",
+              "tourTitle",
+              "tourText",
+              "tourNav",
+              "tourPrev",
+              "tourDots",
+              "tourNext",
+              "tourExit",
+              "hint"
+            ],
+            "sourceAnchor": "nuclear-fusion-3d/index.html#btnTour",
+            "derivationRule": "对 nuclear-fusion-3d/index.html 应用 grep -o 'id=\"[a-zA-Z]*\"' 实测提取全部 30 个 id，剔除融合站专属温控组件组（tempHud/tempNow/tempBarWrap/tempBar/tempStage/tempGoal——D-T 加热叙事，AC-06 污染风险）与 physicsPanel（裂变站 AC 无此面板），余 23 个为裂变站外壳必镜像 id 集；裂变站以守恒验算 HUD（新命名）替换温控组。",
+            "uniqueness": true
+          },
+          {
+            "name": "fission-phase-keys",
+            "pattern": "^[a-z]+$",
+            "enumerates": [
+              "atoms",
+              "neutron",
+              "fission"
+            ],
+            "sourceAnchor": "docs/specifications/02-nuclear-fission-animation/01-requirements.md#AC-03",
+            "derivationRule": "AC-03 钉定剧情状态机恰三相且 key 依次为 atoms（原子结构·初始相）→ neutron（中子俘获·形成激发复核铀-236*）→ fission（裂变反应·分裂成 Ba/Kr+3n 并释放能量），数据形态镜像融合站 PHASES（main.js:52）；gotoPhase 合法键闭包即此 3 值，非法键静默忽略。",
+            "uniqueness": true
+          },
+          {
+            "name": "tour-step-mapping",
+            "pattern": "^[1-4]→(atoms|neutron|fission)$",
+            "enumerates": [
+              "1→atoms",
+              "2→neutron",
+              "3→fission",
+              "4→fission"
+            ],
+            "sourceAnchor": "docs/specifications/02-nuclear-fission-animation/01-requirements.md#AC-07",
+            "derivationRule": "AC-07 钉死导览恰 4 条有序步骤且步骤数≠相位数：步骤①→atoms、②→neutron、③→fission、④→fission（总结步场景停留在 fission）；映射闭包由 AC-07 原文逐字派生，任一步骤激活时 fissionSim.getPhase() 必须等于映射值。",
+            "uniqueness": true
+          },
+          {
+            "name": "science-copy-anchors",
+            "pattern": "^(铀-235|钡-141|氪-92|3 个中子|200 MeV|3\\.2e-11|质量数|电荷数)$",
+            "enumerates": [
+              "铀-235",
+              "钡-141",
+              "氪-92",
+              "3 个中子",
+              "200 MeV",
+              "3.2e-11",
+              "质量数",
+              "电荷数"
+            ],
+            "sourceAnchor": "docs/specifications/02-nuclear-fission-animation/01-requirements.md#AC-05",
+            "derivationRule": "AC-05 逐字列出的 8 个科学文案锚点子串：nuclear-fission-3d/** 全部 html/js 源码中每个子串须出现 ≥1 次（3.2e-11 可作 ≈3.2e-11 J 表述）；并须展示守恒验算：质量数 236 = 141 + 92 + 3，电荷数 92 = 56 + 36。",
+            "uniqueness": true
+          },
+          {
+            "name": "forbidden-fusion-literals",
+            "pattern": "^(0\\.018884|0\\.0189 u|17\\.6 MeV|2\\.82e-12|氘|氚)$",
+            "enumerates": [
+              "0.018884",
+              "0.0189 u",
+              "17.6 MeV",
+              "2.82e-12",
+              "氘",
+              "氚"
+            ],
+            "sourceAnchor": "docs/specifications/02-nuclear-fission-animation/01-requirements.md#AC-06",
+            "derivationRule": "AC-06 跨题污染守卫逐字列出的 6 个 D-T 聚变专属字面量：改动后 nuclear-fission-3d/** 全部 html/css/js 源码中每个字面量出现次数必须为 0（方向性守卫：聚变常数不得误入裂变页面）。",
+            "uniqueness": true
+          },
+          {
+            "name": "bootstrap-loop-constants",
+            "pattern": "^(__errs|__ready|requestAnimationFrame\\(|setInterval\\(|setTimeout\\(|getDelta\\()$",
+            "enumerates": [
+              "__errs",
+              "__ready",
+              "requestAnimationFrame(",
+              "setInterval(",
+              "setTimeout(",
+              "getDelta("
+            ],
+            "sourceAnchor": "nuclear-fusion-3d/js/main.js#__ready",
+            "derivationRule": "对 nuclear-fusion-3d/js/main.js 实测：requestAnimationFrame( = 1（行 7 注释亦述单一主循环）、setInterval( = 0、setTimeout( = 0、getDelta( ≥ 1、window.__ready = true 终置（行 783）、__errs 错误收集守卫；镜像到 nuclear-fission-3d/js/main.js 时计数语义逐一保持：rAF 恰 1、setInterval/setTimeout 均 0、相位时钟由 clock.getDelta() 驱动、__ready 为启动完成终置标志。",
+            "uniqueness": true
+          }
+        ],
+        "alternativesConsidered": [
+          {
+            "decision": "F-D-05：`Open →` 标记的门禁计数口径",
+            "chosen": "文件级增量断言——改前实测 7 → 改后恰 8（纯追加 delta 恰 +1），同契约其余六个改前实测为 0 的标记维持「改后恰 1」",
+            "rationale": "AC-09g 原文只要求卡片内容含 Open →（存在性）；「全文件恰 1」在先存 7 处 span.card__arrow（行 196-239）的前提下数学不可满足，会把实现锁进必红。增量口径既保纯追加性（不得改动既有 7 卡）又确定性可判定，且不削弱任何既有断言、融合站零改动。",
+            "alternatives": [
+              "全文件恰 1（被 F-D-05 否决：先存 7 处，追加后必为 8，确定性失败）",
+              "作用域限定为新增卡片块内恰 1（需块级 HTML 解析定位锚点块，实现脆弱且测试复杂度不成比例）"
+            ]
+          },
+          {
+            "decision": "三个契约 sourceAnchor 的锚点形式",
+            "chosen": "改为经实测验证真实存在于目标文件中的符号/字面量：#link-solar-cell、#card--fusion、#es-module-shims@1.10.0、#fusionSim、#btnTour、#__ready 及需求文档 #AC-xx",
+            "rationale": "此前用行号（L196/L60/L111）作 export 名，行号随文件演化为幻影锚点且不具语义；文件内实际存在的符号串可被确定性 grep 验证，枚举全部由 grep 实测派生而非手写（响应 CF-design-0krjds9/1hml9qh/0grq8g9）。",
+            "alternatives": [
+              "行号锚点（已否决：外部验证不可解析、文件漂移即失效）",
+              "仅文件路径不带符号（定位粒度过粗，无法说明枚举派生自文件哪一符号）"
+            ]
+          },
+          {
+            "decision": "新卡 CSS 强调色的落点",
+            "chosen": ".card--fission .card__icon { background: … } 与 :hover 边框描边",
+            "rationale": "AC-09f 禁新增 .card--X::before 规则且 \\.card--\\w+::before\\s*\\{ 计数必须保持 7；icon 背景与 hover 描边落在不受该正则管制的规则上，视觉强调与计数守卫兼得。",
+            "alternatives": [
+              ".card--fission::before 新规则（被 AC-09f 明令禁止）",
+              "元素行内 style（污染标记、难以为 S3 套件断言）"
+            ]
+          },
+          {
+            "decision": "与融合站的代码复用策略",
+            "chosen": "逐字段镜像复制外壳/运行时形态到 nuclear-fission-3d/，零跨目录 import，既有 33/33 测试与融合站文件零改动",
+            "rationale": "AC-01 要求 file:// 直开无构建无 npm，AC-08 要求融合站回归门禁前后均绿且唯一授权改动是 AC-09 根卡纯追加；目录级解耦使回归面最小化。",
+            "alternatives": [
+              "相对路径 import ../nuclear-fusion-3d/ 模块（破坏自足性与 file:// 直开）",
+              "抽取共享 npm 包（AC-01 明令无 npm 依赖）"
+            ]
+          },
+          {
+            "decision": "上一步/下一步的边界行为",
+            "chosen": "按 atoms↔neutron↔fission 循环环绕",
+            "rationale": "AC-04 明文要求循环环绕；融合站 jumpToPhase 用 Math.max/min clamp（main.js:651-652）是其自身行为，AC-03 仅钉 API 面与 gotoPhase/非法键语义，不约束 prev/next 边界。",
+            "alternatives": [
+              "clamp 到首尾（融合站行为，违反 AC-04）"
+            ]
+          },
+          {
+            "decision": "导览步骤数与映射",
+            "chosen": "恰 4 步：①atoms②neutron③fission④fission(总结)",
+            "rationale": "AC-07 钉死步骤数≠相位数并固定映射，第 4 步为总结解说不切相；进入任一步骤立即把场景切至映射相位。",
+            "alternatives": [
+              "3 步 1:1 映射相位（违反 AC-07）",
+              "5 步追加核安全科普步（需求未要求，YAGNI）"
+            ]
+          },
+          {
+            "decision": "计时与调度机制",
+            "chosen": "单一 requestAnimationFrame 主循环 + clock.getDelta() 累积相位时钟，暂停即停止累积",
+            "rationale": "AC-10 钉定 rAF( 恰 1、setInterval(/setTimeout( 均 0；单循环消除多定时器漂移，使 pause→getSimTime 冻结、resume 原样续播成为可断言行为（镜像融合站实测 1/0/0）。",
+            "alternatives": [
+              "每相独立 setInterval 计时器（被 AC-10 禁止）",
+              "CSS animation 驱动（无法编程暂停与读时，不满足 fissionSim API）"
+            ]
+          },
+          {
+            "decision": "裂变站专属 HUD 组件",
+            "chosen": "以守恒验算 HUD（质量数 236=141+92+3 / 电荷数 92=56+36）替换融合站 tempHud 温控组件组",
+            "rationale": "AC-05 要求展示守恒验算；融合站 tempNow/tempBar/tempStage/tempGoal 是 D-T 加热专属叙事，原样复用会引入与裂变无关文案并构成 AC-06 方向的跨题污染风险；其余 23 个外壳 id 逐一镜像（见 fission-shell-dom-ids 派生规则）。",
+            "alternatives": [
+              "原样镜像 tempHud 仅改名（引入无关温度叙事，YAGNI 且有污染风险）",
+              "完全不设数据 HUD（无法满足 AC-05 守恒验算展示）"
+            ]
+          }
+        ],
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/02-nuclear-fission-animation/docs/specifications/02-nuclear-fission-animation/07-design.md"
+      }
+    },
+    "designReview": {
+      "timestamp": "2026-08-27T14:03:14.242Z",
+      "agent": "designReview",
+      "data": {
+        "date": "2026-08-27",
+        "dimensions": [
+          {
+            "name": "D1 Interface contracts",
+            "notes": "window.fissionSim 12-method surface (verbatim-mirrored from fusionSim), PHASES data shape {key,duration,label[]}, 23-id DOM contract, gotoPhase legal-key closure with silent-ignore on illegal keys, __errs/__ready bootstrap flags, pause/resume freeze semantics, and per-module 输入/输出 lines all explicit. No interface named without a shape.",
+            "status": "pass"
+          },
+          {
+            "name": "D2 Feasibility & grounding",
+            "notes": "Every integration point re-verified against actual files this round: Open → pre-count 7 at cited lines; 7 sibling link ids at lines 192-235; 7 .card--X::before rules matching enumeration exactly; 12 fusionSim keys at main.js 703-731; runtime token counts 1/2/1 in fusion index.html; fusion test baseline 33/33 glob form. All sourceAnchors now cite real symbols, not phantom line numbers.",
+            "status": "pass"
+          },
+          {
+            "name": "D3 Consistency with requirements",
+            "notes": "AC-01..AC-10 all mapped; AC-09a-g fully covered by root-portal-card audit and S3 assertions; the revised incremental Open → counting satisfies AC-09g's existence requirement without weakening any AC quantifier and requires zero changes to the fusion site (AC-08 zero-modification clause preserved). AC-04 circular wrap intentionally differs from fusion's clamp, as the AC mandates. Only cross-artifact residue: line-range citation nit (F-D-R2-01, non-blocking).",
+            "status": "pass"
+          },
+          {
+            "name": "D4 Data flow & state",
+            "notes": "Input → fissionSim state machine (getDelta-accumulated phase clock) → single rAF loop → Three.js scene + HUD text; tour steps → gotoPhase; errors → __errs → friendly degradation → __ready terminal flag. No dangling producer/consumer; state {phaseKey,phaseTime,simTime,paused,autoAdvance} ownership explicit.",
+            "status": "pass"
+          },
+          {
+            "name": "D5 Complexity / YAGNI",
+            "notes": "11 modules proportional to a mirrored static site; per-module mirror-copy strategy with directory-level decoupling justified by file:// self-containment (AC-01) and minimal regression surface; tempHud replacement with conservation HUD justified against AC-05/AC-06; rejected alternatives documented (clamp, 3/5-step tour, per-phase timers, shared npm).",
+            "status": "pass"
+          },
+          {
+            "name": "D6 Numeric constants",
+            "notes": "Every constant is measurement-derived with method stated: Open → 7→8 delta +1, six markers 0→1, 7 ::before rules preserved, 8 link ids each exactly 1, token counts 1/2/1, rAF 1 / setInterval+setTimeout 0, 12-method surface, 23 mirrored ids from 30−7, a11y thresholds (44px, 4.5:1/3:1) with WCAG anchor. No unjustified magic numbers.",
+            "status": "pass"
+          }
+        ],
+        "findings": [
+          {
+            "blocking": false,
+            "confidence": 0.95,
+            "defectClass": "cross-artifact-citation-drift",
+            "detail": "01-requirements.md AC-03 cites the fusionSim surface as \"nuclear-fusion-3d/js/main.js:703-727\"; 07-design.md (fission-story-machine module and fusion-runtime-api-surface derivation rule) cites \"main.js:703-731\" (gotoPhase at 731 delegating to jumpToPhase at 638). Both refer to the same 12-key object literal (verified by grep of main.js 700-735: all 12 keys present), and AC-03 enumerates the identical 12 method names, so there is no semantic conflict — only a stale line-range upper bound in the requirements. Advisory only; the deterministic checker owns anchor existence, and the symbol anchor nuclear-fusion-3d/js/main.js#fusionSim is what actually gates implementation. Flagged so the spec stage cites one canonical range (or drops the range in favor of the symbol) rather than propagating two.",
+            "evidence": [
+              "01-requirements.md AC-03: 『nuclear-fusion-3d/js/main.js:703-727：getPhase, …, gotoPhase(key)』",
+              "07-design.md fission-story-machine: 『window.fusionSim 实测表面（main.js:703-731）』",
+              "07-design.md fusion-runtime-api-surface derivation: 『行 703-731 … gotoPhase 在行 731 委托 jumpToPhase，行 638』",
+              "grep of main.js 700-735 confirms the 12 keys getPhase…gotoPhase all present, matching both citations"
+            ],
+            "file": "docs/specifications/02-nuclear-fission-animation/07-design.md",
+            "id": "F-D-R2-01",
+            "lens": "D3 Consistency with requirements",
+            "line": "fission-story-machine / fusion-runtime-api-surface",
+            "ownerStage": "requirements",
+            "recommendation": "No design change required. When the spec stage cites the fusionSim surface, use the symbol anchor (nuclear-fusion-3d/js/main.js#fusionSim) or a single agreed range; optionally note the 727-vs-731 drift back to the requirements stage as a cosmetic correction.",
+            "severity": "P3",
+            "status": "open",
+            "title": "Line-range citation drift between design (main.js:703-731) and AC-03 (main.js:703-727) for the same fusionSim surface"
+          }
+        ],
+        "priorFindingResolutions": [
+          {
+            "evidence": "grep -c 'Open →' index.html = 7（行 196/203/210/217/224/232/239，全为既有卡 span.card__arrow）与设计声称的改前计数逐行一致；07-design.md Contract root-card-addition-markers derivationRule 明文『改前 7 → 改后恰 8（纯追加 delta 恰 +1），绝不作恰 1 断言』；root-portal-card 审计项与 fission-test-suite S3 同口径；AC-09g 存在性要求不受影响。",
+            "findingId": "F-D-05",
+            "ownerStage": "design",
+            "response": "Design regenerated (2026-08-27T22:00) with the single-marker counting fix in all three required places: contract derivationRule (改前实测 7 → 改后恰 8, delta 恰 +1, 绝不作「恰 1」断言), module root-portal-card audit item, and fission-test-suite S3. Other six markers retain 0→恰1.",
+            "status": "verified"
+          },
+          {
+            "evidence": "sed -n '235p' index.html = '<a class=\"card card--solar\" href=\"solar-cell/\" id=\"link-solar-cell\">'；grep -on 'id=\"link-…\"' 输出 7 值与 root-link-id-allowlist 枚举逐一相符（192/199/206/213/220/228/235）。",
+            "findingId": "CF-design-0krjds9",
+            "ownerStage": "design",
+            "response": "sourceAnchor changed from phantom line number L196 to symbol index.html#link-solar-cell.",
+            "status": "verified"
+          },
+          {
+            "evidence": "grep -o '\\.card--\\w+::before {' 实测恰 7 条（slingshot/car/ion/ion3d/atom/solar/fusion），与枚举闭包逐字一致；'.card--fusion::before {' 存在于 index.html 内联样式表。",
+            "findingId": "CF-design-1hml9qh",
+            "ownerStage": "design",
+            "response": "sourceAnchor changed from L60 to symbol index.html#card--fusion.",
+            "status": "verified"
+          },
+          {
+            "evidence": "sed -n '105,118p' 显示 script src=…es-module-shims@1.10.0/dist/es-module-shims.js；实测计数 importmap=1、three@0.160.0=2、es-module-shims@1.10.0=1，与 derivation rule (1/2/≥1) 一致。",
+            "findingId": "CF-design-0grq8g9",
+            "ownerStage": "design",
+            "response": "sourceAnchor changed from L111 to symbol nuclear-fusion-3d/index.html#es-module-shims@1.10.0.",
+            "status": "verified"
+          }
+        ],
+        "summary": "Round-2 review of the regenerated 07-design.md (2026-08-27T22:00). All four open convergence-ledger findings are resolved and verified against the live codebase. F-D-05: the unsatisfiable \"Open → exactly once\" gate is fixed in all three places (contract derivationRule, root-portal-card audit, fission-test-suite S3) to an incremental 7→8 delta+1 assertion; ground truth confirmed via grep (7 pre-existing occurrences at exactly the cited lines 196/203/210/217/224/232/239, all sibling span.card__arrow), and the change does not weaken AC-09g's existence-based requirement nor touch the fusion site. CF-design-0krjds9/1hml9qh/0grq8g9: all three sourceAnchors replaced with symbol-based anchors that exist in the cited files (index.html#link-solar-cell at line 235, index.html#card--fusion within the 7 ::before rules, nuclear-fusion-3d/index.html#es-module-shims@1.10.0). Enumeration-vs-reality verification (beyond the deterministic checker): root-link-id-allowlist's 7 pre-change ids match grep output at the exact cited lines and in order; card-before-rule-count-preservation's 7 rules match exactly; fusion-runtime-api-surface's 12 keys match the main.js 700-735 object literal verbatim; fission-mirror-runtime-tokens measured counts (importmap=1, three@0.160.0=2, es-module-shims@1.10.0=1) match the derivation rule; fission-shell-dom-ids arithmetic (30 total − 7 removed = 23) checks out. Requirements consistency: AC-01..AC-10 quantifiers mirrored without weakening any assertion, AC-08 zero-modification clause honored. No new blocking defects; one residual P3 advisory (line-range citation drift 703-727 vs 703-731 for the same fusionSim surface, owned upstream at requirements, no design change required). Design is fully grounded and ready for the spec stage.",
+        "title": "Design Review — 02-nuclear-fission-animation 07-design.md (round 2: verify F-D-05 & sourceAnchor resolutions)",
+        "verdict": "Approved with Comments",
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/02-nuclear-fission-animation/docs/specifications/02-nuclear-fission-animation/08-design-review.md"
+      }
+    },
+    "prototype": {
+      "timestamp": "2026-08-27T14:06:54.894Z",
+      "agent": "prototype",
+      "data": {
+        "title": "Prototype Round 1 — Numeric Design-Constant Validation (核裂变 3D, vs real fusion-site inputs)",
+        "date": "2026-08-27",
+        "summary": "Built a 90-line zero-dependency Node prototype (/tmp/fission-proto.mjs) and ran 20 empirical checks of the spec's numeric constants against REAL inputs in the worktree: the actual nuclear-fusion-3d/css/style.css surfaces (body #04060d, panel rgba(15,23,42,.82), ctrl #1e293b, tool rgba(15,20,32,.72)), fusion js/main.js story machine, and the live root index.html. WCAG 2.1 contrast was computed with the real formula over the real composited surfaces; grid/radius/breakpoint divisibility, mass/charge conservation arithmetic, story-machine mirror shape, and all root-card audit baselines were measured, not assumed. Result 19/20 pass. Single outlier: primaryDark #b45309 measures 2.91–4.03:1 across the four real dark surfaces (below both 4.5 body and the 3.0 large-text floor on #1e293b) — it is the dark-variant token and reads 5.02:1 on white, so the fix is a documented usage restriction (light-surface/non-text only), not a palette redesign. error #dc2626 (3.03) and success #16a34a (4.44, Δ−0.06) are large-text/UI-only on dark surfaces. All S1/S3 quantitative anchors reproduce exactly: rAF(=1, setInterval(=0, setTimeout(=0 in real fusion main.js; PHASES=3 with numeric durations 10/12/14s (36s total) confirming the mirror shape; root index.html measures \\.card--\\w+::before\\{=7, 'Open →'=7, id=\"link-*\"=7, card--fission=0 — the F-D-05 audit constants are real, so S3 will be writable as pinned. One mirror-fidelity trap found: real fusion buttons are 42×42 (.tool-btn) and 38px (#homeBtn), BELOW the spec's ≥44×44 touch-target AC — implementers must not copy fusion dimensions verbatim. No pivot needed.",
+        "verdict": "pass",
+        "measurements": [
+          "contrast primaryMain #f59e0b on 4 real dark surfaces: 6.81–9.43:1 (worst on #1e293b) — clears ≥4.5 body threshold everywhere, PASS",
+          "contrast primaryLight #fbbf24: 8.76–12.13:1 — PASS body",
+          "contrast primaryDark #b45309: 2.91 (ctrl #1e293b) / 3.66–4.03 (other surfaces) — FAILS 4.5 everywhere and 3.0 large-text floor on ctrl (Δ−0.09); reads 5.02:1 on white, i.e. dark-variant token is light-surface-only",
+          "contrast error #dc2626: 3.03–4.19:1 — large-text/UI-only (Δ−1.47 vs 4.5 body)",
+          "contrast warning #d97706: 4.59–6.36:1 — PASS body",
+          "contrast success #16a34a: 4.44–6.14:1 — BORDERLINE (Δ−0.06 vs 4.5; large-text PASS)",
+          "contrast bodyText #e2e8f0: 11.87–16.43:1 — PASS body",
+          "8px-grid discipline: spacing 0/4/8/16/24/32/48, radii 4/8/12, touch 44 all ≡0 (mod 4) — 8px grid + 4px half-step holds; breakpoints 640/768/1024 ≡0 (mod 8) — PASS",
+          "conservation: 235+1=236; 236=141+92+3; 92=56+36 — all hold, PASS",
+          "story-machine mirror (measured in real fusion main.js): PHASES=3 (atoms:10, plasma:12, fusion:14, total 36s), requestAnimationFrame(=1, setInterval(=0, setTimeout(=0 — matches every S1 quantitative pin, PASS",
+          "root-card audit baseline (real root index.html, spec regex \\.card--\\w+::before\\s*\\{): ::before rules=7, 'Open →'=7, id=\"link-*\"=7, card--fission=0 — all F-D-05 pre-change constants reproduce exactly, PASS",
+          "touch-target reality check: real fusion .tool-btn=42×42, #homeBtn=38px — below the spec's ≥44×44 AC, so 'mirror the fusion structure' must exclude dimension copying"
+        ],
+        "adjustments": [
+          "Do not use primaryDark #b45309 as text on any dark surface (measured 2.91–4.03:1, worst-case below even the 3:1 large-text floor). Restrict it in the spec to light-surface or non-text usage (borders/hover strokes), and reach for primaryMain #f59e0b or warning #d97706 (4.59:1) when amber text is needed on dark — recommend documenting this restriction; NOT silently changing the token value.",
+          "Treat error #dc2626 and success #16a34a as large-text/UI-component-only on dark surfaces (3.03/4.44:1); if body-size status text is ever required, prefer lighter tints (#ef4444 / #22c55e class) which clear 4.5:1. success at 4.44 is within 0.06 of the line — flag as borderline in S1/S4 test expectations.",
+          "Add an explicit spec note that 'mirror fusion structure' covers DOM/ID/method-surface shape only: real fusion controls measure 42×42 and 38px, violating the fission spec's own ≥44×44 touch-target AC; fission buttons must be sized to spec, not copied.",
+          "Keep fission PHASES durations as numeric tokens (fusion reference uses 10/12/14s); durations are not pinned by the modules under test, so nothing to pivot — but preserve the data shape {key, zh, duration} exactly as measured.",
+          "Recommendation: PROCEED to specification writing with the contrast usage-restriction caveat recorded; all quantitative anchors (importmap/three@0.160.0/timer pins, conservation formulas, root-card audit counts) are empirically reproducible against the real tree, so no pivot protocol is required."
+        ],
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/02-nuclear-fission-animation/docs/specifications/02-nuclear-fission-animation/09-prototype-report.md"
+      }
+    },
+    "spec": {
+      "timestamp": "2026-08-27T14:14:19.218Z",
+      "agent": "spec",
+      "data": {
+        "title": "核裂变 3D 交互动画页（nuclear-fission-3d）技术规范、实施计划与任务清单",
+        "date": "2026-08-27",
+        "summary": "新建独立纯静态目录 nuclear-fission-3d/，逐字镜像实测存在的 nuclear-fusion-3d 成品架构（同款 import map：importmap×1、three@0.160.0 jsdelivr 地址×2、es-module-shims@1.10.0≥1；#homeBtn/#stage/#tools/#bottomBar/#btnTour/#tourPanel 外壳；单一 rAF 主循环 + clock.getDelta；__errs/__ready 引导守卫），把剧情内容替换为三相位核裂变故事：atoms（原子结构）→ neutron（中子俘获形成激发复核铀-236*）→ fission（裂变为钡-141+氪-92+3 个中子并释放 200 MeV ≈3.2e-11 J），运行时句柄 window.fissionSim 与 window.fusionSim 的 12 方法表面完全一致，配 4 步导览（①atoms②neutron③fission④fission，步数≠相位数）。既有文件仅允许一处改动：根 index.html 在 link-solar-cell 卡后纯追加 ☢️ card--fission 入口卡（不新增 .card--X::before 规则，/\\.card--\\w+::before\\s*\\{/g 计数恒为 7）；nuclear-fusion-3d/** 全部零改动。回归门禁一律 glob 形式（变更前后 nuclear-fusion-3d/tests/*.test.mjs 均 33/33 exit 0；新站 ≥4 套件全绿；禁止目录参数形式）。实施分 3 个粗粒度、独立可验 phase：①静态外壳+脚手架，②运行时状态机+控制+导览（共享 main.js 故合并），③首页卡+全量门禁；共 16 个任务。原型报告 verdict=pass，其对比度使用限制（#b45309 禁作暗面文字色）与「勿照抄 fusion 42×42/38px 按钮尺寸（须 ≥44×44）」两条修正已写入架构与门禁。",
+        "architecture": "## 1. 总体策略：结构克隆 + 内容置换\n\n以实测存在的 nuclear-fusion-3d/（123 行 HTML 外壳 / 783 行单文件 JS / 220 行暗空 CSS / 3 个 node:test 套件）为唯一结构基准，新建 nuclear-fission-3d/ 为其结构克隆，仅置换故事层。不引入任何构建步骤、npm 依赖或新 CDN 来源（外部域名仅继承 cdn.jsdelivr.net 的 three@0.160.0 与 es-module-shims@1.10.0，import map 逐字一致），file:// 直开可用。\n\n### 文件清单\n**新建（7 个）**\n- `nuclear-fission-3d/index.html` — 页面外壳\n- `nuclear-fission-3d/css/style.css` — 暗空主题\n- `nuclear-fission-3d/js/main.js` — 单文件运行时\n- `nuclear-fission-3d/tests/phase1-shell.test.mjs`、`phase2-runtime.test.mjs`、`phase3-interaction.test.mjs`、`phase4-gate.test.mjs` — 4 个 node:test 内容断言套件（AC-01 要求 ≥3）\n\n**修改（1 个，仅纯追加）**\n- 根 `index.html`：在 id=\"link-solar-cell\" 卡片之后追加一张 `<a class=\"card card--fission\" … id=\"link-nuclear-fission-3d\" href=\"nuclear-fission-3d/\">` 卡及其非 ::before 强调色规则（实测基线：`.card--\\w+::before {` 规则恰 7 条、`Open →`×7、`id=\"link-*\"`×7、card--fission=0，原型已复测）。注意：计数正则必须用 `\\.card--\\w+::before\\s*\\{`（`\\w+`，实测 7）；不可用 `[a-z]*` 等窄化字符类（实测会漏计含数字的卡类名得 6）。\n**删除：无。nuclear-fusion-3d/** 零改动。**\n\n## 2. HTML 外壳（nuclear-fission-3d/index.html）\n\n镜像 nuclear-fusion-3d/index.html:99-117 的引导顺序：\n1. `<head>` 内**先于** module 标签的内联陷阱脚本：`window.__errs = []; window.addEventListener('error', e => window.__errs.push(String(e.message || e)));`（模块加载失败也能收集）。\n2. async 加载 `es-module-shims@1.10.0`，随后**恰好 1 个** `script type=\"importmap\"`，内含**恰好 2 条逐字相同**的 three@0.160.0 jsdelivr 地址（build 与 three/addons/ 前缀）。\n3. `script type=\"module\" src=\"./js/main.js\"`。\n\nChrome 元素 ID 与文案逐字钉定（AC-02）：`#homeBtn`（href=\"../index.html\"）、`#stage`（全屏 canvas 容器）、`#tools`、`#btnTour`（🎬 引导浏览）、`#bottomBar` 内 `#toggleBtn`（初始 ⏸ 暂停）、`#resetBtn`（🔄 重置）、`#camBtn`（🎥 重置视角）、`#tourPanel` 覆盖层（含 `#tourCloseBtn` 与 4 个带 data-step 的步骤项）。fission 特有（spec 钉定，非 AC 强制命名）：`#prevBtn`（⏮ 上一步）、`#nextBtn`（⏭ 下一步）、`#autoBtn`（自动换幕：开/关）、`#phaseTitle`/`#phaseText` 相位字幕、`#ledgerPanel` 守恒验算面板、`#fallback` 降级提示层（默认隐藏）。全部控件为原生 `<button>`/`<a>`（天然键盘可达），配 title/aria-label，最小尺寸 44×44px。\n\n## 3. JS 运行时（nuclear-fission-3d/js/main.js）——契约优先\n\n**纯数据常量**（镜像 fusion main.js:26-67 的数据形态，原型确认 {key, zh, duration} 形态必须逐字保留）：\n- `const MAX_PARTICLES = 2000;`（硬上限）\n- `const PHASES = [ {key:'atoms', zh:'原子结构', duration:10}, {key:'neutron', zh:'中子俘获', duration:12}, {key:'fission', zh:'裂变反应', duration:14} ];`（恰 3 项，数值型秒；总 36s）\n- `const TOUR_STEPS = [ {phaseKey:'atoms', …}, {phaseKey:'neutron', …}, {phaseKey:'fission', …}, {phaseKey:'fission', …} ];`（恰 4 项：①→atoms ②→neutron ③→fission ④→fission 总结步）\n\n**状态**：`const state = { phaseKey:'atoms', phaseTime:0, simTime:0, paused:false, autoAdvance:true, tourActive:false, tourStep:null };`\n\n**核心函数签名**：\n- `initThree(): {renderer, camera, controls, clock} | null` — WebGL2 上下文创建失败时返回 null 并走降级\n- `buildU235Nucleus(): Group`、`spawnNeutron(): Mesh`、`buildExcitedU236(): Group`、`buildFragments(): {barium:Group, krypton:Group, neutrons:Group}`、`flashEnergy(): void`\n- `advancePhase(): void` — `phaseTime ≥ duration` 时切下一相；**末相 fission 自动推进后保持停留**（phaseTime 钳制在 duration，getSimTime 继续累积），此为 spec 钉定决策\n- `jumpToPhase(key: string): boolean` — 合法键：退出导览（若激活）→ 置 phaseKey 并清零 phaseTime，返回 true；非法键：静默忽略（不抛错、不提示），返回 false（镜像 fusion jumpToPhase）\n- `startRun(key: PhaseKey): void` — 重置 simTime/phaseTime 并从指定相开演\n- `animate(): void` — **全文件唯一一处** `requestAnimationFrame(animate)`；`const dt = Math.min(clock.getDelta(), 0.05);`；`if (!state.paused) { state.simTime += dt; state.phaseTime += dt; if (state.autoAdvance) advancePhase(); }`；暂停时粒子运动与时钟完全冻结，resume 从冻结点原样续算\n- `showFallback(msg: string): void` — 显示 #fallback 友好文字（非白屏、无未捕获异常）\n\n**window.fissionSim 方法表面（与 window.fusionSim @ nuclear-fusion-3d/js/main.js:703-727 逐项一致，恰 12 个，禁 setPhase/toggleAuto）**：\n`getPhase(): 'atoms'|'neutron'|'fission'`；`getPhaseTime(): number`；`getSimTime(): number`；`isPaused(): boolean`；`pause(): void`（置 paused 且 toggleBtn 文案→▶ 继续）；`resume(): void`（清 paused 且文案→⏸ 暂停）；`reset(): void`（= startRun('atoms')，**不触碰** tourActive/tourStep）；`isTourActive(): boolean`；`getTourStep(): number|null`（未激活返回 null）；`getMode(): 'auto'|'manual'`；`setAutoAdvance(on: boolean): void`（同步 #autoBtn 文案与 aria-pressed）；`gotoPhase(key: string): void`（委托 jumpToPhase：合法键先退导览再跳相，非法键静默）。句柄命名必须为 `fissionSim`；即使 WebGL 降级也照常定义（纯状态机不依赖渲染器），保证 SCENARIO-005 在降级页仍成立。\n\n**三相位场景叙事**（对应 SCENARIO-016 节奏）：atoms：铀-235 原子结构（质子/中子聚类球 + 电子云示意）；neutron：一个慢中子飞入被俘获，形成激发复核铀-236*（形变抖动 + 红移脉冲）；fission：复核分裂为钡-141 + 氪-92 + 3 个中子，能量闪光（发光脉冲 + 粒子簇 ≤ MAX_PARTICLES），同时 #ledgerPanel 展示守恒验算「质量数 236 = 141 + 92 + 3」「电荷数 92 = 56 + 36」。\n\n**科学文案逐字锚定（AC-05）**：html/js 源码同时包含子串「铀-235」「钡-141」「氪-92」「3 个中子」「200 MeV」「3.2e-11」（作 ≈3.2e-11 J）「质量数」「电荷数」，全部置于字符串字面量（非注释）。\n\n**启动契约（AC-10）**：`window.__errs = []` 在 HTML 内联陷阱收集；main.js 末行 `window.__ready = true;`；WebGL 失败 → showFallback + 仍置 __ready + 仍定义 fissionSim + 跳过 rAF 循环。**禁止** setInterval(/setTimeout(（全文件 0 处），rAF( 恰 1 处，时钟只由 clock.getDelta() 驱动。\n\n**导览交互（AC-07）**：点击 #btnTour → tourActive=true、tourStep=0、展开 #tourPanel；进入第 k 步立即 jumpToPhase(TOUR_STEPS[k].phaseKey)（导览中 getPhase() === 映射键）；再次点击 #btnTour 或点 #tourCloseBtn → tourActive=false、tourStep=null、收起面板。\n\n## 4. CSS（nuclear-fission-3d/css/style.css）\n\n克隆 fusion 暗空主题（body #04060d、panel rgba(15,23,42,.82)、ctrl #1e293b、tool rgba(15,20,32,.72)，原型实测面），琥珀主色 primaryMain #f59e0b（暗面文字对比 6.81–9.43:1 通过）。**原型修正硬约束**：(a) primaryDark #b45309 实测 2.91–4.03:1，禁止以 `color:` 形式用于任何暗底文字，仅限浅底或非文字描边/border/hover；(b) error #dc2626(3.03) 与 success #16a34a(4.44) 仅限大字号/UI 组件，正文状态文字改用 #ef4444/#22c55e；(c) 全部工具/底栏按钮 min 44×44px——**不得照抄 fusion 实测的 42×42(.tool-btn) 与 38px(#homeBtn)**；(d) 8px 栅格 + 4px 半步（间距 0/4/8/16/24/32/48、圆角 4/8/12），断点 640/768/1024；(e) 每个可聚焦控件有清晰 :focus-visible 轮廓；粒子身份靠大小+图例区分而非仅颜色。\n\n## 5. 根 index.html 纯追加（AC-09）\n\n在 id=\"link-solar-cell\" 卡片之后（卡片网格末尾）追加：\n`<a class=\"card card--fission\" href=\"nuclear-fission-3d/\" id=\"link-nuclear-fission-3d\">`，内含 ☢️ 图标（.card__icon）、「Nuclear Fission 核裂变」双语标题（.card__title）、一句描述（.card__desc）与 Open → 箭头（.card__arrow）。强调色只落在**不受计数管制**的规则：`.card--fission .card__icon { background: … }` 与 `.card--fission:hover { border-color: … }`；**禁止**新增任何 `.card--X::before {` 规则（`\\.card--\\w+::before\\s*\\{` 计数改动前后恒为 7）。既有七卡锚点、href 与七个 id=\"link-*\" 一律原样保留；card--fusion 锚点保持恰 1 处（CSS 里的 .card--fusion 类引用不计入锚点计数）。\n\n## 6. 跨题污染守卫（AC-06）\n\nnuclear-fission-3d 的**生产源码**（index.html、css/**、js/**；排除 tests/ ——镜像 fusion walkProduction 跳过 tests 的既有约定，套件自身的禁用清单数组不算源码）中，D-T 聚变专属字面量 '0.018884'、'0.0189 u'、'17.6 MeV'、'2.82e-12'、「氘」、「氚」出现次数全部为 0。该清单与 AC-05 锚定清单互为镜像约束，均由 phase4-gate 套件枚举闭环（清单=规则=测试数组三方同源）。",
+        "testingStrategy": "沿用兄弟站已实证的 node:test + node:assert/strict 内容断言模式（fs.readFileSync 把生产文件读成字符串做正则断言，零 npm 依赖、零浏览器），4 个新套件与 28 个 BDD 场景一一对应（测试名前缀携带 SCENARIO-NNN (AC-NN) 标签，作为稳定可 grep 的交付锚）。file:// 直开（SCENARIO-001）由无构建指纹断言：目录内无 package.json、资源全为 ./ 与 ../ 相对路径、依赖仅 importmap CDN；WebGL 降级（SCENARIO-028）以 initThree 失败分支的代码断言 + 降级 DOM（#fallback）存在性断言覆盖（CI 无浏览器，镜像 fusion SCENARIO-024 的同款做法）。\n\n**门禁命令（AC-08，逐字钉定）**：仅允许 glob 形式 —— ① 变更前基线 `node --test nuclear-fusion-3d/tests/*.test.mjs`（实测 33/33，exit 0）；② 变更后重跑同一命令必须仍 33/33 exit 0（nuclear-fusion-3d/** 零改动的机械证明）；③ 新站 `node --test nuclear-fission-3d/tests/*.test.mjs` 全绿。目录参数形式 `node --test <dir>/` 在 Node v24.15.0 下确定性失败，明令禁止（SCENARIO-022 在 phase4 套件中锁定 sanctioned 命令字符串）。任一门禁转红只许修新增物自身，禁止削弱/删除/上调任何既有断言常数。\n\n**各套件覆盖面**：phase1-shell（SCENARIO-001/002/003）断言文件清单、chrome ID 集合、importmap×1、three@0.160.0×2 逐字相同 jsdelivr 地址、es-module-shims≥1、href=\"../index.html\"；phase2-runtime（SCENARIO-004..008、014..016、026..028）断言 PHASES 三相顺序/键/duration 数值型、fissionSim 恰 12 方法名且无 setPhase/toggleAuto、gotoPhase 非法键静默守卫、reset 起始 atoms 不动导览、AC-05 八个子串与两条验算式、rAF(×1、setInterval(/setTimeout(×0、clock.getDelta、__errs/__ready、WebGL 降级分支、MAX_PARTICLES≤2000；phase3-interaction（SCENARIO-009..013、018..020）断言 prev/next 环绕、⏸/▶ 文案切换、暂停冻结续播语义、camBtn 复位、autoBtn 文案+aria-pressed 同步、按钮原生元素与 :focus-visible 样式、TOUR_STEPS 恰 4 条映射 ①atoms②neutron③fission④fission、退出置 null/false；phase4-gate（SCENARIO-017、021..025）断言根卡锚点/`id=\"link-nuclear-fission-3d\"` 各恰 1 处、位于 link-solar-cell 之后、七卡原样、card--fusion 锚点仍 1 处、`\\.card--\\w+::before\\s*\\{` 计数恒 7、☢️+双语+Open →+href 齐全，并对生产源码树做六字面量零出现扫描（排除 tests/）。\n\n**原型证据并入测试**：对比度修正以否定断言固化——style.css 禁止 `color:#b45309`（暗面文字），状态文字优先 #ef4444/#22c55e；控件尺寸断言 ≥44px（防止照抄 fusion 42/38）；守恒算术 235+1=236、236=141+92+3、92=56+36 由套件复核。每 phase 交付以「build 绿 + requireScenarios 标签在对应套件中出现 + requireContains/requireNotContains 语义锚」三重 AND 判定，缺一即 phase 失败，杜绝编译绿但零交付。",
+        "acceptanceCriteriaRefs": [
+          "AC-01",
+          "AC-02",
+          "AC-03",
+          "AC-04",
+          "AC-05",
+          "AC-06",
+          "AC-07",
+          "AC-08",
+          "AC-09",
+          "AC-10"
+        ],
+        "scenarioRefs": [
+          "SCENARIO-001",
+          "SCENARIO-002",
+          "SCENARIO-003",
+          "SCENARIO-004",
+          "SCENARIO-005",
+          "SCENARIO-006",
+          "SCENARIO-007",
+          "SCENARIO-008",
+          "SCENARIO-009",
+          "SCENARIO-010",
+          "SCENARIO-011",
+          "SCENARIO-012",
+          "SCENARIO-013",
+          "SCENARIO-014",
+          "SCENARIO-015",
+          "SCENARIO-016",
+          "SCENARIO-017",
+          "SCENARIO-018",
+          "SCENARIO-019",
+          "SCENARIO-020",
+          "SCENARIO-021",
+          "SCENARIO-022",
+          "SCENARIO-023",
+          "SCENARIO-024",
+          "SCENARIO-025",
+          "SCENARIO-026",
+          "SCENARIO-027",
+          "SCENARIO-028"
+        ],
+        "phases": [
+          {
+            "name": "Phase 1 静态外壳与测试脚手架（shell）",
+            "description": "新建 nuclear-fission-3d/ 目录：index.html（内联 __errs 陷阱、es-module-shims+importmap 逐字镜像、#homeBtn/#stage/#tools/#btnTour/#bottomBar/#tourPanel 外壳、44px 控件）、css/style.css（暗空主题 + 对比度修正 + :focus-visible）与首个测试套件 phase1-shell.test.mjs。本 phase 结束即可 file:// 打开看静态外壳（无 JS 剧情亦可），且既有 33/33 基线门禁保持绿。与 Phase 2/3 无共享文件，可与其并行启动。",
+            "scenarioRefs": [
+              "SCENARIO-001",
+              "SCENARIO-002",
+              "SCENARIO-003"
+            ],
+            "deliverables": {
+              "requireFiles": [
+                "nuclear-fission-3d/index.html",
+                "nuclear-fission-3d/css/style.css",
+                "nuclear-fission-3d/tests/phase1-shell.test.mjs"
+              ],
+              "requireContains": [
+                {
+                  "file": "nuclear-fission-3d/index.html",
+                  "pattern": "type=\"importmap\""
+                },
+                {
+                  "file": "nuclear-fission-3d/index.html",
+                  "pattern": "three@0\\.160\\.0"
+                },
+                {
+                  "file": "nuclear-fission-3d/index.html",
+                  "pattern": "es-module-shims@1\\.10\\.0"
+                },
+                {
+                  "file": "nuclear-fission-3d/index.html",
+                  "pattern": "id=\"homeBtn\""
+                },
+                {
+                  "file": "nuclear-fission-3d/index.html",
+                  "pattern": "id=\"stage\""
+                },
+                {
+                  "file": "nuclear-fission-3d/index.html",
+                  "pattern": "id=\"tools\""
+                },
+                {
+                  "file": "nuclear-fission-3d/index.html",
+                  "pattern": "id=\"btnTour\""
+                },
+                {
+                  "file": "nuclear-fission-3d/index.html",
+                  "pattern": "id=\"bottomBar\""
+                },
+                {
+                  "file": "nuclear-fission-3d/index.html",
+                  "pattern": "id=\"toggleBtn\""
+                },
+                {
+                  "file": "nuclear-fission-3d/index.html",
+                  "pattern": "id=\"resetBtn\""
+                },
+                {
+                  "file": "nuclear-fission-3d/index.html",
+                  "pattern": "id=\"camBtn\""
+                },
+                {
+                  "file": "nuclear-fission-3d/index.html",
+                  "pattern": "id=\"tourPanel\""
+                },
+                {
+                  "file": "nuclear-fission-3d/index.html",
+                  "pattern": "href=\"\\.\\./index\\.html\""
+                },
+                {
+                  "file": "nuclear-fission-3d/index.html",
+                  "pattern": "__errs"
+                },
+                {
+                  "file": "nuclear-fission-3d/css/style.css",
+                  "pattern": ":focus-visible"
+                }
+              ],
+              "requireNotContains": [
+                {
+                  "file": "nuclear-fission-3d/index.html",
+                  "pattern": "0\\.018884|0\\.0189 u|17\\.6 MeV|2\\.82e-12|氘|氚"
+                },
+                {
+                  "file": "nuclear-fission-3d/css/style.css",
+                  "pattern": "0\\.018884|0\\.0189 u|17\\.6 MeV|2\\.82e-12|氘|氚"
+                },
+                {
+                  "file": "nuclear-fission-3d/css/style.css",
+                  "pattern": "color\\s*:\\s*#b45309"
+                }
+              ],
+              "requireScenarios": [
+                "SCENARIO-001",
+                "SCENARIO-002",
+                "SCENARIO-003"
+              ]
+            }
+          },
+          {
+            "name": "Phase 2 裂变运行时·状态机·控制与导览（runtime+interaction）",
+            "description": "一次性交付 js/main.js 全部运行时（状态机、三相位 3D 场景、科学文案、fissionSim 表面、播放控制、导览）及另两个测试套件 phase2-runtime/phase3-interaction。状态机与交互控件共享同一 state 对象且同文件实现，按合并规则不得拆 phase；套件编写任务可与实现任务并行（不同文件）。",
+            "scenarioRefs": [
+              "SCENARIO-004",
+              "SCENARIO-005",
+              "SCENARIO-006",
+              "SCENARIO-007",
+              "SCENARIO-008",
+              "SCENARIO-009",
+              "SCENARIO-010",
+              "SCENARIO-011",
+              "SCENARIO-012",
+              "SCENARIO-013",
+              "SCENARIO-014",
+              "SCENARIO-015",
+              "SCENARIO-016",
+              "SCENARIO-018",
+              "SCENARIO-019",
+              "SCENARIO-020",
+              "SCENARIO-026",
+              "SCENARIO-027",
+              "SCENARIO-028"
+            ],
+            "deliverables": {
+              "requireFiles": [
+                "nuclear-fission-3d/js/main.js",
+                "nuclear-fission-3d/tests/phase2-runtime.test.mjs",
+                "nuclear-fission-3d/tests/phase3-interaction.test.mjs"
+              ],
+              "requireContains": [
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "window\\.fissionSim"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "getPhase\\s*:"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "getPhaseTime\\s*:"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "getSimTime\\s*:"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "isPaused\\s*:"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "pause\\s*:"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "resume\\s*:"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "reset\\s*:"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "isTourActive\\s*:"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "getTourStep\\s*:"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "getMode\\s*:"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "setAutoAdvance\\s*:"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "gotoPhase\\s*:"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "requestAnimationFrame\\("
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "clock\\.getDelta\\(\\)"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "key\\s*:\\s*'atoms'"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "key\\s*:\\s*'neutron'"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "key\\s*:\\s*'fission'"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "铀-235"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "钡-141"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "氪-92"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "3 个中子"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "200 MeV"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "3\\.2e-11"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "质量数"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "电荷数"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "236\\s*=\\s*141\\s*\\+\\s*92\\s*\\+\\s*3"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "92\\s*=\\s*56\\s*\\+\\s*36"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "window\\.__ready"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "__errs"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "MAX_PARTICLES"
+                },
+                {
+                  "file": "nuclear-fission-3d/tests/phase3-interaction.test.mjs",
+                  "pattern": "TOUR_STEPS"
+                },
+                {
+                  "file": "nuclear-fission-3d/tests/phase3-interaction.test.mjs",
+                  "pattern": "aria-pressed"
+                }
+              ],
+              "requireNotContains": [
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "setInterval\\("
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "setTimeout\\("
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "setPhase"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "toggleAuto"
+                },
+                {
+                  "file": "nuclear-fission-3d/js/main.js",
+                  "pattern": "0\\.018884|0\\.0189 u|17\\.6 MeV|2\\.82e-12|氘|氚"
+                }
+              ],
+              "requireScenarios": [
+                "SCENARIO-004",
+                "SCENARIO-005",
+                "SCENARIO-006",
+                "SCENARIO-007",
+                "SCENARIO-008",
+                "SCENARIO-009",
+                "SCENARIO-010",
+                "SCENARIO-011",
+                "SCENARIO-012",
+                "SCENARIO-013",
+                "SCENARIO-014",
+                "SCENARIO-015",
+                "SCENARIO-016",
+                "SCENARIO-018",
+                "SCENARIO-019",
+                "SCENARIO-020",
+                "SCENARIO-026",
+                "SCENARIO-027",
+                "SCENARIO-028"
+              ]
+            }
+          },
+          {
+            "name": "Phase 3 首页入口卡与全量回归门禁（hub+gate）",
+            "description": "根 index.html 在 link-solar-cell 卡后纯追加 ☢️ card--fission 入口卡（不含新 ::before 规则），编写 phase4-gate.test.mjs（根卡审计计数 + 全树聚变字面量零出现扫描），最后跑完整门禁矩阵：变更前后 nuclear-fusion-3d/tests/*.test.mjs 均 33/33 exit 0、nuclear-fission-3d/tests/*.test.mjs 全绿、file:// 冒烟。依赖 Phase 1/2 完成（全树扫描需全部生产文件就位）。",
+            "scenarioRefs": [
+              "SCENARIO-017",
+              "SCENARIO-021",
+              "SCENARIO-022",
+              "SCENARIO-023",
+              "SCENARIO-024",
+              "SCENARIO-025"
+            ],
+            "deliverables": {
+              "requireFiles": [
+                "nuclear-fission-3d/tests/phase4-gate.test.mjs"
+              ],
+              "requireContains": [
+                {
+                  "file": "index.html",
+                  "pattern": "<a class=\"card card--fission\""
+                },
+                {
+                  "file": "index.html",
+                  "pattern": "id=\"link-nuclear-fission-3d\""
+                },
+                {
+                  "file": "index.html",
+                  "pattern": "href=\"nuclear-fission-3d/\""
+                },
+                {
+                  "file": "index.html",
+                  "pattern": "Nuclear Fission 核裂变"
+                },
+                {
+                  "file": "index.html",
+                  "pattern": "☢️"
+                },
+                {
+                  "file": "index.html",
+                  "pattern": "\\.card--fission \\.card__icon"
+                },
+                {
+                  "file": "nuclear-fission-3d/tests/phase4-gate.test.mjs",
+                  "pattern": "0\\.018884"
+                },
+                {
+                  "file": "nuclear-fission-3d/tests/phase4-gate.test.mjs",
+                  "pattern": "card--\\\\w\\+::before"
+                },
+                {
+                  "file": "nuclear-fission-3d/tests/phase4-gate.test.mjs",
+                  "pattern": "node --test nuclear-fusion-3d/tests/\\*\\.test\\.mjs"
+                }
+              ],
+              "requireNotContains": [
+                {
+                  "file": "nuclear-fission-3d/css/style.css",
+                  "pattern": "color\\s*:\\s*#b45309"
+                }
+              ],
+              "requireScenarios": [
+                "SCENARIO-017",
+                "SCENARIO-021",
+                "SCENARIO-022",
+                "SCENARIO-023",
+                "SCENARIO-024",
+                "SCENARIO-025"
+              ]
+            }
+          }
+        ],
+        "tasks": [
+          {
+            "phase": "Phase 1 静态外壳与测试脚手架（shell）",
+            "description": "创建 nuclear-fission-3d/index.html：head 内联 __errs=[] 陷阱（先于 module 标签）、async es-module-shims@1.10.0、恰 1 个 importmap（three@0.160.0 两条逐字相同 jsdelivr 地址）、module 引 ./js/main.js；body 含 #homeBtn(href=\"../index.html\")/#stage/#tools(#btnTour 🎬 引导浏览、#autoBtn、#prevBtn ⏮ 上一步、#nextBtn ⏭ 下一步)/#bottomBar(#toggleBtn ⏸ 暂停、#resetBtn 🔄 重置、#camBtn 🎥 重置视角)/#tourPanel(含 #tourCloseBtn 与 4 个 data-step 步骤项)/#phaseTitle/#phaseText/#ledgerPanel/#fallback。全部控件原生 button、title/aria-label、min 44×44px。",
+            "scenarioRefs": [
+              "SCENARIO-001",
+              "SCENARIO-002",
+              "SCENARIO-003"
+            ]
+          },
+          {
+            "phase": "Phase 1 静态外壳与测试脚手架（shell）",
+            "description": "创建 nuclear-fission-3d/css/style.css：克隆 fusion 暗空主题（body #04060d、panel rgba(15,23,42,.82)、ctrl #1e293b）；primaryMain #f59e0b 作琥珀主色；硬约束：禁 color:#b45309 于暗面文字、error/success 仅大字号/UI（正文状态用 #ef4444/#22c55e）、控件 ≥44px（不得照抄 fusion 42/38）、8px 栅格、断点 640/768/1024、全部控件 :focus-visible 轮廓。与 T1 可并行（不同文件）。",
+            "scenarioRefs": [
+              "SCENARIO-013"
+            ]
+          },
+          {
+            "phase": "Phase 1 静态外壳与测试脚手架（shell）",
+            "description": "编写 nuclear-fission-3d/tests/phase1-shell.test.mjs（node:test+node:assert/strict，复用 mustRead/walkProduction 辅助，测试名带 SCENARIO-NNN 标签）：①文件清单与无构建指纹（无 package.json、相对路径）；②chrome ID 全集合与 href；③importmap×1、three@0.160.0×2 逐字相同、es-module-shims≥1；④生产源码六聚变字面量扫描器（排除 tests/）。与 T1/T2 并行。",
+            "scenarioRefs": [
+              "SCENARIO-001",
+              "SCENARIO-002",
+              "SCENARIO-003"
+            ]
+          },
+          {
+            "phase": "Phase 1 静态外壳与测试脚手架（shell）",
+            "description": "Phase 1 门禁：node --test nuclear-fusion-3d/tests/*.test.mjs（须 33/33 exit 0）与 node --test nuclear-fission-3d/tests/*.test.mjs（全绿）；禁止目录参数形式。",
+            "scenarioRefs": [
+              "SCENARIO-021",
+              "SCENARIO-022"
+            ]
+          },
+          {
+            "phase": "Phase 2 裂变运行时·状态机·控制与导览（runtime+interaction）",
+            "description": "main.js 常量与状态机：MAX_PARTICLES=2000；PHASES 恰 3 项 [{key:'atoms',zh:'原子结构',duration:10},{key:'neutron',zh:'中子俘获',duration:12},{key:'fission',zh:'裂变反应',duration:14}]；TOUR_STEPS 恰 4 项（①atoms②neutron③fission④fission）；state 对象；advancePhase()（phaseTime≥duration 切下一相，末相 fission 保持停留、phaseTime 钳制）；jumpToPhase(key):boolean（合法键退导览→跳相清 phaseTime；非法键静默 return false）；startRun(key)。依赖：无（Phase 2 首任务）。",
+            "scenarioRefs": [
+              "SCENARIO-004",
+              "SCENARIO-006",
+              "SCENARIO-007"
+            ]
+          },
+          {
+            "phase": "Phase 2 裂变运行时·状态机·控制与导览（runtime+interaction）",
+            "description": "main.js 三相位 3D 场景与主循环：initThree()（WebGL 失败返回 null）、buildU235Nucleus/spawnNeutron/buildExcitedU236/buildFragments(barium+krypton+3neutrons)/flashEnergy；animate() 含全文件唯一 requestAnimationFrame(，dt=Math.min(clock.getDelta(),0.05)，paused 门控 simTime/phaseTime 累积与粒子运动（冻结→冻结点续播），autoAdvance 时 advancePhase。依赖 T5。",
+            "scenarioRefs": [
+              "SCENARIO-010",
+              "SCENARIO-016",
+              "SCENARIO-026"
+            ]
+          },
+          {
+            "phase": "Phase 2 裂变运行时·状态机·控制与导览（runtime+interaction）",
+            "description": "main.js 科学文案与守恒面板：字符串字面量逐字含「铀-235」「钡-141」「氪-92」「3 个中子」「200 MeV」「≈3.2e-11 J」「质量数」「电荷数」；fission 相显示 #ledgerPanel 两条验算式「质量数 236 = 141 + 92 + 3」「电荷数 92 = 56 + 36」；按相更新 #phaseTitle/#phaseText（原子结构→中子俘获→复核分裂+能量闪光）。依赖 T5，可与 T6 并行（同文件不同段落，顺序提交）。",
+            "scenarioRefs": [
+              "SCENARIO-014",
+              "SCENARIO-015",
+              "SCENARIO-016"
+            ]
+          },
+          {
+            "phase": "Phase 2 裂变运行时·状态机·控制与导览（runtime+interaction）",
+            "description": "main.js window.fissionSim 恰 12 方法表面（getPhase/getPhaseTime/getSimTime/isPaused/pause/resume/reset/isTourActive/getTourStep/getMode/setAutoAdvance/gotoPhase；pause↔resume 同步 ⏸/▶ 文案；reset=startRun('atoms') 不动导览；getTourStep 未激活返回 null）+ 末行 window.__ready = true + WebGL 失败分支 showFallback（仍定义 fissionSim、仍置 __ready、跳过循环）。依赖 T5/T6。",
+            "scenarioRefs": [
+              "SCENARIO-005",
+              "SCENARIO-006",
+              "SCENARIO-007",
+              "SCENARIO-008",
+              "SCENARIO-027",
+              "SCENARIO-028"
+            ]
+          },
+          {
+            "phase": "Phase 2 裂变运行时·状态机·控制与导览（runtime+interaction）",
+            "description": "main.js 播放控制接线：#prevBtn/#nextBtn 环绕（next: atoms→neutron→fission→atoms；prev 反向）；#toggleBtn ⏸/▶ 切换调 pause/resume；#camBtn 恢复默认机位（保存初始 camera.position+target，点击还原）；#autoBtn 调 setAutoAdvance 并同步文案「自动换幕：开/关」与 aria-pressed。依赖 T8。",
+            "scenarioRefs": [
+              "SCENARIO-009",
+              "SCENARIO-010",
+              "SCENARIO-011",
+              "SCENARIO-012",
+              "SCENARIO-013"
+            ]
+          },
+          {
+            "phase": "Phase 2 裂变运行时·状态机·控制与导览（runtime+interaction）",
+            "description": "main.js 四步导览：#btnTour 点击开合；开启→tourActive=true、tourStep=0、展开 #tourPanel；进入第 k 步立即 jumpToPhase(TOUR_STEPS[k].phaseKey)（导览中 getPhase()===映射键）；再次点击 #btnTour 或 #tourCloseBtn→tourActive=false、tourStep=null、收起面板。依赖 T8。",
+            "scenarioRefs": [
+              "SCENARIO-018",
+              "SCENARIO-019",
+              "SCENARIO-020"
+            ]
+          },
+          {
+            "phase": "Phase 2 裂变运行时·状态机·控制与导览（runtime+interaction）",
+            "description": "编写 nuclear-fission-3d/tests/phase2-runtime.test.mjs：PHASES 形态/顺序/数值 duration、fissionSim 12 方法名白名单与 setPhase/toggleAuto 黑名单、gotoPhase 非法键静默守卫、reset 起始 atoms 不动导览、AC-05 八子串与两验算式、rAF(×1、setInterval(/setTimeout(×0、clock.getDelta、__errs/__ready、WebGL 降级分支、MAX_PARTICLES≤2000、守恒算术复核（235+1=236 等）。可与 T6-T10 并行（独立文件）。",
+            "scenarioRefs": [
+              "SCENARIO-004",
+              "SCENARIO-005",
+              "SCENARIO-006",
+              "SCENARIO-007",
+              "SCENARIO-008",
+              "SCENARIO-014",
+              "SCENARIO-015",
+              "SCENARIO-016",
+              "SCENARIO-026",
+              "SCENARIO-027",
+              "SCENARIO-028"
+            ]
+          },
+          {
+            "phase": "Phase 2 裂变运行时·状态机·控制与导览（runtime+interaction）",
+            "description": "编写 nuclear-fission-3d/tests/phase3-interaction.test.mjs：prev/next 环绕逻辑断言、⏸ 暂停/▶ 继续文案与冻结续播语义断言、camBtn 复位断言、autoBtn 文案+aria-pressed 同步断言、控件为原生 button 且 css 含 :focus-visible 与 ≥44px 尺寸、TOUR_STEPS 恰 4 条映射 ①atoms②neutron③fission④fission、退出后 getTourStep→null 与 isTourActive→false 断言。与 T11 并行。",
+            "scenarioRefs": [
+              "SCENARIO-009",
+              "SCENARIO-010",
+              "SCENARIO-011",
+              "SCENARIO-012",
+              "SCENARIO-013",
+              "SCENARIO-018",
+              "SCENARIO-019",
+              "SCENARIO-020"
+            ]
+          },
+          {
+            "phase": "Phase 2 裂变运行时·状态机·控制与导览（runtime+interaction）",
+            "description": "Phase 2 门禁：node --test nuclear-fusion-3d/tests/*.test.mjs（仍 33/33）与 node --test nuclear-fission-3d/tests/*.test.mjs（phase1+2+3 套件全绿）。",
+            "scenarioRefs": [
+              "SCENARIO-021",
+              "SCENARIO-022"
+            ]
+          },
+          {
+            "phase": "Phase 3 首页入口卡与全量回归门禁（hub+gate）",
+            "description": "根 index.html 纯追加（唯一授权的既有文件改动）：在 id=\"link-solar-cell\" 卡后插入 <a class=\"card card--fission\" href=\"nuclear-fission-3d/\" id=\"link-nuclear-fission-3d\">（☢️ .card__icon + 「Nuclear Fission 核裂变」.card__title + 一句描述 .card__desc + Open → .card__arrow）；强调色只加 .card--fission .card__icon{background:…} 与 .card--fission:hover{border-color:…}，严禁新增 .card--X::before 规则；既有七卡锚点/href/id 原样保留。",
+            "scenarioRefs": [
+              "SCENARIO-024",
+              "SCENARIO-025"
+            ]
+          },
+          {
+            "phase": "Phase 3 首页入口卡与全量回归门禁（hub+gate）",
+            "description": "编写 nuclear-fission-3d/tests/phase4-gate.test.mjs：①根卡审计——<a class=\"card card--fission\" 恰 1、id=\"link-nuclear-fission-3d\" 恰 1、位置在 link-solar-cell 之后、七个 id=\"link-*\" 各恰 1、<a class=\"card card--fusion\" 锚点恰 1、/\\.card--\\w+::before\\s*\\{/g 计数恒 7、☢️/双语/Open →/href 断言；②全树污染扫描——nuclear-fission-3d 生产源码（排除 tests/）六字面量零出现；③锁定 sanctioned 门禁命令字符串 'node --test nuclear-fusion-3d/tests/*.test.mjs'。",
+            "scenarioRefs": [
+              "SCENARIO-017",
+              "SCENARIO-021",
+              "SCENARIO-022",
+              "SCENARIO-023",
+              "SCENARIO-024",
+              "SCENARIO-025"
+            ]
+          },
+          {
+            "phase": "Phase 3 首页入口卡与全量回归门禁（hub+gate）",
+            "description": "最终门禁矩阵：变更前基线与变更后各跑一次 node --test nuclear-fusion-3d/tests/*.test.mjs（均 33/33 exit 0，证 fusion 零改动）；node --test nuclear-fission-3d/tests/*.test.mjs 全绿（4 套件 ≥28 个场景标签全覆盖）；file:// 冒烟打开根 index.html 与 nuclear-fission-3d/index.html 各一次人工确认（无构建、无白屏）。依赖 T14/T15。",
+            "scenarioRefs": [
+              "SCENARIO-001",
+              "SCENARIO-021",
+              "SCENARIO-022",
+              "SCENARIO-023"
+            ]
+          }
+        ],
+        "reviewResponses": [
+          {
+            "findingId": "REQ-F-003",
+            "status": "verified",
+            "response": "需求侧已在 AC-08 全文撤销『允许修正 SCENARIO-004 数值常数』的唯一例外授权。本规范沿用该修正：不设任何触碰既有断言的条款，nuclear-fusion-3d/**（含全部测试与常数）零改动成为硬门禁（Phase 3 任务 T16 变更前后双跑 33/33），SCENARIO-004 重新锚定为根 index.html 的 /\\.card--\\w+::before\\s*\\{/g 强调规则计数（恒 7），唯一例外路径已被删除。",
+            "evidence": "01-requirements.md AC-08 修正文本；原型报告实测根 index.html ::before 规则=7、Open →=7、id=\"link-*\"=7、card--fission=0，全部复现。",
+            "ownerStage": "requirements"
+          },
+          {
+            "findingId": "REQ-F-004",
+            "status": "verified",
+            "response": "需求侧已按实测正则重新钉定 AC-09 全部量化词（锚点/id 各恰 1、置于 link-solar-cell 后、七卡原样、fusion 锚点 1 处、::before 计数恒 7、内容四要素）。本规范将其逐项落进 Phase 3 交付物 requireContains（<a class=\"card card--fission\"、id=\"link-nuclear-fission-3d\"、href=\"nuclear-fission-3d/\"、Nuclear Fission 核裂变、☢️、.card--fission .card__icon）与 phase4-gate 套件的计数断言；强调色走 .card__icon 背景与 :hover 描边两条不受计数管制的规则。",
+            "evidence": "01-requirements.md AC-09 a)–g)；实测根 index.html:235 id=\"link-solar-cell\" 为插入位锚点，:228 既有 card--fusion 锚点（CSS 类引用不计入锚点计数）。",
+            "ownerStage": "requirements"
+          },
+          {
+            "findingId": "F-D-05",
+            "status": "verified",
+            "response": "原型报告判定根卡审计基线常数全部真实可复现（pre-change ::before=7、Open →=7、id=\"link-*\"=7、card--fission=0），故 Phase 3 的计数断言按这些实测值钉死；计数正则采用原型确认的 \\.card--\\w+::before\\s*\\{（\\w+ 形式；窄化为 [a-z]* 会漏计含数字卡类名，实测得 6，禁止）。",
+            "evidence": "09-prototype-report.md Measurements『root-card audit baseline … all F-D-05 pre-change constants reproduce exactly, PASS』；本地复核 grep 计数差异源于字符类宽窄，已用 \\w+ 口径纠正。",
+            "ownerStage": "prototype"
+          }
+        ],
+        "gate": {
+          "packages": [],
+          "workspace": false,
+          "integration": [
+            "nuclear-fission-3d/tests/phase1-shell.test.mjs",
+            "nuclear-fission-3d/tests/phase2-runtime.test.mjs",
+            "nuclear-fission-3d/tests/phase3-interaction.test.mjs",
+            "nuclear-fission-3d/tests/phase4-gate.test.mjs",
+            "nuclear-fusion-3d/tests/phase1-shell.test.mjs",
+            "nuclear-fusion-3d/tests/phase2-runtime.test.mjs",
+            "nuclear-fusion-3d/tests/phase3-interaction.test.mjs"
+          ]
+        },
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/02-nuclear-fission-animation/docs/specifications/02-nuclear-fission-animation/10-specification.md",
+        "implementationPlanPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/02-nuclear-fission-animation/docs/specifications/02-nuclear-fission-animation/11-implementation-plan.md",
+        "taskListPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/02-nuclear-fission-animation/docs/specifications/02-nuclear-fission-animation/12-task-list.md",
+        "specificationPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/02-nuclear-fission-animation/docs/specifications/02-nuclear-fission-animation/10-specification.md",
+        "phaseCount": "3"
+      }
+    },
+    "specReview": {
+      "timestamp": "2026-08-27T14:17:34.562Z",
+      "agent": "specReview",
+      "data": {
+        "date": "2026-08-27",
+        "dimensions": [
+          {
+            "name": "D1 Completeness",
+            "notes": "All 10 ACs have spec sections (Architecture §1–§6, Testing Strategy); all 28 scenarios covered by 4 suites with suite→scenario mapping stated; error paths specified (WebGL fallback via #fallback + __ready even on degradation, gotoPhase invalid-key silent no-op, __errs bootstrap trap); NFRs covered (a11y: ≥44×44, :focus-visible, aria-pressed; perf: single rAF, MAX_PARTICLES≤2000, dt clamp). Score 5/5.",
+            "status": "pass"
+          },
+          {
+            "name": "D2 Consistency",
+            "notes": "Names/IDs/counts consistent across 10-specification, 11-implementation-plan, 12-task-list and upstream design (§5 root-card semantics = AC-09 a–g = T15 audit list; gate commands verbatim-identical everywhere; ::before count = 7 in all artifacts and live). One cosmetic residue: fusionSim surface cited as main.js:703-727 while the object literal actually spans 704-732 (gotoPhase at 731) — SP-F-001, non-blocking. Spec's phase4-gate uses presence semantics ('齐全') for Open → while design S3 uses incremental 7→8; both are satisfiable, mutually consistent (presence ⊂ incremental) and AC-09g only demands existence — noted as residual, not a defect. Score 4/5.",
+            "status": "pass"
+          },
+          {
+            "name": "D3 Feasibility",
+            "notes": "Architecture is a structural clone of the proven sibling site (verified live: fusion suite runs green via glob form in ~94ms, zero npm); no build step, no new CDN, file:// direct; 3 coarse phases with no shared files except the intentional main.js single-phase merge (justified by shared state). No circular deps. Score 5/5.",
+            "status": "pass"
+          },
+          {
+            "name": "D4 Testability",
+            "notes": "Every scenario-mapped phase declares deliverables.requireScenarios (Phase 1: 001-003; Phase 2: 004-016/018-020/026-028; Phase 3: 017/021-025) — 28/28 covered, zero overlap, plus requireFiles and pattern-level requireContains/requireNotContains; triple-AND phase判定 (build green + scenario tags present + semantic anchors) prevents green-but-zero-coverage. All thresholds numeric (counts, 33/33, ≥44px, ≤2000). Score 5/5.",
+            "status": "pass"
+          },
+          {
+            "name": "D5 Traceability",
+            "notes": "AC-01..AC-10 ↔ 28 scenarios ↔ 4 suites ↔ 16 tasks ↔ 3 phases all chains unbroken; no phantom AC/scenario references; prior convergence findings (REQ-F-003, REQ-F-004, F-D-05) each have explicit responses in the spec's Prior Review Responses section with evidence, and each resolution verified against the repaired owning artifact plus live code. Score 5/5.",
+            "status": "pass"
+          },
+          {
+            "name": "D6 Grounding",
+            "notes": "Live re-verification this round: root index.html `.card--\\w+::before\\s*{` = 7, 'Open →' = 7, id=\"link-*\" = 7, card--fission = 0 (all exactly the spec's pinned baselines); nuclear-fusion-3d/js/main.js window.fusionSim object at 704-732 with the 12 methods matching the spec's verbatim enumeration (incl. gotoPhase at 731, no setPhase/toggleAuto); fusion test suite executed clean via glob form. Prior rounds independently verified importmap×1/three@0.160.0×2/es-module-shims≥1, __ready at :783, jumpToPhase semantics, line-235 insertion anchor. Estimated verified/total ≈ 98%; only the 703-727 range citation is off (SP-F-001). Score 5/5.",
+            "status": "pass"
+          },
+          {
+            "name": "D7 Complexity",
+            "notes": "7 new files + 1 pure-append edit for the whole feature — proportional; no premature abstraction (single-file runtime mirrors sibling, no framework); rejected alternatives documented (e.g. block-scoped Open → assertion rejected as fragile). No YAGNI/gold-plating detected. Score 5/5.",
+            "status": "pass"
+          },
+          {
+            "name": "D8 Ambiguity",
+            "notes": "Verbatim string anchors for card markup, exact count semantics per marker with regex form pinned (\\w+ form, [a-z]* explicitly banned), explicit state fields and per-method semantics including fallback/degradation behavior, sanctioned gate command strings locked, quantifier scope stated ('均限于新建文件内', 'CSS 类引用不计入锚点计数'). Only residual: the stale line-range citation (SP-F-001). Score 4/5.",
+            "status": "pass"
+          }
+        ],
+        "findings": [
+          {
+            "blocking": false,
+            "confidence": 0.9,
+            "defectClass": "mirror-citation-line-drift",
+            "detail": "Architecture §3 pins window.fissionSim '@ nuclear-fusion-3d/js/main.js:703-727' as the reference for the 12-method surface, but live awk of the file shows the surface object literal spans lines 704-732: getPhase..setAutoAdvance occupy 705-727 while gotoPhase sits at 731. The substantive contract (12 method names, ban on setPhase/toggleAuto) is enumerated verbatim and verified correct, so this cannot mislead a test assertion — but a mirroring implementer who opens exactly 703-727 to '逐项一致' cross-check will miss gotoPhase and the closing of the object. This same drift was previously flagged between design (703-731) and AC-03 (703-727); the harmonized 703-727 is still ~5 lines short of the real surface. Generalization rule: any line-range citation of an upstream anchor should be re-measured, not carried forward after edits.",
+            "evidence": [
+              "awk NR 695-735 of nuclear-fusion-3d/js/main.js: '704: window.fusionSim = {' … '727: setAutoAdvance: (on) => {' … '731: gotoPhase: (key) => jumpToPhase(key)'",
+              "10-specification.md §3: 「window.fissionSim 方法表面（与 window.fusionSim @ nuclear-fusion-3d/js/main.js:703-727 逐项一致，恰 12 个…）」",
+              "design round-4 resume-cache evidence cites the surface as main.js:703-731"
+            ],
+            "id": "SP-F-001",
+            "lens": "D6 Grounding",
+            "line": "§3 JS 运行时（window.fissionSim 方法表面）",
+            "ownerStage": "spec",
+            "recommendation": "Widen the citation to main.js:703-732 (or drop the numeric range and cite the window.fusionSim object literal by name); optionally note gotoPhase closes at :731. Cosmetic fix during any future spec touch — do not re-open the review loop for this alone.",
+            "severity": "P3",
+            "status": "open",
+            "title": "Mirror-citation line range for fusionSim surface (main.js:703-727) excludes gotoPhase at line 731"
+          }
+        ],
+        "priorFindingResolutions": [
+          {
+            "evidence": "01-requirements.md Summary (line 14): 「nuclear-fusion-3d/** 连同其全部测试一律零改动——本规范不授权任何例外」; 10-specification.md §5/§Testing Strategy: ::before count 恒 7、「禁止削弱/删除/上调任何既有断言常数」; live re-run this round: root index.html ::before 规则计数 = 7（恰为 fusion phase1-shell.test.mjs:147-148 断言的基线值），fusion 套件经 glob 形式执行全绿（0 fail，94ms）。",
+            "findingId": "REQ-F-003",
+            "ownerStage": "requirements",
+            "response": "Verified resolved. The upstream requirements artifact revoked the sole-exception authorization entirely (「不授权任何例外」), and this spec carries the corrected semantics end-to-end: SCENARIO-004's ::before-rule count is pinned at exactly 7 both before and after the append, nuclear-fusion-3d/** zero-change is enforced mechanically by Phase 3 task T16's before/after double-run (33/33 exit 0 both times), and the spec adds an explicit ban on weakening/deleting/raising any existing assertion constant. No path to a 7→8 constant edit remains anywhere in the chain — the permanently-red-suite trap is closed.",
+            "status": "verified"
+          },
+          {
+            "evidence": "10-specification.md §5 + Testing Strategy phase4-gate coverage list + 12-task-list.md Phase 3 T15 audit item (「<a class=\"card card--fission\" 恰 1、id=\"link-nuclear-fission-3d\" 恰 1、位置在 link-solar-cell 之后、七个 id=\"link-*\" 各恰 1、card--fusion 锚点恰 1、/\\.card--\\w+::before\\s*\\{/g 计数恒 7」); live: id=\"link-*\" = 7, card--fission = 0, line 235 anchor confirmed by design-review CF-design-0krjds9 evidence.",
+            "findingId": "REQ-F-004",
+            "ownerStage": "requirements",
+            "response": "Verified resolved. AC-09's quantifiers were re-pinned to measured anchor-level semantics (anchor pattern and id each exactly 1, insertion after link-solar-cell, seven sibling cards preserved byte-for-byte, card--fusion anchor still 1 with CSS class references excluded, ::before count constant 7, content four-elements as presence), and the spec lands each item as a Phase 3 requireContains plus phase4-gate count assertions, with accent color routed exclusively through the two uncounted rules (.card__icon background and :hover border). Live ground truth this round reproduces every baseline (7 link ids, 0 card--fission occurrences).",
+            "status": "verified"
+          },
+          {
+            "evidence": "07-design.md:57 derivationRule (「Open → …改前 7 → 改后恰 8（纯追加 delta 恰 +1），绝不作『恰 1』断言」); 07-design.md:35 root-portal-card audit item + :44 S3 同口径; 08-design-review.md F-D-05 = verified; live grep this round: 'Open →' = 7（与声称行 196/203/210/217/224/232/239 一致的计数），故 7→8 可满足；10-specification.md 与 12-task-list.md 的 phase4-gate 对 Open → 仅作存在性断言，无恰 1 断言残留。",
+            "findingId": "F-D-05",
+            "ownerStage": "design",
+            "response": "Verified resolved. The owning design artifact was regenerated (22:00) with the single-marker counting fix in all three places — root-card-addition-markers derivationRule, root-portal-card module audit, and fission-test-suite S3 — replacing the unsatisfiable 'exactly 1' with an incremental assertion (pre-change 7 → post-change exactly 8, delta +1) while the other six markers keep 0→1. Live ground truth re-verified this round: Open → currently 7 (all sibling span.card__arrow), so the incremental assertion is mathematically satisfiable. This spec is consistent with the fix: it records the Open→×7 baseline and asserts presence/existence ('齐全') for Open → in phase4-gate, never 'exactly 1'; no self-defeating gate remains anywhere in the spec/plan/task chain.",
+            "status": "verified"
+          }
+        ],
+        "summary": "Convergence re-review of 10-specification.md (+ 11-implementation-plan.md, 12-task-list.md) after the harness rejected the prior attempt on two upstream-rooted blockers. Both are now genuinely resolved in their owning artifacts and flow correctly into this spec: (1) REQ-F-003 — 01-requirements.md revoked the sole-exception clause entirely (「nuclear-fusion-3d/** 连同其全部测试一律零改动——本规范不授权任何例外」); the spec pins the ::before accent-rule count at exactly 7 before/after, bans weakening any existing assertion, and mechanically proves zero-change via T16's before/after 33/33 glob double-run — the permanently-red-fusion-suite trap is closed. (2) F-D-05 — 07-design.md regenerated with the incremental `Open →` counting semantics (pre-change 7 → post-change exactly 8, delta +1) in all three required places (contract derivationRule, root-portal-card audit, S3 suite); the spec carries presence semantics for Open → and the Open→×7 baseline, so no unsatisfiable exactly-1 assertion survives anywhere. Live ground truth re-verified this round: `.card--\\w+::before\\s*{` = 7, `Open →` = 7, `id=\"link-*\"` = 7, card--fission = 0, fusionSim 12-method surface exists at main.js:704-732 with no setPhase/toggleAuto, and the fusion suite runs clean via the sanctioned glob command. Testability gate passes: all 3 scenario-mapped phases declare deliverables.requireScenarios covering 28/28 scenarios with zero gaps/overlaps, backed by requireFiles + pattern-level requireContains. One P3 non-blocking advisory remains (stale mirror-citation line range 703-727 excluding gotoPhase@731); it does not affect implementability or any gate. Loop should end here.",
+        "title": "Spec Review — 02-nuclear-fission-animation 技术规范（第 10/11/12 号文档）收敛复审：上游双阻塞项（REQ-F-003 / F-D-05）已在属主工件修复并经实测验证",
+        "verdict": "Approved with Comments",
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/02-nuclear-fission-animation/docs/specifications/02-nuclear-fission-animation/13-spec-review.md"
+      }
+    },
+    "implementationSummary": {
+      "timestamp": "2026-08-27T22:42:15.244Z",
+      "agent": "implementationSummary",
+      "data": {
+        "title": "Implementation Summary — 02-nuclear-fission-animation (hub fission entry card + self-contained 3D fission site)",
+        "date": "2026-08-28",
+        "summary": "Built a self-contained pure-static 3D nuclear-fission site (nuclear-fission-3d/) mirroring the sibling fusion site, plus a pure-append fission entry card on the root hub — with a full regression gate proving the fusion site stayed byte-for-byte untouched.\n\n**Phase 1 — Static shell & test scaffolding**: new nuclear-fusion-3d-mirrored shell (index.html + css/style.css + js/main.js + tests/), importmap/three@0.160.0/es-module-shims runtime pinning, 23 mirrored DOM ids, #homeBtn back-link. Resolves CF-implementation-0ft7p5y: phase1-shell.test.mjs is now green (exit 0).\n\n**Phase 2 — Fission runtime, state machine, controls & guided tour**: window.fissionSim with the exact 12-method surface of fusionSim (getPhase…gotoPhase; no setPhase/toggleAuto); three phases atoms→neutron→fission; prev/next wraparound, pause/resume with frozen getSimTime, camera reset, setAutoAdvance; 4-step tour (①atoms②neutron③fission④fission-summary) that switches phase on entry; single requestAnimationFrame main loop + clock.getDelta() (setInterval/setTimeout = 0); __errs/__ready guard with friendly WebGL fallback; PEP-textbook science copy (铀-235, 钡-141, 氪-92, 3 个中子, 200 MeV, ≈3.2e-11 J) with conservation HUD 236=141+92+3, 92=56+36. phase2-runtime/phase3-interaction suites green.\n\n**Phase 3 — Hub entry card & full regression gate**: card--fission appended exactly once after link-solar-cell (☢️ icon, Nuclear Fission 核裂变, description, Open → arrow, href=\"nuclear-fission-3d/\"); accent only via .card--fission .card__icon background and :hover border. phase4-gate.test.mjs covers SCENARIO-001/017/021/022/023/024/025 with behavior-matched assertions: file:// no-build/zero-npm smoke (SCENARIO-001 — resolves CF-requirements-1lpogn1), six D-T fusion literals declared in the FORBIDDEN_FUSION_LITERALS string constant with zero-occurrence scan (resolves the prior \"pattern only in comments\" blocker from CF-spec-004q4so), glob-form gate commands locked as constants with directory-form banned, hub ::before accent-rule count constant at 7, seven existing cards preserved, no new ::before rule, out-of-scope gate-baseline.json edit reverted (absent from branch diff).\n\n**Upstream finding resolutions (per recommendation, revised in the owning artifacts and answered in docs/specifications/02-nuclear-fission-animation/14-phase3-review-responses.md)**:\n- REQ-F-003: 01-requirements.md AC-08 now fully revokes the former \"edit SCENARIO-004 constant\" exception, states the true semantics (SCENARIO-004 counts .card--X::before accent RULES, currently exactly 7 — not cards) and mandates zero changes to nuclear-fusion-3d/**. Live verification: accent-rule count = 7; fusion gate exit 0 (33/33 baseline preserved).\n- F-D-05: 07-design.md root-card-addition-markers revised at all three sync points (derivationRule, root-portal-card audit, S3 assertion) — `Open →` asserted incrementally 7→8 (pure-append delta +1) instead of unsatisfiable file-wide \"exactly 1\"; the other six markers stay 0→1. Live count = 8.\n\n**Test results**: `node --test nuclear-fission-3d/tests/*.test.mjs` → all 4 suites exit 0; `node --test nuclear-fusion-3d/tests/*.test.mjs` → exit 0 before and after. All 5 convergence-ledger findings (REQ-F-003, F-D-05, CF-implementation-0ft7p5y, CF-spec-004q4so, CF-requirements-1lpogn1) are closed with upstream revisions plus explicit downstream responses.\n\n**Deviations**: none open. gate-baseline.json was reverted rather than folded into scope (per CF-spec-004q4so recommendation); an earlier stagnation escalation (escalation-report-stagnation.md) is documented but superseded by the converging retries.",
+        "phasesCompleted": "3/3",
+        "allGreen": "true",
+        "filesModified": [
+          "index.html",
+          "nuclear-fission-3d/index.html",
+          "nuclear-fission-3d/css/style.css",
+          "nuclear-fission-3d/js/main.js",
+          "nuclear-fission-3d/tests/phase1-shell.test.mjs",
+          "nuclear-fission-3d/tests/phase2-runtime.test.mjs",
+          "nuclear-fission-3d/tests/phase3-interaction.test.mjs",
+          "nuclear-fission-3d/tests/phase4-gate.test.mjs",
+          "docs/specifications/02-nuclear-fission-animation/01-requirements.md",
+          "docs/specifications/02-nuclear-fission-animation/07-design.md",
+          "docs/specifications/02-nuclear-fission-animation/14-phase3-review-responses.md",
+          "docs/specifications/02-nuclear-fission-animation/15-implementation-summary.md",
+          "docs/specifications/02-nuclear-fission-animation/implementation-evidence.jsonl"
+        ],
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/02-nuclear-fission-animation/docs/specifications/02-nuclear-fission-animation/15-implementation-summary.md"
+      }
+    },
+    "adversarialReview": {
+      "timestamp": "2026-08-27T22:43:37.107Z",
+      "agent": "adversarialReview",
+      "data": {
+        "date": "2026-08-28",
+        "findings": [
+          {
+            "blocking": false,
+            "confidence": 0.97,
+            "defectClass": "gate-stall-factual-error-upstream",
+            "detail": "The requirements artifact was rewritten as demanded: AC-08 now carries a 「兼容语义修正」 clause that explicitly revokes the prior sole-exception authorization (「本条全文撤销此前『允许修正 SCENARIO-004 数值常数』的唯一例外授权，回应审查发现 REQ-F-003」), states the true semantics — SCENARIO-004 counts /\\.card--\\w+::before\\s*\\{/g accent RULES (measured 7), not cards — and mandates nuclear-fusion-3d/** 全部文件零改动. Live re-verification: root index.html ::before rule count is exactly 7 (unchanged), fusion suite runs 33/33 exit 0 (13+15+5 across three suites), and the fission card takes its accent via .card__icon background + :hover border only (index.html lines 144-145), so the count is structurally stable. No weakening of any existing assertion occurred.",
+            "evidence": [
+              "01-requirements.md AC-08: 「兼容语义修正（本条全文撤销此前…回应审查发现 REQ-F-003）…SCENARIO-004 实际统计的是…强调规则的条数（当前实测恰为 7）…nuclear-fusion-3d/** 全部文件…零改动」",
+              "Live: grep -o '\\.card--\\w*::before' index.html | wc -l → 7",
+              "Live: node --test nuclear-fusion-3d/tests/*.test.mjs → 13+15+5 = 33 pass, 0 fail",
+              "index.html:144-145: accent rules are .card--fission .card__icon{background} and :hover{border-color} — not a ::before rule"
+            ],
+            "file": "docs/specifications/02-nuclear-fission-animation/01-requirements.md",
+            "id": "ADV-01",
+            "lens": "Architect",
+            "line": "AC-08",
+            "ownerStage": "requirements",
+            "priorFindingId": "REQ-F-003",
+            "recommendation": "No action. Finding resolved; mark resolved in the convergence ledger.",
+            "severity": "medium",
+            "status": "verified",
+            "title": "REQ-F-003 resolved: AC-08's sole-exception clause revoked and rewritten with correct rule-count semantics; fusion gate green with zero fusion-file edits"
+          },
+          {
+            "blocking": false,
+            "confidence": 0.96,
+            "defectClass": "self-defeating-marker-contract-count",
+            "detail": "The design artifact was revised in all three required places, exactly as the ledger's recommendation proposed: (1) root-card-addition-markers Derivation rule now asserts Open → as 改前 7 → 改后恰 8（纯追加 delta 恰 +1，绝不作「恰 1」断言）with the seven pre-existing span.card__arrow occurrences documented; (2) the root-portal-card module audit item uses the same incremental wording; (3) the fission-test-suite S3 spec states the incremental form. Live verification: root index.html 'Open →' count is exactly 8, ::before rule count 7, and phase4-gate SCENARIO-024 asserts the 7→8 increment scoped per the revised contract — the suite is green (7/7), proving the gate is no longer self-defeating. The other 6 markers keep the 0→1 exactly-once semantics and all resolve.",
+            "evidence": [
+              "07-design.md:57: 「第七个标记 Open → …改前已存在 7 次…改前 7 → 改后恰 8（纯追加 delta 恰 +1），绝不作「恰 1」断言（修订 F-D-05 门禁自败）」",
+              "07-design.md:35 and :44: module audit item and S3 suite spec both carry the same incremental口径",
+              "Live: grep -c 'Open →' index.html → 8",
+              "Live: phase4-gate.test.mjs 7/7 pass"
+            ],
+            "file": "docs/specifications/02-nuclear-fission-animation/07-design.md",
+            "id": "ADV-02",
+            "lens": "Architect",
+            "line": "57",
+            "ownerStage": "design",
+            "priorFindingId": "F-D-05",
+            "recommendation": "No action. Finding resolved.",
+            "severity": "medium",
+            "status": "verified",
+            "title": "F-D-05 resolved: `Open →` marker count contract switched to incremental 7→8 semantics in all three synchronized design locations"
+          },
+          {
+            "blocking": false,
+            "confidence": 0.95,
+            "detail": "The phase-1 shell suite that previously stayed red through the TDD loop now runs 9 tests / 9 pass / 0 fail (node --test, measured live). Together with phase2-runtime (12/12), phase3-interaction (8/8), and phase4-gate (7/7), the full fission matrix is 36/36 green, satisfying AC-01's ≥3 suites requirement and clearing the convergence blocker.",
+            "evidence": [
+              "Live: node --test nuclear-fission-3d/tests/phase1-shell.test.mjs → tests 9, pass 9, fail 0",
+              "Live: full fission matrix 9+12+8+7 = 36 pass, 0 fail"
+            ],
+            "file": "nuclear-fission-3d/tests/phase1-shell.test.mjs",
+            "id": "ADV-03",
+            "lens": "Skeptic",
+            "ownerStage": "implementation",
+            "priorFindingId": "CF-implementation-0ft7p5y",
+            "recommendation": "No action. Blocker cleared.",
+            "severity": "high",
+            "status": "verified",
+            "title": "CF-implementation-0ft7p5y resolved: phase1-shell.test.mjs fully green (9/9)"
+          },
+          {
+            "blocking": false,
+            "confidence": 0.96,
+            "defectClass": "deliverable-pattern-in-stripped-comment",
+            "detail": "All three sub-blockers are resolved live: (1) '0.018884' is now declared in the FORBIDDEN_FUSION_LITERALS string constant (line 47) and additionally asserted via a self-inclusion check assert.ok(self.includes(\"'0.018884'\")) at line 185 — matching code, not comments, and the full zero-occurrence scan runs over production files excluding tests/; (2) phase4-gate.test.mjs is 7/7 green; (3) nuclear-fission-3d/tests/gate-baseline.json no longer exists anywhere in the tree (find returned nothing), i.e. the out-of-scope edit was reverted rather than spec-folded — the conservative resolution. Cross-check: zero occurrences of any of the six fusion literals in the three fission production files.",
+            "evidence": [
+              "phase4-gate.test.mjs:47: const FORBIDDEN_FUSION_LITERALS = ['0.018884', '0.0189 u', '17.6 MeV', '2.82e-12', '氘', '氚'];",
+              "phase4-gate.test.mjs:185: assert.ok(self.includes(\"'0.018884'\"), \"FORBIDDEN_FUSION_LITERALS 必须以字符串字面量含 '0.018884'\");",
+              "Live: node --test phase4-gate.test.mjs → 7 pass / 0 fail",
+              "Live: find . -name gate-baseline.json → no results (out-of-scope file reverted)",
+              "Live: grep of the 6 forbidden literals over nuclear-fission-3d/index.html, css/style.css, js/main.js → 0 matches"
+            ],
+            "file": "nuclear-fission-3d/tests/phase4-gate.test.mjs",
+            "id": "ADV-04",
+            "lens": "Skeptic",
+            "line": "47",
+            "ownerStage": "implementation",
+            "priorFindingId": "CF-spec-004q4so",
+            "recommendation": "No action. Blocker cleared.",
+            "severity": "high",
+            "status": "verified",
+            "title": "CF-spec-004q4so resolved: 0.018884 now a string-literal constant, phase4-gate green, out-of-scope gate-baseline.json removed"
+          },
+          {
+            "blocking": false,
+            "confidence": 0.93,
+            "detail": "The coverage gap is closed: SCENARIO-001 now has a dedicated test titled 'SCENARIO-001 (AC-01): 纯静态目录 file:// 冒烟 — 无构建步骤/零 npm 依赖，根与裂变页可直开，tests/ 仅依赖 node 内建模块' in the phase-4 gate suite (line 116), plus a complementary manifest/zero-build-fingerprint test in phase1-shell.test.mjs (line 100). The phase4-gate header explicitly cites CF-requirements-1lpogn1 and REQ-F-003/F-D-05 responses. Live re-run of the coverage verifier's mapping: SCENARIO-001/017/021/022/023/024/025 all present as explicit SCENARIO-NNN titles with matching assertions; suites are compiling and green, so coverage is valid GREEN rather than RED-by-failure.",
+            "evidence": [
+              "phase4-gate.test.mjs:116: test('SCENARIO-001 (AC-01): 纯静态目录 file:// 冒烟 — 无构建步骤/零 npm 依赖，根与裂变页可直开，tests/ 仅依赖 node 内建模块', …)",
+              "phase1-shell.test.mjs:100: test('SCENARIO-001 (AC-01): 纯静态目录文件清单与零构建指纹 …', …)",
+              "phase4-gate.test.mjs:19-21: header comments explicitly respond to CF-spec-004q4so and CF-requirements-1lpogn1",
+              "Live: all four fission suites green (36/36)"
+            ],
+            "file": "nuclear-fission-3d/tests/phase4-gate.test.mjs",
+            "id": "ADV-05",
+            "lens": "Architect",
+            "line": "116",
+            "ownerStage": "implementation",
+            "priorFindingId": "CF-requirements-1lpogn1",
+            "recommendation": "No action. Blocker cleared; upstream requirements artifact did not need changes since the defect was missing downstream coverage, not a wrong requirement.",
+            "severity": "high",
+            "status": "verified",
+            "title": "CF-requirements-1lpogn1 resolved: SCENARIO-001 coverage added with a dedicated file:// static-smoke test"
+          },
+          {
+            "blocking": false,
+            "confidence": 0.7,
+            "defectClass": "cross-suite-coverage-duplication",
+            "detail": "SCENARIO-001 is now exercised by two distinct tests: a file-manifest/zero-build-fingerprint test in phase1-shell.test.mjs:100 and a file:// static-smoke test in phase4-gate.test.mjs:116. The two assertions overlap substantially (both check the static file set, no package.json/node_modules, node:-only test deps). This is defensible — phase-1 pins the manifest at shell-delivery time and phase-4 re-audits it as part of the final gate — but the overlap is the kind of redundant context the minimalist lens flags. Pure observation; the duplication adds ~O(10) lines and costs nothing at runtime.",
+            "evidence": [
+              "phase1-shell.test.mjs:100 and phase4-gate.test.mjs:116 both carry SCENARIO-001 (AC-01) titles with overlapping static-manifest assertions"
+            ],
+            "file": "nuclear-fission-3d/tests/phase4-gate.test.mjs",
+            "id": "ADV-06",
+            "lens": "Minimalist",
+            "line": "116",
+            "ownerStage": "implementation",
+            "recommendation": "Optional: keep as-is (phase-time locality is a legitimate reason), or have the phase-4 test delegate the manifest portion to a shared assertion helper. Do not block merge on this.",
+            "severity": "low",
+            "status": "open",
+            "title": "Minor duplication: SCENARIO-001 covered in both phase1-shell and phase4-gate suites"
+          }
+        ],
+        "summary": "All five convergence-ledger blockers from the rejected prior attempt verify as resolved with live evidence. (1) REQ-F-003: AC-08's exception clause was rewritten in the requirements artifact itself — it now explicitly revokes the prior 「唯一例外授权」, states that SCENARIO-004 counts `.card--X::before {` accent RULES (currently exactly 7), not cards, and mandates nuclear-fusion-3d/** 全部文件零改动; fusion suite runs 33/33 green and the ::before rule count is 7. (2) F-D-05: the design artifact revised the `Open →` marker to an incremental assertion (改前 7 → 改后恰 8) in all three synchronized places (derivation rule, module audit item, test-suite S3); actual root index.html count is exactly 8 and phase4-gate is green. (3) CF-implementation-0ft7p5y: phase1-shell.test.mjs now 9/9 green. (4) CF-spec-004q4so: '0.018884' is now a string-literal element of FORBIDDEN_FUSION_LITERALS plus an explicit self-assertion (phase4-gate 7/7 green); the out-of-scope gate-baseline.json was removed entirely. (5) CF-requirements-1lpogn1: SCENARIO-001 now has dedicated coverage in both phase1-shell.test.mjs (file manifest/zero-build fingerprint) and phase4-gate.test.mjs (file:// static smoke). Fresh adversarial sweep of production invariants found no new high-severity issues: main.js has requestAnimationFrame( ×1 and setInterval(/setTimeout( ×0, __errs fallback + __ready contract + WebGL degradation path, zero forbidden fusion literals across all fission production files, science literals (铀-235/钡-141/氪-92/200 MeV/3.2e-11 etc.) present, root ::before count pinned at 7, fission card appended once after link-solar-cell with accent only via .card__icon background and :hover border. One low-severity duplication observation is recorded. Verdict: PASS.",
+        "title": "Adversarial review — 核裂变动画 (nuclear-fission-3d): all five convergence-ledger blockers verified resolved; full gate matrix green",
+        "verdict": "PASS",
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/02-nuclear-fission-animation/docs/specifications/02-nuclear-fission-animation/16-adversarial-review.md"
+      }
+    },
+    "codeReview": {
+      "timestamp": "2026-08-27T22:43:40.543Z",
+      "agent": "codeReview",
+      "data": {
+        "date": "2026-08-28",
+        "findings": [
+          {
+            "blocking": false,
+            "confidence": 0.96,
+            "defectClass": "gate-self-contradiction",
+            "detail": "AC-08 was rewritten to revoke the prior sole-exception authorization. It now states that SCENARIO-004 counts /.card--\\w+::before\\s*\\{/g accent RULES (measured 7), not cards; that AC-09 forbids a new ::before rule for card--fission so the count stays 7; and that nuclear-fusion-3d/** requires zero changes with no clause authorized to weaken or raise any existing assertion constant. This is exactly the recommended repair. Live verification: regex count over root index.html = 7; node --test nuclear-fusion-3d/tests/*.test.mjs exits 0 with 33/33 pass on Node v24.15.0; git diff/status over nuclear-fusion-3d/ is empty.",
+            "evidence": [
+              "docs/specifications/02-nuclear-fission-animation/01-requirements.md AC-08: 「兼容语义修正（本条全文撤销此前『允许修正 SCENARIO-004 数值常数』的唯一例外授权，回应审查发现 REQ-F-003）…该计数在改动后保持 7 不变…零改动」",
+              "grep -oE '\\.card--\\w+::before[[:space:]]*\\{' index.html | wc -l → 7",
+              "node --test nuclear-fusion-3d/tests/*.test.mjs → tests 33, pass 33, fail 0 (exit 0)",
+              "git status --porcelain -- nuclear-fusion-3d/ → empty; git diff HEAD --stat -- nuclear-fusion-3d/ → empty"
+            ],
+            "file": "docs/specifications/02-nuclear-fission-animation/01-requirements.md",
+            "id": "F-REV-001",
+            "lens": "correctness/spec-alignment",
+            "line": "18 (AC-08)",
+            "ownerStage": "requirements",
+            "priorFindingId": "REQ-F-003",
+            "recommendation": "No further action. The corrected semantics are also mirrored downstream (phase4-gate SCENARIO-023 asserts count constant 7) and the fusion suite is green, so the two previously divergent AC-sanctioned behaviors are now pinned to one consistent truth.",
+            "severity": "info",
+            "status": "verified",
+            "title": "REQ-F-003 resolved: AC-08 exception clause revoked and replaced with corrected ::before-rule-count semantics"
+          },
+          {
+            "blocking": false,
+            "confidence": 0.96,
+            "defectClass": "marker-contract-self-defeat",
+            "detail": "07-design.md now carries an explicit reviewResponses revision: the root-card-addition-markers derivation rule, the root-portal-card module audit item, and the S3 suite assertion were all synchronized to an incremental assertion for `Open →` (pre-change 7 measured at lines 196/203/210/217/224/232/239 → post-change exactly 8, pure-append delta exactly +1), while the other markers remain 0→1. This matches the recommended fix and removes the mathematically unsatisfiable exactly-1 gate. Live verification: grep -c 'Open →' index.html = 8; SCENARIO-024 passes asserting the 7→8 increment with exactly-1 scoped to the new anchor block.",
+            "evidence": [
+              "07-design.md: 「F-D-05：`Open →` 标记全文件「恰 1」系门禁自败（先存 7 处…追加后必为 8）——已将该单一标记改为增量断言「改动前 7 → 改动后恰 8（纯追加 delta 恰 +1）」」",
+              "grep -c 'Open →' index.html → 8",
+              "✔ SCENARIO-024 (AC-09): 根 index.html 纯追加 card--fission 恰 1 处于 link-solar-cell 之后 — ☢️/双语/描述/Open →（增量 7→8）/既有七卡原样保留 (pass)"
+            ],
+            "file": "docs/specifications/02-nuclear-fission-animation/07-design.md",
+            "id": "F-REV-002",
+            "lens": "correctness/spec-alignment",
+            "line": "57 (root-card-addition-markers derivation rule)",
+            "ownerStage": "design",
+            "priorFindingId": "F-D-05",
+            "recommendation": "No further action. The three synchronized locations (derivation rule, module 10 audit wording, S3 test assertion) and the passing implementation are mutually consistent.",
+            "severity": "info",
+            "status": "verified",
+            "title": "F-D-05 resolved: `Open →` marker count semantics corrected to incremental 7→8 in all three design locations"
+          },
+          {
+            "blocking": false,
+            "confidence": 0.95,
+            "detail": "phase1-shell.test.mjs had remained red after 2 implementation attempts. Running the full sanctioned glob command now yields 36/36 green across all four fission suites, including every phase1-shell test (shell mirror tokens, SCENARIO-001 file-listing test at line 100, etc.), with zero failures and exit 0.",
+            "evidence": [
+              "node --test nuclear-fission-3d/tests/*.test.mjs → tests 36, pass 36, fail 0, duration_ms 498.6 (Node v24.15.0)",
+              "phase1-shell.test.mjs:100: test('SCENARIO-001 (AC-01): 纯静态目录文件清单与零构建指纹 …', …) passes within the run"
+            ],
+            "file": "nuclear-fission-3d/tests/phase1-shell.test.mjs",
+            "id": "F-REV-003",
+            "lens": "testability",
+            "line": "100",
+            "ownerStage": "implementation",
+            "priorFindingId": "CF-implementation-0ft7p5y",
+            "recommendation": "No further action; implementation phase-01 has converged.",
+            "severity": "info",
+            "status": "verified",
+            "title": "CF-implementation-0ft7p5y resolved: phase1-shell suite now green (tdd-targets no longer red)"
+          },
+          {
+            "blocking": false,
+            "confidence": 0.95,
+            "detail": "All three sub-blockers are resolved. (1) '0.018884' now appears as an element of the FORBIDDEN_FUSION_LITERALS string-literal constant at line 47, with a self-integrity assertion at line 185 that the constant literally contains '0.018884' — no longer comment-only, so the deliverable pattern matcher (which strips comments) matches it. (2) phase4-gate.test.mjs passes inside the 36/36 run. (3) gate-baseline.json no longer exists anywhere in the worktree (find returned nothing) — the out-of-scope edit was reverted rather than spec-folded, and the suite now implements the before/after regression expectation in-test (SCENARIO-021 actually executes the fusion glob gate and asserts exit 0 + 33/33).",
+            "evidence": [
+              "phase4-gate.test.mjs:47: const FORBIDDEN_FUSION_LITERALS = ['0.018884', '0.0189 u', '17.6 MeV', '2.82e-12', '氘', '氚'];",
+              "phase4-gate.test.mjs:185: assert.ok(self.includes(\"'0.018884'\"), …)",
+              "find . -name 'gate-baseline.json' → no results",
+              "✔ SCENARIO-021 (AC-08): sanctioned glob 门禁实跑全绿 — node --test nuclear-fusion-3d/tests/*.test.mjs exit 0 且 33/33 (pass, 158ms)"
+            ],
+            "file": "nuclear-fission-3d/tests/phase4-gate.test.mjs",
+            "id": "F-REV-004",
+            "lens": "correctness",
+            "line": "47",
+            "ownerStage": "spec",
+            "priorFindingId": "CF-spec-004q4so",
+            "recommendation": "No further action. The in-test live execution of the fusion gate is a stronger design than the reverted JSON baseline; no spec scope change was needed.",
+            "severity": "info",
+            "status": "verified",
+            "title": "CF-spec-004q4so resolved: forbidden-literal tag moved into string constant, phase4-gate green, out-of-scope gate-baseline.json reverted"
+          },
+          {
+            "blocking": false,
+            "confidence": 0.93,
+            "detail": "SCENARIO-001 (AC-01: pure static directory, file:// openable, no build step, zero npm deps, tests depend only on node: builtins) is now covered by two explicit SCENARIO-001 test titles: a file:// smoke in phase4-gate.test.mjs line 116 and a zero-build-fingerprint file-listing test in phase1-shell.test.mjs line 100. Both pass. Coverage now spans all 7 expected scenarios (SCENARIO-001/017/021/022/023/024/025), each with an explicit SCENARIO-NNN title and behavior-matched assertions.",
+            "evidence": [
+              "phase4-gate.test.mjs:116: test('SCENARIO-001 (AC-01): 纯静态目录 file:// 冒烟 — 无构建步骤/零 npm 依赖，根与裂变页可直开，tests/ 仅依赖 node 内建模块', …) — passes",
+              "phase1-shell.test.mjs:100: test('SCENARIO-001 (AC-01): 纯静态目录文件清单与零构建指纹 …', …) — passes",
+              "Fission suite run: tests 36, pass 36, fail 0"
+            ],
+            "file": "nuclear-fission-3d/tests/phase4-gate.test.mjs",
+            "id": "F-REV-005",
+            "lens": "testability",
+            "line": "116",
+            "ownerStage": "requirements",
+            "priorFindingId": "CF-requirements-1lpogn1",
+            "recommendation": "No further action. The phase description's file:// smoke now has a corresponding test title and assertions.",
+            "severity": "info",
+            "status": "verified",
+            "title": "CF-requirements-1lpogn1 resolved: SCENARIO-001 now has explicit BDD test coverage (file:// smoke + static fingerprint)"
+          },
+          {
+            "blocking": false,
+            "confidence": 0.5,
+            "defectClass": "design-token-drift",
+            "detail": "07-design.md's design-token section scopes its token set to 「css/style.css + 根卡增量样式」 and defines primary as the fission amber-orange theme (#f59e0b / light #fbbf24 / dark #b45309). The appended root card instead uses lime rgba(163,230,53,…) for the .card__icon background and :hover border. No test or AC pins the root-card accent hue (SCENARIO-025 only checks the rule placement classes), and sibling cards may each carry their own hue — so this may be an intentional distinctness choice rather than a defect. It is purely cosmetic; contrast/observability of the card is unaffected and the ::before count guard is respected.",
+            "evidence": [
+              "index.html:144: .card--fission .card__icon   { background: rgba(163,230,53,0.12); }",
+              "index.html:145: .card--fission:hover { border-color: rgba(163,230,53,0.45); }",
+              "07-design.md:38: 「设计令牌（css/style.css + 根卡增量样式）… 语义色——primary 裂变主题琥珀-橙（main #f59e0b/light #fbbf24/dark #b45309）」",
+              "SCENARIO-025 passes — no color assertion exists on the root card accent"
+            ],
+            "file": "index.html",
+            "id": "F-NEW-001",
+            "lens": "maintainability",
+            "line": "144",
+            "ownerStage": "implementation",
+            "recommendation": "Human/design confirmation: either align the root-card accent to the amber primary (#f59e0b family) for token consistency, or record a one-line note in the design that the hub card intentionally uses a distinct hue to differentiate from sibling cards. Needs verification before treating as a defect; does not affect any gate.",
+            "severity": "low",
+            "status": "needs-human",
+            "title": "Root card--fission accent color (lime rgba(163,230,53)) deviates from the design token primary (amber-orange #f59e0b family)"
+          }
+        ],
+        "summary": "Re-review of the 核裂变 (nuclear fission) animation implementation after the prior rejection. All five convergence-ledger blockers were re-verified against the live worktree on Node v24.15.0. (1) REQ-F-003: 01-requirements.md AC-08 now explicitly revokes the erroneous sole-exception clause, states SCENARIO-004 counts ::before accent RULES (measured 7, not cards), and mandates nuclear-fusion-3d/** zero-change — confirmed by live regex count 7 and an empty git diff/status over nuclear-fusion-3d/**. (2) F-D-05: 07-design.md revises the root-card-addition-markers contract so `Open →` uses an incremental assertion (pre 7 → post exactly 8, delta +1) across derivation rule, module-10 audit item, and S3 test spec; live count is 8 and SCENARIO-024 passes asserting the increment. (3) CF-implementation-0ft7p5y: phase1-shell.test.mjs is green within the 36/36 fission run. (4) CF-spec-004q4so: '0.018884' now lives in the FORBIDDEN_FUSION_LITERALS string-literal constant (phase4-gate.test.mjs:47, asserted at :185), phase4-gate is green, and the out-of-scope gate-baseline.json no longer exists (reverted). (5) CF-requirements-1lpogn1: SCENARIO-001 has explicit passing test titles in both phase1-shell.test.mjs:100 (static file-list/zero-build fingerprint) and phase4-gate.test.mjs:116 (file:// smoke, zero npm, node builtins only). Full gate matrix re-run by this reviewer: node --test nuclear-fission-3d/tests/*.test.mjs → 36/36 pass, exit 0; node --test nuclear-fusion-3d/tests/*.test.mjs → 33/33 pass, exit 0. Hub audit: ::before rule count = 7 (zero increment), `Open →` = 8, card--fission anchor appended once after link-solar-cell (index.html:245) with accent via .card__icon background + :hover border-color only. Dimensions reviewed — Correctness 5/5, Security 5/5 (static local content, no injection surface; zero cross-topic literal contamination asserted and re-verified), Performance 5/5 (single rAF loop per AC-10 contract), Concurrency 5/5, Maintainability 4/5 (one minor token-consistency note), Testability 5/5 (36 deterministic node:test cases incl. all 7 BDD scenarios), Error Handling 5/5 (__errs/__ready bootstrap guard mirrored), Data Integrity 5/5 (pure-append hub edit, zero fusion-tree diff), Observability 5/5 (error collection guard). One new Low finding (root-card accent hue vs design primary token) reported as non-blocking needs-human. No Critical/High/Medium open issues remain; prior five blockers verified resolved.",
+        "title": "核裂变动画（02-nuclear-fission-animation）实现复审 — 收敛台账五项阻断全部验证解除，门禁全绿，批准合并",
+        "verdict": "Approved",
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/02-nuclear-fission-animation/docs/specifications/02-nuclear-fission-animation/17-code-review.md"
+      }
+    }
+  }
+}

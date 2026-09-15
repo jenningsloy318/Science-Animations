@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<!-- nuclear-fission-3d — zh-CN page shell（SCENARIO-027/013: __errs 陷阱 + 原生 button 控件） -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>核裂变 3D 交互动画 · Nuclear Fission</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- 返回首页链接 -->
+  <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
+
+<!-- #stage 承载 three.js 画布 -->
+<div id="stage"></div>
+
+<!-- SCENARIO-028 (AC-10): WebGL 不可用时的友好降级提示层 -->
+<div id="fallback" hidden></div>
+
+<header>
+  <h1>☢️ 核裂变 · 3D 交互动画</h1>
+  <p class="subtitle">铀-235 + 中子 → 钡-141 + 氪-92 + 3 个中子 + 能量 — 三幕看懂核裂变</p>
+</header>
+
+<!-- SCENARIO-019 (AC-07): 🎬 引导浏览入口 -->
+<nav id="tools">
+  <button class="tool-btn" id="btnTour" title="引导浏览（分步讲解）" aria-pressed="false">🎬</button>
+</nav>
+
+<!-- SCENARIO-016 (AC-05): 相位字幕 + 解说 + 守恒验算面板 -->
+<section id="narration" aria-live="polite">
+  <h2 id="phaseTitle">原子结构</h2>
+  <p id="phaseText"></p>
+  <div id="ledgerPanel" hidden></div>
+</section>
+
+<!-- SCENARIO-009 ~ 012 (AC-04): 底部控制条（全部原生 button，≥44px，键盘可达） -->
+<div id="bottomBar" class="ctrl-bar">
+  <!-- SCENARIO-029 (AC-11): ①②③ 幕标签直接跳幕（与 nuclear-fusion-3d 同款交互） -->
+  <button class="phase-tab" data-phase="atoms" title="跳到第 1 幕">① 原子结构</button>
+  <button class="phase-tab" data-phase="neutron" title="跳到第 2 幕">② 中子俘获</button>
+  <button class="phase-tab" data-phase="fission" title="跳到第 3 幕">③ 裂变反应</button>
+  <span class="vsep"></span>
+  <button class="ctrl-btn" id="prevBtn" title="上一步（环绕循环）">⏮ 上一步</button>
+  <button class="ctrl-btn" id="toggleBtn" title="暂停 / 继续">⏸ 暂停</button>
+  <button class="ctrl-btn" id="nextBtn" title="下一步（环绕循环）">⏭ 下一步</button>
+  <span class="vsep"></span>
+  <button class="ctrl-btn" id="autoBtn" aria-pressed="true" title="自动/手动换幕">自动换幕：开</button>
+  <button class="ctrl-btn" id="resetBtn" title="重置到原子结构">🔄 重置</button>
+  <button class="ctrl-btn" id="camBtn" title="恢复默认机位">🎥 重置视角</button>
+</div>
+
+<!-- SCENARIO-018 (AC-07): 四步导览面板 —— 恰 4 个步骤项 + ✕ 关闭 -->
+<div id="tourPanel">
+  <button class="tour-close" id="tourCloseBtn" title="退出导览">✕</button>
+  <div id="tourTitle"></div>
+  <div id="tourText"></div>
+  <ol id="tourSteps">
+    <li class="tour-step" data-step="0"><b>① 原子结构</b><span>认识铀-235</span></li>
+    <li class="tour-step" data-step="1"><b>② 中子俘获</b><span>形成铀-236*</span></li>
+    <li class="tour-step" data-step="2"><b>③ 裂变反应</b><span>一分为二</span></li>
+    <li class="tour-step" data-step="3"><b>④ 总结</b><span>质量电荷守恒</span></li>
+  </ol>
+</div>
+
+<!-- SCENARIO-030 (AC-11): 常见问题 FAQ —— 回答“为什么用中子/为何铀-235/能量从哪来/链式反应怎么控制” -->
+<aside id="faqPanel" aria-label="常见问题">
+  <h3>🤔 常见问题（点开看答案）</h3>
+  <details class="qa">
+    <summary>为什么用中子去撞，而不是用质子？</summary>
+    <p>原子核带正电，质子也带正电——同性相斥，质子还没飞到就会被静电斥力弹开；<b>中子不带电</b>，没有任何斥力挡路，飞得再慢也能钻进原子核。</p>
+  </details>
+  <details class="qa">
+    <summary>铀-235 为什么一撞就裂？所有原子核都行吗？</summary>
+    <p>不行。铀-235 是<b>易裂变核</b>：92 个质子互相排斥，原子核本就绷在“散架的边缘”；吞下一个中子变成铀-236* 后剧烈振荡，像抖过头的<b>水气球</b>一样一分为二。铀-238 吸收中子后通常不裂变，所以核燃料要先把铀-235 浓缩。</p>
+  </details>
+  <details class="qa">
+    <summary>裂变的巨大能量从哪来？</summary>
+    <p>裂变碎片加中子的总质量比原来小了一点点（约 0.2 u）。亏损的质量按 <b>E=mc²</b> 变成能量：一次裂变约释放 <b>200 MeV</b>——相当于同质量煤炭燃烧的两百多万倍。</p>
+  </details>
+  <details class="qa">
+    <summary>什么是链式反应？核电站为什么不会像原子弹那样炸？</summary>
+    <p>每次裂变放出 2~3 个新中子，又能引发下一次裂变——像<b>多米诺骨牌</b>。原子弹放任中子成倍增殖（指数爆炸）；核电站用<b>控制棒</b>吸收多余中子，让每一代恰好只剩 1 个中子引发下次裂变（k=1），平稳地发电。</p>
+  </details>
+</aside>
+
+<div id="hint">拖拽旋转 · 滚轮缩放 · ⏮⏭ 换幕 · 🎬 引导浏览分步讲解</div>
+
+<!-- SCENARIO-027 (AC-10): console-error trap for the clean-load gate -->
+<script>
+  window.__errs = [];
+  window.addEventListener('error', e => window.__errs.push(e.message));
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/es-module-shims@1.10.0/dist/es-module-shims.js"></script>
+<!-- 唯一的 three.js 来源：import map，锁定 0.160.0 -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>

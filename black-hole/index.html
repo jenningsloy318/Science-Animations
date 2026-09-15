@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>黑洞与引力透镜 — 星际穿越 Gargantua</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background-color: #03060f;
+      color: #e2e8f0;
+      font-family: 'Outfit', 'Noto Sans SC', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem;
+      overflow-x: hidden;
+    }
+
+    #homeBtn {
+      position: fixed;
+      top: 1.2rem;
+      left: 1.2rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 0.9rem;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
+      color: #f1f5f9;
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s ease;
+    }
+    #homeBtn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      transform: translateY(-1px);
+    }
+
+    header {
+      width: 100%;
+      max-width: 1000px;
+      margin-top: 3.5rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 800;
+      color: #f8fafc;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      font-size: 1.05rem;
+      color: #94a3b8;
+      max-width: 650px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .main-stage {
+      width: 100%;
+      max-width: 1000px;
+      background: #000;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 40px rgba(251, 146, 60, 0.15);
+      margin-bottom: 2.5rem;
+      position: relative;
+    }
+
+    .image-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .image-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .interactive-legend {
+      padding: 1.25rem 1.5rem;
+      background: rgba(15, 23, 42, 0.7);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+    }
+
+    .tag-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #cbd5e1;
+      padding: 0.45rem 0.9rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .tag-btn:hover, .tag-btn.active {
+      background: rgba(249, 115, 22, 0.2);
+      border-color: #f97316;
+      color: #ffedd5;
+    }
+
+    .info-card-container {
+      width: 100%;
+      max-width: 1000px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .card {
+      background: linear-gradient(165deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .card__icon {
+      font-size: 1.6rem;
+    }
+
+    .card__title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+
+    .card__desc {
+      font-size: 0.92rem;
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+
+    .action-bar {
+      margin-bottom: 3rem;
+      display: flex;
+      gap: 1rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #ea580c;
+      color: #fff;
+      padding: 0.75rem 1.4rem;
+      border-radius: 10px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn:hover {
+      background: #f97316;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px -5px rgba(234, 88, 12, 0.5);
+    }
+    .btn--secondary {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e2e8f0;
+    }
+    .btn--secondary:hover {
+      background: rgba(255, 255, 255, 0.15);
+      box-shadow: none;
+    }
+
+    footer {
+      color: #64748b;
+      font-size: 0.85rem;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
+
+  <header>
+    <h1>🕳️ 黑洞与引力透镜 — Gargantua</h1>
+    <p>电影《星际穿越》中超大质量黑洞的 3D 物理与光学渲染解析</p>
+  </header>
+
+  <div class="main-stage">
+    <div class="image-container">
+      <img src="gargantua.png" alt="Blender Render of Gargantua Black Hole" id="bhImg">
+    </div>
+    <div class="interactive-legend">
+      <button class="tag-btn active" onclick="highlight('all')">全景展示 Full View</button>
+      <button class="tag-btn" onclick="highlight('horizon')">事件视界 Event Horizon</button>
+      <button class="tag-btn" onclick="highlight('lensing')">引力透镜光晕 Lensing Halo</button>
+      <button class="tag-btn" onclick="highlight('disk')">吸积盘 Accretion Disk</button>
+      <button class="tag-btn" onclick="highlight('doppler')">多普勒效应 Doppler Beaming</button>
+    </div>
+  </div>
+
+  <div class="action-bar">
+    <a href="gargantua.png" class="btn" download="gargantua_render.png">📥 下载渲染大图 (1080P)</a>
+    <a href="gargantua.blend" class="btn btn--secondary" download="gargantua.blend">📦 下载 Blender 工程文件 (.blend)</a>
+  </div>
+
+  <div class="info-card-container">
+    <div class="card">
+      <div class="card__icon">🌑</div>
+      <div class="card__title">1. 事件视界 (Event Horizon)</div>
+      <div class="card__desc">中心绝对漆黑的区域。在此半径内，时空曲率极大，逃逸速度超过光速，任何光子与物质都无法逃脱，形成黑洞中央标志性的“黑球”阴影。</div>
+    </div>
+
+    <div class="card">
+      <div class="card__icon">🌈</div>
+      <div class="card__title">2. 引力透镜光晕 (Gravitational Lensing)</div>
+      <div class="card__desc">为什么上方和下方有一圈环形光带？因为黑洞强大的引力弯曲了时空，使得吸积盘背面的光线被扭曲弯折绕过黑洞顶部与底部，传到观察者眼中。</div>
+    </div>
+
+    <div class="card">
+      <div class="card__icon">🔥</div>
+      <div class="card__title">3. 高温吸积盘 (Accretion Disk)</div>
+      <div class="card__desc">气体与等离子体以接近光速高速螺旋落向黑洞。最内侧稳定轨道（ISCO）温度极高呈现白青色强光，外侧逐渐降温过渡为金黄与深红。</div>
+    </div>
+
+    <div class="card">
+      <div class="card__icon">⚡</div>
+      <div class="card__title">4. 相对论多普勒增亮 (Doppler Beaming)</div>
+      <div class="card__desc">由于吸积盘高速自转，朝向观察者飞来的一侧（画面左侧）发生相对论性集束效应与蓝移，亮度显著增大；远离的一侧（右侧）则变暗变红。</div>
+    </div>
+  </div>
+
+  <footer>
+    基于 Blender 5.2 LTS Cycles 渲染制作 · 探索科学与宇宙物理
+  </footer>
+
+  <script>
+    function highlight(section) {
+      document.querySelectorAll('.tag-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

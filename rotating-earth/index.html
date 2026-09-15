@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>太空视角下的旋转地球 — 3D Blender 渲染</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background-color: #02050e;
+      color: #e2e8f0;
+      font-family: 'Outfit', 'Noto Sans SC', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 1.5rem;
+      overflow-x: hidden;
+    }
+
+    #homeBtn {
+      position: fixed;
+      top: 1.2rem;
+      left: 1.2rem;
+      z-index: 100;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.5rem 0.95rem;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 9999px;
+      color: #f1f5f9;
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 500;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s ease;
+    }
+    #homeBtn:hover {
+      background: rgba(255, 255, 255, 0.18);
+      transform: translateY(-1px);
+    }
+
+    header {
+      width: 100%;
+      max-width: 1080px;
+      margin-top: 3.5rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 0.35rem 0.9rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      border-radius: 9999px;
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      margin-bottom: 0.8rem;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 4vw, 2.8rem);
+      font-weight: 800;
+      color: #f8fafc;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #ffffff 0%, #38bdf8 50%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    header p {
+      font-size: 1.05rem;
+      color: #94a3b8;
+      max-width: 700px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    .main-stage {
+      width: 100%;
+      max-width: 1080px;
+      background: #000;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.85), 0 0 50px rgba(56, 189, 248, 0.15);
+      margin-bottom: 2.5rem;
+      position: relative;
+    }
+
+    .media-container {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .media-container video,
+    .media-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .media-container img {
+      display: none;
+    }
+
+    .view-toggle-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.85rem 1.25rem;
+      background: rgba(15, 23, 42, 0.95);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .tab-btn {
+      padding: 0.45rem 0.9rem;
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #94a3b8;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .tab-btn.active, .tab-btn:hover {
+      background: rgba(56, 189, 248, 0.2);
+      border-color: rgba(56, 189, 248, 0.5);
+      color: #38bdf8;
+    }
+
+    .playback-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .ctrl-btn {
+      padding: 0.4rem 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #cbd5e1;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .ctrl-btn:hover {
+      background: rgba(255, 255, 255, 0.15);
+      color: #fff;
+    }
+
+    .grid-section {
+      width: 100%;
+      max-width: 1080px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .card {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 1.4rem;
+      backdrop-filter: blur(12px);
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+
+    .card h3 {
+      font-size: 1.15rem;
+      color: #f1f5f9;
+      margin-bottom: 0.6rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .card p {
+      font-size: 0.9rem;
+      line-height: 1.65;
+      color: #94a3b8;
+    }
+
+    .card .highlight {
+      color: #38bdf8;
+      font-weight: 600;
+    }
+
+    .tech-specs {
+      width: 100%;
+      max-width: 1080px;
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 1.5rem;
+      margin-bottom: 3rem;
+    }
+
+    .tech-specs h2 {
+      font-size: 1.3rem;
+      color: #f8fafc;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .specs-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+    }
+
+    .spec-item {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 0.85rem;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .spec-item .label {
+      font-size: 0.75rem;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.25rem;
+    }
+
+    .spec-item .value {
+      font-size: 0.95rem;
+      color: #e2e8f0;
+      font-weight: 600;
+      font-family: monospace;
+    }
+
+    footer {
+      margin-top: auto;
+      padding: 2rem 0;
+      color: #64748b;
+      font-size: 0.85rem;
+      text-align: center;
+    }
+
+    footer a {
+      color: #38bdf8;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <a href="../index.html" id="homeBtn">← 科学实验室主页</a>
+
+  <header>
+    <div class="badge">Blender 5.2 3D 物理模拟与动画</div>
+    <h1>太空视角下的旋转地球</h1>
+    <p>
+      从浩瀚太空俯瞰我们的蓝色家园。本渲染精确还原了地球 23.44° 黄赤交角自转、晨昏线上的万家灯火、大气层边缘的瑞利散射蓝晕，以及独立运动的对流云系。
+    </p>
+  </header>
+
+  <div class="main-stage">
+    <div class="media-container">
+      <video id="earthVideo" autoplay loop muted playsinline poster="earth.png">
+        <source src="rotating_earth.mp4" type="video/mp4">
+        您的浏览器不支持 HTML5 视频。
+      </video>
+      <img id="earthImage" src="earth.png" alt="太空中的旋转地球 1080p 静帧">
+    </div>
+    <div class="view-toggle-bar">
+      <div class="tabs">
+        <button class="tab-btn active" id="tabVideo" onclick="showMedia('video')">▶ 5秒 60fps 循环动画</button>
+        <button class="tab-btn" id="tabImage" onclick="showMedia('image')">📷 1080p 超清静帧</button>
+      </div>
+      <div class="playback-controls" id="videoControls">
+        <button class="ctrl-btn" onclick="togglePlay()">暂停 / 播放</button>
+        <button class="ctrl-btn" onclick="changeSpeed(0.5)">0.5x 慢速</button>
+        <button class="ctrl-btn" onclick="changeSpeed(1.0)">1.0x 正常</button>
+        <button class="ctrl-btn" onclick="changeSpeed(2.0)">2.0x 倍速</button>
+        <button class="ctrl-btn" onclick="toggleFullscreen()">全屏</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-section">
+    <div class="card">
+      <h3>🌍 地轴倾角 (23.44° Axial Tilt)</h3>
+      <p>
+        地球自转轴与公转轨道平面垂直方向有着 <span class="highlight">23.44°</span> 的固定倾角。正是这个倾角使得太阳直射点在南北回归线之间周期往返移动，创造了地球上的春夏秋冬与两极极昼极夜。
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>✨ 晨昏线与夜光 (Day/Night Terminator)</h3>
+      <p>
+        太阳从侧方入射，清晰划分了昼半球与夜半球。在晨昏线（Terminator）背阳面，城市的万家灯火逐渐点亮，反映了人类文明的分布与繁华。
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>🌊 瑞利散射大气辉光 (Rayleigh Scattering)</h3>
+      <p>
+        地球边缘呈现出空灵通透的蓝白渐变光晕。这是因为地球稠密大气层对较短波长的蓝紫色光线发生强烈的 <span class="highlight">瑞利散射</span>，在太空中形成美丽的轮廓辉光（Atmospheric Limb Glow）。
+      </p>
+    </div>
+
+    <div class="card">
+      <h3>☁️ 双层旋转与云系对流 (Dual Atmosphere)</h3>
+      <p>
+        模型采用独立外层球体承载云层与半透明云影。云层自转角速度设定为略快于地表（<span class="highlight">390° vs 360°</span>），真实展现高空急流与大气对流活动带来的相对位移。
+      </p>
+    </div>
+  </div>
+
+  <div class="tech-specs">
+    <h2>🛠️ 渲染与工程规格 (Blender 3D Architecture)</h2>
+    <div class="specs-grid">
+      <div class="spec-item">
+        <div class="label">渲染引擎</div>
+        <div class="value">EEVEE Next (实时光影)</div>
+      </div>
+      <div class="spec-item">
+        <div class="label">分辨率 & 帧率</div>
+        <div class="value">1920×1080 @ 24fps (120帧)</div>
+      </div>
+      <div class="spec-item">
+        <div class="label">自转轴倾角</div>
+        <div class="value">23.44° (Tilt X=0.398 rad)</div>
+      </div>
+      <div class="spec-item">
+        <div class="label">大气层着色</div>
+        <div class="value">Fresnel + Additive Rayleigh</div>
+      </div>
+      <div class="spec-item">
+        <div class="label">地表多重通道</div>
+        <div class="value">Albedo + Normal + Spec + Night</div>
+      </div>
+      <div class="spec-item">
+        <div class="label">视频编码</div>
+        <div class="value">H.264 / CRF 18 (1.8MB)</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Made with Blender 5.2 Python API &bull; <a href="rotating_earth.blend">下载 .blend 源码模型</a> &bull; <a href="make_rotating_earth.py">查看生成脚本</a></p>
+  </footer>
+
+  <script>
+    const video = document.getElementById('earthVideo');
+    const image = document.getElementById('earthImage');
+    const tabVideo = document.getElementById('tabVideo');
+    const tabImage = document.getElementById('tabImage');
+    const videoControls = document.getElementById('videoControls');
+
+    function showMedia(type) {
+      if (type === 'video') {
+        video.style.display = 'block';
+        image.style.display = 'none';
+        tabVideo.classList.add('active');
+        tabImage.classList.remove('active');
+        videoControls.style.display = 'flex';
+        video.play();
+      } else {
+        video.style.display = 'none';
+        image.style.display = 'block';
+        tabImage.classList.add('active');
+        tabVideo.classList.remove('active');
+        videoControls.style.display = 'none';
+        video.pause();
+      }
+    }
+
+    function togglePlay() {
+      if (video.paused) {
+        video.play();
+      } else {
+        video.pause();
+      }
+    }
+
+    function changeSpeed(rate) {
+      video.playbackRate = rate;
+    }
+
+    function toggleFullscreen() {
+      const stage = document.querySelector('.media-container');
+      if (!document.fullscreenElement) {
+        stage.requestFullscreen().catch(err => alert(err.message));
+      } else {
+        document.exitFullscreen();
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<!-- SCENARIO-001 (AC-01): zh-CN page shell for nuclear-fusion-3d/ -->
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>核聚变 3D 交互动画 · Nuclear Fusion</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- SCENARIO-001 (AC-01): back-to-home link -->
+  <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
+
+<!-- SCENARIO-001 (AC-01): #stage hosts the three.js canvas -->
+<div id="stage"></div>
+
+<header>
+  <h1>☀️ 核聚变 · 3D 交互动画</h1>
+  <p class="subtitle">氘（²H）+ 氚（³H）→ 氦-4 + 中子 + 能量 — 从原子结构到等离子体的聚变之旅</p>
+</header>
+
+<!-- SCENARIO-005 (AC-03): tool nav — 🎬 引导浏览 guided tour -->
+<nav id="tools">
+  <button class="tool-btn" id="btnTour" title="引导浏览（分步讲解）">🎬</button>
+</nav>
+
+<!-- SCENARIO-025 (AC-10): 第二幕实时温度计 — 常温 20℃ 一路冲向 1 亿℃ 点火条件 -->
+<div id="tempHud" hidden>
+  <div id="tempNow">🌡️ 20 ℃</div>
+  <div id="tempBarWrap"><div id="tempBar"></div></div>
+  <div id="tempStage">🫧 常温气体：加热中…</div>
+  <div id="tempGoal">目标 ≈ 1 亿℃ · D–T 聚变点火条件</div>
+</div>
+
+<!-- SCENARIO-005 (AC-03): bottom control bar -->
+<div id="bottomBar" class="ctrl-bar">
+  <!-- SCENARIO-025 (AC-10): 每一幕可点击跳转 + 上一幕/下一幕 + 自动换幕开关 -->
+  <div class="row" id="phaseTabs">
+    <button class="phase-tab" data-phase="atoms" title="跳到第 1 幕">① 原子结构</button>
+    <button class="phase-tab" data-phase="plasma" title="跳到第 2 幕">② 加热→等离子体</button>
+    <button class="phase-tab" data-phase="fusion" title="跳到第 3 幕">③ 聚变反应</button>
+    <span class="vsep"></span>
+    <button class="ctrl-btn" id="prevPhaseBtn">⏮ 上一幕</button>
+    <button class="ctrl-btn" id="nextPhaseBtn">下一幕 ⏭</button>
+    <button class="ctrl-btn" id="autoBtn" aria-pressed="true">🔁 自动换幕：开</button>
+  </div>
+  <div class="row" id="phaseBar">
+    <span class="phase-tag">当前阶段</span>
+    <b id="phaseLabel">原子结构</b>
+    <button class="ctrl-btn" id="toggleBtn">⏸ 暂停</button>
+    <button class="ctrl-btn" id="resetBtn">🔄 重置</button>
+    <button class="ctrl-btn" id="camBtn">🎥 重置视角</button>
+  </div>
+</div>
+
+<!-- SCENARIO-006 (AC-03): guided-tour narration overlay -->
+<div id="tourPanel">
+  <div id="tourTitle"></div>
+  <div id="tourText"></div>
+  <div id="tourNav">
+    <button class="ctrl-btn" id="tourPrev">← 上一步</button>
+    <div class="dots-nav" id="tourDots"></div>
+    <button class="ctrl-btn" id="tourNext">下一步 →</button>
+    <button class="ctrl-btn" id="tourExit">退出</button>
+  </div>
+</div>
+
+<!-- SCENARIO-014/SCENARIO-015/SCENARIO-016 (AC-06): physics info panel —
+     the verified & internally consistent D–T numbers (FR-001 corrected chain:
+     0.0189 u × 931.494 MeV/u ≈ 17.6 MeV ≈ 2.82e-12 J) -->
+<aside id="physicsPanel">
+  <h3>⚛️ 物理小课堂</h3>
+  <div class="rxn">²H + ³H → ⁴He + n + 17.6 MeV</div>
+  <ul>
+    <li><b>能量分配</b>：中子 ~14.1 MeV ｜ α 粒子（氦核）~3.5 MeV</li>
+    <li><b>质量亏损</b> = 2.014102 u + 3.016049 u − 4.002602 u − 1.008665 u = 0.018884 u ≈ 0.0189 u</li>
+    <li><b>质能换算</b>：0.018884 u × 931.494 MeV/u ≈ 17.6 MeV</li>
+    <li><b>E=mc² 质能方程</b>：亏损的那一点点质量变成了能量 —— 17.6 MeV × 1.602×10⁻¹³ J/MeV ≈ 2.82e-12 J</li>
+  </ul>
+
+  <!-- SCENARIO-025 (AC-10): 常见问题 — 回答“只有高温吗 / 别的方法 / 必须等离子体吗 / 记号规则” -->
+  <h4 class="qa-title">🤔 常见问题（点开看答案）</h4>
+  <details class="qa">
+    <summary>只有加热，才能变成等离子体吗？</summary>
+    <p>不是。<b>气体放电</b>——日光灯、霓虹灯、闪电，还有<b>强激光</b>、<b>电磁波</b>，都能把气体电离成等离子体。只是这些“冷”等离子体只有几千到几万度，远达不到聚变条件；要让原子核撞到一起，还得极端加热到上亿度。</p>
+  </details>
+  <details class="qa">
+    <summary>到底要加热到多少度？</summary>
+    <p>地球上 D–T 聚变约需 <b>1 亿℃</b>：温度越高原子核跑得越快，才挤得过库仑斥力。太阳核心只有约 <b>1500 万℃</b>，靠巨大的引力压力和<b>量子隧穿</b>帮忙也能聚变——地球上没有这种压力，只能把温度堆得更高。</p>
+  </details>
+  <details class="qa">
+    <summary>一定要等离子体才能聚变吗？</summary>
+    <p>主流方法必须：<b>托卡马克磁约束</b>（中国 EAST、国际 ITER）和<b>激光惯性约束</b>（美国 NIF）都把燃料变成上亿度的等离子体——普通物质里原子核被电子云包着、被晶格锁着，根本撞不上；等离子体里裸露的原子核才能高速自由对撞。例外是 <b>μ 子催化</b>“冷聚变”，但 μ 子寿命太短、成本太高，目前无法实用。</p>
+  </details>
+  <details class="qa">
+    <summary>为什么 ²H 的 2 写在左上角，不是右上角？</summary>
+    <p>这是核素符号的国际统一规则（中国教材相同，不是国家差异）：<b>左上角</b>=质量数（质子+中子个数），<b>左下角</b>=质子数，所以氘完整写作 <b>²₁H</b>、氚写作 <b>³₁H</b>。而<b>右下角</b>=分子里原子个数（H₂O 的 2），<b>右上角</b>=离子电荷数（Ca²⁺ 的 2+）。位置不同、含义不同。</p>
+  </details>
+
+  <p class="note">太阳发光发热，靠的就是这种聚变反应：一点点质量，换来巨大的能量。</p>
+</aside>
+
+<div id="hint">拖拽旋转 · 滚轮缩放 · 右键平移<br>①②③ 点击跳幕 · 🎬 引导浏览分步讲解</div>
+
+<!-- SCENARIO-001/SCENARIO-024 (AC-01/AC-09): console-error trap for the clean-load gate -->
+<script>
+  window.__errs = [];
+  window.addEventListener('error', e => window.__errs.push(e.message));
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/es-module-shims@1.10.0/dist/es-module-shims.js"></script>
+<!-- SCENARIO-001 (AC-01): the ONLY three.js source is this import map, pinned to 0.160.0 -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>引力弹弓 — 太阳系航行模拟</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Back to home (shared) -->
+  <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
+
+
+  <header>
+    <div>
+      <h1>🚀 引力弹弓 — 太阳系航行模拟</h1>
+      <p>模拟旅行者号探测器利用行星引力弹弓穿越太阳系的壮举</p>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="canvas-container">
+      <canvas id="simCanvas"></canvas>
+
+      <div class="hud-speed">
+        <div class="hud-row"><span>当前速度:</span><span id="hudSpeed" style="color:#4ade80">0 km/s</span></div>
+        <div class="hud-row"><span>引力弹弓增速:</span><span id="hudGain" style="color:#38bdf8">+0 km/s</span></div>
+        <div class="hud-row"><span>引力加速度:</span><span id="hudGrav" style="color:#fb923c">0</span></div>
+      </div>
+
+      <div class="hud-legend">
+        <div class="legend-row"><div class="leg-line" style="background:#38bdf8"></div><span>实际轨道 (引力弹弓)</span></div>
+        <div class="legend-row"><div class="leg-line" style="background:repeating-linear-gradient(90deg,#f472b6 0 4px,transparent 4px 7px)"></div><span>无行星时直线轨道</span></div>
+        <div class="legend-row"><div class="leg-line" style="background:#fb923c"></div><span>引力 (指向行星)</span></div>
+      </div>
+    </div>
+
+    <!-- 任务面板 -->
+    <div class="mission-panel">
+
+      <div class="section">
+        <div class="section-title">📡 任务状态</div>
+        <div class="mission-status" id="missionStatus">🌍 从地球出发，目标：木星</div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">⚡ 航天器速度</div>
+        <div class="speed-display">
+          <div class="speed-value" id="bigSpeed">0</div>
+          <div class="speed-unit">km/s</div>
+          <div class="speed-sub">引力弹弓总增益: <span class="speed-gain" id="totalGain">+0.0 km/s</span></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">📋 飞行日志</div>
+        <div id="flightLog">
+          <div class="log-item">
+            <div class="log-dot visited" style="border-color:#3b82f6;color:#3b82f6;background:#3b82f6"></div>
+            <span class="log-name visited">🌍 地球 (出发)</span>
+            <span class="log-speed" id="logEarth">—</span>
+          </div>
+          <div class="log-item">
+            <div class="log-dot" id="dotJupiter" style="border-color:#f59e0b;color:#f59e0b"></div>
+            <span class="log-name" id="nameJupiter">🪐 木星</span>
+            <span class="log-speed" id="logJupiter">等待中…</span>
+          </div>
+          <div class="log-item">
+            <div class="log-dot" id="dotSaturn" style="border-color:#fbbf24;color:#fbbf24"></div>
+            <span class="log-name" id="nameSaturn">🪐 土星</span>
+            <span class="log-speed" id="logSaturn">等待中…</span>
+          </div>
+          <div class="log-item">
+            <div class="log-dot" id="dotUranus" style="border-color:#67e8f9;color:#67e8f9"></div>
+            <span class="log-name" id="nameUranus">⭐ 天王星</span>
+            <span class="log-speed" id="logUranus">等待中…</span>
+          </div>
+          <div class="log-item">
+            <div class="log-dot" id="dotNeptune" style="border-color:#818cf8;color:#818cf8"></div>
+            <span class="log-name" id="nameNeptune">🔵 海王星</span>
+            <span class="log-speed" id="logNeptune">等待中…</span>
+          </div>
+          <div class="log-item">
+            <div class="log-dot" id="dotEscape" style="border-color:#a78bfa;color:#a78bfa"></div>
+            <span class="log-name" id="nameEscape">🌌 飞出太阳系</span>
+            <span class="log-speed" id="logEscape">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">🎮 控制</div>
+        <div class="ctrl-label"><span>动画速度</span><span class="val" id="valSpeed">0.35×</span></div>
+        <input type="range" id="sliderSpeed" min="0.1" max="1.0" step="0.05" value="0.35" oninput="updateSpeed()">
+        <div class="ctrl-row">
+          <button class="ctrl-btn" id="btnPlay" onclick="togglePlay()">⏸ 暂停</button>
+          <button class="ctrl-btn" onclick="resetSim()">🔄 重新发射</button>
+        </div>
+      </div>
+
+      <div class="section" style="background:#0c0f1a;border-color:#312e81;">
+        <div class="section-title" style="color:#a78bfa;">📖 你知道吗？</div>
+        <p style="font-size:0.72rem;color:#a5b4fc;line-height:1.55;">
+          <strong>旅行者2号</strong> 于1977年从地球发射，先后利用了
+          <strong>木星</strong>(1979)、<strong>土星</strong>(1981)、
+          <strong>天王星</strong>(1986)、<strong>海王星</strong>(1989)
+          的引力弹弓加速，最终于2018年飞出太阳系日球层！<br><br>
+          每次飞掠，行星的公转动能就"送"给航天器一点速度。
+          观察<span style="color:#fb923c">橙色箭头</span>——那就是每颗行星对航天器施加的引力！
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>

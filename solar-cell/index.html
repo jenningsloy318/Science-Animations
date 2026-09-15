@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>太阳能电池 · 从光子到电流 Solar Cell: Photon to Current</title>
+<meta name="description" content="Interactive 3-chapter journey: from atoms to crystal, the PN junction separator, and the life of one photon — how light becomes electricity.">
+<style>/* styles in css/style.css */</style>
+<link rel="stylesheet" href="css/style.css?v=5">
+</head>
+<body>
+
+  <!-- Back to home (shared) -->
+  <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
+
+
+  <!-- ══ 3D Stage ══ -->
+  <div id="stage"><canvas id="c3d"></canvas></div>
+
+  <!-- ══ Header ══ -->
+  <header>
+    <h1 id="chapterTitle">☀️ 太阳能电池：光子 → 电能</h1>
+    <div class="subtitle" id="chapterSub">Solar Cell: from photons to current · 4 章微观之旅</div>
+  </header>
+
+  <!-- ══ Chapter Navigation (left) ══ -->
+  <nav id="chapters">
+    <div class="nav-title">章节 Chapters</div>
+    <!-- built by main.js -->
+  </nav>
+
+  <!-- ══ Narration (bottom-right) ══ -->
+  <div id="narration"></div>
+
+  <!-- ══ Info Panel (top-right) ══ -->
+  <aside id="infoPanel">
+    <h3>⚡ 电路 Circuit</h3>
+    <div class="info-row"><span class="label">电压 Voltage</span><span class="value" id="mVolt">0.00 V</span></div>
+    <div class="info-row"><span class="label">电流 Current</span><span class="value" id="mAmp">0.0 A</span></div>
+  </aside>
+
+  <!-- ══ Energy Band Panel (all chapters, zoomable) ══ -->
+  <canvas id="bandCanvas" width="600" height="600" class="hidden"></canvas>
+  <button id="bandZoom" class="hidden">⤢ 放大</button>
+
+  <!-- ══ Action Bar (bottom) ══ -->
+  <div id="actionBar">
+    <div id="actionBtns"></div>
+    <div id="actionSliders"></div>
+  </div>
+
+  <div id="prevNext">
+    <button id="btnPrev">← 上一章</button>
+    <button id="btnNext">下一章 →</button>
+  </div>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+  }
+  </script>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

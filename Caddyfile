@@ -1,0 +1,41 @@
+# ══════════════════════════════════════════════════════
+# Caddyfile — 本地静态伺服（science 学习站）
+#
+# 启动：
+#   make dev                          # 前台运行（Ctrl+C 停止）
+#   make start                        # 后台运行（make stop 停止）
+#
+# 访问：
+#   http://localhost:8321/                     索引页
+#   http://localhost:8321/solar-cell/          太阳能电池
+#   http://localhost:8321/atomic-model/        原子模型
+# ══════════════════════════════════════════════════════
+
+{
+	storage file_system {
+		root /home/jenningsl/Documents/儿子学习/science/.caddy-storage
+	}
+}
+
+:8321 {
+	root * /home/jenningsl/Documents/儿子学习/science
+
+	encode zstd gzip
+
+	# 开发期禁缓存
+	header Cache-Control "no-cache, must-revalidate"
+
+	# 禁止访问隐藏文件/目录（.git 等）
+	@hidden path */.* */.*/*
+	respond @hidden 403
+
+	# 禁止下载 Caddyfile 和 caddy 二进制
+	@sensitive path /Caddyfile /caddy /Makefile
+	respond @sensitive 403
+
+	file_server browse
+
+	handle_errors {
+		respond "404 — 没有 this file。去 http://localhost:8321/ 看索引页" 404
+	}
+}

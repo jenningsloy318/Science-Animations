@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>原子模型 · 3D Interactive Atomic Model</title>
+<meta name="description" content="Interactive 3D atomic model showing electron transitions, ionization, and the difference between excitation and ion formation.">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Back to home (shared) -->
+  <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
+
+
+<!-- ── Header ── -->
+<header>
+  <h1>原子模型 · Atomic Model</h1>
+  <div class="subtitle">3D 交互式 — 电子跃迁 vs 电离 · 光子的吸收与发射</div>
+</header>
+
+<!-- ── 3D Stage ── -->
+<div id="stage"></div>
+
+<!-- ── Step-by-step Narration ── -->
+<div id="narration"></div>
+
+<!-- ── Photon Info Badge (left) ── -->
+<div id="photonBadge">
+  <h4>💡 光子信息 Photon</h4>
+  <div class="photon-row"><span class="plabel">方向</span><span class="pval" id="pDir">—</span></div>
+  <div class="photon-row"><span class="plabel">能量 E</span><span class="pval" id="pEnergy">—</span></div>
+  <div class="photon-row"><span class="plabel">跃迁</span><span class="pval" id="pTransition">—</span></div>
+  <div class="photon-row"><span class="plabel">颜色</span><span class="pval" id="pColor">—</span></div>
+  <div id="photonSwatch" class="photon-color-swatch"></div>
+</div>
+
+<!-- ── Info Panel ── -->
+<div id="infoPanel">
+  <h3>⚛️ 原子状态</h3>
+  <div class="info-row"><span class="label">元素</span><span class="value" id="infoElement">Li 锂</span></div>
+  <div class="info-row"><span class="label">质子 Protons</span><span class="value" id="infoProtons">3</span></div>
+  <div class="info-row"><span class="label">中子 Neutrons</span><span class="value" id="infoNeutrons">4</span></div>
+  <div class="info-row"><span class="label">电子 Electrons</span><span class="value" id="infoElectrons">3</span></div>
+  <div class="info-row"><span class="label">净电荷 Charge</span><span class="value neutral" id="infoCharge">0</span></div>
+  <div class="info-row"><span class="label">状态 State</span><span class="value neutral" id="infoState">基态 Ground</span></div>
+  <div id="equation"></div>
+</div>
+
+<!-- ── Energy Level Diagram ── -->
+<div id="energyDiagram">
+  <h4>能级图 Energy Levels</h4>
+  <canvas id="energyCanvas" class="energy-canvas"></canvas>
+</div>
+
+<!-- ── Shell Distribution Diagram ── -->
+<div id="shellDiagram">
+  <h4>电子层分布 Shell Distribution</h4>
+  <canvas id="shellCanvas" class="shell-canvas"></canvas>
+</div>
+
+<!-- ── Bottom Bar ── -->
+<div id="bottomBar">
+  <div class="row" id="elemRow"></div>
+  <div class="row">
+    <button class="ctrl-btn absorb" id="btnAbsorb" title="光子飞入原子 → 被电子吸收 → 电子跳到高能级">
+      ☀️ 吸收光子<br><span class="dir-hint">光子 → 原子 (飞入)</span>
+    </button>
+    <button class="ctrl-btn release" id="btnRelease" title="电子掉回低能级 → 产生新光子 → 光子飞出原子" disabled>
+      💫 释放光子<br><span class="dir-hint">原子 → 光子 (飞出)</span>
+    </button>
+    <div class="separator"></div>
+    <button class="ctrl-btn ionize-pos" id="btnLoseE" title="电子被完全打飞，离开原子">⚡ 失去电子 (电离)</button>
+    <button class="ctrl-btn ionize-neg" id="btnGainE" title="原子捕获一个自由电子">⚡ 获得电子</button>
+    <div class="separator"></div>
+    <button class="ctrl-btn reset-btn" id="btnReset">↺ 重置</button>
+    <button class="ctrl-btn" id="btnPhotonInfo">💡 光子是什么?</button>
+    <button class="ctrl-btn" id="btnCompare">📊 对比表</button>
+  </div>
+</div>
+
+<!-- ── Comparison Panel ── -->
+<div id="compPanel">
+  <div class="panel-header">
+    <h3>📊 电子跃迁 vs 电离 — 对比表</h3>
+    <button class="close-btn" id="closeComp">✕</button>
+  </div>
+  <table class="comp-table">
+    <thead>
+      <tr><th>情况</th><th>光子方向</th><th>电子去向</th><th>原子变化</th><th>离子?</th></tr>
+    </thead>
+    <tbody>
+      <tr class="highlight">
+        <td>☀️ <b>吸收光子</b> (激发)<br><small>Absorption</small></td>
+        <td style="color:#fbbf24">光子<b>飞入</b>原子 →<br>光子<b>消失</b><br><small>Photon absorbed</small></td>
+        <td>跳到更高能级<br>仍在原子内<br><small>Higher orbit, stays</small></td>
+        <td>激发态，仍然<b>中性</b><br><small>Excited, neutral</small></td>
+        <td style="color:#f87171">❌ 不是</td>
+      </tr>
+      <tr class="highlight">
+        <td>💫 <b>释放光子</b> (退激发)<br><small>Emission</small></td>
+        <td style="color:#38bdf8">光子被<b>创造</b><br>光子<b>飞出</b>原子 →<br><small>Photon emitted</small></td>
+        <td>回到低能级<br>仍在原子内<br><small>Lower orbit, stays</small></td>
+        <td>基态，仍然<b>中性</b><br><small>Ground, neutral</small></td>
+        <td style="color:#f87171">❌ 不是</td>
+      </tr>
+      <tr>
+        <td>⚡ <b>失去电子</b> (电离)<br><small>Ionization</small></td>
+        <td style="color:#64748b">不一定需要光子<br>可以是碰撞等<br><small>Various energy sources</small></td>
+        <td><b>完全离开</b>原子<br>飞走了<br><small>Leaves entirely</small></td>
+        <td>变成<b>正离子 ⊕</b><br>Cation<br><small>Positively charged</small></td>
+        <td style="color:#34d399">✅ 阳离子</td>
+      </tr>
+      <tr>
+        <td>⚡ <b>获得电子</b><br><small>Electron capture</small></td>
+        <td style="color:#64748b">—</td>
+        <td>额外电子<b>加入</b><br><small>Extra e⁻ joins</small></td>
+        <td>变成<b>负离子 ⊖</b><br>Anion<br><small>Negatively charged</small></td>
+        <td style="color:#34d399">✅ 阴离子</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ── Photon Explainer Panel ── -->
+<div id="photonExplainer">
+  <div class="panel-header">
+    <h3>💡 光子(光量子)是什么？What is a Photon?</h3>
+    <button class="close-btn" id="closePhotonInfo">✕</button>
+  </div>
+  <div class="explainer-content">
+    <h4>📦 光子 = 光量子 = Photon</h4>
+    <p>爱因斯坦发现，光不是连续的波，而是一份一份的<b>能量包</b>。每一份叫做一个<b>光量子</b>（简称<b>光子</b>）。</p>
+    <p>就像水不是连续的液体，而是由一个个水分子组成的一样，光也是由一个个光子组成的！</p>
+
+    <div class="formula-box">
+      <div class="big">E = h × f</div>
+      <div class="desc">E = 光子能量 &nbsp;|&nbsp; h = 普朗克常数 (6.626×10⁻³⁴ J·s) &nbsp;|&nbsp; f = 光的频率</div>
+    </div>
+
+    <p>频率越高（蓝光/紫光）→ 每个光子能量越大<br>频率越低（红光）→ 每个光子能量越小</p>
+
+    <h4>🏔️ 为什么外层 = 高能量？（重力类比）</h4>
+    <div class="formula-box" style="background: rgba(52,211,153,.06); border-color: rgba(52,211,153,.15);">
+      <div class="big" style="color: #34d399; font-size: 1rem;">外层轨道 = 高能量 &nbsp;≈&nbsp; 把球举高 = 高势能</div>
+      <div class="desc" style="margin-top: 8px; line-height: 1.6;">
+        🔴 <b>原子核</b> 就像地球 — 有强大的引力（正电荷吸引电子）<br>
+        🔵 <b>电子</b> 就像球 — 被引力拉住<br>
+        ⬇️ <b>内层</b>（靠近核）= 球在地面 = <span style="color:#34d399"><b>低能量</b></span>，最稳定<br>
+        ⬆️ <b>外层</b>（远离核）= 球在山顶 = <span style="color:#f87171"><b>高能量</b></span>，不稳定<br>
+        💡 要把电子推到外层，需要给它能量（光子）= 举起球要用力<br>
+        💡 电子掉回内层，就释放能量（光子）= 球掉下来释放能量
+      </div>
+    </div>
+
+    <h4>🔄 吸收 vs 释放 — 核心区别</h4>
+    <div class="vs-box">
+      <div class="vs-card absorb-card">
+        <h5>☀️ 吸收光子</h5>
+        <div class="step-flow">
+          <div>1️⃣ 光子从<b>外面飞进来</b></div>
+          <div class="arrow">↓</div>
+          <div>2️⃣ 光子撞到电子</div>
+          <div class="arrow">↓</div>
+          <div>3️⃣ 光子<b>消失</b>（被吃掉了）</div>
+          <div class="arrow">↓</div>
+          <div>4️⃣ 电子获得能量，<b>跳上去</b></div>
+          <div class="arrow">↓</div>
+          <div>✅ 原子仍然<b>中性</b></div>
+        </div>
+      </div>
+      <div class="vs-divider">VS</div>
+      <div class="vs-card emit-card">
+        <h5>💫 释放光子</h5>
+        <div class="step-flow">
+          <div>1️⃣ 电子在高能级<b>不稳定</b></div>
+          <div class="arrow">↓</div>
+          <div>2️⃣ 电子<b>掉下来</b>到低能级</div>
+          <div class="arrow">↓</div>
+          <div>3️⃣ 多余能量变成新光子</div>
+          <div class="arrow">↓</div>
+          <div>4️⃣ 光子<b>飞出去</b>（被创造了）</div>
+          <div class="arrow">↓</div>
+          <div>✅ 原子仍然<b>中性</b></div>
+        </div>
+      </div>
+    </div>
+
+    <h4>⚠️ 跃迁 ≠ 变成离子！</h4>
+    <p>不管是吸收还是释放光子，电子始终<b>留在原子内部</b>（只是换了轨道），所以原子<b>不会变成离子</b>。</p>
+    <p>只有当电子<b>完全离开</b>原子（电离），原子才会变成离子。这需要的能量比跃迁大得多！</p>
+  </div>
+</div>
+
+<!-- ── Three.js ── -->
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

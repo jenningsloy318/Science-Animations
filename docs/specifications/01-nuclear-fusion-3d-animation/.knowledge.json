@@ -1,0 +1,2045 @@
+{
+  "stages": {
+    "requirements": {
+      "timestamp": "2026-08-27T05:37:12.918Z",
+      "agent": "requirements",
+      "data": {
+        "acceptanceCriteria": [
+          {
+            "id": "AC-01",
+            "statement": "A new directory nuclear-fusion-3d/ exists at the repo root following the established page layout (as in ion-thruster-3d/ and atomic-model/): index.html plus css/ and js/ subdirectories; index.html declares <html lang=\"zh-CN\">, includes a back-link <a id=\"homeBtn\" href=\"../index.html\" title=\"返回首页 Back to home\">🏠 首页</a>, and contains a <div id=\"stage\"> element that hosts the three.js canvas.",
+            "verifiedBy": "deterministic"
+          },
+          {
+            "id": "AC-02",
+            "statement": "The root index.html card grid gains a new card <a class=\"card card--fusion\" href=\"nuclear-fusion-3d/\" id=\"link-nuclear-fusion-3d\"> with a bilingual title \"Nuclear Fusion 核聚变\", an emoji icon, a one-line English description of the fusion journey, and an \"Open →\" arrow; a matching .card--fusion accent-color rule is added to the inline card CSS alongside the existing .card--ion3d/.card--atom rules.",
+            "verifiedBy": "deterministic"
+          },
+          {
+            "id": "AC-03",
+            "statement": "nuclear-fusion-3d/index.html loads three.js exclusively via an import map pinned to https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js with \"three/addons/\" mapped to https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/ (identical pin to ion-thruster-3d); no other three.js version, no bundler, and no build step are introduced.",
+            "verifiedBy": "deterministic"
+          },
+          {
+            "id": "AC-04",
+            "statement": "The scene animates the full D–T fusion story as three sequential phases driven by a phase state machine in js/ with a programmatically observable current-phase state: (1) 原子结构 — a deuterium atom (nucleus of 1 red proton + 1 gray-blue neutron with 1 tiny electron orbiting) beside a tritium atom (1 proton + 2 neutrons, 1 orbiting electron); (2) 加热 → 等离子体 — electrons are stripped away and fly freely while nuclei move fast with random motion; (3) 聚变反应 — one D nucleus and one T nucleus collide against their electrostatic repulsion, merge into a ⁴He nucleus (2 protons + 2 neutrons), eject a free gray neutron, and emit an expanding energy flash.",
+            "verifiedBy": "test"
+          },
+          {
+            "id": "AC-05",
+            "statement": "The page offers a guided 引导浏览 tour (🎬 button with title containing 引导浏览) of at least 5 steps defined as data in js/, covering at minimum: (1) 原子结构（质子/中子/电子）, (2) 加热变成等离子体, (3) 克服库仑斥力（原子核相互排斥）, (4) 聚变反应生成氦-4 和中子, (5) E=mc² 质量变成能量; each step shows a Chinese narration panel, and navigation uses the ctrl-btn ids tourPrev（← 上一步）, tourNext（下一步 →）, tourExit（退出） following the ion-thruster-3d tour pattern.",
+            "verifiedBy": "deterministic"
+          },
+          {
+            "id": "AC-06",
+            "statement": "The page displays physically correct AND internally consistent D–T fusion numbers (fixing review FR-001): reaction ²H + ³H → ⁴He + n + 17.6 MeV, energy split 中子 ~14.1 MeV / α 粒子（氦核）~3.5 MeV, mass defect ≈ 0.0189 u (m(²H)+m(³H)−m(⁴He)−m(n) = 2.014102 u + 3.016049 u − 4.002602 u − 1.008665 u = 0.018884 u), and released energy ≈ 2.8×10⁻¹² J (2.82e-12 J), presented together with the E=mc² 质能方程 explanation. Internal consistency holds: 0.018884 u × 931.494 MeV/u ≈ 17.59 MeV ≈ 17.6 MeV, and 17.6 MeV × 1.602×10⁻¹³ J/MeV ≈ 2.82×10⁻¹² J. Deterministic check: the delivered page source contains the literal strings '17.6', '0.0189', and 'mc' (from E=mc²), and must NOT contain the incorrect literals '0.0256' or '3.2e-11' (wrong mass defect / fission-value energy).",
+            "verifiedBy": "deterministic"
+          },
+          {
+            "id": "AC-07",
+            "statement": "A control bar below the stage provides the established ctrl-btn controls: ⏸ 暂停 / ▶ 继续 toggle that freezes and resumes all particle motion and the phase clock, 🔄 重置 (see AC-08), and 🎥 重置视角 that restores the default camera; drag-rotate and wheel/pinch-zoom (OrbitControls) work at all times without breaking the animation.",
+            "verifiedBy": "test"
+          },
+          {
+            "id": "AC-08",
+            "statement": "Reset semantics are explicit (fixing review FR-002): the 🔄 重置 button restarts the 3D animation immediately from the 等离子体 phase WITHOUT changing the current guided-tour step or its narration panel (the tour stays exactly where the learner left it). Additionally, in free-explore mode, after each fusion event completes and its energy flash fades, the animation auto-repeats back to the 等离子体 phase so the reaction can be watched repeatedly.",
+            "verifiedBy": "test"
+          },
+          {
+            "id": "AC-09",
+            "statement": "Served at http://localhost:8321/nuclear-fusion-3d/ (existing Caddyfile static server, no Caddyfile changes required), the page loads with zero browser-console errors or warnings, and the only non-local network requests are the pinned jsdelivr three@0.160.0 modules (optionally Google Fonts) — no telemetry, analytics, or other third-party calls.",
+            "verifiedBy": "manual"
+          }
+        ],
+        "date": "2026-08-27",
+        "executiveSummary": "A new self-contained nuclear-fusion-3d/ page teaches children how 核聚变 works via a three.js 3D animation covering theory and process: deuteron/triton atom structure (质子、中子、电子 orbiting), heating into plasma with free electrons and fast nuclei, and the D–T fusion collision producing ⁴He + neutron + energy under E=mc². The page follows the established site conventions (index.html + css/ + js/, lang=zh-CN, #homeBtn, #stage, ctrl-btn controls, 🎬 引导浏览 guided tour, importmap-pinned three@0.160.0) and is linked from the root index.html card grid. This revision resolves review FR-001 (physics numbers corrected to mass defect ≈0.0189 u and ≈2.8e-12 J, consistent with 17.6 MeV; wrong values 0.0256 u / 3.2e-11 J now explicitly forbidden) and FR-002 (重置 reset semantics pinned: restart the animation from the plasma phase without changing the current tour step).",
+        "nonFunctional": [
+          "Performance: target ≥ 60 fps at 1080p on integrated graphics; total animated particle count (plasma electrons + nuclei) capped around 2,000; renderer pixel ratio capped at min(devicePixelRatio, 2); geometries/materials disposed on phase rebuild to avoid GPU memory leaks.",
+          "Learning accessibility (color-blind safe): proton / neutron / electron must be distinguishable by more than hue alone — differentiated by size (proton and neutron similar nuclear scale, electron visibly tiny) plus on-canvas or legend labels 质子/中子/电子; palette choices (warm red proton, cool gray-blue neutron, small bright electron) remain distinguishable under common color-vision deficiencies.",
+          "UI consistency: all controls carry title tooltips (as in ion-thruster-3d), narration and labels in Chinese with the card title bilingual, layout responsive via viewport meta (works on tablet width), keyboard-focusable buttons.",
+          "Compatibility & degradation: works in current Chrome/Firefox/Safari; if WebGL is unavailable the page shows a Chinese explanation message instead of a blank canvas.",
+          "Security/hygiene: no eval, no user text input, CDN pinned to the exact three@0.160.0 version (same pin as ion-thruster-3d), no writes to or modifications of the existing Caddyfile or other pages beyond adding the root index.html card."
+        ],
+        "openQuestions": [],
+        "priority": "high",
+        "title": "Nuclear Fusion 3D Animation — 核聚变 3D 交互动画（three.js）",
+        "type": "feature",
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/01-nuclear-fusion-3d-animation/docs/specifications/01-nuclear-fusion-3d-animation/01-requirements.md"
+      }
+    },
+    "requirementsReview": {
+      "timestamp": "2026-08-27T05:39:07.958Z",
+      "agent": "requirementsReview",
+      "data": {
+        "date": "2026-08-27",
+        "dimensions": [
+          {
+            "name": "D1 Testability",
+            "notes": "Every AC carries a verification method (deterministic/test/manual) with concrete paths, ids, and literal strings; AC-06's gate now has three positive pins ('17.6', '0.0189', 'mc') plus two negative pins ('0.0256', '3.2e-11'). One P3 advisory: the positive pin set does not include the Joule literal, so the ≈2.8e-12 J display value is asserted by prose but not pinned (FR-003).",
+            "status": "pass"
+          },
+          {
+            "name": "D2 Unambiguity",
+            "notes": "Reset semantics pinned in AC-08 (restart from 等离子体 without touching the current tour step/narration), resolving the only prior ambiguity; all other structure pinned by verified existing patterns.",
+            "status": "pass"
+          },
+          {
+            "name": "D3 Consistency",
+            "notes": "FR-001 fixed: 0.018884 u × 931.494 MeV/u = 17.59 ≈ 17.6 MeV; 17.6 MeV = 2.82e-12 J; 14.1 + 3.5 = 17.6 — independently recomputed (mass defect = 0.018884 u, MeV = 17.590, J = 2.8195e-12); all AC-06 numbers now mutually consistent.",
+            "status": "pass"
+          },
+          {
+            "name": "D4 Completeness",
+            "notes": "NFRs (performance, color-blind-safe differentiation, tooltips, responsive, WebGL-degradation message, security/hygiene, zero-build CDN pin), console/network cleanliness (AC-09), reset and auto-repeat behaviors (AC-08) all specified.",
+            "status": "pass"
+          },
+          {
+            "name": "D5 Feasibility/Scope",
+            "notes": "Bounded single self-contained page following the proven site pattern; scope matches routing metadata (feature, ui-only); no gold-plating.",
+            "status": "pass"
+          },
+          {
+            "name": "D6 Resolved decisions",
+            "notes": "No openQuestions; all key decisions (directory name, colors, 5-step tour list, CDN pin, reset semantics) are made.",
+            "status": "pass"
+          },
+          {
+            "name": "D7 Existence grounding",
+            "notes": "Re-verified in repo this round: ion-thruster-3d/ and atomic-model/ exist; root index.html carries the card grid; three@0.160.0 pin present in ion-thruster-3d/index.html; Caddyfile untouched requirement consistent with static :8321 serving.",
+            "status": "pass"
+          }
+        ],
+        "findings": [
+          {
+            "blocking": false,
+            "confidence": 0.85,
+            "defectClass": "partial-gate-coverage",
+            "detail": "AC-06 requires the page to display released energy ≈ 2.8×10⁻¹² J alongside E=mc², but the AC's deterministic check only positively pins the literals '17.6', '0.0189', and 'mc'. An implementation could omit the Joule value entirely (or render a wrong but unlisted Joule figure, e.g. 2.8e-13) and still pass the gate; the negative pins ('0.0256', '3.2e-11') only guard the two historically-wrong values. This is a minor pin-coverage gap in an otherwise well-specified gate — the prose requirement is clear, so nothing blocks implementation. Advisory only; the loop should proceed.",
+            "evidence": [
+              "AC-06 deterministic clause: \"contains the literal strings '17.6', '0.0189', and 'mc' ... must NOT contain ... '0.0256' or '3.2e-11'\" — no positive literal for the Joule value",
+              "AC-06 prose: \"released energy ≈ 2.8×10⁻¹² J (2.82e-12 J)\""
+            ],
+            "id": "FR-003",
+            "lens": "D1 Testability",
+            "line": "AC-06",
+            "ownerStage": "requirements",
+            "recommendation": "Optionally add '2.82' (or '2.8e-12') to the positive pin set in the AC-06 deterministic check so the corrected Joule value is pinned like '0.0189' is. Cosmetic hardening; not required for approval.",
+            "severity": "P3",
+            "status": "open",
+            "title": "AC-06 deterministic gate does not positively pin the corrected Joule value (only '17.6', '0.0189', 'mc')"
+          }
+        ],
+        "priorFindingResolutions": [
+          {
+            "evidence": "Recomputed independently: 2.014102 + 3.016049 − 4.002602 − 1.008665 = 0.018884 u; 0.018884 × 931.494 = 17.590 MeV ≈ 17.6; 17.6 MeV × 1.602e-13 = 2.8195e-12 J; 14.1 + 3.5 = 17.6. The literals '0.0256' and '3.2e-11' appear nowhere in the revised artifact.",
+            "findingId": "FR-001",
+            "ownerStage": "requirements",
+            "response": "AC-06 rewritten with corrected, internally consistent values: mass defect ≈ 0.0189 u with the explicit computation (2.014102 u + 3.016049 u − 4.002602 u − 1.008665 u = 0.018884 u), released energy ≈ 2.8×10⁻¹² J (2.82e-12 J), keeping the correct 17.6 MeV anchor and 14.1/3.5 MeV split. The AC states the consistency derivation explicitly. The optional recommendation was also adopted: the gate now pins '17.6', '0.0189', 'mc' and FORBIDS '0.0256' and '3.2e-11'.",
+            "status": "verified"
+          },
+          {
+            "evidence": "AC-08 now reads: 'the 🔄 重置 button restarts the 3D animation immediately from the 等离子体 phase WITHOUT changing the current guided-tour step or its narration panel (the tour stays exactly where the learner left it)'.",
+            "findingId": "FR-002",
+            "ownerStage": "requirements",
+            "response": "AC-08 now pins reset scope with the recommended clause: 重置 restarts the 3D animation immediately from the 等离子体 phase WITHOUT changing the current guided-tour step or its narration panel. Only one reasonable implementation remains; downstream BDD can write unambiguous steps for the AC-05/AC-08 interplay.",
+            "status": "verified"
+          }
+        ],
+        "summary": "Second-round Fagan inspection of the revised nuclear-fusion-3d requirements (regenerated 2026-08-27T13:37, after the round-1 review at 13:35). Both prior blocking/advisory findings are resolved in the current artifact, verified by independent recomputation and repo inspection. FR-001 (P1, physics numbers): AC-06 now states mass defect ≈ 0.0189 u with the explicit isotopic-mass computation (2.014102 + 3.016049 − 4.002602 − 1.008665 = 0.018884 u) and released energy ≈ 2.82e-12 J — independently recomputed: 0.018884 u × 931.494 MeV/u = 17.590 MeV ≈ 17.6 MeV and 17.6 MeV × 1.602e-13 J/MeV = 2.8195e-12 J, and the 14.1 + 3.5 MeV split sums exactly to the 17.6 MeV anchor; the document also adopted the optional recommendation, extending the deterministic gate to pin '0.0189' and forbid the incorrect literals '0.0256' and '3.2e-11'. FR-002 (P3, reset ambiguity): AC-08 now pins the exact recommended semantics — 重置 restarts the animation from the 等离子体 phase WITHOUT changing the current tour step or its narration panel. D7 existence grounding re-spot-checked: ion-thruster-3d/ and atomic-model/ exist with the claimed structure, the root index.html card grid and the three@0.160.0 pin are present, so every baseline-claim AC remains implementable. No new blocking defects introduced (convergence duty respected); one new P3 advisory only (FR-003: the AC-06 gate does not positively pin the corrected Joule literal). Requirements are testable, unambiguous, internally consistent, complete on NFRs/edge paths, bounded, and fully decided. Verdict: APPROVED WITH COMMENTS — the loop proceeds.",
+        "title": "Requirements Review R2 — Nuclear Fusion 3D Animation (核聚变 3D 交互动画)",
+        "verdict": "Approved with Comments",
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/01-nuclear-fusion-3d-animation/docs/specifications/01-nuclear-fusion-3d-animation/02-requirements-review.md"
+      }
+    },
+    "bdd": {
+      "timestamp": "2026-08-27T05:46:51.762Z",
+      "agent": "bdd",
+      "data": {
+        "date": "2026-08-27",
+        "features": [
+          {
+            "name": "Page Structure & Entry Point 页面结构与入口 (AC-01, AC-02)",
+            "scenarios": [
+              {
+                "acRef": "AC-01",
+                "andClauses": [
+                  "the directory contains index.html plus css/ and js/ subdirectories following the ion-thruster-3d/ and atomic-model/ page layout",
+                  "the page is declared as Chinese-language content (lang=zh-CN)",
+                  "a home back-link labeled 🏠 首页 with the 返回首页 Back to home tooltip leads back to the site home page",
+                  "a stage container element hosts the three.js canvas"
+                ],
+                "given": "the established science site with the ion-thruster-3d/ and atomic-model/ pages already following the site page layout",
+                "id": "001",
+                "priority": "high",
+                "then": "the new page exists at the repo root under nuclear-fusion-3d/ following the same layout conventions",
+                "title": "Fusion page follows the established site page layout",
+                "when": "the learner opens the 核聚变 nuclear fusion page"
+              },
+              {
+                "acRef": "AC-01",
+                "given": "the fusion page has loaded and the 3D scene is rendering",
+                "id": "002",
+                "priority": "medium",
+                "then": "the 3D animation canvas appears inside the stage container, keeping the page layout intact",
+                "title": "The 3D canvas is hosted inside the stage element",
+                "when": "the three.js scene is displayed"
+              },
+              {
+                "acRef": "AC-02",
+                "andClauses": [
+                  "the card carries the bilingual title \"Nuclear Fusion 核聚变\"",
+                  "the card shows an emoji icon and a one-line English description of the fusion journey",
+                  "the card ends with an \"Open →\" arrow",
+                  "a .card--fusion accent-color rule exists in the inline card CSS alongside the existing .card--ion3d and .card--atom rules"
+                ],
+                "given": "the site home page with its existing card grid (ion3d and atom cards)",
+                "id": "003",
+                "priority": "high",
+                "then": "a new fusion card appears in the grid pointing to nuclear-fusion-3d/",
+                "title": "Home page card grid gains the fusion card",
+                "when": "the learner views the home page"
+              },
+              {
+                "acRef": "AC-02",
+                "given": "the learner is on the home page card grid",
+                "id": "004",
+                "priority": "medium",
+                "then": "they arrive at the nuclear-fusion-3d/ page",
+                "title": "Fusion card leads the learner to the fusion page",
+                "when": "the learner opens the fusion card"
+              }
+            ]
+          },
+          {
+            "name": "Pinned three.js Loading 固定版本加载 (AC-03)",
+            "scenarios": [
+              {
+                "acRef": "AC-03",
+                "andClauses": [
+                  "three.js loads exclusively from the jsdelivr import map pinned to three@0.160.0",
+                  "the \"three/addons/\" mapping points to the matching three@0.160.0 examples/jsm/ location"
+                ],
+                "given": "the fusion page is opened in the learner's browser",
+                "id": "005",
+                "priority": "high",
+                "then": "the 3D library is provided via a single import map with an exact version pin",
+                "title": "three.js loads exclusively through the pinned import map",
+                "when": "the page loads its 3D library"
+              },
+              {
+                "acRef": "AC-03",
+                "andClauses": [
+                  "no other three.js version appears anywhere in the page",
+                  "no bundler and no build step are introduced — the page runs directly as static files"
+                ],
+                "given": "the ion-thruster-3d page already pins three@0.160.0 on jsdelivr",
+                "id": "006",
+                "priority": "medium",
+                "then": "the fusion page uses the identical three@0.160.0 pin",
+                "title": "Version pin is identical to the ion-thruster page and nothing else is introduced",
+                "when": "the two pages' 3D library loading is compared"
+              }
+            ]
+          },
+          {
+            "name": "D–T Fusion Story Phases 聚变故事三阶段 (AC-04)",
+            "scenarios": [
+              {
+                "acRef": "AC-04",
+                "andClauses": [
+                  "a deuterium atom shows a nucleus of 1 red proton and 1 gray-blue neutron with 1 tiny electron orbiting it",
+                  "a tritium atom beside it shows a nucleus of 1 proton and 2 neutrons with 1 orbiting electron"
+                ],
+                "given": "the fusion animation begins",
+                "id": "007",
+                "priority": "high",
+                "then": "the 原子结构 phase shows the two atoms side by side",
+                "title": "Phase 1 原子结构 shows the deuterium and tritium atoms",
+                "when": "the first phase of the story is displayed"
+              },
+              {
+                "acRef": "AC-04",
+                "andClauses": [
+                  "electrons are stripped away from their nuclei and fly freely",
+                  "the nuclei move fast with random motion"
+                ],
+                "given": "the 原子结构 phase has completed",
+                "id": "008",
+                "priority": "high",
+                "then": "the 加热 → 等离子体 phase shows the heated plasma state",
+                "title": "Phase 2 加热 → 等离子体 strips electrons into fast plasma",
+                "when": "the heating phase of the story runs"
+              },
+              {
+                "acRef": "AC-04",
+                "andClauses": [
+                  "the D and T nuclei move toward each other against their mutual electrostatic repulsion",
+                  "they merge into a ⁴He nucleus of 2 protons and 2 neutrons",
+                  "a free gray neutron is ejected",
+                  "an expanding energy flash is emitted"
+                ],
+                "given": "the plasma phase with fast-moving nuclei",
+                "id": "009",
+                "priority": "high",
+                "then": "the 聚变反应 phase shows the full fusion event",
+                "title": "Phase 3 聚变反应 collides D and T into helium-4 plus a neutron and energy",
+                "when": "the fusion reaction phase of the story runs"
+              },
+              {
+                "acRef": "AC-04",
+                "andClauses": [
+                  "the current phase is programmatically observable at any time",
+                  "the phases advance in order 原子结构 → 加热 → 等离子体 → 聚变反应 without skipping or replaying out of sequence within one single run",
+                  "a run that begins at 等离子体 (after 🔄 重置 or auto-repeat) likewise advances 等离子体 → 聚变反应 in order — it is not required to replay 原子结构"
+                ],
+                "given": "the phase state machine drives the animation in js/",
+                "id": "010",
+                "priority": "medium",
+                "then": "the animation advances through 原子结构, 加热 → 等离子体, and 聚变反应 as sequential phases",
+                "title": "The phase state machine exposes an observable current phase that advances in order within one run",
+                "when": "the current phase state is queried programmatically as the story advances"
+              }
+            ]
+          },
+          {
+            "name": "Guided Tour 引导浏览 (AC-05)",
+            "scenarios": [
+              {
+                "acRef": "AC-05",
+                "andClauses": [
+                  "a 🎬 tour button with a title containing 引导浏览 starts the tour",
+                  "the tour offers at least 5 steps defined as data in js/",
+                  "a Chinese narration panel is shown for each step"
+                ],
+                "given": "the learner is on the fusion page",
+                "id": "011",
+                "priority": "high",
+                "then": "the guided tour begins with a Chinese narration panel",
+                "title": "Guided tour starts from the 🎬 button with Chinese narration",
+                "when": "the learner starts the 引导浏览 guided tour"
+              },
+              {
+                "acRef": "AC-05",
+                "andClauses": [
+                  "原子结构（质子/中子/电子）",
+                  "加热变成等离子体",
+                  "克服库仑斥力（原子核相互排斥）",
+                  "聚变反应生成氦-4 和中子",
+                  "E=mc² 质量变成能量"
+                ],
+                "given": "the guided tour is active",
+                "id": "012",
+                "priority": "high",
+                "then": "the tour steps cover, at minimum, the five key learning topics of the fusion story",
+                "title": "Tour steps cover the five required learning topics",
+                "when": "the learner reads through the tour step list"
+              },
+              {
+                "acRef": "AC-05",
+                "andClauses": [
+                  "tourPrev（← 上一步）moves to the previous step",
+                  "tourNext（下一步 →）moves to the next step",
+                  "tourExit（退出）ends the tour",
+                  "the buttons follow the established ion-thruster-3d tour pattern"
+                ],
+                "given": "the learner is on a middle step of the guided tour with its narration panel shown",
+                "id": "013",
+                "priority": "medium",
+                "then": "the narration panel reflects the newly current step, and exiting the tour returns the learner to free exploration",
+                "title": "Tour navigation moves step by step and can exit",
+                "when": "the learner navigates with the tour controls tourPrev, tourNext, or tourExit"
+              }
+            ]
+          },
+          {
+            "name": "Physics Numbers & E=mc² 物理数值 (AC-06)",
+            "scenarios": [
+              {
+                "acRef": "AC-06",
+                "andClauses": [
+                  "the reaction is shown as ²H + ³H → ⁴He + n + 17.6 MeV",
+                  "the energy split shows 中子 ~14.1 MeV and α 粒子（氦核）~3.5 MeV",
+                  "the mass defect is shown as ≈ 0.0189 u (2.014102 u + 3.016049 u − 4.002602 u − 1.008665 u = 0.018884 u)",
+                  "the released energy is shown as ≈ 2.8×10⁻¹² J (2.82e-12 J)"
+                ],
+                "given": "the learner is studying the fusion page content",
+                "id": "014",
+                "priority": "critical",
+                "then": "the page presents the physically correct D–T fusion figures together with the E=mc² 质能方程 explanation",
+                "title": "Page displays the physically correct D–T fusion numbers",
+                "when": "the learner reads the physics information panel"
+              },
+              {
+                "acRef": "AC-06",
+                "andClauses": [
+                  "the page does not contain the incorrect literal '0.0256' (wrong mass defect)",
+                  "the page does not contain the incorrect literal '3.2e-11' (fission-value energy)"
+                ],
+                "given": "the delivered fusion page source",
+                "id": "015",
+                "priority": "critical",
+                "then": "the page contains the literal strings '17.6', '0.0189', and 'mc' (from E=mc²)",
+                "title": "Correct values appear and wrong values never appear in the page source",
+                "when": "the page source is checked for the key physics literals"
+              },
+              {
+                "acRef": "AC-06",
+                "andClauses": [
+                  "0.018884 u × 931.494 MeV/u ≈ 17.59 MeV ≈ 17.6 MeV",
+                  "17.6 MeV × 1.602×10⁻¹³ J/MeV ≈ 2.82×10⁻¹² J"
+                ],
+                "given": "the numbers displayed on the fusion page",
+                "id": "016",
+                "priority": "medium",
+                "then": "mass defect, released energy in MeV, and released energy in joules all agree with one another",
+                "title": "Displayed numbers are internally consistent under conversion",
+                "when": "the learner (or a reviewer) converts between mass defect, MeV, and joules"
+              }
+            ]
+          },
+          {
+            "name": "Playback Controls & Camera 播放控制与视角 (AC-07)",
+            "scenarios": [
+              {
+                "acRef": "AC-07",
+                "andClauses": [
+                  "all particle motion in the scene freezes",
+                  "the phase clock freezes so no phase advances while paused",
+                  "the control toggles between the ⏸ 暂停 and ▶ 继续 labels as the state changes",
+                  "after ▶ 继续 is pressed, all particle motion resumes and the phase clock advances again — the story is not stuck frozen",
+                  "the story continues from exactly the phase where it was frozen, with no phase skipped or replayed"
+                ],
+                "given": "the fusion animation is playing in a mid-story phase (for example 等离子体) with particles in motion, and the control bar below the stage is available",
+                "id": "017",
+                "priority": "high",
+                "then": "the animation suspends completely",
+                "title": "Pause freezes all particle motion and the phase clock; resume continues from the frozen phase",
+                "when": "the learner pauses with ⏸ 暂停, and later resumes with ▶ 继续"
+              },
+              {
+                "acRef": "AC-07",
+                "given": "the learner has rotated and zoomed the camera away from its initial view",
+                "id": "018",
+                "priority": "medium",
+                "then": "the camera returns to the default view",
+                "title": "Reset camera restores the default viewpoint",
+                "when": "the learner uses the 🎥 重置视角 control"
+              },
+              {
+                "acRef": "AC-07",
+                "andClauses": [
+                  "the camera changes viewpoint without interrupting particle motion or the phase clock",
+                  "wheel and pinch zoom work at all times"
+                ],
+                "given": "the fusion animation is running",
+                "id": "019",
+                "priority": "medium",
+                "then": "the learner can freely rotate and zoom while the animation keeps running correctly",
+                "title": "Drag-rotate and zoom never break the running animation",
+                "when": "the learner drag-rotates or wheel/pinch-zooms the scene at any moment"
+              }
+            ]
+          },
+          {
+            "name": "Reset & Auto-Repeat Semantics 重置与自动重复 (AC-08)",
+            "scenarios": [
+              {
+                "acRef": "AC-08",
+                "andClauses": [
+                  "the 3D animation restarts immediately from the 等离子体 phase",
+                  "the current guided-tour step is unchanged",
+                  "the narration panel still shows exactly the step the learner left it on"
+                ],
+                "given": "the guided tour is active and the learner is on a narration step mid-tour",
+                "id": "020",
+                "priority": "critical",
+                "then": "only the animation resets — the tour stays exactly where the learner left it",
+                "title": "Reset restarts the animation from the plasma phase without disturbing the tour",
+                "when": "the learner presses 🔄 重置"
+              },
+              {
+                "acRef": "AC-08",
+                "andClauses": [
+                  "the animation returns to the 等离子体 phase without learner intervention",
+                  "the reaction can be watched repeatedly in free exploration"
+                ],
+                "given": "the learner is in free-explore mode (no tour active)",
+                "id": "021",
+                "priority": "high",
+                "then": "the animation auto-repeats back to the 等离子体 phase for the next run",
+                "title": "Free-explore mode auto-repeats the fusion event",
+                "when": "a fusion event completes and its energy flash fades"
+              }
+            ]
+          },
+          {
+            "name": "Clean Delivery, Network Hygiene & Degradation 加载洁净度与降级 (AC-09)",
+            "scenarios": [
+              {
+                "acRef": "AC-09",
+                "andClauses": [
+                  "the page loads with zero browser-console errors",
+                  "the page loads with zero browser-console warnings"
+                ],
+                "given": "the site is served by the existing static server at http://localhost:8321/nuclear-fusion-3d/ with no server configuration changes",
+                "id": "022",
+                "priority": "high",
+                "then": "the fusion page loads cleanly",
+                "title": "Page loads from the existing static server with a clean console",
+                "when": "the learner opens the page in a current browser"
+              },
+              {
+                "acRef": "AC-09",
+                "andClauses": [
+                  "no other three.js version or source is requested",
+                  "no telemetry, analytics, or other third-party calls are made"
+                ],
+                "given": "the fusion page is loading in the browser",
+                "id": "023",
+                "priority": "high",
+                "then": "the only non-local requests are the pinned jsdelivr three@0.160.0 modules (optionally Google Fonts)",
+                "title": "Only the pinned jsdelivr three.js modules are requested externally",
+                "when": "the learner observes the network requests the page makes"
+              },
+              {
+                "acRef": "AC-09",
+                "andClauses": [
+                  "the page degrades gracefully without a blank canvas or a crashed page",
+                  "no unhandled browser-console error is thrown by the degradation path"
+                ],
+                "given": "a current browser in which WebGL is unavailable (NFR: Compatibility & degradation)",
+                "id": "024",
+                "priority": "low",
+                "then": "a Chinese explanation message is shown instead of a blank canvas",
+                "title": "WebGL-unavailable browsers get a Chinese explanation instead of a blank canvas (NFR-backed degradation)",
+                "when": "the learner opens the fusion page served from the science site"
+              }
+            ]
+          }
+        ],
+        "source": "/home/jenningsl/Documents/儿子学习/science/.worktree/01-nuclear-fusion-3d-animation/docs/specifications/01-nuclear-fusion-3d-animation/01-requirements.md",
+        "title": "Nuclear Fusion 3D Animation — 核聚变 3D 交互动画 BDD Scenarios",
+        "traceability": [
+          {
+            "acId": "AC-01",
+            "description": "New nuclear-fusion-3d/ directory following established page layout (index.html + css/ + js/, lang=zh-CN, #homeBtn back-link, #stage hosting the canvas)",
+            "scenarios": [
+              "SCENARIO-001",
+              "SCENARIO-002"
+            ]
+          },
+          {
+            "acId": "AC-02",
+            "description": "Root index.html card grid gains the bilingual fusion card with .card--fusion accent rule",
+            "scenarios": [
+              "SCENARIO-003",
+              "SCENARIO-004"
+            ]
+          },
+          {
+            "acId": "AC-03",
+            "description": "three.js loaded exclusively via import map pinned to three@0.160.0 on jsdelivr; no bundler, no build step",
+            "scenarios": [
+              "SCENARIO-005",
+              "SCENARIO-006"
+            ]
+          },
+          {
+            "acId": "AC-04",
+            "description": "Three sequential phases (原子结构 / 加热→等离子体 / 聚变反应) driven by an observable phase state machine; ordering claim scoped per review finding BDD-F-002 to one single run, explicitly allowing restart-from-等离子体 runs",
+            "scenarios": [
+              "SCENARIO-007",
+              "SCENARIO-008",
+              "SCENARIO-009",
+              "SCENARIO-010"
+            ]
+          },
+          {
+            "acId": "AC-05",
+            "description": "🎬 引导浏览 guided tour of ≥5 steps covering the five required topics, Chinese narration, tourPrev/tourNext/tourExit controls",
+            "scenarios": [
+              "SCENARIO-011",
+              "SCENARIO-012",
+              "SCENARIO-013"
+            ]
+          },
+          {
+            "acId": "AC-06",
+            "description": "Physically correct, internally consistent D–T numbers (17.6 MeV, 0.0189 u, 2.82e-12 J) with E=mc²; wrong literals 0.0256/3.2e-11 forbidden",
+            "scenarios": [
+              "SCENARIO-014",
+              "SCENARIO-015",
+              "SCENARIO-016"
+            ]
+          },
+          {
+            "acId": "AC-07",
+            "description": "ctrl-bar controls: ⏸/▶ pause-resume freezing AND resuming motion and the phase clock — review finding BDD-F-001 resolved: SCENARIO-017 now asserts resumed particle motion, resumed phase-clock advance, continuation from the frozen phase, and the toggle label switch; 🎥 重置视角; and OrbitControls never break the animation",
+            "scenarios": [
+              "SCENARIO-017",
+              "SCENARIO-018",
+              "SCENARIO-019"
+            ]
+          },
+          {
+            "acId": "AC-08",
+            "description": "🔄 重置 restarts from 等离子体 phase without changing tour step; free-explore mode auto-repeats after flash fades",
+            "scenarios": [
+              "SCENARIO-020",
+              "SCENARIO-021"
+            ]
+          },
+          {
+            "acId": "AC-09",
+            "description": "Serves at localhost:8321 with zero console errors/warnings; only pinned jsdelivr three@0.160.0 requests (optionally Google Fonts); SCENARIO-024 additionally covers the NFR-defined WebGL-unavailable degradation path (review finding BDD-F-003 resolved)",
+            "scenarios": [
+              "SCENARIO-022",
+              "SCENARIO-023",
+              "SCENARIO-024"
+            ]
+          }
+        ],
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/01-nuclear-fusion-3d-animation/docs/specifications/01-nuclear-fusion-3d-animation/03-bdd-scenarios.md"
+      }
+    },
+    "bddReview": {
+      "timestamp": "2026-08-27T05:49:11.292Z",
+      "agent": "bddReview",
+      "data": {
+        "date": "2026-08-27",
+        "dimensions": [
+          {
+            "name": "D1 AC coverage",
+            "notes": "All 9 requirements ACs are exercised by ≥1 scenario; all 24 scenarios bind to real ACs; no dangling acRefs and no invented ACs. SCENARIO-024's degradation coverage is backed by the requirements NFR section and explicitly declared in the AC-09 traceability entry.",
+            "status": "pass"
+          },
+          {
+            "name": "D2 Path completeness",
+            "notes": "Happy, edge, and error paths present where needed: pause AND resume (SCENARIO-017), forbidden-literal negative checks (SCENARIO-015), negative network hygiene (SCENARIO-023), WebGL-unavailable degradation (SCENARIO-024), per-run phase ordering after reset/auto-repeat (SCENARIO-010).",
+            "status": "pass"
+          },
+          {
+            "name": "D3 Observable behavior",
+            "notes": "Then-clauses assert observable outcomes: DOM/layout facts (SCENARIO-001/003), programmatically observable phase state (SCENARIO-010), page-source literals (SCENARIO-015), console/network state (SCENARIO-022/023), and — resolving BDD-F-001 — resumed particle motion, resumed phase-clock advance, continuation from the frozen phase, and the ⏸/▶ label toggle (SCENARIO-017).",
+            "status": "pass"
+          },
+          {
+            "name": "D4 Given/When/Then integrity",
+            "notes": "Preconditions, triggers, and outcomes are concrete and self-consistent overall. One minor advisory (BDD-R3-001): SCENARIO-015/016 frame the When as a reviewer/source-check action rather than a system trigger — consistent with AC-06's deterministic-verification style, so non-blocking. SCENARIO-016's Then binds AC-06's internal-consistency numerics correctly.",
+            "status": "pass"
+          },
+          {
+            "name": "D5 Consistency",
+            "notes": "No contradictions: reset-restarts-from-等离子体 is consistent across SCENARIO-010, SCENARIO-020, SCENARIO-021; physics numbers match requirements AC-06 exactly and are arithmetically self-consistent (0.018884 u × 931.494 ≈ 17.59 MeV; 17.6 MeV × 1.602e-13 ≈ 2.82e-12 J; 14.1 + 3.5 = 17.6); terminology (phase names, control labels, tour ids) matches requirements.",
+            "status": "pass"
+          }
+        ],
+        "findings": [
+          {
+            "blocking": false,
+            "confidence": 0.82,
+            "defectClass": "reviewer-action-when-trigger",
+            "detail": "SCENARIO-016's When clause — 'the learner (or a reviewer) converts between mass defect, MeV, and joules' — and similarly SCENARIO-015's 'the page source is checked for the key physics literals' describe a verification activity performed on the artifact rather than a system trigger. The scenarios still assert observable, verifiable page content and faithfully mirror AC-06's own deterministic-verification clause, so this does not weaken coverage or observability enough to block; it is a phrasing/style polish so future scenario writers keep system-trigger When clauses distinct from deterministic-check framing.",
+            "evidence": [
+              "03-bdd-scenarios.md SCENARIO-016: '**When** the learner (or a reviewer) converts between mass defect, MeV, and joules'",
+              "03-bdd-scenarios.md SCENARIO-015: '**When** the page source is checked for the key physics literals'",
+              "01-requirements.md AC-06 deterministic-check clause, which this framing mirrors"
+            ],
+            "file": "docs/specifications/01-nuclear-fusion-3d-animation/03-bdd-scenarios.md",
+            "id": "BDD-R3-001",
+            "lens": "D4 Given/When/Then integrity",
+            "line": "SCENARIO-016 Given/When block",
+            "ownerStage": "bdd",
+            "recommendation": "Optional polish only: rephrase the When as a system-facing trigger (e.g. 'When the physics information panel is rendered and its displayed figures are converted...') or accept as-is given the artifact's deliberate deterministic-check style. No revision required to proceed.",
+            "severity": "P3",
+            "status": "open",
+            "title": "Advisory: SCENARIO-015/016 use a reviewer-action When rather than a system trigger"
+          }
+        ],
+        "priorFindingResolutions": [
+          {
+            "evidence": "03-bdd-scenarios.md SCENARIO-017 (AC-07, priority high) Then-block now contains 'the control toggles between the ⏸ 暂停 and ▶ 继续 labels as the state changes', 'after ▶ 继续 is pressed, all particle motion resumes and the phase clock advances again — the story is not stuck frozen', and 'the story continues from exactly the phase where it was frozen, with no phase skipped or replayed'; these resume assertions are bound to the '▶ 继续' trigger named in When. Traceability AC-07 entry records: 'review finding BDD-F-001 resolved: SCENARIO-017 now asserts resumed particle motion, resumed phase-clock advance, continuation from the frozen phase, and the toggle label switch.'",
+            "findingId": "BDD-F-001",
+            "ownerStage": "bdd",
+            "response": "SCENARIO-017 was revised (artifact regenerated 2026-08-27T13:46:51.761+08:00, after the 13:44:15 finding) so the resume half of AC-07 now has observable outcomes bound to the ▶ 继续 trigger. The trivially-wrong implementations named in the finding (permanently-frozen animation; motion resumed but phase clock stuck) are now both rejected by the scenario.",
+            "status": "verified"
+          },
+          {
+            "evidence": "SCENARIO-010 Then: 'the phases advance in order 原子结构 → 加热 → 等离子体 → 聚变反应 without skipping or replaying out of sequence within one single run' plus 'a run that begins at 等离子体 (after 🔄 重置 or auto-repeat) likewise advances 等离子体 → 聚变反应 in order — it is not required to replay 原子结构'; traceability AC-04 entry cites the BDD-F-002 scoping.",
+            "findingId": "BDD-F-002",
+            "ownerStage": "bdd",
+            "response": "SCENARIO-010's ordering claim is scoped to a single run and explicitly allows restart-from-等离子体 runs, removing the contradiction with AC-08 reset/auto-repeat semantics.",
+            "status": "verified"
+          },
+          {
+            "evidence": "SCENARIO-024 (AC-09, NFR-backed): Given WebGL-unavailable browser → Then Chinese explanation shown instead of blank canvas, graceful degradation, and 'no unhandled browser-console error is thrown by the degradation path'; traceability AC-09 entry cites 'review finding BDD-F-003 resolved'.",
+            "findingId": "BDD-F-003",
+            "ownerStage": "bdd",
+            "response": "SCENARIO-024 was added covering the requirements NFR 'Compatibility & degradation' path (WebGL unavailable), explicitly declared as NFR-backed in the scenario title and the AC-09 traceability entry — no invented AC was minted.",
+            "status": "verified"
+          }
+        ],
+        "summary": "Round 3 review of 03-bdd-scenarios.md (24 scenarios, regenerated 13:46:51+08:00 after the round-2 bounce). The open convergence-ledger finding BDD-F-001 is VERIFIED RESOLVED in the current artifact: SCENARIO-017's Then now binds observable outcomes to the ▶ 继续 trigger — 'the control toggles between the ⏸ 暂停 and ▶ 继续 labels as the state changes', 'after ▶ 继续 is pressed, all particle motion resumes and the phase clock advances again — the story is not stuck frozen', and 'the story continues from exactly the phase where it was frozen, with no phase skipped or replayed'. An implementation that freezes correctly but never resumes, or resumes motion but not the phase clock, now fails the scenario. Earlier findings BDD-F-002 (phase-ordering claim scoped to a single run, allowing 等离子体-restart runs) and BDD-F-003 (WebGL-unavailable degradation covered by SCENARIO-024 with Chinese message and no unhandled console error) are also resolved and recorded in the traceability section. Full cross-check against 01-requirements.md: all 9 ACs covered (9/9, uncovered 0), every scenario binds to a real AC, no invented ACs (SCENARIO-024's degradation coverage is NFR-backed and declared, bound to real AC-09); physics figures correct and internally consistent (0.018884 u × 931.494 ≈ 17.59 MeV ≈ 17.6; 17.6 MeV × 1.602×10⁻¹³ ≈ 2.82×10⁻¹² J; 14.1 + 3.5 = 17.6); reset/auto-repeat semantics consistent across SCENARIO-010/020/021; error and degradation paths present (SCENARIO-015 forbidden literals, SCENARIO-023 network hygiene, SCENARIO-024 WebGL degradation). No blocking defects remain; one P3 non-blocking advisory (BDD-R3-001) on reviewer-action When phrasing in SCENARIO-015/016, included so the findings key is non-empty per the harness gate. Residual note (not a defect, inherited from AC-09's own wording): SCENARIO-022's zero-console-warnings expectation should be scoped to the page's own code during verification if CDN-side runtime warnings ever trip it. Verdict: Approved with Comments — suggestion-only PASS; the loop should proceed to spec.",
+        "title": "BDD Scenarios Review — 核聚变 3D 交互动画 (Nuclear Fusion 3D Animation), Round 3",
+        "verdict": "Approved with Comments",
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/01-nuclear-fusion-3d-animation/docs/specifications/01-nuclear-fusion-3d-animation/04-bdd-review.md"
+      }
+    },
+    "research": {
+      "timestamp": "2026-08-27T05:53:21.623Z",
+      "agent": "research",
+      "data": {
+        "date": "2026-08-27",
+        "openIssues": [],
+        "options": [
+          {
+            "name": "AC-06 physics numbers: use the rounded textbook mass set (2.014102/3.016049/4.002602/1.008665 u → 0.018884 u) rather than full-precision AME2020 values",
+            "tradeoffs": "NIST/AME2020 full-precision masses (D=2.01410178, T=3.01604928, ⁴He=4.00260325, n=1.00866492) yield 0.018883 u, which breaks the exact on-page arithmetic 2.014102+3.016049−4.002602−1.008665 = 0.018884 and the deterministic literal '0.0189' required by SCENARIO-015. The rounded textbook set reproduces the whole consistent chain — 0.018884 u × 931.494 MeV/u ≈ 17.59 ≈ 17.6 MeV (Wikipedia primary source confirms 17.6 MeV with 14.1 MeV/80% to the neutron, ~3.5 MeV to the alpha; HyperPhysics independently confirms 17.59 MeV with 79.87% to the neutron), and 17.6 MeV × 1.602e-13 J/MeV ≈ 2.82e-12 J (SCENARIO-016). Recommendation: display the AC-06 numbers verbatim as written; they are physically correct AND internally consistent, with the forbidden literals 0.0256/3.2e-11 absent."
+          },
+          {
+            "name": "AC-07/SCENARIO-017 pause-resume: custom simTime accumulator gated by a paused flag, NOT THREE.Clock.running toggling",
+            "tradeoffs": "Toggling THREE.Clock.running is a documented trap (three.js forum): getDelta() returns a huge jump after resume because oldTime is stale during the pause, and clock.start() resets elapsedTime to 0 — either breaks 'resume continues exactly from the frozen phase'. The robust pattern: keep calling clock.getDelta() EVERY frame (keeps oldTime fresh) but only accumulate when unpaused (if (!paused) { simTime += dt; updateParticles(dt); advancePhaseMachine(simTime); }). This freezes particle motion AND the phase clock simultaneously, resumes with no jump, and makes the 🔄 重置 button simply reset simTime/phase to 等离子体 (AC-08) without touching tour state. Alternative (own Date.now() deltas) works but duplicates Clock; the r167+ Timer class does not exist in r160."
+          },
+          {
+            "name": "AC-09/SCENARIO-022 zero-console-warnings in r160: rely on modern r152+/r155 defaults — never set useLegacyLights, outputEncoding, or texture.encoding",
+            "tradeoffs": "Since r152, WebGLRenderer.outputColorSpace defaults to SRGBColorSpace and ColorManagement.enabled defaults to true (three.js forum announcement); since r155, useLegacyLights is deprecated (default false) and setting it logs a deprecation console warning — it was removed in r165 (three.js Migration Guide). Legacy non-module builds were deprecated at r160, so the import-map ESM approach of AC-03 is also the warning-free path. Recommendation: zero legacy property writes, physically-correct light intensities (no light-intensity rescaling needed since this scene is emissive/unlit particles), set texture.colorSpace = SRGBColorSpace only for color textures (e.g., canvas-generated glow textures); this satisfies both the zero-warnings check and the r160 pin."
+          },
+          {
+            "name": "SCENARIO-024 WebGL degradation: import WebGL from 'three/addons/capabilities/WebGL.js' (r160), test isWebGL2Available(), but render a custom Chinese message div",
+            "tradeoffs": "In r160 the module exports a default class WebGL with static isWebGL2Available()/getWebGL2ErrorMessage(); three.js only supports WebGL 2 in modern versions (three.js forum). The built-in getWebGL2ErrorMessage() returns an ENGLISH message ('Your graphics card does not seem to support WebGL 2'), which would fail the Chinese-explanation requirement — so use isWebGL2Available() for detection and inject our own Chinese DOM message instead of appendChild(WebGL.getWebGL2ErrorMessage()). Alternative try/catch around new WebGLRenderer() is riskier (three logs console errors during renderer construction, violating 'no unhandled console error in the degradation path')."
+          },
+          {
+            "name": "AC-04 + NFR performance: single THREE.Points with BufferGeometry (typed-array position updates) for the ≤2,000 plasma particles + a few Mesh nuclei + AdditiveBlending Sprite flash; dispose on phase rebuild",
+            "tradeoffs": "THREE.Points renders all plasma electrons/nuclei-bodies in one draw call with per-frame typed-array writes (Stack Overflow/discourse best practice for thousands of particles) — individual Mesh spheres at 2,000 particles would mean ~2,000 draw calls and miss the 60 fps target. The energy flash should be a SpriteMaterial {blending: AdditiveBlending, transparent: true, depthWrite: false} whose scale/opacity animate then fade (ICS MEDIA glow technique; depthWrite:false avoids transparency-sorting artifacts). Phase rebuilds must call geometry.dispose()/material.dispose() per the official how-to-dispose-of-objects manual (GPU resources are not GC-managed; renderer.info.memory verifies leaks) — this directly serves the NFR 'geometries/materials disposed on phase rebuild' and the AC-08 auto-repeat loop that rebuilds the plasma phase indefinitely. Keep the import map exactly per the official Installation manual (three → jsdelivr three@0.160.0/build/three.module.js, three/addons/ → examples/jsm/), which also carries the manual's warning to keep every dependency on the same version+CDN — grounding AC-03's 'exclusively one pinned version' clause."
+          }
+        ],
+        "sources": [
+          {
+            "title": "Wikipedia — Deuterium–tritium fusion",
+            "url": "https://en.wikipedia.org/wiki/Deuterium%E2%80%93tritium_fusion"
+          },
+          {
+            "title": "HyperPhysics — Nuclear Fusion (D–T 17.59 MeV, 79.87% to neutron)",
+            "url": "http://hyperphysics.phy-astr.gsu.edu/hbase/NucEne/fusion.html"
+          },
+          {
+            "title": "NIST — Atomic Weights and Isotopic Compositions with Relative Atomic Masses",
+            "url": "https://www.nist.gov/pml/atomic-weights-and-isotopic-compositions-relative-atomic-masses"
+          },
+          {
+            "title": "IAEA AMDC — Atomic Mass Evaluation 2020 table (mass_1.mas20.txt)",
+            "url": "https://www-nds.iaea.org/amdc/ame2020/mass_1.mas20.txt"
+          },
+          {
+            "title": "three.js official manual — Installation (import map + jsdelivr + addons alias)",
+            "url": "https://threejs.org/manual/en/installation.html"
+          },
+          {
+            "title": "three.js forum — How can I pause the Clock without elapsedTime increasing or resetting",
+            "url": "https://discourse.threejs.org/t/how-can-i-pause-the-clock-without-having-elapsedtime-increased-or-reset-when-resuming/17934"
+          },
+          {
+            "title": "three.js forum — Updates to Color Management in three.js r152",
+            "url": "https://discourse.threejs.org/t/updates-to-color-management-in-three-js-r152/50791"
+          },
+          {
+            "title": "three.js r160 — examples/jsm/capabilities/WebGL.js (WebGL2 detection)",
+            "url": "https://raw.githubusercontent.com/mrdoob/three.js/r160/examples/jsm/capabilities/WebGL.js"
+          },
+          {
+            "title": "three.js forum — WEBGL Fallback? Backward Compatibility? (WebGL 2 only)",
+            "url": "https://discourse.threejs.org/t/webgl-fallback-backward-compatibility/67858"
+          },
+          {
+            "title": "three.js wiki — Migration Guide (r155 useLegacyLights deprecation, r165 removal, r160 legacy build deprecation)",
+            "url": "https://github.com/mrdoob/three.js/wiki/Migration-Guide"
+          },
+          {
+            "title": "three.js forum — Updates to lighting in three.js r155",
+            "url": "https://discourse.threejs.org/t/updates-to-lighting-in-three-js-r155/53733"
+          },
+          {
+            "title": "three.js r160 release notes",
+            "url": "https://github.com/mrdoob/three.js/releases/tag/r160"
+          },
+          {
+            "title": "three.js official manual — How to dispose of objects",
+            "url": "https://threejs.org/manual/en/how-to-dispose-of-objects.html"
+          },
+          {
+            "title": "ICS MEDIA — three.js glow/light effect with SpriteMaterial + AdditiveBlending",
+            "url": "https://ics.media/en/entry/13973/"
+          },
+          {
+            "title": "Stack Overflow — BufferGeometry with many particles, best performance",
+            "url": "https://stackoverflow.com/questions/33975780/create-a-buffergeometry-with-several-particles-sizes-best-performance"
+          },
+          {
+            "title": "sbcode.net — Using Import Maps (three.js tutorials)",
+            "url": "https://sbcode.net/threejs/importmap/"
+          }
+        ],
+        "summary": "Online research (AnySearch MCP + web search, fetched primary sources, 2026-08-27) confirms every load-bearing fact for this build. (1) Physics (AC-06): the D–T reaction ²H+³H→⁴He+n+17.6 MeV, split 中子~14.1 MeV (≈80%) / α~3.5 MeV, mass defect 0.018884 u ≈ 0.0189 u, and ≈2.82e-12 J are verified against Wikipedia (primary), HyperPhysics (17.59 MeV, 79.87% to neutron), and NIST/IAEA-AME2020 atomic masses (2.014102/3.016049/4.002602/1.008665 u); with 1 u = 931.494 MeV/c² and 1 MeV = 1.602e-13 J the chain 0.018884 u → 17.59 MeV → 2.82e-12 J is internally consistent, so AC-06's numbers should be displayed exactly as written (full-precision AME2020 masses give 0.018883 u and would break the exact arithmetic shown on the page). (2) three.js r160 loading (AC-03): the official Installation manual prescribes exactly the AC's import-map pattern — 'three' → jsdelivr three@<version>/build/three.module.js plus 'three/addons/' → examples/jsm/ — and warns all dependencies must come from the same version/CDN; r160 deprecated the legacy non-module builds, so ESM-only via import map is the only clean path. (3) Pause/reset semantics (AC-07/AC-08): toggling THREE.Clock.running is a documented trap (getDelta() jumps after resume; clock.start() resets elapsedTime), so the implementation should keep calling clock.getDelta() every frame but gate a custom simTime accumulator with the paused flag — particle motion and the phase clock then freeze/resume together with no jump, and 🔄 重置 just rewinds simTime/phase to 等离子体 without touching tour state. (4) Clean console (AC-09): since r152 outputColorSpace defaults to SRGBColorSpace and ColorManagement.enabled defaults true, and since r155 useLegacyLights is deprecated (removed r165), a r160 page must simply not touch useLegacyLights/outputEncoding/texture.encoding and set texture.colorSpace=SRGBColorSpace only for color textures to load with zero warnings; WebGL2-only reality means the SCENARIO-024 degradation should use the r160 capability module 'three/addons/capabilities/WebGL.js' (default-export class with static isWebGL2Available()/getWebGL2ErrorMessage()) for detection but render a custom Chinese message (the built-in message is English-only). (5) Rendering (AC-04/NFR): plasma of ≤2,000 particles via one THREE.Points + BufferGeometry with typed-array updates (single draw call, 60 fps safe), nuclei as a few Mesh spheres, and the expanding energy flash as a Sprite/SpriteMaterial with AdditiveBlending + depthWrite:false whose scale/opacity animate; geometries/materials must be explicitly dispose()d on phase rebuild per the official how-to-dispose manual because GPU resources are not GC-managed — critical given AC-08's infinite auto-repeat loop.",
+        "title": "External research brief: three.js r160 D–T nuclear fusion 3D animation — verified physics numbers, import-map pinning, pauseable phase state machine, and clean-console/degradation patterns",
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/01-nuclear-fusion-3d-animation/docs/specifications/01-nuclear-fusion-3d-animation/05-research-report.md"
+      }
+    },
+    "assessment": {
+      "timestamp": "2026-08-27T05:54:51.489Z",
+      "agent": "assessment",
+      "data": {
+        "date": "2026-08-27",
+        "filesAssessed": [
+          "index.html",
+          "Caddyfile",
+          "Makefile",
+          "ion-thruster-3d/index.html",
+          "ion-thruster-3d/js/main.js",
+          "ion-thruster-3d/css/style.css",
+          "atomic-model/ (layout only)",
+          "docs/specifications/01-nuclear-fusion-3d-animation/01-requirements.md",
+          "docs/specifications/01-nuclear-fusion-3d-animation/05-research-report.md"
+        ],
+        "patterns": [
+          {
+            "consistency": "Every topic folder (atomic-model, gravity-slingshot, how-cars-work, ion-thruster, ion-thruster-3d, solar-cell) follows it exactly; requirements AC-01 mandates the same for nuclear-fusion-3d/.",
+            "example": "ion-thruster-3d/ (index.html + css/style.css + js/main.js)",
+            "name": "Self-contained topic folder per animation"
+          },
+          {
+            "consistency": "100% across 3D pages; AC-03 pins the identical import map for the fusion page.",
+            "example": "ion-thruster-3d/index.html:96-110",
+            "name": "three.js loaded via pinned import map + es-module-shims (no bundler)"
+          },
+          {
+            "consistency": "Same recipe in every 3D main.js; end with `window.__ready = true;` as readiness marker.",
+            "example": "ion-thruster-3d/js/main.js:10-48 (renderer→labelRenderer→scene→camera→OrbitControls→composer/bloom)",
+            "name": "Module-scope single-file main.js with imperative init chain"
+          },
+          {
+            "consistency": "Uniform across pages; fusion page must mirror ids (btnTour/tourPrev/tourNext/tourExit, toggleBtn, resetBtn, camBtn) per AC-05/AC-07.",
+            "example": "ion-thruster-3d/index.html:12-50",
+            "name": "Fixed-overlay Chinese UI: #homeBtn, #stage, emoji tool-btn nav, #bottomBar ctrl-btns"
+          },
+          {
+            "consistency": "Site-wide visual language; Outfit font + PingFang SC fallback, user-select:none, #stage:active grab cursor.",
+            "example": "ion-thruster-3d/css/style.css:1-30",
+            "name": "Dark space theme CSS with Outfit font and gradient headings"
+          },
+          {
+            "consistency": "All six cards follow; new card needs id link-nuclear-fusion-3d (AC-02).",
+            "example": "index.html:118-139",
+            "name": "Root index.html card grid with per-card accent classes"
+          },
+          {
+            "consistency": "Use one THREE.Points + BufferGeometry for ≤2000 plasma particles, AdditiveBlending sprite flash, dispose() on phase rebuild; pause via custom simTime accumulator (never toggle Clock.running) per research report.",
+            "example": "ion-thruster-3d/js/main.js (tail): controls.update(); composer.render(); labelRenderer.render(); plus resize listener",
+            "name": "Frame loop + resize + first-frame loading-fade pattern"
+          },
+          {
+            "consistency": "Site language is Chinese for pages, English on the landing card grid; physics numbers must match the verified chain 0.018884 u × 931.494 ≈ 17.6 MeV ≈ 2.82e-12 J (AC-06; forbidden literals 0.0256 / 3.2e-11).",
+            "example": "ion-thruster-3d/index.html:9 ('🚀 离子推进器 · 3D 交互式工作原理', subtitle cites NASA NSTAR/NEXT)",
+            "name": "Bilingual titles, cited-real-data stats bar"
+          }
+        ],
+        "recommendations": [
+          "Mirror ion-thruster-3d/ as the canonical template: create nuclear-fusion-3d/index.html (lang=zh-CN, #homeBtn back link, #stage, import map pinned to three@0.160.0 + es-module-shims), css/style.css, and one js/main.js module — no build step, no package.json, no other three.js version.",
+          "Implement pause/reset with a custom simTime accumulator gated by a paused flag (keep calling clock.getDelta() every frame; never toggle Clock.running), so ⏸ freezes particles + phase clock together and 🔄 重置 rewinds to the 等离子体 phase without touching tour state (AC-07/AC-08).",
+          "Physics display must use the exact verified chain: 2.014102 + 3.016049 − 4.002602 − 1.008665 = 0.018884 u ≈ 0.0189 u; ×931.494 MeV/u ≈ 17.6 MeV (中子 14.1 / α 3.5); ≈ 2.82e-12 J — the literals '0.0256' and '3.2e-11' are forbidden by deterministic check.",
+          "Follow r160 clean-console rules (research report): do not set useLegacyLights/outputEncoding/texture.encoding; set texture.colorSpace=SRGBColorSpace only for color textures; use three/addons/capabilities/WebGL.js isWebGL2Available() but render a custom Chinese fallback message; dispose geometries/materials on phase rebuild for the infinite auto-repeat loop.",
+          "Add the root index.html card (a.card.card--fusion#link-nuclear-fusion-3d, bilingual 'Nuclear Fusion 核聚变', emoji, one-line description, 'Open →') plus .card--fusion::before / .card--fusion .card__icon accent rules alongside the existing ones — this is the only edit outside the new folder.",
+          "Verification caveat: the Caddyfile root is pinned to /home/jenningsl/Documents/儿子学习/science (the MAIN checkout), so worktree edits are not visible under `make dev` until merged; for local worktree testing serve the worktree directly, e.g. `caddy file-server --root \"$PWD\" --listen :8321` then check http://localhost:8321/nuclear-fusion-3d/."
+        ],
+        "services": {
+          "ui": {
+            "cmd": "caddy file-server --root \"$PWD\" --listen :8321 (from the worktree root; alternative: `make dev` runs caddy with Caddyfile but its root is pinned to the main checkout /home/jenningsl/Documents/儿子学习/science)",
+            "portEnv": "none — port 8321 is hardcoded in Caddyfile (listen :8321); CLI flag --listen overrides",
+            "readyPath": "/"
+          }
+        },
+        "summary": "This repo is a static, zero-build \"science animations for kids\" site: no package.json, no bundler, no tests. Each topic is a self-contained folder (index.html + css/style.css + js/main.js) linked from a root card-grid index.html, served by Caddy on :8321 via `make dev`/`make start` (Caddyfile, file_server browse, no-cache headers). The canonical 3D reference is ion-thruster-3d/: zh-CN page with a fixed #stage canvas div, #homeBtn back link, emoji tool-btn nav (#tools) with title tooltips, #bottomBar ctrl-btn controls (⏸ 暂停 / 🔄 重置 / 🎥 重置视角) plus range sliders; three.js r0.160.0 loaded ESM-only via a jsdelivr import map (with es-module-shims and a window.__errs error trap). js/main.js is a single ~1350-line ES module: module-scope renderer/CSS2DRenderer/scene/camera/OrbitControls/EffectComposer(UnrealBloom) init, one animate() rAF loop (controls.update → composer.render → labelRenderer.render), resize listener, first-frame loading fade, and window.__ready = true at the end. CSS is one dark-space-theme file (#04060d bg, Outfit + PingFang SC, gradient h1, fixed overlay UI, box-sizing reset). The spec (01-requirements.md + 05-research-report.md) mandates a new nuclear-fusion-3d/ folder following exactly this layout, a phase state machine (原子结构 → 等离子体 → 聚变反应), ≥5-step guided tour with tourPrev/tourNext/tourExit ids, a simTime-accumulator pause pattern (never toggle THREE.Clock.running), ≤2000-particle THREE.Points plasma, dispose() on phase rebuild, zero-console-warnings r160 rules (no useLegacyLights/outputEncoding writes, SRGBColorSpace for color textures), WebGL2 detection via three/addons/capabilities/WebGL.js with a custom Chinese fallback message, and physically consistent D–T numbers (17.6 MeV, 0.0189 u, 2.82e-12 J; literals 0.0256 / 3.2e-11 forbidden). Only files to touch: new nuclear-fusion-3d/ folder + one new card + one .card--fusion accent rule in root index.html.",
+        "title": "Codebase Assessment: Static multi-page science-animation site — conventions for the 核聚变 3D animation (nuclear-fusion-3d/)",
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/01-nuclear-fusion-3d-animation/docs/specifications/01-nuclear-fusion-3d-animation/06-code-assessment.md"
+      }
+    },
+    "design": {
+      "timestamp": "2026-08-27T05:59:08.934Z",
+      "agent": "design",
+      "data": {
+        "alternativesConsidered": [
+          {
+            "alternatives": [
+              "multi-file js/ (main.js + phaseMachine.js + tour.js + particles.js as native ESM imports via the same import map)"
+            ],
+            "chosen": "single-file js/main.js with clearly bounded internal sections (§1–§7), matching the ion-thruster-3d convention",
+            "decision": "JS file layout for the new page",
+            "rationale": "AC-01 mandates 'the established page layout (as in ion-thruster-3d/ and atomic-model/)' and the code assessment confirms every 3D page uses one js/main.js ES module with module-scope init; one file keeps deterministic greps (AC-05/06 literals, ids) trivial and adds zero import-map surface. Multi-file is defensible for reviewability but breaks the strongest consistency signal in the repo."
+          },
+          {
+            "alternatives": [
+              "toggle THREE.Clock.running on pause",
+              "rebuild a new Clock on resume"
+            ],
+            "chosen": "custom simTime accumulator — call clock.getDelta() every frame, accumulate and advance particles/phases only when !paused",
+            "decision": "Pause/resume mechanism (AC-07/AC-08)",
+            "rationale": "Research-verified three.js trap: toggling Clock.running makes getDelta() return a huge jump after resume (stale oldTime) and clock.start() resets elapsedTime — both break 'resume continues exactly from the frozen phase'. The accumulator freezes particle motion and the phase clock together with no jump and makes 重置 a trivial simTime rewind."
+          },
+          {
+            "alternatives": [
+              "full-precision AME2020 set (2.01410178/3.01604928/4.00260325/1.00866492 → 0.018883 u)"
+            ],
+            "chosen": "rounded textbook mass set (2.014102/3.016049/4.002602/1.008665 u → 0.018884 u ≈ 0.0189 u)",
+            "decision": "Nuclear mass precision displayed on the page (AC-06)",
+            "rationale": "Full-precision AME2020 values give 0.018883 u, which breaks the exact on-page arithmetic chain and the deterministic literal '0.0189' required by AC-06; the rounded set is simultaneously physically correct (verified vs Wikipedia/HyperPhysics/NIST) and internally consistent: 0.018884 u × 931.494 ≈ 17.59 ≈ 17.6 MeV → ≈2.82e-12 J."
+          },
+          {
+            "alternatives": [
+              "restart from the 原子结构 phase",
+              "full page reload for reset"
+            ],
+            "chosen": "🔄 重置 restarts the 3D animation immediately from the 等离子体 (plasma) phase, leaving tourIdx and the narration panel untouched",
+            "decision": "Reset semantics for 🔄 重置 (AC-08)",
+            "rationale": "AC-08 explicitly pins this after review FR-002: the learner watching the fusion story wants to re-watch the reaction, not the slow atom intro; page reload would destroy tour position; restarting from atoms re-teaches known content."
+          },
+          {
+            "alternatives": [
+              "appendChild(WebGL.getWebGL2ErrorMessage()) — English-only built-in"
+            ],
+            "chosen": "detect via WebGL.isWebGL2Available() from 'three/addons/capabilities/WebGL.js', then inject our own Chinese message div",
+            "decision": "WebGL degradation path (NFR)",
+            "rationale": "The r160 built-in message is English-only and would fail the Chinese-explanation NFR; try/catch around new WebGLRenderer() risks three.js logging console errors during construction (violating the zero-console-error degradation path), while the capability module detects cleanly."
+          },
+          {
+            "alternatives": [
+              "separate tour choreography that independently scripts the scene (duplicate timeline code)",
+              "rebuild #tourPanel DOM via innerHTML per step"
+            ],
+            "chosen": "TOUR data steps map onto the SAME phase machine ({key, phase, title, text, hl}) with highlight pulsing, reusing static tourPanel DOM (tourTitle/tourText/tourPrev/tourNext/tourExit/tourDots)",
+            "decision": "Tour engine design (AC-05)",
+            "rationale": "YAGNI/boring-patterns: ion-thruster-3d already proves this exact data-driven tour shape with those ids (AC-05 mandates following it); reusing the phase machine guarantees reset↔tour independence (AC-08) for free instead of coordinating two timelines."
+          },
+          {
+            "alternatives": [
+              "run rAF but skip particle integration while paused",
+              "stop the rAF loop entirely on pause"
+            ],
+            "chosen": "keep the single rAF loop alive while paused — OrbitControls damping/camera keeps responding, only simTime accumulation and particle/phase updates are gated",
+            "decision": "What freezes when paused (AC-07 'freezes all particle motion and the phase clock' while OrbitControls stays live)",
+            "rationale": "AC-07 requires drag-rotate and wheel/pinch-zoom to work at all times without breaking the animation; stopping the loop would freeze the canvas including camera; gating only the simulation is the minimal freeze that satisfies both clauses."
+          }
+        ],
+        "contracts": [
+          {
+            "derivationRule": "AC-04 enumerates exactly three sequential phases — 原子结构, 加热→等离子体, 聚变反应 — each mapped 1:1 to a machine key; main.js exposes the current key simultaneously as window.__fusionPhase and as #stage[data-phase], and the validator asserts every emitted value lies in this closed set.",
+            "enumerates": [
+              "atoms",
+              "plasma",
+              "fusion"
+            ],
+            "name": "fusion-phase-keys",
+            "pattern": "^(atoms|plasma|fusion)$",
+            "sourceAnchor": "docs/specifications/01-nuclear-fusion-3d-animation/01-requirements.md",
+            "uniqueness": true
+          },
+          {
+            "derivationRule": "One kebab-case key per AC-05 mandatory topic, in order: 原子结构（质子/中子/电子）→ atoms-structure, 加热变成等离子体 → heating-plasma, 克服库仑斥力（原子核相互排斥）→ coulomb-barrier, 聚变反应生成氦-4 和中子 → fusion-helium4-neutron, E=mc² 质量变成能量 → emc2-mass-to-energy; the TOUR array in js/main.js produces these keys (AC-05 allows 'at least 5', extras optional) and the validator asserts all five are present.",
+            "enumerates": [
+              "atoms-structure",
+              "heating-plasma",
+              "coulomb-barrier",
+              "fusion-helium4-neutron",
+              "emc2-mass-to-energy"
+            ],
+            "name": "tour-step-keys",
+            "pattern": "^[a-z][a-z0-9-]{2,30}$",
+            "sourceAnchor": "docs/specifications/01-nuclear-fusion-3d-animation/01-requirements.md",
+            "uniqueness": true
+          },
+          {
+            "derivationRule": "Ids present in the canonical ion-thruster-3d/index.html that AC-01/AC-05/AC-07 explicitly re-require for the fusion page: AC-01 names homeBtn + stage; AC-05 names tourPrev/tourNext/tourExit and the 🎬 引导浏览 button (btnTour, same id family as the reference page); AC-07 names the three ctrl-btn controls (toggleBtn/resetBtn/camBtn per the reference markup); tourPanel/tourTitle/tourText/tourDots are the remaining members of the same tour-panel block in the reference page. All are produced by nuclear-fusion-3d/index.html and validated by deterministic DOM checks.",
+            "enumerates": [
+              "homeBtn",
+              "stage",
+              "btnTour",
+              "toggleBtn",
+              "resetBtn",
+              "camBtn",
+              "tourPrev",
+              "tourNext",
+              "tourExit",
+              "tourPanel",
+              "tourTitle",
+              "tourText",
+              "tourDots"
+            ],
+            "name": "ctrl-dom-id-set",
+            "pattern": "^(homeBtn|stage|btnTour|toggleBtn|resetBtn|camBtn|tourPrev|tourNext|tourExit|tourPanel|tourTitle|tourText|tourDots)$",
+            "sourceAnchor": "ion-thruster-3d/index.html",
+            "uniqueness": true
+          },
+          {
+            "derivationRule": "grep class=\"card card-- in root index.html yields exactly six existing accent classes (lines 190–225: slingshot, car, ion, ion3d, atom, solar); AC-02 adds exactly one new member card--fusion (with matching .card--fusion::before and .card--fusion .card__icon rules); the validator checks every .card element in root index.html carries a class from this closed set and that card--fusion occurs exactly once.",
+            "enumerates": [
+              "card--slingshot",
+              "card--car",
+              "card--ion",
+              "card--ion3d",
+              "card--atom",
+              "card--solar",
+              "card--fusion"
+            ],
+            "name": "card-accent-class-allowlist",
+            "pattern": "^card--[a-z0-9]+$",
+            "sourceAnchor": "index.html",
+            "uniqueness": true
+          },
+          {
+            "derivationRule": "AC-06's deterministic check names the three literal strings the delivered page source must contain: '17.6' (reaction energy MeV, emitted by the PHYS block / stats bar / narration), '0.0189' (displayed rounded mass defect u), 'mc' (from the E=mc² explanation); produced by nuclear-fusion-3d/ sources, validated by substring scan.",
+            "enumerates": [
+              "17.6",
+              "0.0189",
+              "mc"
+            ],
+            "name": "dt-fusion-required-literals",
+            "pattern": "^(17\\.6|0\\.0189|mc)$",
+            "sourceAnchor": "docs/specifications/01-nuclear-fusion-3d-animation/01-requirements.md",
+            "uniqueness": true
+          },
+          {
+            "derivationRule": "AC-06 names the two incorrect literals that must NOT occur anywhere in the delivered sources (wrong mass defect 0.0256 u; fission-value energy 3.2e-11 J); the validator asserts zero substring occurrences in nuclear-fusion-3d/index.html, css/style.css and js/main.js.",
+            "enumerates": [
+              "0.0256",
+              "3.2e-11"
+            ],
+            "name": "dt-fusion-forbidden-literals",
+            "pattern": "^(0\\.0256|3\\.2e-11)$",
+            "sourceAnchor": "docs/specifications/01-nuclear-fusion-3d-animation/01-requirements.md",
+            "uniqueness": true
+          }
+        ],
+        "date": "2026-08-27",
+        "designer": "super-dev:ui-ux-designer",
+        "hasNumericConstants": "Yes — two classes. (A) VERIFIED PHYSICS (frozen PHYS object, displayed verbatim per AC-06): nuclear masses 2.014102 u (²H), 3.016049 u (³H), 4.002602 u (⁴He), 1.008665 u (n); mass defect 0.018884 u shown rounded as ≈0.0189 u; conversion 931.494 MeV/u; reaction energy 17.6 MeV (≈17.59); split 中子 14.1 MeV / α 3.5 MeV; 1.602e-13 J/MeV; released energy ≈2.82e-12 J (≈2.8×10⁻¹² J); consistency chain 0.018884×931.494≈17.59≈17.6 MeV and 17.6×1.602e-13≈2.82e-12 J; REQUIRED literals 17.6, 0.0189, mc; FORBIDDEN literals 0.0256, 3.2e-11. (B) ENGINE/ANIMATION: plasma particle cap 2000; renderer pixelRatio min(devicePixelRatio,2); ≥60 fps target; phase timeline atoms 0–6 s, plasma 6–16 s, fusion 16–22 s, flash fade by 24.5 s, auto-repeat after 25 s; camera fov 50°, position (0, 2.4, 7.5) for camBtn restore; electron orbit radius 0.75; proton radius 0.22, neutron 0.22, electron 0.07; Coulomb visualization force ~ k/r² with k=1.8 (display scaling only).",
+        "modules": [
+          {
+            "description": "index.html (zh-CN): #homeBtn back-link (title=\"返回首页 Back to home\"), <div id=\"stage\"> canvas host, #tools nav (btnTour 🎬 title=\"引导浏览（分步讲解）\", btnExplore 🖱️ 自由探索, btnLabels 🏷️ 图例), #bottomBar (#stats physics bar: 17.6 MeV · 中子 14.1 / α 3.5 MeV · 质量亏损 ≈0.0189 u → ≈2.82e-12 J; ctrl-btns toggleBtn ⏸ 暂停/▶ 继续, resetBtn 🔄 重置, camBtn 🎥 重置视角), legend chips 质子(红·核尺度)/中子(灰蓝·核尺度)/电子(微小·亮), #tourPanel (tourTitle/tourText/tourPrev ← 上一步/tourDots/tourNext 下一步 →/tourExit 退出), #hint, #loading, WebGL2-fallback Chinese message div, and the pinned import map: \"three\" → https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js, \"three/addons/\" → .../examples/jsm/ + es-module-shims@1.10.0 async (byte-identical to ion-thruster-3d).",
+            "name": "page-shell · nuclear-fusion-3d/index.html"
+          },
+          {
+            "description": "Adds <a class=\"card card--fusion\" href=\"nuclear-fusion-3d/\" id=\"link-nuclear-fusion-3d\"> with bilingual title \"Nuclear Fusion 核聚变\", ☀️/⚛️ emoji icon, one-line English description of the D→T fusion journey, and <span class=\"card__arrow\">Open →</span>; adds the .card--fusion accent rules (::before radial glow + .card__icon background) in the inline card CSS alongside .card--ion3d/.card--atom, matching the existing 6-card grid pattern.",
+            "name": "root-card · index.html (site root, one-card edit)"
+          },
+          {
+            "description": "Site dark-space theme (#04060d, Outfit + PingFang SC): fixed-overlay #homeBtn/#tools/#bottomBar/#tourPanel/#legend, .ctrl-btn/.tool-btn pill styles with :hover/:active/:focus-visible rings (≥44px touch targets), tour panel slide-up with .open class, legend chips with color-blind-safe dot+size cues, stats-bar monospace numbers, responsive stacking at ≤768px tablet width, #webgl-fallback message styling, user-select:none, #stage{cursor:grab}.",
+            "name": "styles · css/style.css"
+          },
+          {
+            "description": "Import WebGL from 'three/addons/capabilities/WebGL.js'; if !isWebGL2Available() render the custom Chinese fallback (#webgl-fallback: '你的浏览器不支持 WebGL2，无法显示 3D 核聚变动画…') and abort — never appendChild the English built-in message. Else: WebGLRenderer({antialias:true, pixelRatio:min(devicePixelRatio,2)}) with NO legacy writes (no useLegacyLights/outputEncoding/texture.encoding) so r160 loads with zero console warnings; scene, PerspectiveCamera(fov 50, pos (0,2.4,7.5)), OrbitControls (enableDamping, always-on so drag/wheel/pinch never breaks the animation), resize listener, single rAF loop controls.update→renderer.render, first-frame #loading fade, window.__ready=true. Optional additive glow sprite texture sets colorSpace=SRGBColorSpace only.",
+            "name": "bootstrap & renderer · main.js §1"
+          },
+          {
+            "description": "The single source of physics truth, mirrored 1:1 into the #stats bar and tour narration: M_D=2.014102 u, M_T=3.016049 u, M_He4=4.002602 u, M_n=1.008665 u, Δm=0.018884 u (displayed ≈0.0189 u), 931.494 MeV/u, E_total=17.6 MeV (≈17.59), E_n=14.1 MeV, E_alpha=3.5 MeV, 1.602e-13 J/MeV, E_J≈2.82e-12 J, plus the E=mc² 质能方程 explanation string. Guarantees the required literals '17.6', '0.0189', 'mc' appear and the forbidden literals '0.0256' / '3.2e-11' never do. All narration strings reference PHYS fields, never duplicated raw numbers.",
+            "name": "physics data · main.js §2 (PHYS)"
+          },
+          {
+            "description": "Closed phase set PHASES = {atoms, plasma, fusion} with durations atoms 0–6 s, plasma 6–16 s, fusion 16–22 s (flash fades by 24.5 s). Observability contract: window.__fusionPhase always equals the current key AND #stage carries data-phase=\"atoms|plasma|fusion\" for deterministic checks (AC-04). Pause via simTime accumulator (clock.getDelta() every frame; accumulate only when !paused) — never toggling THREE.Clock.running (post-resume delta jump trap). resetToPlasma(): disposes and rebuilds the plasma scene, rewinds simTime to 6 s, and never touches tourIdx/tourPanel (AC-08). Free-explore auto-repeat: after flash fade, schedule loop back to plasma.",
+            "name": "phase state machine · main.js §3"
+          },
+          {
+            "description": "Atoms phase: deuterium nucleus (1 red proton sphere + 1 gray-blue neutron, close-packed) with 1 tiny bright electron on an inclined circular orbit; tritium nucleus (1 proton + 2 neutrons) with its own orbiting electron; orbit rings faintly drawn; both atoms labeled 氘 D / 氚 T. Plasma phase: electrons stripped — fly as free points in ONE THREE.Points + BufferGeometry (≤2,000 particles, typed-array position writes, single draw call, 60 fps) while D/T nuclei (a few Mesh sphere clusters) move fast with random-walk jitter; color ramp from cool to hot. Every rebuild (phase change or reset) calls geometry/material .dispose() to avoid GPU leaks under the infinite auto-repeat loop.",
+            "name": "particle system · main.js §4"
+          },
+          {
+            "description": "Scripted hero event: one D and one T nucleus decelerate toward each other against a visualized electrostatic repulsion (repulsion halo / field-line sprites that compress as r shrinks, force ~ k/r² scaled for legibility), touch, and merge into a ⁴He nucleus (2 protons + 2 neutrons in a tetrahedral cluster) while one gray neutron is ejected fast along the exit vector with a 中子 14.1 MeV energy tag; an expanding Sprite (SpriteMaterial{blending:AdditiveBlending, transparent, depthWrite:false}) flashes and fades, with an E=mc² overlay chip (质量亏损 0.018884 u → 17.6 MeV → 2.82e-12 J) appearing at flash peak. This module ends by emitting the fusion-complete → auto-repeat transition in free mode.",
+            "name": "fusion event · main.js §5"
+          },
+          {
+            "description": "TOUR = data array of ≥5 steps (ids atoms-structure / heating-plasma / coulomb-barrier / fusion-helium4-neutron / emc2-mass-to-energy), each {key, phase, title, text(中文解说), hl[highlights]}; step→phase mapping drives the same phase machine (e.g. entering coulomb-barrier forces phase=fusion and pulses the repulsion halo; emc2 step freezes at flash peak and highlights the PHYS chip). Navigation exactly per ion-thruster-3d: btnTour toggles, tourPrev/tourNext clamp at ends, tourDots reflect position, tourExit/Esc closes and returns to free-explore. Tour state is fully independent of resetBtn — reset restarts visuals only, narration panel and current step untouched (AC-08).",
+            "name": "guided tour · main.js §6"
+          },
+          {
+            "description": "toggleBtn flips paused (label ⏸ 暂停 ↔ ▶ 继续; freezes particle motion + phase clock together); resetBtn → resetToPlasma(); camBtn restores default camera position/target; keyboard: Space pause, Esc exit tour; hint strip (拖拽旋转 · 滚轮缩放 · 空格暂停 · Esc 退出); all buttons title-tooltipped and keyboard-focusable with visible :focus-visible rings.",
+            "name": "controls & HUD · main.js §7"
+          }
+        ],
+        "summary": "A self-contained nuclear-fusion-3d/ page (index.html + css/ + js/) teaches kids 核聚变 via three.js r160 (pinned jsdelivr import map, identical to ion-thruster-3d). The scene is driven by a closed phase state machine — atoms (原子结构: deuterium 1p+1n + orbiting electron beside tritium 1p+2n + electron) → plasma (加热→等离子体: electrons stripped into a ≤2,000-particle THREE.Points cloud, nuclei fast/random) → fusion (聚变反应: D–T collision against Coulomb repulsion → ⁴He 2p+2n + ejected 14.1 MeV neutron + expanding AdditiveBlending energy flash). Phase state is programmatically observable (window.__fusionPhase + #stage[data-phase]). Pause uses a simTime accumulator (clock.getDelta() every frame, accumulate only when unpaused — never toggle THREE.Clock.running); 🔄 重置 restarts from the plasma phase WITHOUT touching tour state, and free-explore auto-repeats after the flash fades. A 🎬 引导浏览 tour of ≥5 data-driven steps (tourPrev/tourNext/tourExit ids per ion-thruster-3d) maps each narration step onto the phase machine with highlight pulsing. HUD shows the verified D–T numbers (17.6 MeV = 中子 14.1 + α 3.5; Δm 0.018884 u ≈ 0.0189 u; ≈2.82e-12 J) with the E=mc² chain. Data flow: UI events (ctrl-btns/tour) → phase machine → scene builders (atoms/plasma/fusion) → shared rAF render loop → canvas; PHYS constants feed both the stats bar and tour narration text. WebGL2 unavailable ⇒ Chinese fallback message via three/addons/capabilities/WebGL.js detection. Root index.html gains one card--fusion card. Zero console warnings, zero build step, no other third-party calls.",
+        "title": "UI/UX Architecture — 核聚变 3D 交互动画 (Nuclear Fusion 3D Animation, nuclear-fusion-3d/)",
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/01-nuclear-fusion-3d-animation/docs/specifications/01-nuclear-fusion-3d-animation/07-design.md"
+      }
+    },
+    "designReview": {
+      "timestamp": "2026-08-27T06:01:44.742Z",
+      "agent": "designReview",
+      "data": {
+        "date": "2026-08-27",
+        "dimensions": [
+          {
+            "name": "D1 Interface contracts",
+            "notes": "All module interfaces (phase machine observability window.__fusionPhase/#stage[data-phase], pause accumulator, reset semantics, tour API, PHYS block, WebGL fallback) are specified. Two minor gaps: on-canvas label rendering mechanism and btnLabels toggle behavior — both advisory.",
+            "status": "pass"
+          },
+          {
+            "name": "D2 Feasibility & grounding",
+            "notes": "Every integration point verified against the actual repo: 6 existing card--* classes (index.html:190-229; the 7th card--fusion is new), all 13 claimed ion-thruster-3d ids exist, import map + es-module-shims@1.10.0 pin byte-matches, WebGL.js capability module path correct for r160. No ungrounded claims found.",
+            "status": "pass"
+          },
+          {
+            "name": "D3 Consistency with requirements",
+            "notes": "All 9 ACs mapped 1:1 to modules; AC-06 literal requirements and AC-08 reset semantics explicitly engineered for; the reset-vs-tour-step visual mismatch on the atoms-structure step is pinned by AC-08 itself and correctly not re-litigated by the design.",
+            "status": "pass"
+          },
+          {
+            "name": "D4 Data flow & state",
+            "notes": "End-to-end flow complete (UI events → phase machine → scene builders → rAF → canvas; PHYS → stats bar + narration); state ownership (simTime/paused/tourIdx/phase) explicit. Minor: tour-forced phase/freeze ↔ simTime coupling mechanism inferable but unstated (DR-002).",
+            "status": "pass"
+          },
+          {
+            "name": "D5 Complexity/YAGNI",
+            "notes": "Single main.js with §1–§7 sections matches the strongest repo convention; TOUR data array and reuse of the phase machine for the tour avoids duplicate timelines; rejected alternatives are reasoned, not padded. btnLabels is a minor YAGNI candidate (DR-003).",
+            "status": "pass"
+          },
+          {
+            "name": "D6 Numeric constants",
+            "notes": "Exemplary: physics class frozen in PHYS with the consistency chain shown; engine class (2000 particle cap, pixelRatio cap, phase timeline 0-6-16-22s, flash fade 24.5s, camera pose, sphere radii, k=1.8 Coulomb scaling flagged display-only) all enumerated and justified.",
+            "status": "pass"
+          }
+        ],
+        "findings": [
+          {
+            "blocking": false,
+            "confidence": 0.85,
+            "defectClass": "unspecified-rendering-mechanism",
+            "detail": "The design promises on-canvas labels 氘 D / 氚 T (§4 particle system), a 中子 14.1 MeV energy tag and an E=mc² overlay chip (§5 fusion event), but never states the rendering mechanism. The reference page ion-thruster-3d uses CSS2DRenderer with a separate labelRenderer.render() call in the rAF loop (verified: code assessment 'renderer/CSS2DRenderer… labelRenderer.render'), whereas the design's §1 loop contract is only 'controls.update→renderer.render'. Whether labels are CSS2D objects, Canvas-texture sprites, or HTML overlays changes the bootstrap module's loop contract and dispose obligations. Any choice is feasible; the design just needs to name one so the spec's phase deliverables don't have to guess.",
+            "evidence": [
+              "07-design.md §4: 'both atoms labeled 氘 D / 氚 T'",
+              "07-design.md §5: '中子 14.1 MeV energy tag', 'E=mc² overlay chip… appearing at flash peak'",
+              "07-design.md §1: 'single rAF loop controls.update→renderer.render' (no label renderer step)",
+              "ion-thruster-3d/js/main.js uses CSS2DRenderer with labelRenderer.render per code assessment"
+            ],
+            "file": "docs/specifications/01-nuclear-fusion-3d-animation/07-design.md",
+            "id": "DR-001",
+            "lens": "D1 Interface contracts",
+            "line": "particle system · main.js §4 / fusion event · main.js §5",
+            "ownerStage": "design",
+            "recommendation": "Add one sentence to §1 or §4 naming the label mechanism (e.g. CSS2DRenderer per the ion-thruster-3d pattern, with labelRenderer.render() added to the rAF loop and its DOM layer resized on window resize; or sprite/Canvas textures covered by the existing dispose rule).",
+            "severity": "P3",
+            "status": "open",
+            "title": "On-canvas label rendering mechanism unspecified"
+          },
+          {
+            "blocking": false,
+            "confidence": 0.82,
+            "detail": "The phase machine is defined as simTime windows (atoms 0–6 s, plasma 6–16 s, fusion 16–22 s), and tour steps 'drive the same phase machine' — e.g. entering coulomb-barrier 'forces phase=fusion', and emc2 'freezes at flash peak'. The coupling mechanism is inferable (set simTime into the target window; hold simTime constant to freeze) but unstated, as is what happens to simTime/phase when tourExit returns to free-explore (resume from current simTime? restart?). Since window.__fusionPhase/#stage[data-phase] is the deterministic observability contract of AC-04, leaving the tour→simTime write rule implicit risks the spec defining inconsistent validator expectations for data-phase during tour navigation.",
+            "evidence": [
+              "07-design.md §3: 'durations atoms 0–6 s, plasma 6–16 s, fusion 16–22 s'",
+              "07-design.md §6: 'entering coulomb-barrier forces phase=fusion', 'emc2 step freezes at flash peak'",
+              "07-design.md §3: 'window.__fusionPhase always equals the current key' — must remain true under tour-forced transitions"
+            ],
+            "file": "docs/specifications/01-nuclear-fusion-3d-animation/07-design.md",
+            "id": "DR-002",
+            "lens": "D4 Data flow & state",
+            "line": "guided tour · main.js §6",
+            "ownerStage": "design",
+            "recommendation": "State the rule explicitly, e.g. 'entering a tour step sets simTime to the step's anchor time inside its phase window (paused-flag untouched); tourExit resumes free-explore from the current simTime/phase' — one sentence closes the ambiguity for both implementer and validator.",
+            "severity": "P3",
+            "status": "open",
+            "title": "Tour-forced phase and flash-peak freeze not tied to the simTime accumulator"
+          },
+          {
+            "blocking": false,
+            "confidence": 0.85,
+            "detail": "The page-shell lists a btnLabels 🏷️ 图例 tool button (mirroring ion-thruster-3d's btnLabels 部件标签, which toggles CSS2D part labels there), but no module defines what it toggles on the fusion page: the static legend chips already sit in #bottomBar, so is btnLabels toggling on-canvas 氘/氚 labels, the legend chips, or both? Not required by any AC (AC-01/05/07 name only homeBtn/stage/btnTour/tour*/ctrl-btns), so this is an unspecified extra control rather than a contract gap — but an implementer following the page-shell literally will hit undefined behavior.",
+            "evidence": [
+              "07-design.md page-shell: '#tools nav (btnTour …, btnExplore 🖱️ 自由探索, btnLabels 🏷️ 图例)'",
+              "§4/§5/§6/§7 define behavior for btnTour, tourPrev/Next/Exit, toggleBtn, resetBtn, camBtn — none for btnLabels",
+              "ion-thruster-3d/index.html:27 btnLabels title '部件标签' toggles part labels"
+            ],
+            "file": "docs/specifications/01-nuclear-fusion-3d-animation/07-design.md",
+            "id": "DR-003",
+            "lens": "D1 Interface contracts",
+            "line": "page-shell · nuclear-fusion-3d/index.html",
+            "ownerStage": "design",
+            "recommendation": "Either drop btnLabels from the page-shell (YAGNI — legend chips are always visible per the accessibility NFR) or add one clause to §7: 'btnLabels toggles the on-canvas 氘 D / 氚 T / energy-tag labels'.",
+            "severity": "P3",
+            "status": "open",
+            "title": "btnLabels (🏷️ 图例) toggle behavior unspecified"
+          }
+        ],
+        "priorFindingResolutions": [],
+        "summary": "Round-1 design review of 07-design.md for nuclear-fusion-3d/. The design is exceptionally well-grounded: every integration claim checks out against the actual repo — the 6 existing root-index card accent classes match the enumerated closure exactly (index.html:190–229), all 13 claimed ctrl/tour DOM ids exist in ion-thruster-3d/index.html (tourNext:86, tourExit:87, tourDots:85, tourPrev:84, tourPanel:80, tourTitle:81, tourText:82), the import map + es-module-shims@1.10.0 pin matches the reference byte-for-byte, and the r160 patterns (WebGL.js capability detection with custom Chinese fallback, no legacy color/light writes, dispose-on-rebuild, simTime accumulator) are all research-verified. All 9 ACs map cleanly to modules with no required-vs-designed conflicts; the AC-06 physics chain and required/forbidden literals are engineered directly into the PHYS single-source module. Contract-claim enumerations (3 phase keys, 5 tour keys, 13 ids, 7 card classes, 3 required + 2 forbidden literals) each match reality. Three P3 advisory gaps remain — on-canvas label rendering mechanism, tour-forced-phase↔simTime coupling, and btnLabels toggle behavior — none of which block the spec from proceeding. No prior findings existed in this round, so priorFindingResolutions is empty. Verdict: Approved with Comments.",
+        "title": "Design Review — 核聚变 3D 交互动画 (nuclear-fusion-3d/) UI/UX Architecture",
+        "verdict": "Approved with Comments",
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/01-nuclear-fusion-3d-animation/docs/specifications/01-nuclear-fusion-3d-animation/08-design-review.md"
+      }
+    },
+    "spec": {
+      "timestamp": "2026-08-27T06:07:29.248Z",
+      "agent": "spec",
+      "data": {
+        "acceptanceCriteriaRefs": [
+          "AC-01",
+          "AC-02",
+          "AC-03",
+          "AC-04",
+          "AC-05",
+          "AC-06",
+          "AC-07",
+          "AC-08",
+          "AC-09"
+        ],
+        "architecture": "REPO BASELINE (verified by source inspection): static zero-build site; each topic is a self-contained folder; canonical 3D template ion-thruster-3d/ (index.html + css/style.css + js/main.js) with zh-CN shell, #homeBtn, #stage, emoji tool-btn nav (#btnTour title 引导浏览（分步讲解）), #bottomBar ctrl-btns (#toggleBtn/#resetBtn/#camBtn), tour overlay (#tourPanel/#tourTitle/#tourText/#tourDots/#tourPrev/#tourNext/#tourExit), window.__errs trap, es-module-shims@1.10.0 + import map pinned to https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js with \"three/addons/\" → .../three@0.160.0/examples/jsm/, single-module main.js ending window.__ready = true. Root index.html has 6 card accent classes (.card--slingshot/--car/--ion/--ion3d/--atom/--solar) at lines 119–141 and 6 cards at lines 190–229. Caddyfile serves :8321 but its root pins the MAIN checkout — worktree testing must run `caddy file-server --root \"$PWD\" --listen :8321` from the worktree; no Caddyfile changes.\n\nFILE INVENTORY — CREATE: nuclear-fusion-3d/index.html, nuclear-fusion-3d/css/style.css, nuclear-fusion-3d/js/main.js. MODIFY: index.html (root — exactly one new card block + two .card--fusion accent rules; nothing else). DELETE: none. No package.json, no bundler, no build step, no other file touched.\n\nMODULE MAP (single-file js/main.js, contract-first, mirroring 07-design.md §1–§7):\n§1 bootstrap: import WebGL from 'three/addons/capabilities/WebGL.js'; if (!WebGL.isWebGL2Available()) inject a custom Chinese fallback div into #stage and return before constructing WebGLRenderer (built-in getWebGL2ErrorMessage() is English-only and renderer construction logs errors — both forbidden by SCENARIO-024). Otherwise: WebGLRenderer with setPixelRatio(Math.min(devicePixelRatio, 2)); scene; PerspectiveCamera whose default position/target are named constants DEFAULT_CAMERA_POS/DEFAULT_CAMERA_TARGET (restored by 🎥 重置视角); OrbitControls (enableDamping, wheel + touch zoom) from 'three/addons/controls/OrbitControls.js'; CSS2DRenderer from 'three/addons/renderers/CSS2DRenderer.js' for on-canvas 质子/中子/电子 labels (same mechanism as ion-thruster-3d/js/main.js per code assessment); THREE.Clock; ONE requestAnimationFrame loop that ALWAYS calls clock.getDelta() and, only when !state.paused, advances state.simTime and updates the world — the research-verified pause pattern (never write clock.running: getDelta() jumps after resume and start() resets elapsedTime). Resize listener; window.__ready = true at end.\n§2 PHYS (single source of physics constants): masses {2.014102, 3.016049, 4.002602, 1.008665} u; MASS_DEFECT_U = 0.018884 (displayed ≈ 0.0189 u); MEV_PER_U = 931.494; Q_MEV = 17.6; SPLIT {neutron 14.1, alpha 3.5}; J_PER_MEV = 1.602e-13; E_J = 2.82e-12; E_MC2_LABEL = 'E=mc²'. The index.html physics panel displays the identical strings (both are deliverable-gated, so no dual-source drift).\n§3 phase state machine: PHASES ordered keys ['atoms','plasma','fusion'] with labels {'原子结构','加热 → 等离子体','聚变反应'}; explicit per-phase durations in seconds; state = {phaseKey, phaseTime, simTime, paused}; advancePhase() gates strictly on simTime so pause freezes particles AND the phase clock together; startRun(fromKey) accepts 'atoms' (initial page load) or 'plasma' (🔄 重置 and auto-repeat restarts). Observable API (AC-04 programmatically observable): window.fusionSim = { getPhase(): 'atoms'|'plasma'|'fusion', getPhaseTime(): number, getSimTime(): number, isPaused(): boolean, pause(): void, resume(): void, reset(): void, isTourActive(): boolean, getTourStep(): number|null }.\n§4 particles: atoms phase renders hero nuclei as Mesh spheres — deuterium (1 red proton + 1 gray-blue neutron + 1 tiny bright orbiting electron), tritium (1 proton + 2 neutrons + 1 orbiting electron) — distinguishable by size + CSS2D labels, not hue alone. Plasma phase strips both electrons into free flight and adds an ambient plasma field rendered as ONE THREE.Points + BufferGeometry with typed-array position updates (single draw call, ≤2,000 total animated particles). §5 fusion event: the hero D and T nuclei travel a collision axis with a decelerating Coulomb-repulsion arc (visually 克服库仑斥力), merge into a ⁴He cluster (2 protons + 2 neutrons), eject a free gray neutron with recoil momentum, and emit an expanding energy-flash Sprite (SpriteMaterial {blending: AdditiveBlending, transparent: true, depthWrite: false}, scale+opacity animating then fading). When the flash fades in free-explore mode the machine auto-calls startRun('plasma') — the infinite auto-repeat loop — and every phase rebuild dispose()s replaced geometries/materials (GPU resources are not GC-managed).\n§6 guided tour: TOUR_STEPS — a data array in js/ of exactly the 5 required steps, each {key, title, zhText, phaseKey}: (1) atoms 原子结构（质子/中子/电子）, (2) heating 加热变成等离子体, (3) coulomb 克服库仑斥力（原子核相互排斥）, (4) fusion 聚变反应生成氦-4 和中子, (5) emc2 E=mc² 质量变成能量. btnTour opens at step 0; entering step i sets tour.index = i and forces the phase machine to step.phaseKey anchored at phase start (phaseKey = step.phaseKey; phaseTime = 0; simTime snapped to that phase's boundary) WITHOUT pausing playback; tourPrev (← 上一步) / tourNext (下一步 →) clamp at bounds; tourExit (退出) closes the overlay leaving the scene running; tourDots highlights the current step. Tour state is owned exclusively by §6 — §7's reset() never reads or writes it (AC-08).\n§7 controls & HUD: toggleBtn toggles state.paused and swaps its label ⏸ 暂停 ⇄ ▶ 继续; resetBtn calls fusionSim.reset() = startRun('plasma') only; camBtn restores DEFAULT_CAMERA_POS/DEFAULT_CAMERA_TARGET; OrbitControls stay enabled in every phase and never gate the rAF loop (drag-rotate/zoom cannot break the animation). HUD phase label shows the current PHASES label; the physics info panel is static markup in index.html.\n\nr160 CLEAN-CONSOLE RULES (engineered in, per research): never write useLegacyLights, outputEncoding, or texture.encoding; set texture.colorSpace = SRGBColorSpace only for color textures (canvas-generated glow texture for the flash); no light-intensity rescaling needed for the emissive/unlit particle scene. NETWORK HYGIENE: the only non-local requests are the pinned jsdelivr three@0.160.0 modules and es-module-shims@1.10.0 (already part of the ion-thruster-3d pin pattern) plus optional Google Fonts (Outfit). SECURITY: no eval, no user text input, no telemetry/analytics.\n\nROOT index.html EDIT (only edit outside the new folder): insert after the atomic-model card — <a class=\"card card--fusion\" href=\"nuclear-fusion-3d/\" id=\"link-nuclear-fusion-3d\"> containing an emoji icon (☀️), bilingual title \"Nuclear Fusion 核聚变\", one-line English description of the fusion journey, and an \"Open →\" arrow — plus two inline rules alongside the existing six: .card--fusion::before { radial-gradient accent } and .card--fusion .card__icon { background: … }. No other root changes (SCENARIO-003/004).",
+        "date": "2026-08-27",
+        "gate": {
+          "integration": [],
+          "packages": [],
+          "workspace": false
+        },
+        "phases": [
+          {
+            "deliverables": {
+              "requireContains": [
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "<html lang=\"zh-CN\">"
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "id=\"homeBtn\""
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "\\.\\./index\\.html"
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "id=\"stage\""
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "cdn\\.jsdelivr\\.net/npm/three@0\\.160\\.0/build/three\\.module\\.js"
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "cdn\\.jsdelivr\\.net/npm/three@0\\.160\\.0/examples/jsm/"
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "id=\"btnTour\""
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "引导浏览"
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "id=\"tourPrev\""
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "id=\"tourNext\""
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "id=\"tourExit\""
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "id=\"toggleBtn\""
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "id=\"resetBtn\""
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "id=\"camBtn\""
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "id=\"tourPanel\""
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "17\\.6"
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "0\\.0189"
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "E=mc"
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "14\\.1"
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "2\\.82"
+                },
+                {
+                  "file": "index.html",
+                  "pattern": "card--fusion"
+                },
+                {
+                  "file": "index.html",
+                  "pattern": "id=\"link-nuclear-fusion-3d\""
+                },
+                {
+                  "file": "index.html",
+                  "pattern": "nuclear-fusion-3d/"
+                },
+                {
+                  "file": "index.html",
+                  "pattern": "Nuclear Fusion 核聚变"
+                },
+                {
+                  "file": "index.html",
+                  "pattern": "Open →"
+                },
+                {
+                  "file": "nuclear-fusion-3d/css/style.css",
+                  "pattern": "#stage"
+                },
+                {
+                  "file": "nuclear-fusion-3d/css/style.css",
+                  "pattern": "ctrl-btn"
+                },
+                {
+                  "file": "nuclear-fusion-3d/css/style.css",
+                  "pattern": "#tourPanel"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "isWebGL2Available"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "__ready"
+                }
+              ],
+              "requireFiles": [
+                "nuclear-fusion-3d/index.html",
+                "nuclear-fusion-3d/css/style.css",
+                "nuclear-fusion-3d/js/main.js"
+              ],
+              "requireNotContains": [
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "0\\.0256"
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "3\\.2e-11"
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "unpkg"
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "three\\.min\\.js"
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "three@0\\.15"
+                },
+                {
+                  "file": "nuclear-fusion-3d/index.html",
+                  "pattern": "three@0\\.16[1-9]"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "0\\.0256"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "3\\.2e-11"
+                }
+              ],
+              "requireScenarios": [
+                "SCENARIO-001",
+                "SCENARIO-002",
+                "SCENARIO-003",
+                "SCENARIO-004",
+                "SCENARIO-005",
+                "SCENARIO-006",
+                "SCENARIO-014",
+                "SCENARIO-015",
+                "SCENARIO-016",
+                "SCENARIO-024"
+              ]
+            },
+            "description": "Independently testable via deterministic static checks (file existence + content patterns) plus a clean first load. Creates nuclear-fusion-3d/index.html (lang=zh-CN, #homeBtn back-link, #stage, #tools/#btnTour 引导浏览, #bottomBar ctrl-bar #toggleBtn/#resetBtn/#camBtn, #tourPanel overlay with #tourTitle/#tourText/#tourDots/#tourPrev/#tourNext/#tourExit, physics info panel with the verified D–T numbers and E=mc², window.__errs trap, es-module-shims@1.10.0, import map pinned exclusively to three@0.160.0 + three/addons/, module script ./js/main.js), nuclear-fusion-3d/css/style.css (dark-space theme, fixed overlay UI, responsive tablet width, keyboard-focusable ctrl-btns), and a bootstrap slice of nuclear-fusion-3d/js/main.js (WebGL2 capability check with custom Chinese fallback, renderer/camera/OrbitControls/clock, single rAF loop rendering a placeholder starfield, resize listener, window.__ready = true) so the shell loads with zero console errors before the story runtime lands. Edits root index.html to add the single fusion card + two .card--fusion accent rules. Covers AC-01, AC-02, AC-03, AC-06 and the AC-09 degradation path. Embeds SCENARIO-001..006/014..016/024 traceability comments in the created files.",
+            "name": "Phase 1: Static Page Shell, Physics Panel & Site Card",
+            "scenarioRefs": [
+              "SCENARIO-001",
+              "SCENARIO-002",
+              "SCENARIO-003",
+              "SCENARIO-004",
+              "SCENARIO-005",
+              "SCENARIO-006",
+              "SCENARIO-014",
+              "SCENARIO-015",
+              "SCENARIO-016",
+              "SCENARIO-024"
+            ]
+          },
+          {
+            "deliverables": {
+              "requireContains": [
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "window\\.fusionSim"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "getPhase"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "PHYS"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "TOUR_STEPS"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "原子结构"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "等离子体"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "聚变反应"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "库仑斥力"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "E=mc"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "simTime"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "getDelta"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "startRun\\('plasma'\\)"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "AdditiveBlending"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "dispose"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "OrbitControls"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "CSS2DRenderer"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "BufferGeometry"
+                }
+              ],
+              "requireFiles": [
+                "nuclear-fusion-3d/js/main.js"
+              ],
+              "requireNotContains": [
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "\\.running\\s*="
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "useLegacyLights"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "outputEncoding"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "texture\\.encoding"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "0\\.0256"
+                },
+                {
+                  "file": "nuclear-fusion-3d/js/main.js",
+                  "pattern": "3\\.2e-11"
+                }
+              ],
+              "requireScenarios": [
+                "SCENARIO-007",
+                "SCENARIO-008",
+                "SCENARIO-009",
+                "SCENARIO-010",
+                "SCENARIO-011",
+                "SCENARIO-012",
+                "SCENARIO-013",
+                "SCENARIO-017",
+                "SCENARIO-018",
+                "SCENARIO-019",
+                "SCENARIO-020",
+                "SCENARIO-021",
+                "SCENARIO-022",
+                "SCENARIO-023"
+              ]
+            },
+            "description": "Independently testable via browser runtime assertions against window.fusionSim plus console/network capture. Completes nuclear-fusion-3d/js/main.js: PHYS constants (single source of the AC-06 chain), the simTime-gated phase state machine with the observable window.fusionSim API, the three story phases (原子结构 atoms with D/T nuclei + orbiting electrons and CSS2D 质子/中子/电子 labels; 加热 → 等离子体 plasma with stripped free electrons, random-motion nuclei and a single THREE.Points ambient field ≤2,000 particles; 聚变反应 fusion with Coulomb-repulsion collision, ⁴He merge, gray-neutron ejection and an AdditiveBlending energy flash), free-explore auto-repeat back to 等离子体 after the flash fades, the 5-step TOUR_STEPS guided tour with forced-phase coupling and tourPrev/tourNext/tourExit navigation, and the control bar (⏸ 暂停/▶ 继续 simTime-accumulator pause with label swap, 🔄 重置 = startRun('plasma') without touching tour state, 🎥 重置视角 camera restore, always-on OrbitControls). Keeps the r160 zero-console-warning rules and dispose-on-rebuild hygiene. Covers AC-04, AC-05, AC-07, AC-08 and the runtime side of AC-09. Embeds SCENARIO-007..013/017..023 traceability comments in js/main.js.",
+            "name": "Phase 2: Fusion Story Runtime, Guided Tour & Playback Controls",
+            "scenarioRefs": [
+              "SCENARIO-007",
+              "SCENARIO-008",
+              "SCENARIO-009",
+              "SCENARIO-010",
+              "SCENARIO-011",
+              "SCENARIO-012",
+              "SCENARIO-013",
+              "SCENARIO-017",
+              "SCENARIO-018",
+              "SCENARIO-019",
+              "SCENARIO-020",
+              "SCENARIO-021",
+              "SCENARIO-022",
+              "SCENARIO-023"
+            ]
+          }
+        ],
+        "reviewResponses": [
+          {
+            "findingId": "FR-001",
+            "ownerStage": "requirements",
+            "response": "Physics numbers corrected upstream in AC-06 and independently recomputed by the round-2 requirements review (0.018884 u × 931.494 = 17.590 ≈ 17.6 MeV; 17.6 × 1.602e-13 = 2.8195e-12 J; 14.1 + 3.5 = 17.6). Spec engineers the verified chain into the §2 PHYS single-source module and the index.html physics panel, and enforces the required literals '17.6'/'0.0189'/'E=mc' plus forbidden '0.0256'/'3.2e-11' via Phase 1 deliverables.",
+            "status": "verified"
+          },
+          {
+            "findingId": "FR-002",
+            "ownerStage": "requirements",
+            "response": "Reset semantics pinned upstream in AC-08/SCENARIO-020. Spec's §7 contract makes reset() exactly startRun('plasma') — animation state only; tour state is owned exclusively by §6 and never read or written by reset, satisfying 'restart from 等离子体 without changing the current tour step'.",
+            "status": "verified"
+          },
+          {
+            "findingId": "FR-003",
+            "ownerStage": "requirements",
+            "response": "Advisory adopted at spec level: Phase 1 deliverables positively pin the corrected joule figure via requireContains '2\\.82' on nuclear-fusion-3d/index.html (AC-06's own text displays 2.82e-12 J), alongside additional positive pins '14\\.1' and '3\\.5' — strictly stronger than the AC-06 minimum gate ('17.6', '0.0189', 'mc') and fully consistent with it.",
+            "status": "addressed",
+            "evidence": "Phase 1 deliverables.requireContains entries on nuclear-fusion-3d/index.html."
+          },
+          {
+            "findingId": "BDD-F-001",
+            "ownerStage": "bdd",
+            "response": "Verified resolved upstream in SCENARIO-017 (resume binds observable outcomes: label toggle, resumed particle motion, resumed phase-clock advance, continuation from the frozen phase). Spec's §1/§7 simTime-accumulator pause pattern (clock.getDelta() every frame, accumulate only when unpaused) satisfies every Then clause by construction; Phase 2 forbids '.running\\s*=' so the THREE.Clock trap cannot be reintroduced.",
+            "status": "verified"
+          },
+          {
+            "findingId": "BDD-F-002",
+            "ownerStage": "bdd",
+            "response": "Verified resolved upstream: SCENARIO-010 scopes strict ordering to one single run and explicitly allows restart-from-等离子体 runs. Spec's startRun('atoms') for initial load and startRun('plasma') for reset/auto-repeat implement exactly this.",
+            "status": "verified"
+          },
+          {
+            "findingId": "BDD-F-003",
+            "ownerStage": "bdd",
+            "response": "Verified resolved upstream in SCENARIO-024. Spec uses three/addons/capabilities/WebGL.js isWebGL2Available() for detection but renders a custom Chinese message div and returns before constructing WebGLRenderer, so no English message and no console error is thrown on the degradation path.",
+            "status": "verified"
+          },
+          {
+            "findingId": "BDD-R3-001",
+            "ownerStage": "bdd",
+            "response": "Non-blocking P3 advisory about reviewer-action When phrasing in the BDD document itself (SCENARIO-015/016); no spec or code action possible or needed — the deterministic source-literal checks are implemented verbatim in Phase 1 deliverables.",
+            "status": "deferred"
+          }
+        ],
+        "scenarioRefs": [
+          "SCENARIO-001",
+          "SCENARIO-002",
+          "SCENARIO-003",
+          "SCENARIO-004",
+          "SCENARIO-005",
+          "SCENARIO-006",
+          "SCENARIO-007",
+          "SCENARIO-008",
+          "SCENARIO-009",
+          "SCENARIO-010",
+          "SCENARIO-011",
+          "SCENARIO-012",
+          "SCENARIO-013",
+          "SCENARIO-014",
+          "SCENARIO-015",
+          "SCENARIO-016",
+          "SCENARIO-017",
+          "SCENARIO-018",
+          "SCENARIO-019",
+          "SCENARIO-020",
+          "SCENARIO-021",
+          "SCENARIO-022",
+          "SCENARIO-023",
+          "SCENARIO-024"
+        ],
+        "summary": "Technical specification, implementation plan, and task list for nuclear-fusion-3d/ — a self-contained, zero-build three.js@0.160.0 page teaching children D–T 核聚变 (theory → process → 质子/中子/电子 motion) via a three-phase story (原子结构 → 加热→等离子体 → 聚变反应), a 5-step 🎬 引导浏览 tour, verified physics numbers (17.6 MeV, 0.0189 u, 2.82e-12 J, E=mc²), and the site-standard ctrl-bar — linked from the root index.html card grid. TRACE MATRIX (every AC → every BDD scenario → owning phase): AC-01 → SCENARIO-001, SCENARIO-002 → Phase 1; AC-02 → SCENARIO-003, SCENARIO-004 → Phase 1; AC-03 → SCENARIO-005, SCENARIO-006 → Phase 1; AC-04 → SCENARIO-007, SCENARIO-008, SCENARIO-009, SCENARIO-010 → Phase 2; AC-05 → SCENARIO-011, SCENARIO-012, SCENARIO-013 → Phase 2; AC-06 → SCENARIO-014, SCENARIO-015, SCENARIO-016 → Phase 1 (display literals) with the PHYS single-source module enforced in Phase 2; AC-07 → SCENARIO-017, SCENARIO-018, SCENARIO-019 → Phase 2; AC-08 → SCENARIO-020, SCENARIO-021 → Phase 2; AC-09 → SCENARIO-024 → Phase 1 (degradation path) and SCENARIO-022, SCENARIO-023 → Phase 2 (final runtime cleanliness/network hygiene). All 9 ACs and all 24 scenarios are covered; no scenario is orphaned and no AC is unaddressed. Upstream review state: FR-001/FR-002 (requirements), BDD-F-001/002/003 (BDD) verified resolved upstream and engineered into this spec; remaining P3 advisories FR-003 and BDD-R3-001 are dispositioned in reviewResponses. No Prototype Report exists, so no prototype evidence needed incorporation.",
+        "tasks": [
+          {
+            "description": "Create nuclear-fusion-3d/index.html: <html lang=\"zh-CN\">, viewport meta, bilingual-ish zh header with one-line subtitle, exact back-link <a id=\"homeBtn\" href=\"../index.html\" title=\"返回首页 Back to home\">🏠 首页</a>, <div id=\"stage\">, #tools nav with <button class=\"tool-btn\" id=\"btnTour\" title=\"引导浏览（分步讲解）\">🎬</button>, <div id=\"bottomBar\"> with ctrl-btns #toggleBtn (⏸ 暂停), #resetBtn (🔄 重置), #camBtn (🎥 重置视角), #tourPanel overlay with #tourTitle/#tourText/#tourDots/#tourPrev (← 上一步)/#tourNext (下一步 →)/#tourExit (退出), and the #physicsPanel displaying the AC-06 chain verbatim: ²H + ³H → ⁴He + n + 17.6 MeV; 中子 ~14.1 MeV / α 粒子（氦核）~3.5 MeV; 2.014102 u + 3.016049 u − 4.002602 u − 1.008665 u = 0.018884 u ≈ 0.0189 u; ×931.494 MeV/u ≈ 17.6 MeV; ≈ 2.82e-12 J with the E=mc² 质能方程 explanation. Include the window.__errs error trap, the es-module-shims@1.10.0 async loader, and the import map pinned exclusively to https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js with \"three/addons/\" → https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/, then <script type=\"module\" src=\"./js/main.js\"></script>. Embed traceability comments for SCENARIO-001, SCENARIO-002, SCENARIO-005, SCENARIO-006, SCENARIO-014, SCENARIO-015, SCENARIO-016.",
+            "phase": "Phase 1: Static Page Shell, Physics Panel & Site Card",
+            "scenarioRefs": [
+              "SCENARIO-001",
+              "SCENARIO-002",
+              "SCENARIO-005",
+              "SCENARIO-006",
+              "SCENARIO-014",
+              "SCENARIO-015",
+              "SCENARIO-016"
+            ]
+          },
+          {
+            "description": "Create nuclear-fusion-3d/css/style.css following the site dark-space theme (ion-thruster-3d/css/style.css conventions): #04060d background, Outfit + PingFang SC font stack, gradient h1, fixed-overlay UI positioning, #stage grab cursor, ctrl-btn/tool-btn styles with :focus-visible keyboard focus, #tourPanel narration styling, #physicsPanel styling, responsive layout down to tablet width, user-select:none on chrome. Embed a SCENARIO-001/SCENARIO-002 traceability comment.",
+            "phase": "Phase 1: Static Page Shell, Physics Panel & Site Card",
+            "scenarioRefs": [
+              "SCENARIO-001",
+              "SCENARIO-002"
+            ]
+          },
+          {
+            "description": "Create the bootstrap slice of nuclear-fusion-3d/js/main.js: import WebGL from 'three/addons/capabilities/WebGL.js'; if (!WebGL.isWebGL2Available()) inject a custom Chinese explanation div into #stage (您的浏览器不支持 WebGL 2 …) and return before constructing any renderer; otherwise construct WebGLRenderer (setPixelRatio(Math.min(devicePixelRatio, 2))), scene, PerspectiveCamera with named DEFAULT_CAMERA_POS/DEFAULT_CAMERA_TARGET constants, OrbitControls (enableDamping, wheel + pinch zoom), THREE.Clock, ONE rAF loop that always calls clock.getDelta() and renders a placeholder starfield background, a resize listener, and window.__ready = true at the end. Embed the SCENARIO-024 traceability comment at the fallback branch.",
+            "phase": "Phase 1: Static Page Shell, Physics Panel & Site Card",
+            "scenarioRefs": [
+              "SCENARIO-002",
+              "SCENARIO-024"
+            ]
+          },
+          {
+            "description": "Edit root index.html only as follows: (a) add the accent rules .card--fusion::before { radial-gradient accent } and .card--fusion .card__icon { background: … } alongside the existing six card accent rules (index.html:119–141); (b) add one card after the atomic-model card: <a class=\"card card--fusion\" href=\"nuclear-fusion-3d/\" id=\"link-nuclear-fusion-3d\"> with an emoji icon (☀️), the bilingual title \"Nuclear Fusion 核聚变\", a one-line English description of the fusion journey, and an \"Open →\" arrow. No other changes to root index.html and no changes to Caddyfile or other pages. Embed SCENARIO-003/SCENARIO-004 traceability comments in the added block.",
+            "phase": "Phase 1: Static Page Shell, Physics Panel & Site Card",
+            "scenarioRefs": [
+              "SCENARIO-003",
+              "SCENARIO-004"
+            ]
+          },
+          {
+            "description": "Phase-1 static verification pass: grep nuclear-fusion-3d/index.html for the required literals '17.6', '0.0189', 'E=mc' (plus the spec-strengthened '14.1', '3.5', '2.82'); confirm '0.0256' and '3.2e-11' appear nowhere under nuclear-fusion-3d/; confirm no other three.js source (unpkg, three.min.js, three@0.15x/0.16x≠0.160.0) is referenced; confirm exactly one import map exists. Serve the worktree directly (caddy file-server --root \"$PWD\" --listen :8321 — the Caddyfile pins the main checkout) and load http://localhost:8321/nuclear-fusion-3d/ with an empty console (window.__errs empty, zero errors/warnings).",
+            "phase": "Phase 1: Static Page Shell, Physics Panel & Site Card",
+            "scenarioRefs": [
+              "SCENARIO-015"
+            ]
+          },
+          {
+            "description": "Implement §2 PHYS constants and §3 phase state machine in js/main.js: PHYS single-source object (masses 2.014102/3.016049/4.002602/1.008665 u, MASS_DEFECT_U 0.018884 displayed ≈0.0189, MEV_PER_U 931.494, Q_MEV 17.6, split 14.1/3.5, J_PER_MEV 1.602e-13, E_J 2.82e-12, E=mc² label); PHASES ordered ['atoms','plasma','fusion'] with zh labels 原子结构/加热 → 等离子体/聚变反应, explicit phase durations, state {phaseKey, phaseTime, simTime, paused}, advancePhase() gated on simTime, startRun(fromKey) supporting 'atoms' and 'plasma', and the observable window.fusionSim API {getPhase, getPhaseTime, getSimTime, isPaused, pause, resume, reset, isTourActive, getTourStep}. Embed the SCENARIO-010 traceability comment.",
+            "phase": "Phase 2: Fusion Story Runtime, Guided Tour & Playback Controls",
+            "scenarioRefs": [
+              "SCENARIO-010"
+            ]
+          },
+          {
+            "description": "Implement the 原子结构 phase rendering: deuterium atom (nucleus = 1 red proton sphere + 1 gray-blue neutron sphere, 1 tiny bright electron orbiting on a visible orbit ring) beside a tritium atom (1 proton + 2 neutrons nucleus, 1 orbiting electron), gentle idle drift, CSS2D on-canvas labels 质子/中子/电子 plus a legend distinguishing particles by size (nuclear-scale p/n, visibly tiny e) so color alone is never the only cue. Embed the SCENARIO-007 traceability comment.",
+            "phase": "Phase 2: Fusion Story Runtime, Guided Tour & Playback Controls",
+            "scenarioRefs": [
+              "SCENARIO-007"
+            ]
+          },
+          {
+            "description": "Implement the 加热 → 等离子体 phase: strip the two orbiting electrons into free flight, drive the hero nuclei with fast random-velocity jitter, and render an ambient plasma field as ONE THREE.Points + BufferGeometry with per-frame typed-array position updates; hard-cap total animated particles at 2,000; dispose replaced geometries/materials on every phase rebuild. Embed the SCENARIO-008 traceability comment.",
+            "phase": "Phase 2: Fusion Story Runtime, Guided Tour & Playback Controls",
+            "scenarioRefs": [
+              "SCENARIO-008"
+            ]
+          },
+          {
+            "description": "Implement the 聚变反应 event: hero D and T nuclei travel the collision axis with a decelerating Coulomb-repulsion arc, merge into a ⁴He nucleus cluster (2 protons + 2 neutrons), eject a free gray neutron with recoil momentum, and emit an expanding energy-flash Sprite (SpriteMaterial {blending: AdditiveBlending, transparent: true, depthWrite: false}) whose scale/opacity animate then fade. Embed the SCENARIO-009 traceability comment.",
+            "phase": "Phase 2: Fusion Story Runtime, Guided Tour & Playback Controls",
+            "scenarioRefs": [
+              "SCENARIO-009"
+            ]
+          },
+          {
+            "description": "Implement free-explore auto-repeat: when the energy flash finishes fading and no tour is active, call startRun('plasma') so the reaction loops endlessly, disposing the previous run's GPU resources on each rebuild (AC-08/SCENARIO-021). Embed the SCENARIO-021 traceability comment.",
+            "phase": "Phase 2: Fusion Story Runtime, Guided Tour & Playback Controls",
+            "scenarioRefs": [
+              "SCENARIO-021"
+            ]
+          },
+          {
+            "description": "Implement §6 guided tour: TOUR_STEPS data array in js/ of the 5 required steps (原子结构（质子/中子/电子）; 加热变成等离子体; 克服库仑斥力（原子核相互排斥）; 聚变反应生成氦-4 和中子; E=mc² 质量变成能量), each {key, title, zhText, phaseKey}; #btnTour opens the panel at step 0; entering step i forces phaseKey = step.phaseKey with phaseTime 0 and simTime snapped to that phase's boundary without pausing; #tourPrev (← 上一步) and #tourNext (下一步 →) clamp at bounds; #tourExit (退出) closes to free exploration; #tourDots highlights the current step. Tour state lives only in §6 and is never touched by reset. Embed SCENARIO-011/012/013 traceability comments.",
+            "phase": "Phase 2: Fusion Story Runtime, Guided Tour & Playback Controls",
+            "scenarioRefs": [
+              "SCENARIO-011",
+              "SCENARIO-012",
+              "SCENARIO-013"
+            ]
+          },
+          {
+            "description": "Implement §7 controls: #toggleBtn toggles state.paused and swaps its label ⏸ 暂停 ⇄ ▶ 继续 — the rAF loop keeps calling clock.getDelta() every frame and accumulates simTime/updates the world only when unpaused (never write clock.running); #resetBtn calls fusionSim.reset() = startRun('plasma') restarting the 3D animation immediately from 等离子体 without reading or writing tour state; #camBtn restores DEFAULT_CAMERA_POS/DEFAULT_CAMERA_TARGET; OrbitControls remain enabled in all phases so drag-rotate and wheel/pinch-zoom never interrupt particle motion or the phase clock. Embed SCENARIO-017/018/019/020 traceability comments.",
+            "phase": "Phase 2: Fusion Story Runtime, Guided Tour & Playback Controls",
+            "scenarioRefs": [
+              "SCENARIO-017",
+              "SCENARIO-018",
+              "SCENARIO-019",
+              "SCENARIO-020"
+            ]
+          },
+          {
+            "description": "Enforce r160 runtime hygiene and run the final verification: no useLegacyLights/outputEncoding/texture.encoding writes anywhere; texture.colorSpace = SRGBColorSpace only for the canvas-generated color texture. Serve the worktree (caddy file-server --listen :8321) and verify at http://localhost:8321/nuclear-fusion-3d/: zero console errors and warnings; only non-local requests are jsdelivr three@0.160.0 modules (+ optional Google Fonts); via window.fusionSim observe the initial run advancing atoms → plasma → fusion in order and a reset run advancing plasma → fusion; pause freezes particles + phase clock and resume continues from the frozen phase; reset during an active tour leaves tour step/narration unchanged; free-explore auto-repeats; camera reset restores the default view; spot-check ≥60 fps feel and the WebGL fallback path by code inspection. Embed the SCENARIO-022/023 traceability comments near the loop/hygiene section.",
+            "phase": "Phase 2: Fusion Story Runtime, Guided Tour & Playback Controls",
+            "scenarioRefs": [
+              "SCENARIO-022",
+              "SCENARIO-023"
+            ]
+          }
+        ],
+        "testingStrategy": "Two-phase verification, each phase independently gated. PHASE 1 — deterministic static checks (grep-level, run against the worktree): (a) required files exist (nuclear-fusion-3d/index.html, css/style.css, js/main.js); (b) index.html contains <html lang=\"zh-CN\">, id=\"homeBtn\" with ../index.html href and 返回首页 title, id=\"stage\", the exact two jsdelivr three@0.160.0 import-map URLs and no other three source/version, es-module-shims loader, module script ./js/main.js, all ctrl/tour DOM ids (btnTour with 引导浏览 title, toggleBtn, resetBtn, camBtn, tourPanel, tourTitle, tourText, tourDots, tourPrev, tourNext, tourExit, bottomBar, tools); (c) physics literals present — '17.6', '0.0189', 'E=mc' (satisfies the 'mc' requirement), plus spec-strengthened positive pins '14.1', '3.5', '2.82' — and forbidden literals '0.0256'/'3.2e-11' absent from every file under nuclear-fusion-3d/; (d) root index.html contains the card--fusion card (id link-nuclear-fusion-3d, href nuclear-fusion-3d/, bilingual title, Open → arrow) and both .card--fusion accent rules, with no other diffs; (e) shell loads clean when served (caddy file-server from the worktree, since the Caddyfile root pins the main checkout) with zero console errors/warnings. PHASE 2 — browser runtime checks at http://localhost:8321/nuclear-fusion-3d/ (headless or manual): (1) console capture shows zero errors AND zero warnings, window.__errs stays empty, window.__ready becomes true; (2) network capture shows only local assets + jsdelivr three@0.160.0 (+ optional Google Fonts) — no telemetry/analytics; (3) AC-04 observability: poll window.fusionSim.getPhase() and assert the ordered sequence atoms → plasma → fusion within one run, and plasma → fusion after a reset run; (4) AC-07 pause: press ⏸ 暂停, assert isPaused() true, label swapped to ▶ 继续, particle positions and getSimTime() frozen across frames; press ▶ 继续 and assert motion and the phase clock resume with no time jump and no phase skip/replay; (5) AC-08 reset: start the tour, step to a middle step, press 🔄 重置, assert getPhase()==='plasma' immediately, tour step and narration text unchanged; leave the tour and assert the flash-fade auto-repeat returns to plasma with no learner action; (6) 🎥 重置视角 restores the default camera after orbit+zoom; drag-rotate/wheel-zoom during every phase never stops particle motion; (7) SCENARIO-024 degradation: verify the fallback branch by inspection (isWebGL2Available() gate precedes renderer construction and renders the custom Chinese div) — no browser-side forced-failure hook is added to the shipped page; (8) NFR sanity: ≥60 fps at 1080p integrated graphics (particle budget ≤2,000, single THREE.Points draw call), pixelRatio ≤2, and no geometry/material leak across ≥3 auto-repeat cycles (renderer.info.memory stable). Scenario traceability comments (SCENARIO-NNN tags embedded in the created files at the implementing sections) provide stable grep anchors for the deliverable gates of both phases.",
+        "title": "核聚变 3D 交互动画 (Nuclear Fusion 3D Animation) — Technical Specification, Implementation Plan & Task List for nuclear-fusion-3d/",
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/01-nuclear-fusion-3d-animation/docs/specifications/01-nuclear-fusion-3d-animation/09-specification.md",
+        "implementationPlanPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/01-nuclear-fusion-3d-animation/docs/specifications/01-nuclear-fusion-3d-animation/10-implementation-plan.md",
+        "taskListPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/01-nuclear-fusion-3d-animation/docs/specifications/01-nuclear-fusion-3d-animation/11-task-list.md",
+        "specificationPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/01-nuclear-fusion-3d-animation/docs/specifications/01-nuclear-fusion-3d-animation/09-specification.md",
+        "phaseCount": "2"
+      }
+    },
+    "specReview": {
+      "timestamp": "2026-08-27T06:09:57.961Z",
+      "agent": "specReview",
+      "data": {
+        "date": "2026-08-27",
+        "dimensions": [
+          {
+            "name": "Completeness",
+            "notes": "5/5 — All 9 ACs (AC-01..09) and all 24 scenarios have owning spec sections and phases; error path (WebGL2 fallback, SCENARIO-024) fully specified; NFRs (≥60 fps, ≤2,000-particle cap, pixelRatio≤2, dispose-on-rebuild, network hygiene) covered in spec + plan + tasks.",
+            "status": "pass"
+          },
+          {
+            "name": "Consistency",
+            "notes": "4/5 — DOM ids (btnTour/toggleBtn/resetBtn/camBtn/tourPanel set), PHYS, TOUR_STEPS, window.fusionSim, startRun('plasma'), and phase labels are identical across spec/plan/task-list. One P3 drift: Testing-Strategy/FR-003-response narrate a '3\\.5' positive pin and a css-file forbidden-literal sweep that the enforced Phase-1 requireContains/requireNotContains contract omits (SPEC-F-001).",
+            "status": "pass-with-comments"
+          },
+          {
+            "name": "Feasibility",
+            "notes": "5/5 — Zero-build static pattern mirrors the verified ion-thruster-3d/ template; all three/addons imports (OrbitControls, CSS2DRenderer, capabilities/WebGL) exist in the pinned three@0.160.0; simTime-accumulator pause and dispose-on-rebuild patterns are sound; single-file module map with no circular dependencies; worktree caddy file-server workaround for the main-checkout Caddyfile root is correctly engineered.",
+            "status": "pass"
+          },
+          {
+            "name": "Testability",
+            "notes": "5/5 — Both scenario-mapped phases declare enforced deliverables.requireScenarios (Phase 1: 001-006/014/015/016/024; Phase 2: 007-013/017-023), plus requireFiles/requireContains/requireNotContains regex gates. Runtime checks are concrete and observable via the enumerated window.fusionSim API; thresholds numeric (60 fps, 2,000 particles, 5 tour steps, 3 phases, pixelRatio≤2, ≥3 auto-repeat cycles for memory stability).",
+            "status": "pass"
+          },
+          {
+            "name": "Traceability",
+            "notes": "5/5 — Spec cites AC-01..AC-09 and SCENARIO-001..SCENARIO-024, all verified to exist in 01-requirements.md and 03-bdd-scenarios.md (BDD coverage summary: 9/9 ACs, 24/24 scenarios, 0 uncovered). Summary trace matrix maps every AC→scenarios→phase with no orphans; every task lists scenario refs. All six prior findings dispositioned in Prior Review Responses; both previously-blocking ones (FR-001, BDD-F-001) now verified in the upstream artifacts themselves.",
+            "status": "pass"
+          },
+          {
+            "name": "Grounding",
+            "notes": "5/5 (~98%) — Repo-baseline claims (ion-thruster-3d template ids, import-map pin pattern, root card grid lines 119–141/190–229, Caddyfile :8321 root behavior) are consistent with the research/code-assessment prior-stage record and mutually consistent across all three artifacts; every file path, DOM id, addon path, and constant named in the spec maps to a real repo pattern or an explicitly CREATEd file. No hallucinated references found.",
+            "status": "pass"
+          },
+          {
+            "name": "Complexity",
+            "notes": "5/5 — 3 created files + 1 tightly-scoped root index.html edit; no bundler/build/tooling; single PHYS single-source module prevents dual-source physics drift; TOUR_STEPS as a data array mirrors the existing template convention. No gold-plating or premature abstraction.",
+            "status": "pass"
+          },
+          {
+            "name": "Ambiguity",
+            "notes": "4/5 — window.fusionSim API fully enumerated with return types; state machine states/labels/advance gating explicit; PHYS constants fully numeric; pause/reset/camera/tour behaviors each given a precise contract; fallback path specified to the message language and return-before-renderer level. Residual: per-phase durations are intentionally implementation-defined (acceptable since tests poll getPhase() transitions, not fixed timings); '3\\.5' narrative pin ambiguity captured as SPEC-F-001.",
+            "status": "pass-with-comments"
+          }
+        ],
+        "findings": [
+          {
+            "blocking": false,
+            "confidence": 0.9,
+            "defectClass": "narrative-contract-drift",
+            "detail": "The spec's Testing Strategy (c) and the FR-003 response claim positive pins '14.1', '3.5', '2.82' plus forbidden '0.0256'/'3.2e-11' 'absent from every file under nuclear-fusion-3d/'. The plan's enforced Phase 1 deliverables contract implements '14\\.1' and '2\\.82' in requireContains but omits '3\\.5'; and requireNotContents for the forbidden literals cover index.html and js/main.js only, not css/style.css (the task-list verification prose does cover css, so the gap is contract-vs-narrative, not a coverage hole in the runbook). Impact is cosmetic: the corrected joule figure '2\\.82' — the actual FR-003 ask — IS enforced, and 0.0256/3.2e-11 cannot legitimately appear in css anyway. Generalization rule: wherever the spec narrative names a deterministic check, the plan's enforced deliverables block must carry the identical literal, or the narrative must not claim it.",
+            "evidence": [
+              "09-specification.md Testing Strategy: \"plus spec-strengthened positive pins '14.1', '3.5', '2.82'\" and \"forbidden literals '0.0256'/'3.2e-11' absent from every file under nuclear-fusion-3d/\"",
+              "Prior Review Response FR-003: \"alongside additional positive pins '14\\.1' and '3\\.5'\"",
+              "10-implementation-plan.md Phase 1 requireContains: index.html matches 17\\.6 / 0\\.0189 / E=mc / 14\\.1 / 2\\.82 — no 3\\.5 entry; requireNotContains for 0\\.0256 / 3\\.2e-11 list only index.html and js/main.js"
+            ],
+            "id": "SPEC-F-001",
+            "lens": "Consistency",
+            "line": "Testing Strategy, PHASE 1 item (c)",
+            "ownerStage": "spec",
+            "recommendation": "Either add `nuclear-fusion-3d/index.html matches 3\\.5` to Phase 1 deliverables.requireContains (and optionally a css requireNotContains for 0\\.0256/3\\.2e-11), or drop '3.5' and the every-file wording from the Testing Strategy narrative and the FR-003 response text. No upstream change required.",
+            "severity": "P3",
+            "status": "open",
+            "title": "Testing-strategy narrative names checks the enforced deliverables contract does not carry ('3\\.5' pin; css-file forbidden-literal sweep)"
+          }
+        ],
+        "priorFindingResolutions": [
+          {
+            "evidence": "01-requirements.md AC-06: \"mass defect ≈ 0.0189 u (... = 0.018884 u), released energy ≈ 2.8×10⁻¹² J (2.82e-12 J)... 0.018884 u × 931.494 MeV/u ≈ 17.59 ≈ 17.6 MeV; 17.6 MeV × 1.602×10⁻¹³ ≈ 2.82×10⁻¹² J; must NOT contain '0.0256' or '3.2e-11'\"; spec §2 PHYS chain matches; plan Phase 1 requireContains 17\\.6/0\\.0189/2\\.82/14\\.1 + requireNotContains 0\\.0256/3\\.2e-11 on index.html and js/main.js.",
+            "findingId": "FR-001",
+            "ownerStage": "requirements",
+            "response": "Verified in the current upstream artifact: AC-06 in 01-requirements.md now carries the physically correct and internally consistent chain — 0.018884 u (= 2.014102 + 3.016049 − 4.002602 − 1.008665), × 931.494 MeV/u ≈ 17.59 ≈ 17.6 MeV, 17.6 × 1.602e-13 ≈ 2.82e-12 J, split 14.1/3.5 — and the deterministic gate requires '17.6'/'0.0189'/'mc' while forbidding '0.0256'/'3.2e-11'. The spec engineers this into the §2 PHYS single-source module and the index.html physics panel, with the literals enforced in the Phase 1 deliverables contract.",
+            "status": "verified"
+          },
+          {
+            "evidence": "01-requirements.md AC-08: \"restarts the 3D animation immediately from the 等离子体 phase WITHOUT changing the current guided-tour step or its narration panel\"; 09-specification.md §6/§7 ownership contract; 10-implementation-plan.md Phase 2 requireContains `startRun\\('plasma'\\)`.",
+            "findingId": "FR-002",
+            "ownerStage": "requirements",
+            "response": "Verified: AC-08 explicitly pins reset semantics (restart from 等离子体, tour step/narration unchanged, auto-repeat after flash fade), and the spec implements the separation of concerns — §7 reset() = startRun('plasma') touching animation state only; tour state is owned exclusively by §6 and never read or written by reset. Phase 2 runtime check (5) asserts exactly this.",
+            "status": "verified"
+          },
+          {
+            "evidence": "10-implementation-plan.md Phase 1: \"`nuclear-fusion-3d/index.html` matches `2\\.82`\"; minor narrative drift on the '3\\.5' pin captured as SPEC-F-001 (P3, non-blocking).",
+            "findingId": "FR-003",
+            "ownerStage": "requirements",
+            "response": "Core advisory satisfied: the enforced Phase 1 contract positively pins the corrected joule figure via requireContains '2\\.82' on nuclear-fusion-3d/index.html alongside '14\\.1', strictly stronger than AC-06's minimum gate ('17.6', '0.0189', 'mc'). Note: the response text also names a '3\\.5' pin that is absent from the enforced requireContains list — tracked as advisory SPEC-F-001; does not affect resolution of the original ask (the joule pin).",
+            "status": "addressed"
+          },
+          {
+            "evidence": "03-bdd-scenarios.md SCENARIO-017: \"And after ▶ 继续 is pressed, all particle motion resumes and the phase clock advances again — the story is not stuck frozen / And the story continues from exactly the phase where it was frozen, with no phase skipped or replayed\"; AC-07 traceability entry records BDD-F-001 resolved; 10-implementation-plan.md Phase 2 requireNotContains `\\.running\\s*=`.",
+            "findingId": "BDD-F-001",
+            "ownerStage": "bdd",
+            "response": "Verified in the current upstream artifact: SCENARIO-017's Then block now binds observable resume outcomes — \"after ▶ 继续 is pressed, all particle motion resumes and the phase clock advances again — the story is not stuck frozen\", \"the story continues from exactly the phase where it was frozen, with no phase skipped or replayed\", plus the ⏸/▶ label-toggle clause. The spec's §1/§7 simTime-accumulator pattern (clock.getDelta() every frame, accumulate only when unpaused) satisfies them by construction; Phase 2's runtime check (4) asserts resume with no time jump and no phase skip/replay, and the enforced forbid of '.running\\s*=' prevents the THREE.Clock trap.",
+            "status": "verified"
+          },
+          {
+            "evidence": "03-bdd-scenarios.md Traceability AC-04 entry; 09-specification.md §3 startRun('atoms') for initial load, startRun('plasma') for reset/auto-repeat; Phase 2 runtime check (3).",
+            "findingId": "BDD-F-002",
+            "ownerStage": "bdd",
+            "response": "Verified: SCENARIO-010/AC-04 traceability entry scopes strict atoms→plasma→fusion ordering to one single run and explicitly allows restart-from-等离子体 runs; the spec implements startRun('atoms') for initial load and startRun('plasma') for reset and auto-repeat, matching the scoped claim exactly.",
+            "status": "verified"
+          },
+          {
+            "evidence": "09-specification.md Module Map §1; 10-implementation-plan.md Phase 1 requireContains `isWebGL2Available` on js/main.js; task-list bootstrap task.",
+            "findingId": "BDD-F-003",
+            "ownerStage": "bdd",
+            "response": "Verified: the spec uses WebGL.isWebGL2Available() for detection, renders a custom Chinese fallback div into #stage, and returns before constructing WebGLRenderer — so no English getWebGL2ErrorMessage() text and no renderer-construction console error can occur on the degradation path; SCENARIO-024 is mapped to Phase 1 and verified by inspection (no forced-failure hook shipped).",
+            "status": "verified"
+          },
+          {
+            "evidence": "10-implementation-plan.md Phase 1 deliverables.requireScenarios includes SCENARIO-014/015/016; requireContains pins 17\\.6/0\\.0189/E=mc/14\\.1/2\\.82; requireNotContains 0\\.0256/3\\.2e-11.",
+            "findingId": "BDD-R3-001",
+            "ownerStage": "bdd",
+            "response": "Deferred is correct: the advisory concerns When-clause phrasing in the BDD document itself (SCENARIO-015/016 reviewer-action wording), not the deliverable; the deterministic source-literal checks it pointed at are fully implemented in the Phase 1 enforced contract, so no spec or code action is possible or needed.",
+            "status": "deferred"
+          }
+        ],
+        "summary": "Round-2 Fagan inspection of the nuclear-fusion-3d specification trio (09-specification.md, 10-implementation-plan.md, 11-task-list.md). Both previously blocking convergence-ledger findings are now GENUINELY resolved upstream and verified by direct artifact inspection: (1) FR-001 — 01-requirements.md AC-06 now carries the physically correct, internally consistent D–T chain (mass defect 0.018884 u ≈ 0.0189 u; ×931.494 MeV/u ≈ 17.59 ≈ 17.6 MeV; ×1.602e-13 J/MeV ≈ 2.82e-12 J; split 14.1/3.5 MeV) and its deterministic gate requires '17.6'/'0.0189'/'mc' while forbidding '0.0256'/'3.2e-11'; the spec engineers this into §2 PHYS (single source) + the index.html physics panel, and the Phase-1 enforced deliverables pin '17\\.6'/'0\\.0189'/'E=mc'/'14\\.1'/'2\\.82' positively and forbid '0\\.0256'/'3\\.2e-11' on index.html and js/main.js. (2) BDD-F-001 — SCENARIO-017's Then block now asserts post-resume outcomes verbatim: \"after ▶ 继续 is pressed, all particle motion resumes and the phase clock advances again — the story is not stuck frozen\", continuation from exactly the frozen phase with no skip/replay, and the ⏸/▶ label toggle; the spec's §1/§7 simTime-accumulator pattern plus the Phase-2 '.running\\s*=' forbid satisfies every clause by construction, and Phase-2 testing step (4) asserts it at runtime. Traceability is fully closed: all 9 ACs (verified to exist in 01-requirements.md) and all 24 SCENARIOs (verified against 03-bdd-scenarios.md, coverage summary 9/9, 0 uncovered) are cited, phase-mapped (Phase 1 = 10 scenarios, Phase 2 = 14), and every task carries scenario refs. Testability contract is satisfied: BOTH scenario-mapped phases declare enforced deliverables.requireScenarios (PREFERRED form) with explicit SCENARIO-NNN ids, plus requireFiles/requireContains/requireNotContains. FR-002, BDD-F-002, BDD-F-003 verified; FR-003 addressed (the '2\\.82' positive pin is in the enforced contract); BDD-R3-001 correctly deferred. One residual P3 advisory: the spec's Testing-Strategy narrative and FR-003 response name a '3\\.5' positive pin and a css-file sweep of the forbidden literals that the enforced Phase-1 deliverables contract does not carry (contract pins '14\\.1' and '2\\.82' but not '3\\.5'; requireNotContains covers index.html and js/main.js but not css/style.css) — cosmetic narrative/contract drift, non-blocking, the corrected joule figure is enforced either way. No P0/P1 defects; all prior blockers resolved; verdict: Approved with Comments.",
+        "title": "Spec Review — 核聚变 3D 交互动画 (nuclear-fusion-3d/) Technical Specification, Implementation Plan & Task List",
+        "verdict": "Approved with Comments",
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/01-nuclear-fusion-3d-animation/docs/specifications/01-nuclear-fusion-3d-animation/12-spec-review.md"
+      }
+    },
+    "implementationSummary": {
+      "timestamp": "2026-08-27T07:12:40.898Z",
+      "agent": "implementationSummary",
+      "data": {
+        "allGreen": "true",
+        "date": "2026-08-27",
+        "filesModified": [
+          "index.html",
+          "nuclear-fusion-3d/index.html",
+          "nuclear-fusion-3d/css/style.css",
+          "nuclear-fusion-3d/js/main.js",
+          "nuclear-fusion-3d/tests/phase1-shell.test.mjs",
+          "nuclear-fusion-3d/tests/phase2-runtime.test.mjs",
+          "docs/specifications/01-nuclear-fusion-3d-animation/01-requirements.md",
+          "docs/specifications/01-nuclear-fusion-3d-animation/02-requirements-review.md",
+          "docs/specifications/01-nuclear-fusion-3d-animation/03-bdd-scenarios.md",
+          "docs/specifications/01-nuclear-fusion-3d-animation/04-bdd-review.md",
+          "docs/specifications/01-nuclear-fusion-3d-animation/05-research-report.md",
+          "docs/specifications/01-nuclear-fusion-3d-animation/06-code-assessment.md",
+          "docs/specifications/01-nuclear-fusion-3d-animation/07-design.md",
+          "docs/specifications/01-nuclear-fusion-3d-animation/08-design-review.md",
+          "docs/specifications/01-nuclear-fusion-3d-animation/09-specification.md",
+          "docs/specifications/01-nuclear-fusion-3d-animation/10-implementation-plan.md",
+          "docs/specifications/01-nuclear-fusion-3d-animation/11-task-list.md",
+          "docs/specifications/01-nuclear-fusion-3d-animation/12-spec-review.md"
+        ],
+        "phasesCompleted": "2/2",
+        "summary": "Implementation summary for spec 01-nuclear-fusion-3d-animation — a new self-contained, bilingual (zh-CN) three.js teaching page, nuclear-fusion-3d/, that animates the full D–T fusion story for children.\n\nPHASE 1 — Static page shell, physics panel & site card (commit 931470d, TDD red→green, tests/phase1-shell.test.mjs, 10 scenarios: SCENARIO-001…006, 014, 015, 016, 024): page skeleton with lang=zh-CN, #homeBtn back-link, #stage canvas host; three.js loaded exclusively via import map pinned to jsdelivr three@0.160.0 (identical to ion-thruster-3d, no bundler/build step); WebGL2 capability gate with a Chinese fallback that returns before any renderer is constructed; renderer/camera/OrbitControls/resize bootstrap with ONE rAF loop + starfield placeholder; root index.html gains the card--fusion card (\"Nuclear Fusion 核聚变\", emoji, one-line English description, Open →) and a .card--fusion accent CSS rule alongside the existing card accents.\n\nPHASE 2 — Fusion story runtime, guided tour & playback controls (commit 6b6683b, TDD broken→red→green, tests/phase2-runtime.test.mjs, 14 scenarios: SCENARIO-007…013, 017…023): three-phase state machine 原子结构 (D atom 1p+1n+electron, T atom 1p+2n+electron) → 加热→等离子体 (stripped electrons, fast nuclei) → 聚变反应 (D–T collision against Coulomb repulsion → ⁴He + free neutron + expanding energy flash), growing inside the same single rAF loop; 🎬 引导浏览 guided tour of 5+ data-defined steps (atoms, heating/plasma, Coulomb repulsion, He-4+neutron product, E=mc²) with tourPrev/tourNext/tourExit; ⏸暂停/▶继续 toggle that freezes and resumes particle motion and the phase clock; 🔄重置 that restarts at the 等离子体 phase WITHOUT changing the current tour step; 🎥重置视角 camera restore; auto-repeat to plasma after the flash fades.\n\nTEST RESULTS — All green. `node --test nuclear-fusion-3d/tests/*.mjs` passes with fail 0 (24 BDD scenarios covered across both suites, zero missing scenarios per implementation-evidence.jsonl). TDD discipline is logged in the evidence ledger: phase-1 red, then phase-2 broken (RED tests did not compile/collect) → red → green. AC-09 manual check: served by the existing Caddyfile static server at :8321 — Caddyfile untouched, no build artifacts.\n\nRESPONSE TO PRIOR-ATTEMPT REJECTION (both convergence-ledger findings addressed at their owning artifacts, with the downstream implementation explicitly responding):\n• FR-001 (owner=requirements, AC-06 physics numbers): 01-requirements.md was revised — the header states \"This revision resolves review FR-001 (physics numbers corrected to mass defect ≈0.0189 u and ≈2.8e-12 J, consistent with 17.6 MeV; wrong values 0.0256 u / 3.2e-11 J now explicitly forbidden)\". AC-06 now pins the internally consistent chain: mass defect 2.014102+3.016049−4.002602−1.008665 = 0.018884 u ≈ 0.0189 u; 0.018884 u × 931.494 MeV/u ≈ 17.59 ≈ 17.6 MeV (中子 14.1 MeV / α 3.5 MeV); 17.6 MeV × 1.602×10⁻¹³ J/MeV ≈ 2.82×10⁻¹² J. The deterministic check was extended per the recommendation: the page must contain literals '17.6', '0.0189', 'mc' and must NOT contain '0.0256' or '3.2e-11'. The shipped page implements exactly this — js/main.js constants MASS_DEFECT_U: 0.018884, MASS_DEFECT_U_ROUNDED: '0.0189 u', Q_MEV: 17.6, E_J: 2.82e-12, and index.html's physics panel shows the full consistent derivation (质量亏损 0.018884 u ≈ 0.0189 u → 17.6 MeV → 2.82e-12 J, E=mc²).\n• BDD-F-001 (owner=bdd, SCENARIO-017 resume observability): 03-bdd-scenarios.md SCENARIO-017 was extended with the missing post-resume outcomes — Then now asserts the toggle label switches between ⏸暂停 and ▶继续, that after ▶继续 all particle motion resumes and the phase clock advances again (\"the story is not stuck frozen\"), and that the story continues from exactly the frozen phase with none skipped or replayed. Downstream response: js/main.js (commented \"SCENARIO-017 (AC-07, BDD-F-001 response)\") implements pause()/resume() that flip state.paused and swap the toggle label, inside a single rAF loop where simTime and the phase clock only accumulate while unpaused, so resumption continues seamlessly from the frozen instant; this behavior is verified by the SCENARIO-017 test in tests/phase2-runtime.test.mjs.\n\nDEVIATIONS — None functional. In addition to the FR-001 revision, requirements FR-002 (重置 reset semantics pinned: restart from plasma without disturbing the tour step) was folded into AC-08 and honored by the implementation. Scope was UI-only/mixed as planned: no Caddyfile, Makefile, or shared-CSS changes; only the new page, its tests, the one-line root card addition, and the spec document set were touched.",
+        "title": "Implementation Summary — 01-nuclear-fusion-3d-animation (D–T Fusion 3D Teaching Page)",
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/01-nuclear-fusion-3d-animation/docs/specifications/01-nuclear-fusion-3d-animation/13-implementation-summary.md"
+      }
+    },
+    "codeReview": {
+      "timestamp": "2026-08-27T07:15:52.504Z",
+      "agent": "codeReview",
+      "data": {
+        "date": "2026-08-27",
+        "findings": [
+          {
+            "blocking": false,
+            "confidence": 0.97,
+            "defectClass": "internally-inconsistent-spec-constants",
+            "detail": "The rejected prior finding (AC-06 demanded 17.6 MeV alongside a wrong 0.0256 u mass defect that converts to ~23.85 MeV and a fission-era 3.2e-11 J) is resolved at every stage. 01-requirements.md AC-06 now specifies the corrected, internally consistent chain: 2.014102 u + 3.016049 u − 4.002602 u − 1.008665 u = 0.018884 u ≈ 0.0189 u; 0.018884 u × 931.494 MeV/u ≈ 17.59 ≈ 17.6 MeV; 17.6 MeV × 1.602e-13 J/MeV ≈ 2.82e-12 J; and explicitly FORBIDS the literals '0.0256' and '3.2e-11'. The delivered page carries the corrected chain verbatim (index.html lines 58–63: reaction +17.6 MeV, split 14.1/3.5 MeV, mass defect 0.018884≈0.0189 u, E=mc² ≈2.82e-12 J) and js/main.js PHYS (lines 31–46) is the single source with MASS_DEFECT_U=0.018884, E_J=2.82e-12. grep over nuclear-fusion-3d/ confirms the forbidden literals appear in ZERO production files (only in the tests that assert their absence, tests/phase1-shell.test.mjs:223-230, tests/phase2-runtime.test.mjs:236-237 — which also extends the deterministic pin to '0.0189' as the gate feedback recommended).",
+            "evidence": [
+              "docs/specifications/.../01-requirements.md:18 AC-06 'mass defect ≈ 0.0189 u … = 0.018884 u … ≈ 2.8×10⁻¹² J (2.82e-12 J) … must NOT contain the incorrect literals 0.0256 or 3.2e-11'",
+              "nuclear-fusion-3d/index.html:61-63 '0.018884 u ≈ 0.0189 u' / '× 931.494 MeV/u ≈ 17.6 MeV' / '≈ 2.82e-12 J'",
+              "nuclear-fusion-3d/js/main.js:39,41,45 MASS_DEFECT_U_ROUNDED '0.0189 u', Q_MEV 17.6, E_J 2.82e-12",
+              "grep '0.0256|3.2e-11' nuclear-fusion-3d/ → matches only in tests/*.mjs (negative assertions), none in html/css/js production files"
+            ],
+            "id": "F-001",
+            "lens": "correctness/data-integrity",
+            "line": "18 (AC-06)",
+            "ownerStage": "requirements",
+            "priorFindingId": "FR-001",
+            "recommendation": "No action. The corrected requirements artifact was revised upstream, downstream artifacts (BDD SCENARIO-014/015/016, spec, implementation, tests) explicitly respond to it, and the deterministic gate now pins '0.0189' while forbidding the wrong literals. Keep the PHYS single-source pattern if numbers ever change again.",
+            "severity": "high",
+            "status": "verified",
+            "title": "FR-001 (AC-06 wrong physics numbers) verified resolved end-to-end"
+          },
+          {
+            "blocking": false,
+            "confidence": 0.96,
+            "defectClass": "unobservable-trigger-in-bdd-then-block",
+            "detail": "The rejected prior finding (SCENARIO-017's Then asserted only freeze outcomes, so a never-resumes implementation would pass) is resolved. 03-bdd-scenarios.md SCENARIO-017 now asserts, in addition to the freeze outcomes: 'the control toggles between the ⏸ 暂停 and ▶ 继续 labels as the state changes', 'after ▶ 继续 is pressed, all particle motion resumes and the phase clock advances again — the story is not stuck frozen', and 'the story continues from exactly the phase where it was frozen, with no phase skipped or replayed'. The implementation satisfies the new clauses: pause() sets state.paused=true and swaps the label to '▶ 继续' (main.js:622-625); resume() clears it and swaps back to '⏸ 暂停' (main.js:626-629); the single rAF loop gates ALL state accumulation (state.simTime += dt, state.phaseTime += dt, starfield motion, world.update, advancePhase) behind if (!state.paused) at main.js:668 while still calling clock.getDelta() every frame — so on resume the story continues from the frozen phaseTime with no phase skip or replay (each phase's update(), e.g. buildFusion's MERGE_T, is driven by state.phaseTime, not wall time).",
+            "evidence": [
+              "docs/specifications/.../03-bdd-scenarios.md SCENARIO-017 Then block: 'And the control toggles between the ⏸ 暂停 and ▶ 继续 labels…' / 'And after ▶ 继续 is pressed, all particle motion resumes and the phase clock advances again — the story is not stuck frozen' / 'continues from exactly the phase where it was frozen'",
+              "nuclear-fusion-3d/js/main.js:622-629 pause()/resume() with label swap",
+              "nuclear-fusion-3d/js/main.js:668 'if (!state.paused) { state.simTime += dt; state.phaseTime += dt; … updateWorld(dt); advancePhase(); }' — every frame still consumes clock.getDelta() so no time jump on resume"
+            ],
+            "id": "F-002",
+            "lens": "testability/bdd-coverage",
+            "ownerStage": "bdd",
+            "priorFindingId": "BDD-F-001",
+            "recommendation": "No action. Both halves of AC-07 (freeze AND resume) are now observable in the scenario and implemented; regression risk is covered by the window.fusionSim.isPaused/getPhaseTime probes usable at runtime.",
+            "severity": "medium",
+            "status": "verified",
+            "title": "BDD-F-001 (SCENARIO-017 missing post-resume assertions) verified resolved"
+          },
+          {
+            "blocking": false,
+            "confidence": 0.6,
+            "defectClass": "error-trap-blind-spot",
+            "detail": "The console-error trap used by the AC-09 clean-load gate registers only window.addEventListener('error', …). Static script and window errors are captured, but ES-module import failures (e.g., a failed three.js CDN fetch in <script type=\"module\">) surface as unhandled promise rejections in Chromium and would NOT be recorded in window.__errs — a page could appear 'clean' to the trap while its animation silently never starts. Suggested fix: window.addEventListener('unhandledrejection', e => window.__errs.push(String(e.reason && e.reason.message || e.reason))); alongside the existing handler. Optionally also set window.__ready only after a successful first render if a stronger gate is wanted — though the current __ready semantics (module top-level executed) is acceptable.",
+            "evidence": [
+              "nuclear-fusion-3d/index.html:72-73 'window.__errs = []; window.addEventListener('error', e => window.__errs.push(e.message));' — the only trap registered; no 'unhandledrejection' listener anywhere in the page (grep confirmed 0 hits)",
+              "nuclear-fusion-3d/js/main.js:686 'window.__ready = true' set at module top-level after init() regardless of whether any import/render subsequently fails asynchronously"
+            ],
+            "id": "F-003",
+            "lens": "observability/error-handling",
+            "line": "72-73",
+            "ownerStage": "implementation",
+            "recommendation": "Add an unhandledrejection listener pushing into window.__errs (one line) so CDN/module-load failures are visible to the AC-09 manual gate. Non-blocking; this mirrors the established site pattern, so adopting it site-wide is a follow-up, not a merge gate for this page.",
+            "severity": "low",
+            "status": "open",
+            "title": "window.__errs trap misses unhandledrejection, so module/CDN load failures can evade the AC-09 clean-load gate"
+          }
+        ],
+        "summary": "Reviewed nuclear-fusion-3d/ (index.html 87 L, css/style.css 170 L, js/main.js 686 L, plus tests/) against docs/specifications/01-nuclear-fusion-3d-animation/. Both convergence-ledger blockers from the rejected prior attempt are verified resolved at their owning stages AND in the implementation. FR-001: 01-requirements.md AC-06 now specifies the corrected chain (17.6 MeV; 14.1/3.5 MeV split; mass defect 0.018884 u ≈ 0.0189 u; ≈2.82e-12 J) with the wrong literals 0.0256/3.2e-11 explicitly forbidden, and grep confirms those literals appear in NO production file under nuclear-fusion-3d/ (only in tests asserting their absence); index.html:58-63 and main.js PHYS (31-46) display the correct chain; the deterministic pin was extended to '0.0189' as recommended. BDD-F-001: SCENARIO-017 now asserts the label toggle (⏸/▶), post-resume particle motion AND phase-clock resumption, and continuation from the exact frozen phase; main.js implements this (pause/resume swap labels at 622-629; the single rAF loop gates simTime/phaseTime/world/advancePhase behind !state.paused at 668 while still consuming clock.getDelta() each frame — clean freeze/resume semantics). AC checklist: AC-01 ✓ (zh-CN shell, #homeBtn, #stage), AC-02 ✓ (root index.html:227-230 card + :125,143 accents), AC-03 ✓ (import map pinned exclusively to three@0.160.0 + three/addons/, es-module-shims@1.10.0, no bundler), AC-04 ✓ (three phases, simTime-gated state machine, window.fusionSim observable API), AC-05 ✓ (5 TOUR_STEPS, tourPrev/tourNext/tourExit, forced-phase coupling), AC-06 ✓ (correct, internally consistent numbers), AC-07 ✓ (pause/resume/label swap, 🎥 camera restore, always-on OrbitControls with damping), AC-08 ✓ (🔄 = startRun('plasma') without touching tour state; auto-repeat to plasma after flash fade), AC-09 by design ✓ (WebGL2 gate with Chinese fallback before any renderer, __errs trap, single rAF, MeshBasicMaterial-only scene avoids r160 light warnings, dispose-on-rebuild in clearStory). Dimension scores: Correctness 5, Security 5 (static content, no user input into innerHTML, pinned HTTPS CDN, no eval), Performance 5 (single loop, ≤2000 particles in one THREE.Points, geometry/material/texture dispose per phase rebuild), Concurrency 5 (single-threaded rAF, clamped tour step index), Maintainability 4 (clear sectioning + traceability comments; magic numbers like MERGE_T/FLASH_T are local and commented), Testability 4 (window.fusionSim probes + two node test files pinning the physics chain), Error Handling 4 (WebGL2 degradation path; minor: __errs misses unhandledrejection, see F-003), Data Integrity N/A, Observability 4. Minor non-defect note: tour steps ③→④ both force phaseKey='fusion', so pressing 下一步 restarts the Coulomb-approach before the E=mc² flash narration becomes visible — this is exactly the spec-mandated forced-phase coupling, pedagogically acceptable (approach takes ~5.5 s), no change requested. No Critical/High/Medium open findings; one Low open observability gap (F-003, non-blocking).",
+        "title": "核聚变 3D 动画 — Implementation Review vs 01-nuclear-fusion-3d-animation Spec (FR-001 / BDD-F-001 convergence re-verification)",
+        "verdict": "Approved",
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/01-nuclear-fusion-3d-animation/docs/specifications/01-nuclear-fusion-3d-animation/14-code-review.md"
+      }
+    },
+    "adversarialReview": {
+      "timestamp": "2026-08-27T07:20:41.536Z",
+      "agent": "adversarialReview",
+      "data": {
+        "date": "2026-08-27",
+        "findings": [
+          {
+            "blocking": false,
+            "confidence": 0.97,
+            "defectClass": "physics-number-consistency",
+            "detail": "The prior-attempt rejection FR-001 is resolved at its OWNING artifact, not by silent downstream rewrite. 01-requirements.md AC-06 (line 18) now states: mass defect ≈ 0.0189 u with the explicit computation 2.014102 u + 3.016049 u − 4.002602 u − 1.008665 u = 0.018884 u, released energy ≈ 2.8×10⁻¹² J (2.82e-12 J), the consistency derivation (0.018884 × 931.494 ≈ 17.59 ≈ 17.6 MeV; 17.6 × 1.602e-13 ≈ 2.82e-12 J), and a deterministic gate pinning '17.6'/'0.0189'/'mc' while forbidding '0.0256'/'3.2e-11' — exactly the recommended fix. Independently recomputed: 2.014102+3.016049−4.002602−1.008665 = 0.018884 ✓; 0.018884×931.494 = 17.590 ✓; 17.6×1.602e-13 = 2.8195e-12 ✓; 14.1+3.5 = 17.6 ✓. Downstream response is explicit and verified: nuclear-fusion-3d/index.html contains 17.6 (×4), 0.0189 (×2), 14.1, 3.5, 2.82 (×2), E=mc; js/main.js §2 PHYS (lines 38–45) mirrors the chain (MASS_DEFECT_U 0.018884, '0.0189 u', 931.494, Q_MEV 17.6, 14.1/3.5 split, E_J 2.82e-12); grep across delivered html/css/js finds the forbidden literals nowhere.",
+            "evidence": [
+              "01-requirements.md:18 AC-06 full text (read directly): 'mass defect ≈ 0.0189 u (… = 0.018884 u), and released energy ≈ 2.8×10⁻¹² J (2.82e-12 J) … must NOT contain the incorrect literals 0.0256 or 3.2e-11'",
+              "grep -o on nuclear-fusion-3d/index.html: 17.6×4, 0.0189×2, 14.1×1, 3.5×1, 2.82×2, E=mc×1",
+              "js/main.js:38-45 PHYS: MASS_DEFECT_U: 0.018884, MASS_DEFECT_U_ROUNDED: '0.0189 u', MEV_PER_U: 931.494, Q_MEV: 17.6, NEUTRON_MEV: 14.1, ALPHA_MEV: 3.5, E_J: 2.82e-12",
+              "grep -rE '0\\.0256|3\\.2e-11' nuclear-fusion-3d/ (html/css/js): no matches",
+              "13-implementation-summary.md:19 explicit FR-001 response paragraph; 02-requirements-review.md:33-34 round-2 verification"
+            ],
+            "file": "docs/specifications/01-nuclear-fusion-3d-animation/01-requirements.md",
+            "id": "AR-F-001",
+            "lens": "Skeptic",
+            "line": "18 (AC-06)",
+            "ownerStage": "requirements",
+            "priorFindingId": "FR-001",
+            "recommendation": "No action required. Optionally note in the convergence ledger that FR-001 is closed with upstream revision + verified downstream response.",
+            "severity": "low",
+            "status": "verified",
+            "title": "FR-001 (AC-06 physics numbers) verified resolved upstream with consistent downstream implementation"
+          },
+          {
+            "blocking": false,
+            "confidence": 0.95,
+            "defectClass": "bdd-observability-gap",
+            "detail": "The prior-attempt rejection BDD-F-001 is resolved at its OWNING artifact. 03-bdd-scenarios.md SCENARIO-017 (lines 193–204) now binds observable outcomes to the '▶ 继续' trigger: 'the control toggles between the ⏸ 暂停 and ▶ 继续 labels as the state changes', 'after ▶ 继续 is pressed, all particle motion resumes and the phase clock advances again — the story is not stuck frozen', and 'the story continues from exactly the phase where it was frozen, with no phase skipped or replayed'. Both trivially-wrong implementations named in the rejection (permanently-frozen animation; motion resumed but phase clock stuck) are now rejected by the scenario. Downstream response is explicit and verified in code: js/main.js:620 is commented 'SCENARIO-017 (AC-07, BDD-F-001 response)'; pause() sets state.paused=true and swaps the label to '▶ 继续' (line 623–624), resume() restores '⏸ 暂停' (627–628), toggleBtn.onclick dispatches accordingly (638–641); the single rAF loop (662–669) calls clock.getDelta() every frame (clamped to 0.05s), accumulating simTime and advancing the world/phase clock only when !paused, so resume continues exactly from the frozen phase; no clock.running write exists (only a comment mentioning the prohibition).",
+            "evidence": [
+              "03-bdd-scenarios.md:199-204 Then-clauses quoted above (read directly)",
+              "js/main.js:620-641 pause()/resume()/toggle handler with label swap",
+              "js/main.js:662-669 'const dt = Math.min(clock.getDelta(), 0.05); if (!state.paused) { state.simTime += dt; …'",
+              "grep '\\.running' nuclear-fusion-3d/js/main.js: only a comment at line 664 ('从不写 clock.running')",
+              "04-bdd-review.md:32-35 and 12-spec-review.md:50-53 round-3/round-2 verifications; 13-implementation-summary.md:20 explicit BDD-F-001 response"
+            ],
+            "file": "docs/specifications/01-nuclear-fusion-3d-animation/03-bdd-scenarios.md",
+            "id": "AR-B-001",
+            "lens": "Architect",
+            "line": "193-204",
+            "ownerStage": "bdd",
+            "priorFindingId": "BDD-F-001",
+            "recommendation": "No action required; ledger can close BDD-F-001 as verified.",
+            "severity": "low",
+            "status": "verified",
+            "title": "BDD-F-001 (SCENARIO-017 resume observability) verified resolved upstream and honored in code"
+          },
+          {
+            "blocking": false,
+            "confidence": 0.75,
+            "defectClass": "contract-narrative-drift",
+            "detail": "Carried forward from 12-spec-review.md (P3, open, non-blocking). The spec's Testing Strategy narrative and the FR-003 response text claim positive pins '14.1', '3.5', '2.82' and forbidden literals '0.0256'/'3.2e-11' absent from EVERY file under nuclear-fusion-3d/, but the enforced Phase-1 deliverables contract in 10-implementation-plan.md implements requireContains without '3\\.5' and lists requireNotContains only for index.html and js/main.js, not css/style.css. This is contract-vs-narrative drift, not a live defect: my direct repo-wide grep of the delivered html/css/js confirms '3.5' IS present in index.html and the forbidden literals appear nowhere (including css). The worktree satisfies the stronger narrative today; only the automated enforcement is weaker than promised.",
+            "evidence": [
+              "12-spec-review.md:20-26 SPEC-F-001 with quoted evidence from 09-specification.md Testing Strategy and 10-implementation-plan.md Phase 1 requireContains/requireNotContains lists",
+              "09-specification.md:90 claims 'additional positive pins 14\\.1 and 3\\.5'",
+              "direct grep: index.html contains '3.5' (×1); '0.0256'/'3.2e-11' absent from all delivered sources including css/style.css"
+            ],
+            "file": "docs/specifications/01-nuclear-fusion-3d-animation/10-implementation-plan.md",
+            "id": "AR-S-001",
+            "lens": "Minimalist",
+            "line": "64-66 (Phase 1 deliverables.requireContains / requireNotContains)",
+            "ownerStage": "spec",
+            "priorFindingId": "SPEC-F-001",
+            "recommendation": "Either add 'nuclear-fusion-3d/index.html matches 3\\.5' and a css requireNotContains entry to the enforced Phase-1 contract, or drop '3.5' and the every-file wording from the Testing Strategy narrative and FR-003 response. Cosmetic; no upstream or code change required.",
+            "severity": "low",
+            "status": "open",
+            "title": "Enforced Phase-1 pin contract is weaker than the spec narrative: '3.5' positive pin and css/style.css forbidden-literal coverage are asserted in prose but not in requireContains/requireNotContains"
+          },
+          {
+            "blocking": false,
+            "confidence": 0.7,
+            "defectClass": "missing-green-oracle-record",
+            "detail": "A complete enumeration of implementation-evidence.jsonl shows exactly three oracle records — phase-01 red, phase-02 broken (14:37), phase-02 red (14:49) — and NO 'green' record, even though both phases are committed (931470d phase 1, 6b6683b phase 2) and the pipeline reports phasesCompleted 2/2. This is consistent with a TDD flow where the log captures only the oracle-authoring (red) step and green confirmation lives in the test-runner output — but if the log is meant to record green confirmations, phase-02's green is missing. Not a proven functional defect: my direct static verification of the phase-1 and phase-2 deliverables (literals, pause/resume code, DOM ids, file layout) shows the artifacts satisfy the contracts. The uncertainty is about the evidence trail, not the code.",
+            "evidence": [
+              "grep -o '\"phaseId\":\"[^\"]*\",\"attempt\":[0-9]*\",\"oracleStatus\":\"[^\"]*\"' implementation-evidence.jsonl → exactly 3 rows: phase-01/red, phase-02/broken, phase-02/red",
+              "git log: 6b6683b 'feat(nuclear-fusion-3d): phase 2 fusion story runtime, guided tour & playback controls', 931470d phase 1",
+              "task context: Phases Completed 2/2"
+            ],
+            "file": "docs/specifications/01-nuclear-fusion-3d-animation/implementation-evidence.jsonl",
+            "id": "AR-P-001",
+            "lens": "Skeptic",
+            "line": "1-3",
+            "ownerStage": "verification",
+            "recommendation": "Harness should run the phase test suites (e.g. node --test nuclear-fusion-3d/tests/phase1-shell.test.mjs and phase2-runtime.test.mjs, or serve via caddy and re-run the runtime assertions) to record an explicit green confirmation for phase-02, or confirm the log intentionally records only oracle-authoring state.",
+            "severity": "low",
+            "status": "needs-human",
+            "title": "implementation-evidence.jsonl records no green oracle entry for either phase (red/broken only) despite phases marked 2/2 complete"
+          }
+        ],
+        "summary": "Adversarial re-review after the prior attempt's rejection on two convergence-ledger findings. Both are now GENUINELY resolved at their OWNING upstream artifacts, with explicit downstream responses — not silent implementation retries. (1) FR-001: 01-requirements.md AC-06 (line 18) was rewritten with the physically correct, internally consistent D–T chain — mass defect 0.0189 u (2.014102+3.016049−4.002602−1.008665 = 0.018884 u), ×931.494 MeV/u ≈ 17.59 ≈ 17.6 MeV, ×1.602e-13 ≈ 2.82e-12 J, split 14.1/3.5 MeV — independently recomputed and confirmed; the AC now also pins '0.0189' positively and forbids '0.0256'/'3.2e-11' (the optional hardening was adopted). The delivered page honors it: index.html carries 17.6/0.0189/14.1/3.5/2.82/E=mc and a repo-wide grep finds the forbidden literals nowhere under nuclear-fusion-3d/; js/main.js §2 PHYS (lines 38–45) is the single source mirroring the chain. (2) BDD-F-001: 03-bdd-scenarios.md SCENARIO-017 (lines 193–204) now binds observable outcomes to the ▶ 继续 trigger — label toggle ⏸ 暂停 ⇄ ▶ 继续, resumed particle motion, resumed phase-clock advance ('the story is not stuck frozen'), continuation from exactly the frozen phase with none skipped/replayed. js/main.js implements exactly this: pause()/resume() swap the toggle label (lines 620–641, commented 'BDD-F-001 response'), the single rAF loop calls clock.getDelta() every frame (clamped to 0.05 s) and accumulates simTime/advances the world only when unpaused (662–669), and clock.running is never written. Both phases are committed (931470d, 6b6683b). Remaining findings are non-blocking: a P3 spec-contract drift (SPEC-F-001 carry-forward) and a process-trace gap in implementation-evidence.jsonl (no green oracle record). No destructive operations found; single-source PHYS object prevents dual-source drift; WebGL2 fallback path specified and delivered per AC-09/SCENARIO-024.",
+        "title": "Adversarial Review — 核聚变 3D 动画 (nuclear-fusion-3d/): prior rejection findings FR-001 & BDD-F-001 verified resolved upstream; implementation consistent",
+        "verdict": "PASS",
+        "docPath": "/home/jenningsl/Documents/儿子学习/science/.worktree/01-nuclear-fusion-3d-animation/docs/specifications/01-nuclear-fusion-3d-animation/15-adversarial-review.md"
+      }
+    }
+  }
+}
