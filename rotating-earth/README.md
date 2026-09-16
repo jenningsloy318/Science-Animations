@@ -1,56 +1,74 @@
-# Rotating Earth Viewed from Space 🌍
+# 🌍 旋转地球 — 实时昼夜与四季（three.js）
 
-A gorgeous 5-second 1080p animation and 3D model of a rotating Earth viewed from space, created with Blender 5.2.
+用 three.js **实时渲染**的交互地球仪：每一帧都在计算真实的太阳方位、晨昏线、
+时区光照和大国地标——不是视频、不是贴图动画。
 
-![Rotating Earth](earth.png)
+> 旧版（`rotating_earth.blend` / `.mp4` / `earth.png`）为 Blender 离线渲染存档。
+> 新版入口：`index.html`（模块化）/ `rotating-earth.html`（单文件离线，约 15 MB，含 2K/4K/8K 三档贴图）。
 
----
+## 🛰️ 真实科学（全部经 node 数值验证）
 
-## 🛰️ Visual & Scientific Features
+| 物理量 | 数值/公式 | 验证 |
+|---|---|---|
+| 地轴倾角 ε | **23.44°**（41,000 年周期内 22.1°–24.5° 摆动） | Wikipedia Earth's rotation |
+| 恒星日 | **23h 56m 4s**（86,164.1 s）；太阳日 24h | 同上 |
+| 赤道自转线速度 | **465.1 m/s ≈ 1674 km/h**；v = 465.1·cos φ | 同上 |
+| 轴向岁差 | **25,772 年**（≈50.3″/年） | Wikipedia Axial precession |
+| 太阳赤纬 | δ = −23.44°·cos(360°/365·(N+10))（NOAA 近似，误差 <1°） | 夏至 +23.44° / 冬至 −23.44° / 分点 0° ✓ |
+| 昼长 | cos H = −tan φ·tan δ；昼长 = 2H/15 | 北京夏至 14.85h ✓；北极圈极昼 ✓ |
+| 直射经度 | 180° − 15°·UTC（忽略均时差 ±16 min，已注明） | 12:00 UTC → 0° ✓ |
+| 轨道偏心率 | e = 0.0167；近日点 1 月初 1.471 亿 km | 四季由倾角主导，非距离 |
 
-1. **Realistic Axial Tilt (地轴倾角 23.44°)**:
-   - The Earth's rotation axis is tilted at $23.44^\circ$ ($0.409\text{ rad}$) relative to the orbital plane normal.
-   - Rotates smoothly around its tilted axis for a 360° seamless cycle over 120 frames (5.0s @ 24fps).
-2. **Dual Atmosphere & Cloud Circulation (独立云层与大气循环)**:
-   - Multi-layered geometry: a separate outer sphere for the cloud layer ($R = 1.008$) casting subtle shadows onto the surface below.
-   - Atmospheric differential rotation: clouds rotate slightly faster ($390^\circ$) than the solid surface ($360^\circ$), simulating atmospheric jet streams and trade wind patterns.
-3. **Rayleigh Scattering Atmosphere Halo (瑞利散射大气边缘蓝晕)**:
-   - An outer atmospheric shell ($R = 1.025$) featuring an inverted Fresnel falloff and additive blue scattering shader.
-   - Accurately captures the thin blue glow seen by astronauts at the limb of the planet.
-4. **Day/Night Terminator & City Lights (晨昏线与万家灯火)**:
-   - Dynamic blend between high-resolution day land/ocean albedo textures and nocturnal city illumination textures.
-   - City lights appear smoothly on the shadowed night side along the day/night terminator.
-5. **Ocean Specular Glint & Topography (海面镜面高光与法线凹凸)**:
-   - Specular map isolating continents from oceans to produce sharp solar glints on open water.
-   - Normal map enhancing continental topography, mountain ranges, and continental shelves.
-6. **Procedural Deep Space Starfield (深空星野)**:
-   - Multi-octave Voronoi procedural starfield background providing realistic cosmic depth.
+## 🖱 交互
 
----
+| 操作 | 效果 |
+|---|---|
+| **拖拽 / 滚轮** | 旋转视角（可推近到地表附近，国界线矢量始终清晰） |
+| **点击国家** | 金色高亮 + 信息卡（中文名/首都/大洲/当地太阳时/昼夜状态/今日昼长） |
+| **1–5** | 五个视角：昼夜晨昏线 · 四季倾角 · 自转线速度 · 昼夜长短 · 岁差 |
+| **时刻/日期滑块** | 拨动一天或一年，看晨昏线扫过、直射点移动 |
+| **×N** | 时间加速（×3600 = 1 天 24 秒） |
+| **L / D**（黑洞页） | —（本页开关见下方显示项） |
 
-## 📁 Files
+**显示开关**：云层 · 轴线极圈 · 经纬网 · 国界 · 地名 · 大气
+**地名分级**：拉远只显示五大洋；中距出现大海/海湾；推近显示海峡/运河/湖泊/
+大国地标（长城、珠峰、大峡谷、泰姬陵、吴哥窟…共 24 处）与全部 180 国国名。
 
-- `rotating_earth.mp4`: 5-second 1080p H.264 video animation (24fps, 120 frames).
-- `earth.png`: 1080p high-resolution still render.
-- `rotating_earth.blend`: Complete Blender scene file with materials, keyframe animations, camera, and lighting.
-- `make_rotating_earth.py`: Python automation script to generate the entire scene, materials, animations, and render.
-- `index.html`: Web-based interactive video player and educational guide.
-- `textures/`: High-resolution NASA-derived Earth texture maps (day, night, normal, specular, clouds).
+## 📐 数据流水线
 
----
+每个视角右侧展示真实计算链：**原始读数 → 应用方程 → 逐步算术 → 真实结果**。
+例如昼夜视角：12:00 UTC 直射 0°（格林尼治正午）→ 地球一小时自转 15° → 时区由来；
+岁差视角：50.3″/年 → 25,772 年一周 → 13,700 年后织女星成为北极星。
 
-## 🚀 How to Run & View
+## 🗂 文件
 
-### Open in Blender GUI
-```bash
-blender rotating_earth.blend
 ```
-Press `Spacebar` to play the real-time rotation animation in the viewport.
-
-### Web Viewer
-Open `index.html` in any web browser to watch the looping 5-second video, toggle between video and 1080p still, and adjust playback speed.
-
-### Re-render via Blender Headless
-```bash
-blender -b --factory-startup -P make_rotating_earth.py
+rotating-earth/
+  index.html            # 模块化入口（开发用，需 http 服务）
+  rotating-earth.html   # build.py 生成的单文件（离线，含三档贴图）
+  build.py              # 内联脚本 + 贴图 → 单文件
+  js/tex-2k/4k/8k.js    # 三档贴图（data URL，2K 默认秒开，4K/8K 按需动态加载）
+  js/earth-glsl.js      # 昼夜混合/晨昏线/城市灯光/海面镜面/云层/大气 着色器
+  js/astro.js           # 真实天文公式（纯函数，node 可测）
+  js/main.js            # 场景 / 轨道 / 功能 / 时间系统
+  js/countries-data.js  # Natural Earth 110m 国界 + 中文名/首都（mledoze，ISO-A3 匹配）
+  js/places-data.js     # 海洋/海峡/运河/湖泊/地标 坐标表（52+24 处）
+  textures/             # 原始贴图（NASA 衍生 + 8K 日/夜）
+  rotating_earth.blend / .mp4 / earth.png / make_rotating_earth.py  # 旧版存档
 ```
+
+## ✅ 验收（headless Chrome，2026-09-16）
+
+- 13/13 天文公式 + 10/10 自转-直射闭环 + 5 城市昼夜常识 全部通过
+- 渲染验证：晨昏线位置、夜侧城市灯光、回归线/极圈标注、按点击国家高亮（MEX/CHN）
+- 交互：拖拽旋转 ✓ 滚轮缩放（dist 21→7.3 贴地）✓ 点选国家 ✓ 画质切换 2K/4K/8K ✓
+- 0 JS 错误；单文件离线可开
+
+## ⚠️ 诚实标注
+
+- 云层为卫星快照（示意速度漂移，非实时气象）；城市灯光为 NASA Black Marble 2012 合成。
+- 太阳赤纬为 NOAA 近似（<1°）；直射经度忽略均时差；"当地太阳时/时区"按经度估算，
+  真实时区含政治边界。
+- 国界取 Natural Earth 110m 简化数据，仅为地理示意，不代表任何立场。
+- 贴图来源：NASA Blue Marble / Black Marble（公有领域），8K 日/夜图来自
+  Solar System Scope（CC BY 4.0）。
