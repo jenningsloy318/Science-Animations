@@ -3,265 +3,201 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>黑洞与引力透镜 — 星际穿越 Gargantua</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <title>黑洞与引力透镜 — 实时相对论渲染 · Gargantua</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+    :root { --gold: #d8b25c; --ink: #e8e4d8; --dim: #9aa3b0; }
+    html, body { height: 100%; overflow: hidden; }
     body {
-      min-height: 100vh;
-      background-color: #03060f;
-      color: #e2e8f0;
-      font-family: 'Outfit', 'Noto Sans SC', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 1.5rem;
-      overflow-x: hidden;
+      background: #03060f; color: var(--ink);
+      font-family: 'PingFang SC', 'Hiragino Sans GB', 'Noto Sans SC', 'Microsoft YaHei', sans-serif;
     }
+    #gl { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block;
+          cursor: grab; }
+    #gl:active { cursor: grabbing; }
 
-    #homeBtn {
-      position: fixed;
-      top: 1.2rem;
-      left: 1.2rem;
-      z-index: 100;
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      padding: 0.5rem 0.9rem;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 9999px;
-      color: #f1f5f9;
-      text-decoration: none;
-      font-size: 0.88rem;
-      font-weight: 500;
-      backdrop-filter: blur(10px);
-      transition: all 0.2s ease;
+    /* ── 顶栏 ── */
+    #topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 16px;
+      background: linear-gradient(rgba(3,6,15,0.92), rgba(3,6,15,0));
+      pointer-events: none;
     }
-    #homeBtn:hover {
-      background: rgba(255, 255, 255, 0.18);
-      transform: translateY(-1px);
-    }
-
-    header {
-      width: 100%;
-      max-width: 1000px;
-      margin-top: 3.5rem;
-      margin-bottom: 2rem;
-      text-align: center;
-    }
-
-    h1 {
-      font-size: clamp(2rem, 4vw, 2.8rem);
-      font-weight: 800;
-      color: #f8fafc;
-      letter-spacing: -0.02em;
-      margin-bottom: 0.5rem;
-    }
-
-    header p {
-      font-size: 1.05rem;
-      color: #94a3b8;
-      max-width: 650px;
-      margin: 0 auto;
-      line-height: 1.6;
-    }
-
-    .main-stage {
-      width: 100%;
-      max-width: 1000px;
-      background: #000;
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      overflow: hidden;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8), 0 0 40px rgba(251, 146, 60, 0.15);
-      margin-bottom: 2.5rem;
-      position: relative;
-    }
-
-    .image-container {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      background: #000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .image-container img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .interactive-legend {
-      padding: 1.25rem 1.5rem;
-      background: rgba(15, 23, 42, 0.7);
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.75rem;
-      justify-content: center;
-    }
-
-    .tag-btn {
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: #cbd5e1;
-      padding: 0.45rem 0.9rem;
-      border-radius: 8px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-    .tag-btn:hover, .tag-btn.active {
-      background: rgba(249, 115, 22, 0.2);
-      border-color: #f97316;
-      color: #ffedd5;
-    }
-
-    .info-card-container {
-      width: 100%;
-      max-width: 1000px;
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 1.5rem;
-      margin-bottom: 3rem;
-    }
-
-    .card {
-      background: linear-gradient(165deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 14px;
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.6rem;
-    }
-
-    .card__icon {
-      font-size: 1.6rem;
-    }
-
-    .card__title {
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: #f8fafc;
-    }
-
-    .card__desc {
-      font-size: 0.92rem;
-      color: #94a3b8;
-      line-height: 1.6;
-    }
-
-    .action-bar {
-      margin-bottom: 3rem;
-      display: flex;
-      gap: 1rem;
-    }
-
+    #topbar > * { pointer-events: auto; }
     .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: #ea580c;
-      color: #fff;
-      padding: 0.75rem 1.4rem;
-      border-radius: 10px;
-      font-weight: 600;
-      text-decoration: none;
-      transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px; border-radius: 999px;
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14);
+      color: var(--ink); font-size: 13px; cursor: pointer; text-decoration: none;
+      backdrop-filter: blur(8px); transition: all .18s ease;
     }
-    .btn:hover {
-      background: #f97316;
-      transform: translateY(-2px);
-      box-shadow: 0 10px 20px -5px rgba(234, 88, 12, 0.5);
+    .btn:hover { background: rgba(255,255,255,0.14); transform: translateY(-1px); }
+    #title { font-size: 15px; font-weight: 700; letter-spacing: 0.06em; }
+    #title small { color: var(--dim); font-weight: 400; margin-left: 8px; }
+    #fps { margin-left: auto; color: var(--dim); font-size: 12px; font-variant-numeric: tabular-nums; }
+    .q-btn { padding: 5px 10px; font-size: 12px; border-radius: 8px; }
+    .q-btn.on { background: rgba(216,178,92,0.18); border-color: rgba(216,178,92,0.5); color: var(--gold); }
+
+    /* ── 右侧讲解面板 ── */
+    #side {
+      position: fixed; top: 58px; right: 14px; bottom: 96px; width: 330px; z-index: 15;
+      display: flex; flex-direction: column; gap: 10px; pointer-events: none;
     }
-    .btn--secondary {
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      color: #e2e8f0;
+    #panel, #pipelineBox {
+      pointer-events: auto;
+      background: rgba(8,12,22,0.82); border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 14px; padding: 16px; overflow-y: auto;
+      backdrop-filter: blur(12px);
     }
-    .btn--secondary:hover {
-      background: rgba(255, 255, 255, 0.15);
-      box-shadow: none;
+    #panel { flex: 0 0 auto; max-height: 46%; }
+    #pipelineBox { flex: 0 0 auto; max-height: 40%; }
+    #panel h3 { font-size: 15px; margin-bottom: 8px; color: var(--gold); }
+    #panel p { font-size: 12.5px; line-height: 1.75; color: #cfd6df; margin-bottom: 8px; }
+    #panel b { color: #fff; }
+    .pipe-row {
+      display: grid; grid-template-columns: 62px 1fr; gap: 8px;
+      padding: 8px 0; border-bottom: 1px dashed rgba(255,255,255,0.08);
+      font-size: 12px; line-height: 1.6;
+    }
+    .pipe-row:last-child { border-bottom: none; }
+    .pipe-label { color: var(--gold); font-weight: 600; white-space: nowrap; }
+    .pipe-val { color: #cfd6df; }
+    .pipe-val b { color: #fff; }
+
+    /* ── 底部功能按钮 ── */
+    #featBar {
+      position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 20;
+      display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;
+      max-width: min(96vw, 860px);
+    }
+    .feat-btn {
+      padding: 9px 16px; border-radius: 999px; font-size: 13px; cursor: pointer;
+      background: rgba(10,14,24,0.78); border: 1px solid rgba(255,255,255,0.14);
+      color: var(--ink); backdrop-filter: blur(10px); transition: all .18s ease;
+    }
+    .feat-btn:hover { border-color: rgba(216,178,92,0.55); }
+    .feat-btn.on {
+      background: rgba(216,178,92,0.16); border-color: var(--gold); color: var(--gold);
+      box-shadow: 0 0 18px rgba(216,178,92,0.18);
+    }
+    #physBar {
+      position: fixed; left: 50%; bottom: 156px; transform: translateX(-50%); z-index: 20;
+      display: flex; gap: 8px;
+    }
+    .phys-chip {
+      padding: 5px 12px; border-radius: 999px; font-size: 12px; cursor: pointer;
+      background: rgba(10,14,24,0.7); border: 1px solid rgba(255,255,255,0.12);
+      color: var(--dim); backdrop-filter: blur(8px); transition: all .18s ease;
+    }
+    .phys-chip small { opacity: 0.55; }
+    .phys-chip.on {
+      border-color: rgba(216,178,92,0.55); color: var(--gold);
+      background: rgba(216,178,92,0.10);
     }
 
-    footer {
-      color: #64748b;
-      font-size: 0.85rem;
-      text-align: center;
-      margin-bottom: 2rem;
+    /* ── 阴影标注环 ── */
+    #ringOverlay {
+      position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%);
+      border: 1.5px dashed rgba(216,178,92,0.75); border-radius: 50%;
+      pointer-events: none; opacity: 0; transition: opacity .5s ease; z-index: 10;
+    }
+    #ringOverlay .ring-label {
+      position: absolute; white-space: nowrap; font-size: 11px; color: var(--gold);
+      background: rgba(5,8,16,0.85); padding: 3px 8px; border-radius: 6px;
+      border: 1px solid rgba(216,178,92,0.35);
+    }
+    #ringOverlay .lbl-a { top: -30px; left: 50%; transform: translateX(-50%); }
+    #ringOverlay .lbl-b { top: 50%; right: -110px; }
+    #ringOverlay .ring-note {
+      position: absolute; bottom: -34px; left: 50%; transform: translateX(-50%);
+      white-space: nowrap; font-size: 11px; color: var(--dim);
+    }
+
+    /* ── 帮助 ── */
+    #help {
+      position: fixed; inset: 0; z-index: 50; display: none;
+      align-items: center; justify-content: center; background: rgba(2,4,10,0.75);
+    }
+    #help .card {
+      width: min(92vw, 460px); background: #0a0f1a; border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px; padding: 22px;
+    }
+    #help h2 { font-size: 16px; margin-bottom: 12px; color: var(--gold); }
+    #help table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    #help td { padding: 5px 4px; border-bottom: 1px dashed rgba(255,255,255,0.08); }
+    #help td:first-child { color: var(--gold); font-weight: 600; white-space: nowrap; padding-right: 14px; }
+    #help .note { margin-top: 12px; font-size: 11.5px; color: var(--dim); line-height: 1.7; }
+    #helpClose { margin-top: 14px; width: 100%; justify-content: center; }
+
+    @media (max-width: 900px) {
+      #side { display: none; }
     }
   </style>
 </head>
 <body>
-  <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
+  <canvas id="gl"></canvas>
 
-  <header>
-    <h1>🕳️ 黑洞与引力透镜 — Gargantua</h1>
-    <p>电影《星际穿越》中超大质量黑洞的 3D 物理与光学渲染解析</p>
-  </header>
+  <div id="topbar">
+    <a class="btn" href="../index.html">🏠</a>
+    <span id="title">黑洞与引力透镜 · Gargantua<small>实时测地线渲染 — 拖拽转视角 · 滚轮缩放</small></span>
+    <span id="fps">— fps</span>
+    <button class="btn q-btn" data-q="low">低</button>
+    <button class="btn q-btn on" data-q="mid">中</button>
+    <button class="btn q-btn" data-q="high">高</button>
+    <button class="btn" id="resetBtn">⟲ 复位</button>
+    <button class="btn" id="helpBtn">? 帮助</button>
+  </div>
 
-  <div class="main-stage">
-    <div class="image-container">
-      <img src="gargantua.png" alt="Blender Render of Gargantua Black Hole" id="bhImg">
-    </div>
-    <div class="interactive-legend">
-      <button class="tag-btn active" onclick="highlight('all')">全景展示 Full View</button>
-      <button class="tag-btn" onclick="highlight('horizon')">事件视界 Event Horizon</button>
-      <button class="tag-btn" onclick="highlight('lensing')">引力透镜光晕 Lensing Halo</button>
-      <button class="tag-btn" onclick="highlight('disk')">吸积盘 Accretion Disk</button>
-      <button class="tag-btn" onclick="highlight('doppler')">多普勒效应 Doppler Beaming</button>
+  <div id="side">
+    <div id="panel"></div>
+    <div id="pipelineBox">
+      <div class="pipe-head" style="font-size:12px;color:var(--gold);font-weight:700;margin-bottom:4px">📐 数据流水线</div>
+      <div id="pipe"></div>
     </div>
   </div>
 
-  <div class="action-bar">
-    <a href="gargantua.png" class="btn" download="gargantua_render.png">📥 下载渲染大图 (1080P)</a>
-    <a href="gargantua.blend" class="btn btn--secondary" download="gargantua.blend">📦 下载 Blender 工程文件 (.blend)</a>
+  <div id="featBar"></div>
+  <div id="physBar">
+    <button class="phys-chip on" data-phys="lensing">🌀 引力透镜：开 <small>(L)</small></button>
+    <button class="phys-chip on" data-phys="doppler">⚡ 多普勒：开 <small>(D)</small></button>
   </div>
 
-  <div class="info-card-container">
-    <div class="card">
-      <div class="card__icon">🌑</div>
-      <div class="card__title">1. 事件视界 (Event Horizon)</div>
-      <div class="card__desc">中心绝对漆黑的区域。在此半径内，时空曲率极大，逃逸速度超过光速，任何光子与物质都无法逃脱，形成黑洞中央标志性的“黑球”阴影。</div>
-    </div>
+  <div id="ringOverlay">
+    <span class="ring-label lbl-a">阴影 ≈ 2.6 r<sub>s</sub>（比视界本身大）</span>
+    <span class="ring-label lbl-b">光子环 · 光在 1.5 r<sub>s</sub> 绕圈</span>
+    <span class="ring-note">视界在黑影内部 · 任何光都无法从中逃出</span>
+  </div>
 
+  <div id="help">
     <div class="card">
-      <div class="card__icon">🌈</div>
-      <div class="card__title">2. 引力透镜光晕 (Gravitational Lensing)</div>
-      <div class="card__desc">为什么上方和下方有一圈环形光带？因为黑洞强大的引力弯曲了时空，使得吸积盘背面的光线被扭曲弯折绕过黑洞顶部与底部，传到观察者眼中。</div>
-    </div>
-
-    <div class="card">
-      <div class="card__icon">🔥</div>
-      <div class="card__title">3. 高温吸积盘 (Accretion Disk)</div>
-      <div class="card__desc">气体与等离子体以接近光速高速螺旋落向黑洞。最内侧稳定轨道（ISCO）温度极高呈现白青色强光，外侧逐渐降温过渡为金黄与深红。</div>
-    </div>
-
-    <div class="card">
-      <div class="card__icon">⚡</div>
-      <div class="card__title">4. 相对论多普勒增亮 (Doppler Beaming)</div>
-      <div class="card__desc">由于吸积盘高速自转，朝向观察者飞来的一侧（画面左侧）发生相对论性集束效应与蓝移，亮度显著增大；远离的一侧（右侧）则变暗变红。</div>
+      <h2>🖐 怎么玩</h2>
+      <table>
+        <tr><td>拖拽</td><td>旋转视角（引力透镜会实时变化）</td></tr>
+        <tr><td>滚轮</td><td>推近 / 拉远</td></tr>
+        <tr><td>双击</td><td>回到经典机位</td></tr>
+        <tr><td>1–5</td><td>五个功能视角（底部按钮）</td></tr>
+        <tr><td>L / D</td><td>开关 引力透镜 / 多普勒效应</td></tr>
+        <tr><td>R</td><td>复位视角</td></tr>
+        <tr><td>空格</td><td>暂停盘旋转</td></tr>
+        <tr><td>H</td><td>本帮助</td></tr>
+      </table>
+      <div class="note">
+        这是<b>真实物理计算</b>，不是贴图：每个像素都在反向积分一条 Schwarzschild
+        弯曲时空里的光路（测地线方程 d²x/dλ² = −3/2·h²·x/r⁵）。
+        所以拖动视角时，星场的"漩涡"、盘绕过黑洞上下的拱、光子环都是实时算出来的。
+        <br>诚实标注：采用<b>不旋转（Schwarzschild）</b>黑洞；电影中的 Gargantua 是近极限旋转的
+        Kerr 黑洞（有参考系拖曳）。盘的色彩按黑体温度剖面 T∝r<sup>−3/4</sup> 计算，
+        非真实观测数据。
+      </div>
+      <button class="btn" id="helpClose">知道了</button>
     </div>
   </div>
 
-  <footer>
-    基于 Blender 5.2 LTS Cycles 渲染制作 · 探索科学与宇宙物理
-  </footer>
-
-  <script>
-    function highlight(section) {
-      document.querySelectorAll('.tag-btn').forEach(btn => btn.classList.remove('active'));
-      event.target.classList.add('active');
-    }
-  </script>
+  <!-- SCRIPTS:START -->
+  <script src="vendor/three.min.js"></script>
+  <script src="js/glsl.js"></script>
+  <script src="js/main.js"></script>
+  <!-- SCRIPTS:END -->
 </body>
 </html>
