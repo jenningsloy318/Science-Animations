@@ -22,9 +22,9 @@ APP.DATA = {
   about:
     'An interactive, simplified model inspired by CERN\u2019s LHC and the ATLAS detector. ' +
     'Geometry is schematic: proportions (especially the inner radii) are exaggerated so every layer stays readable. ' +
-    'All collision events are synthetic \u2014 generated from math, never real data.',
+    'Collision kinematics come from REAL Standard Model processes (PDG masses, branching ratios; ATLAS Run 3 cross sections) \u2014 the detector response is still simulated schematically.',
 
-  disclaimer: 'Simplified geometry \u00B7 Synthetic events \u00B7 Not an official CERN product',
+  disclaimer: 'Real SM kinematics \u00B7 Simplified geometry \u00B7 Not an official CERN product',
 
   /* ---- detector systems (visibility switches, left panel) --------------- */
   systems: [
@@ -170,7 +170,7 @@ APP.DATA = {
        + 'whole machine fits one screen \u2014 the real tunnel would dwarf the Eiffel Tower\u2019s footprint.',
     facts:['26,659 m circumference \u00B7 tunnel 100 m underground',
            '1,232 main dipole magnets + 392 main quadrupoles (9,593 magnets in total)',
-           'Dipoles run at 1.9 K (\u2212271.3 \u00B0C) \u2014 colder than outer space',
+           'Dipole field 8.33 T at 1.9 K (\u2212271.3 \u00B0C) \u2014 colder than outer space',
            '~2,500 bunches per beam \u00B7 1.6\u00D710\u00B9\u00B9 protons per bunch \u00B7 25 ns spacing',
            '6.8 TeV per beam \u2192 13.6 TeV collisions \u00B7 11,245 turns per second'],
     points:[
@@ -194,21 +194,51 @@ APP.DATA = {
 
   /* ---- collision view ----------------------------------------------------*/
   collision: {
-    title:'Synthetic collision display',
-    body:'A schematic cut-away of the detector with a mathematically generated event. This is NOT real ATLAS data: '
-       + 'track curvature, jets and energy towers are sampled from simplified physics-inspired distributions.',
-    facts:['Charged tracks curve in the 2 T solenoid field \u2014 curvature \u221D 1/p\u209C',
+    title:'Real-process collision display',
+    body:'A schematic cut-away of the detector showing events generated from REAL Standard Model processes \u2014 '
+       + 'PDG masses and branching ratios, exact two-body decay kinematics, invariant-mass reconstruction. '
+       + 'The detector response (resolutions, showers) is still simulated schematically.',
+    facts:['Curvature is REAL: radius r = p\u209C/(0.3B) = p\u209C/6 metres in the 2 T solenoid \u2014 Z muons (45 GeV) barely bend',
            'Sprays of hadrons = \u201Cjets\u201D, shown as energy towers on the calorimeter skins',
            'Gold tracks reaching the outer rings are muons \u2014 they traverse the whole detector'],
-    badge:'SYNTHETIC EVENT \u2014 not real data',
+    /* captions for the "clean" processes (no hadrons in the decay itself) */
+    seqClean:{
+      flight:'The decay products fly out from the interaction point \u2014 charged particles bend in the magnetic field; photons fly straight.',
+      readout:'Watch where each one stops: electrons and photons are caught by the EM calorimeter \u2014 only muons punch through to the outermost layer.',
+    },
+    badge:'REAL DECAY KINEMATICS \u00B7 simplified detector response',
+
+    /* per-process copy — keys match APP.PP.TYPES */
+    processes:{
+      qcd:{ chip:'QCD jets', sigma:'\u03C3 \u2248 80 mb (inelastic pp)',
+        cap0:'Two partons slam together in a hard scatter \u2014 the most common proton\u2013proton process of all, happening billions of times per second.',
+        capEnd:'A QCD multijet event. Inelastic pp collisions (\u03C3 \u2248 80 mb) occur ~1.6 billion times per second at peak luminosity.' },
+      z_mumu:{ chip:'Z\u2192\u03BC\u207A\u03BC\u207B', sigma:'\u03C3\u00D7BR \u2248 2.0 nb',
+        cap0:'A Z\u2070 boson (mass 91.188 GeV, PDG) is born and decays into two muons \u2014 note the two nearly straight gold tracks: 45 GeV of transverse momentum barely bends in a 2 T field.',
+        capEnd:'Reconstructed m(\u03BC\u03BC) \u2248 91.2 GeV \u2014 exactly the Z mass. At peak luminosity Z\u2192\u03BC\u03BC happens about 40 times per second.' },
+      z_ee:{ chip:'Z\u2192e\u207Ae\u207B', sigma:'\u03C3\u00D7BR \u2248 2.0 nb',
+        cap0:'The Z\u2070 also decays into an electron pair (BR 3.363%) \u2014 watch the cyan tracks end in EM showers inside the calorimeter.',
+        capEnd:'m(ee) \u2248 91.2 GeV. W and Z bosons were discovered at CERN in 1983 \u2014 today they are everyday tools.' },
+      z_jj:{ chip:'Z\u2192qq\u0304', sigma:'\u03C3\u00D7BR \u2248 41 nb',
+        cap0:'The Z\u2070 most often decays into a quark pair (BR 69%) \u2014 quarks immediately hadronize into two back-to-back jets.',
+        capEnd:'Dijet mass \u2248 91.2 GeV (jet energy resolution is coarse, so the peak is wide). This channel is also a major background in Higgs searches.' },
+      h_gamgam:{ chip:'H\u2192\u03B3\u03B3', sigma:'\u03C3\u00D7BR \u2248 0.14 pb',
+        cap0:'A Higgs boson (\u2248125.2 GeV) decays into two photons \u2014 branching ratio just 0.227%. White dashed lines are photons: neutral, so the magnetic field cannot bend them.',
+        capEnd:'m(\u03B3\u03B3) \u2248 125.2 GeV! On 4 July 2012 ATLAS and CMS announced the Higgs discovery (5\u03C3) using exactly this \u03B3\u03B3 peak plus the 4-lepton channel. At peak luminosity one H\u2192\u03B3\u03B3 is produced only every ~6 minutes.' },
+      h_zz4l:{ chip:'H\u2192ZZ*\u21924\u2113', sigma:'\u03C3\u00D7BR \u2248 0.007 pb',
+        cap0:'The \u201Cgolden channel\u201D: Higgs \u2192 Z + Z* (one Z forced off its mass shell, since 125 < 2\u00D791) \u2192 then into 2 electrons + 2 muons. Branching ratio only \u22480.012%.',
+        capEnd:'m(4\u2113) \u2248 125.2 GeV \u2014 the clean four-lepton peak is the ruler of the Higgs mass. At peak luminosity only ~one per 2 hours is produced.' },
+      ttbar:{ chip:'tt\u0304\u2192\u2113+jets', sigma:'\u03C3 \u2248 0.9 nb',
+        cap0:'A top-quark pair (\u2248172.7 GeV each \u2014 the heaviest known elementary particle) is produced and decays instantly: t\u2192Wb. One W goes to \u2113\u03BD, the other to qq\u0304.',
+        capEnd:'Final state: 1 lepton track + \u22654 jets (2 of them b-jets) + missing transverse momentum from the neutrino (white dashed = the REAL invisible-pT vector sum). About 18 tt\u0304 pairs per second at peak luminosity.' },
+    },
     /* the step-by-step sequence played on every trigger */
     seq:[
       { phase:'approach', cap:'Two protons race toward each other along the beam pipe at almost the speed of light\u2026' },
       { phase:'impact',   cap:'IMPACT! All their energy concentrates at one point \u2014 and becomes new particles (E = mc\u00B2).' },
-      { phase:'shower',   cap:'Quarks and gluons burst out \u2014 but free quarks cannot exist alone\u2026' },
-      { phase:'hadron',   cap:'Hadronization: each quark drags new particles out of empty space, spraying into \u201Cjets\u201D.' },
-      { phase:'layers',   cap:'Each detector layer flashes as the particles cross it \u2014 pixel \u2192 tracker \u2192 calorimeters \u2192 muon chambers.' },
-      { phase:'done',     cap:'Event measured. Only muons (gold) reach the outermost layer.' },
+      { phase:'flight',   cap:'Everything flies out at near light-speed. In the magnetic field, charged particles curve \u2014 watch each one stop where its energy runs out.' },
+      { phase:'readout',  cap:'Where a particle stops, a tower lights up: electrons die in the EM calorimeter, hadrons in the steel one \u2014 only muons punch through everything.' },
+      { phase:'done',     cap:'Event measured.' },
     ] },
 
   credits: [
@@ -220,6 +250,8 @@ APP.DATA = {
     { t:'ATLAS \u2014 Magnet System', u:'https://atlas.cern/Discover/Detector/Magnet-System' },
     { t:'ATLAS \u2014 Muon Spectrometer', u:'https://atlas.cern/Discover/Detector/Muon-Spectrometer' },
     { t:'ATLAS \u2014 Trigger & DAQ', u:'https://atlas.cern/Discover/Detector/Trigger-DAQ' },
+    { t:'ATLAS \u2014 Higgs at 13.6 TeV (Run 3 brief)', u:'https://atlas.cern/Updates/Briefing/Run3-Higgs' },
+    { t:'PDG \u2014 Particle Data Group (masses, widths, BRs)', u:'https://pdg.lbl.gov/' },
   ],
 
   triggerNote:'Trigger & DAQ (real ATLAS): L1 hardware decides in < 2.5 \u03BCs; the software farm '
@@ -232,8 +264,8 @@ APP.DATA = {
 APP.DATA.zh = {
   about:'这是一个受 CERN 大型强子对撞机（LHC）与 ATLAS 探测器启发的交互式简化模型。'
       + '几何为示意性质：比例（尤其是内层半径）经过夸大，以便每一层都清晰可读。'
-      + '所有对撞事件均为合成事件 —— 由数学生成，绝非真实数据。',
-  disclaimer:'简化几何 · 合成事件 · 非官方 CERN 产品',
+      + '对撞运动学来自真实的标准模型过程（PDG 质量、分支比；ATLAS Run 3 截面）—— 探测器响应仍为简化模拟。',
+  disclaimer:'真实标准模型运动学 · 简化几何 · 非官方 CERN 产品',
 
   systems:[
     { id:'muon',   name:'缪子谱仪', color:'#9fb4c9',
@@ -376,7 +408,7 @@ APP.DATA.zh = {
        + '让整台机器装进一块屏幕 —— 真实隧道的占地面积将远超埃菲尔铁塔。',
     facts:['周长 26,659 m · 隧道位于地下 100 m',
            '1,232 块主二极磁铁 + 392 块主四极磁铁（共 9,593 块磁铁）',
-           '二极磁铁运行在 1.9 K（\u2212271.3 \u00B0C）—— 比外太空还冷',
+           '二极磁铁磁场 8.33 T，运行在 1.9 K（\u2212271.3 \u00B0C）—— 比外太空还冷',
            '每束约 2,500 个束团 · 每束团 1.6\u00D710\u00B9\u00B9 个质子 · 间隔 25 ns',
            '每束 6.8 TeV → 对撞能量 13.6 TeV · 每秒转 11,245 圈'],
     points:[
@@ -399,20 +431,48 @@ APP.DATA.zh = {
     legendBeamA:'束流 1 —— 顺时针', legendBeamB:'束流 2 —— 逆时针' },
 
   collision:{
-    title:'合成对撞显示',
-    body:'探测器的示意剖面图，配上一个数学生成的事件。这不是真实的 ATLAS 数据：'
-       + '径迹弯曲、喷注和能量塔都采样自简化的物理启发分布。',
-    facts:['带电径迹在 2 T 螺线管磁场中弯曲 —— 曲率 ∝ 1/p\u209C',
+    title:'真实过程对撞显示',
+    body:'探测器的示意剖面图，展示由真实标准模型过程生成的事件 —— '
+       + 'PDG 质量与分支比、精确两体衰变运动学、不变质量重建。'
+       + '探测器响应（分辨率、簇射）仍为简化模拟。',
+    facts:['曲率是真实的：2 T 螺线管中半径 r = p\u209C/(0.3B) = p\u209C/6 米 —— Z 缪子（45 GeV）几乎不弯',
            '强子喷雾 = \u201C喷注（jet）\u201D，显示为量能器表皮上的能量塔',
            '到达外环的金色径迹是缪子 —— 它们贯穿整个探测器'],
-    badge:'合成事件 —— 非真实数据',
+    seqClean:{
+      flight:'衰变产物从对撞点飞出 —— 磁场中带电粒子转弯，光子沿直线飞行。',
+      readout:'看它们停在哪一层：电子和光子被电磁量能器截住 —— 只有缪子一路穿透到最外层。',
+    },
+    badge:'真实衰变运动学 · 简化探测器响应',
+
+    processes:{
+      qcd:{ chip:'QCD 喷注', sigma:'σ ≈ 80 mb（非弹性 pp）',
+        cap0:'两个部分子发生硬散射 —— 这是质子对撞中最常见的过程，峰值亮度下每秒发生约 16 亿次。',
+        capEnd:'QCD 多喷注事件。非弹性 pp 对撞截面约 80 mb —— 峰值亮度下每秒约 16 亿次。' },
+      z_mumu:{ chip:'Z→μ⁺μ⁻', sigma:'σ×BR ≈ 2.0 nb',
+        cap0:'一个 Z⁰ 玻色子（质量 91.188 GeV，PDG）诞生并衰变成一对缪子 —— 注意两条近乎笔直的金色径迹：45 GeV 的横动量在 2 T 磁场里几乎弯不动。',
+        capEnd:'重建的 m(μμ) ≈ 91.2 GeV —— 正是 Z 玻色子的质量。峰值亮度下 Z→μμ 每秒约发生 40 次。' },
+      z_ee:{ chip:'Z→e⁺e⁻', sigma:'σ×BR ≈ 2.0 nb',
+        cap0:'Z⁰ 也能衰变成一对电子（分支比 3.363%）—— 注意青色径迹在量能器里终点处的电磁簇射。',
+        capEnd:'m(ee) ≈ 91.2 GeV。W 与 Z 玻色子 1983 年就在 CERN 被发现 —— 如今已是物理学家手里的日常工具。' },
+      z_jj:{ chip:'Z→qq̄', sigma:'σ×BR ≈ 41 nb',
+        cap0:'Z⁰ 最常衰变成一对夸克（分支比 69%）—— 夸克立即强子化，喷出两道背对背的喷注。',
+        capEnd:'双喷注质量 ≈ 91.2 GeV（喷注能量分辨率较粗，所以峰更宽）。它也是希格斯搜索的主要背景之一。' },
+      h_gamgam:{ chip:'H→γγ', sigma:'σ×BR ≈ 0.14 pb',
+        cap0:'希格斯玻色子（≈125.2 GeV）衰变成两个光子 —— 分支比只有 0.227%。白色虚线是光子：不带电，磁场弯不动它。',
+        capEnd:'m(γγ) ≈ 125.2 GeV！2012 年 7 月 4 日，ATLAS 与 CMS 正是用这条 γγ 峰加上 4 轻子通道以 5σ 宣布发现希格斯。峰值亮度下每约 6 分钟才产生一个 H→γγ。' },
+      h_zz4l:{ chip:'H→ZZ*→4ℓ', sigma:'σ×BR ≈ 0.007 pb',
+        cap0:'“黄金通道”：希格斯 → Z + Z*（一个 Z 被迫偏离质量壳，因为 125 < 2×91）→ 再衰变成 2e2μ。分支比仅约 0.012%。',
+        capEnd:'m(4ℓ) ≈ 125.2 GeV —— 干净的 4 轻子峰是测量希格斯质量的“标尺”。峰值亮度下每约 2 小时才产生一个。' },
+      ttbar:{ chip:'tt̄→ℓ+喷注', sigma:'σ ≈ 0.9 nb',
+        cap0:'一对顶夸克（各 ≈172.7 GeV —— 已知最重的基本粒子）产生后立即衰变：t→Wb。一个 W→ℓν，另一个 W→qq̄。',
+        capEnd:'最终态：1 条轻子径迹 + ≥4 道喷注（其中 2 道 b 喷注）+ 中微子造成的丢失横动量（白虚线 = 真实的不可见粒子横动量矢量和）。峰值亮度下每秒约产生 18 对 tt̄。' },
+    },
     seq:[
       { phase:'approach', cap:'两个质子以接近光速沿束流管相向飞来\u2026\u2026' },
       { phase:'impact',   cap:'对撞！全部能量集中在一点 —— 并转化为新的粒子（E = mc\u00B2）。' },
-      { phase:'shower',   cap:'夸克和胶子喷涌而出 —— 但自由的夸克无法单独存在\u2026\u2026' },
-      { phase:'hadron',   cap:'强子化：每个夸克从真空中\u201C拽\u201D出新粒子，喷洒成一道道\u201C喷注\u201D。' },
-      { phase:'layers',   cap:'粒子穿过时，每层探测器依次闪亮 —— 像素 → 径迹器 → 量能器 → 缪子腔室。' },
-      { phase:'done',     cap:'事件测量完成。只有缪子（金色）到达最外层。' },
+      { phase:'flight',   cap:'所有产物以接近光速飞出 —— 磁场中带电粒子转弯；看每一颗粒子在哪里耗尽能量、停下脚步。' },
+      { phase:'readout',  cap:'粒子停在哪一层，哪一层就亮起能量塔：电子停在电磁量能器，强子穿进钢-闪烁体量能器 —— 只有缪子能一路穿透到底。' },
+      { phase:'done',     cap:'事件测量完成。' },
     ] },
 
   credits:[
@@ -424,6 +484,8 @@ APP.DATA.zh = {
     { t:'ATLAS — 磁铁系统（英文）', u:'https://atlas.cern/Discover/Detector/Magnet-System' },
     { t:'ATLAS — 缪子谱仪（英文）', u:'https://atlas.cern/Discover/Detector/Muon-Spectrometer' },
     { t:'ATLAS — 触发与数据采集（英文）', u:'https://atlas.cern/Discover/Detector/Trigger-DAQ' },
+    { t:'ATLAS — 13.6 TeV 希格斯测量（Run 3 简报，英文）', u:'https://atlas.cern/Updates/Briefing/Run3-Higgs' },
+    { t:'PDG — 粒子数据组（质量、宽度、分支比，英文）', u:'https://pdg.lbl.gov/' },
   ],
 
   triggerNote:'触发与数据采集（真实 ATLAS）：一级硬件触发在 2.5 \u03BCs 内做出判断；'
@@ -457,7 +519,8 @@ APP.DATA.ui = {
   'ev.tracks':       { en:'tracks', zh:'径迹' },
   'ev.jets':         { en:'jets', zh:'喷注' },
   'ev.muons':        { en:'muons', zh:'\u03BC 子' },
-  'badge':           { en:'SYNTHETIC EVENT \u2014 NOT REAL DATA', zh:'合成事件 —— 非真实数据' },
+  'ev.rate':         { en:'Rate at peak lumi.', zh:'峰值亮度产率' },
+  'badge':           { en:'REAL DECAY KINEMATICS \u00B7 SIMPLIFIED DETECTOR RESPONSE', zh:'真实衰变运动学 —— 简化探测器响应' },
   'legend.ring':     { en:'Counter-rotating beams', zh:'反向旋转的质子束' },
   'legend.collision':{ en:'Event legend', zh:'事件图例' },
   'leg.hadron':      { en:'charged hadron track', zh:'带电强子径迹' },
@@ -473,8 +536,8 @@ APP.DATA.ui = {
   'help.about':      { en:'About', zh:'关于' },
   'help.controls':   { en:'Controls', zh:'操作' },
   'help.refs':       { en:'Official CERN references', zh:'CERN 官方参考资料' },
-  'help.foot':       { en:'Educational visualization by an independent author — not affiliated with or endorsed by CERN. Geometry is simplified (proportions exaggerated for readability; ring radius compressed \u224860\u00D7). All collision events are synthetic, generated from physics-inspired math — never real detector data. Facts sourced from home.cern and atlas.cern (2026). Rendering: Three.js r158 (MIT). Local, offline, no tracking.',
-                       zh:'由独立作者制作的科普可视化 —— 与 CERN 无关，亦未获其认可。几何经过简化（比例为可读性而夸大；环半径压缩约 60 倍）。所有对撞事件均为合成事件，由物理启发的数学生成 —— 绝非真实探测器数据。事实来源：home.cern 与 atlas.cern（2026）。渲染：Three.js r158（MIT）。本地离线运行，无追踪。' },
+  'help.foot':       { en:'Educational visualization by an independent author — not affiliated with or endorsed by CERN. Geometry is simplified (proportions exaggerated for readability; ring radius compressed \u224860\u00D7). Collision kinematics use real Standard Model values (PDG masses & branching ratios, ATLAS Run 3 cross sections — verified 2026-09); detector response is schematic. Facts sourced from home.cern, atlas.cern and PDG (2026). Rendering: Three.js r158 (MIT). Local, offline, no tracking.',
+                       zh:'由独立作者制作的科普可视化 —— 与 CERN 无关，亦未获其认可。几何经过简化（比例为可读性而夸大；环半径压缩约 60 倍）。对撞运动学采用真实标准模型数值（PDG 质量与分支比、ATLAS Run 3 截面 —— 2026-09 核实）；探测器响应为示意模拟。事实来源：home.cern、atlas.cern 与 PDG（2026）。渲染：Three.js r158（MIT）。本地离线运行，无追踪。' },
   'ctl.scroll':      { en:'scroll (Detector)', zh:'滚轮（探测器）' },
   'ctl.scroll.d':    { en:'disassemble / assemble the detector in six stages', zh:'分六个阶段拆解 / 组装探测器' },
   'ctl.drag':        { en:'drag · right-drag', zh:'拖拽 · 右键拖拽' },

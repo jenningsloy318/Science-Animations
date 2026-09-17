@@ -1,17 +1,22 @@
 /* ============================================================================
- * collision.js — SYNTHETIC collision display (math-generated, not real data)
- * Schematic cut-away detector + a staged, narrated collision sequence:
- *   approach → impact → parton shower → hadronization → layer flashes → done
- * Helix tracks (curvature ∝ 1/pT in the 2 T solenoid), jets as energy towers,
- * long gold muon tracks, missing-Et arrow.
+ * collision.js — collision display driven by REAL Standard Model kinematics
+ * (APP.PP: PDG masses/branching ratios, two-body decays, invariant-mass
+ * reconstruction). The detector response remains simplified/schematic.
+ * Staged, narrated sequence: approach → impact → shower → hadronization →
+ * layer flashes → done.
+ * Track curvature uses the REAL relation r[m] = pT[GeV]/(0.3·B), B = 2 T,
+ * drawn at scene scale 4.86 units/m (TRT outer radius 1.07 m ↔ 5.2 units),
+ * i.e. rho = 0.81 × pT. Photons fly straight; MET = real invisible-pT sum.
  * ==========================================================================*/
 (function () {
   const U = APP.U, TAU = U.TAU;
   const Y_AXIS = new THREE.Vector3(0, 1, 0);
 
   /* track type palette */
-  const COL = { hadron: 0xbfd8ea, electron: 0x6fe3c4, muon: 0xe8c874, jet: 0xd8b25c };
+  const COL = { hadron: 0xbfd8ea, electron: 0x6fe3c4, muon: 0xe8c874, jet: 0xd8b25c, photon: 0xf2ecdc };
   const R_STOP = { pixel: 2.4, sct: 3.8, trt: 5.2, em: 8.3, had: 11.0, muon: 14.6 };
+  const K_SCALE = 4.86;   /* scene units per metre (TRT 1.07 m ↔ 5.2 units) */
+  const HELIX = 0.3 * 2.0 /* B[T] */ ;   /* r[m] = pT/(0.3B) = pT/6 */
   const SHELLS = [
     { r: 2.4, mat: { color: 0x1f3a35, emissive: 0x6fe3c4, emissiveIntensity: 0.12 } },
     { r: 3.8, mat: { color: 0x1f3038, emissive: 0x6fd3e8, emissiveIntensity: 0.10 } },
@@ -23,8 +28,14 @@
   ];
 
   /* sequence timing (seconds) */
-  const PHASE_T = { approach: 2.2, impact: 0.55, shower: 1.5, hadron: 1.7, layers: 2.4 };
-  const Z_START = 17, Z_HIT = 0.25, DONE_HOLD = 4.2, AUTO_AFTER = 4.5;
+  const PHASE_T = { approach: 2.2, impact: 0.55, flight: 2.9, readout: 1.4 };
+  const Z_START = 17, Z_HIT = 0.25, DONE_HOLD = 5.0, AUTO_AFTER = 5.0;
+  /* C A U S A L  A N I M A T I O N :
+   * every particle leaves the IP at t=0 and flies at one scaled, constant
+   * (near-light) speed. A track tip reaching its stop radius, the local
+   * tower growth and the outward shell-flash wave are all derived from that
+   * single clock — nothing is decorative. */
+  const V_FLIGHT = 9.5;   /* scene units per second (14.6-unit crossing ≈ 1.5 s) */
 
   APP.Collision = { build };
 
@@ -49,17 +60,19 @@
 
     const state = {
       num: 0, tracks: 0, jets: 0, sumET: 0, muons: 0,
-      phase: 'approach', pt: 0, doneT: 0,
-      pEarly: 0, pLate: 0,
+      phase: 'approach', pt: 0, doneT: 0, flyT: 0,
       auto: true, timer: 2.0,
       trackLines: [], towers: [], misc: [],
       protons: [], shock: null,
       onCaption: null, capShown: false,
+      typeIdx: 0, procKey: null, info: null,
     };
     const matsTrack = {};
     for (const k of Object.keys(COL)) {
       matsTrack[k] = new THREE.LineBasicMaterial({ color: COL[k], transparent: true, opacity: 0.95 });
     }
+    matsTrack.photon = new THREE.LineDashedMaterial({ color: COL.photon, dashSize: 0.42, gapSize: 0.26,
+      transparent: true, opacity: 0.9 });
     const towerMat = new THREE.MeshStandardMaterial({
       color: 0x3a3222, emissive: 0xe0b25c, emissiveIntensity: 0.85, metalness: 0.4, roughness: 0.4,
       transparent: true, opacity: 0.95 });
@@ -80,7 +93,10 @@
       for (let i = 0; i < n; i++) {
         const s = (i / (n - 1)) * sMax;
         let x, y;
-        if (q > 0) {
+        if (q === 0) {                       /* neutral: straight line (photon) */
+          const c = Math.cos(phi0), sn = Math.sin(phi0);
+          x = c * s; y = sn * s;
+        } else if (q > 0) {
           const a = phi0 + s / rho;
           x = -rho * Math.sin(phi0) + rho * Math.sin(a);
           y = rho * Math.cos(phi0) - rho * Math.cos(a);
@@ -94,21 +110,28 @@
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
       const line = new THREE.Line(geo, matsTrack[type]);
+      if (type === 'photon') line.computeLineDistances();
       line.geometry.setDrawRange(0, 0);
       line.userData.g = group;            /* 'early' | 'late' */
+      line.userData.sMax = sMax;          /* arc length — drives the causal flight clock */
       eventGroup.add(line);
       state.trackLines.push(line);
       return line;
     }
 
-    function addTower(phi, r, energy, em) {
-      const h = 0.6 + energy * 0.55;
+    function addTower(phi, r, energy, em, eta) {
+      /* real energies (GeV) — √ scale keeps towers readable 0.5–5 units */
+      const h = U.clamp(0.5 + 0.35 * Math.sqrt(Math.max(0, energy)), 0.4, 5.0);
       const m = new THREE.Mesh(new THREE.BoxGeometry(0.55, 1, 0.55), em ? towerMatEM : towerMat);
       const dir = new THREE.Vector3(Math.cos(phi), Math.sin(phi), 0);
       m.position.copy(dir.clone().multiplyScalar(r));
+      m.position.z = (eta === undefined ? 0 : Math.sinh(eta) * 1.6);
       m.quaternion.setFromUnitVectors(Y_AXIS, dir);
       m.scale.y = 0.001;
       m.userData.targetH = h;
+      /* CAUSAL: the tower grows when the depositing particle ARRIVES —
+       * i.e. after flying the radius of the depositing layer at V_FLIGHT */
+      m.userData.growAt = (em ? 8.3 : 11.0) / V_FLIGHT;
       eventGroup.add(m);
       state.towers.push(m);
     }
@@ -136,6 +159,21 @@
 
     function emitCaption() {
       if (!state.onCaption) return;
+      const procs = APP.L().collision.processes || {};
+      const proc = procs[state.procKey];
+      if (state.phase === 'approach' && proc && proc.cap0) {
+        state.onCaption(proc.cap0); state.capShown = true; return;
+      }
+      if (state.phase === 'done') {
+        state.onCaption(proc && proc.capEnd ? proc.capEnd : null);
+        state.capShown = !!proc && !!proc.capEnd; return;
+      }
+      /* clean processes (no hadrons in the decay): their own flight/readout lines */
+      const cleanSet = { z_mumu: 1, z_ee: 1, h_gamgam: 1, h_zz4l: 1 };
+      const cl = APP.L().collision.seqClean;
+      if (cleanSet[state.procKey] && cl && cl[state.phase]) {
+        state.onCaption(cl[state.phase]); state.capShown = true; return;
+      }
       const step = APP.L().collision.seq.find((s) => s.phase === state.phase);
       if (step) { state.onCaption(step.cap); state.capShown = true; }
       else { state.onCaption(null); state.capShown = false; }
@@ -143,73 +181,51 @@
 
     function setPhase(p) { state.phase = p; state.pt = 0; emitCaption(); }
 
-    /* ---- the event itself ------------------------------------------------*/
-    function startSequence(seed) {
+    /* ---- the event itself — REAL SM kinematics from APP.PP --------------*/
+    function startSequence(seed, forcedType) {
       clearEvent();
       state.num++;
-      const rnd = U.rng(seed === undefined ? (Date.now() & 0xffff) * 2654435761 + state.num : seed);
-      const info = { tracks: 0, jets: 0, sumET: 0, muons: 0 };
+      const types = (window.APP && APP.PP && APP.PP.TYPES) || ['qcd'];
+      const type = forcedType || types[state.typeIdx % types.length];
+      if (!forcedType) state.typeIdx++;
+      state.procKey = type;
+      const ev = APP.PP.makeEvent(type, seed === undefined ? undefined : seed + 1);
+      const info = { tracks: 0, jets: 0, sumET: 0, muons: 0, ev };
 
-      /* jets first (so some tracks belong to them) */
-      const nJet = 2 + Math.floor(rnd() * 4);
-      const jetAxes = [];
-      for (let j = 0; j < nJet; j++) {
-        const phiJ = rnd() * TAU;
-        const etaJ = (rnd() - 0.5) * 1.6;
-        jetAxes.push({ phiJ, etaJ });
-        const n = 5 + Math.floor(rnd() * 4);
-        for (let k = 0; k < n; k++) {
-          const pT = 1.5 + rnd() * 4.5;
-          const phi0 = phiJ + (rnd() - 0.5) * 0.55;
-          const eta = etaJ + (rnd() - 0.5) * 0.7;
-          addTrack(helix(pT, phi0, eta, R_STOP.had, rnd), k === 0 ? 'early' : 'late', 'hadron');
-          info.tracks++;
-        }
-        /* towers */
-        const e1 = 1.2 + rnd() * 3.6;
-        addTower(phiJ, 9.15, e1, true); info.sumET += e1;
-        addTower(phiJ + 0.06, 11.5, e1 * 1.25, false); info.sumET += e1 * 1.25;
-        for (let t = 0; t < 2; t++) {
-          const e = 0.5 + rnd() * 1.6;
-          addTower(phiJ + (rnd() - 0.5) * 0.5, 9.15, e, true); info.sumET += e;
-          const e2 = e * (1.1 + rnd() * 0.5);
-          addTower(phiJ + (rnd() - 0.5) * 0.5, 11.5, e2, false); info.sumET += e2;
-        }
-        info.jets++;
-      }
-      /* muons: 2–4, long gold tracks — always 'early' (they punch straight out) */
-      const nMu = 2 + Math.floor(rnd() * 3);
-      for (let k = 0; k < nMu; k++) {
-        const pT = 3.5 + rnd() * 6;
-        addTrack(helix(pT, rnd() * TAU, (rnd() - 0.5) * 2.2, R_STOP.muon, rnd), 'muon', 'early');
-        info.tracks++; info.muons++;
-      }
-      /* extra scattered tracks */
-      const nX = 10 + Math.floor(rnd() * 10);
-      for (let k = 0; k < nX; k++) {
-        const r = rnd();
-        const pT = 0.5 + 3.2 * r * r;
-        const type = r > 0.93 ? 'electron' : (pT > 3.4 ? 'muon' : 'hadron');
-        const stop = type === 'electron' ? R_STOP.em : (type === 'muon' ? R_STOP.muon : (rnd() > 0.5 ? R_STOP.trt : R_STOP.had));
-        addTrack(helix(pT, rnd() * TAU, (rnd() - 0.5) * 3.4, stop, rnd), type === 'muon' ? 'hadron' : type,
-          k % 3 === 0 ? 'early' : 'late');
+      /* real pT → real curvature: rho[units] = pT[GeV]/6 × 4.86 */
+      const trackKind = { muon: 'muon', electron: 'electron', photon: 'photon', hadron: 'hadron' };
+      for (const p of ev.particles) {
+        const rho = p.q === 0 ? 1e6 : (p.pT / HELIX) * K_SCALE;
+        addTrack(helix(p.pT, p.phi, p.eta, p.q, rho, R_STOP[p.stop] || R_STOP.had),
+          trackKind[p.kind] || 'hadron', p.group);
         info.tracks++;
+        if (p.kind === 'muon') info.muons++;
       }
-      state.tracks = info.tracks; state.jets = info.jets; state.sumET = info.sumET; state.muons = info.muons;
+      /* calorimeter towers from the real deposits */
+      for (const t of ev.towers) {
+        addTower(t.phi, t.em ? 9.15 : 11.5, t.e, t.em, t.eta);
+        info.sumET += t.e;
+      }
+      info.jets = ev.jets.length;
+      state.tracks = info.tracks; state.jets = info.jets;
+      state.sumET = info.sumET; state.muons = info.muons;
+      state.info = info;
 
-      /* missing-Et arrow: opposite the summed jet vector */
-      let vx = 0, vy = 0;
-      for (const j of jetAxes) { vx += Math.cos(j.phiJ); vy += Math.sin(j.phiJ); }
-      const phiMiss = Math.atan2(-vy, -vx);
-      const arrowGeo = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(Math.cos(phiMiss) * 1.2, Math.sin(phiMiss) * 1.2, 0),
-        new THREE.Vector3(Math.cos(phiMiss) * 7.5, Math.sin(phiMiss) * 7.5, 0),
-      ]);
-      const arrow = new THREE.Line(arrowGeo, new THREE.LineDashedMaterial({
-        color: 0xe8eaed, dashSize: 0.5, gapSize: 0.32, transparent: true, opacity: 0.7 }));
-      arrow.computeLineDistances();
-      eventGroup.add(arrow);
-      state.misc.push(arrow);
+      /* missing-Et arrow — the REAL vector sum of invisible particles */
+      if (ev.met) {
+        const len = U.clamp(2.2 + 0.09 * ev.met.mag, 2.2, 7.5);
+        const arrowGeo = new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(Math.cos(ev.met.phi) * 1.2, Math.sin(ev.met.phi) * 1.2, 0),
+          new THREE.Vector3(Math.cos(ev.met.phi) * len, Math.sin(ev.met.phi) * len, 0),
+        ]);
+        const arrow = new THREE.Line(arrowGeo, new THREE.LineDashedMaterial({
+          color: 0xe8eaed, dashSize: 0.5, gapSize: 0.32, transparent: true, opacity: 0.7 }));
+        arrow.computeLineDistances();
+        arrow.visible = false;              /* revealed only at 'readout' */
+        state.metArrow = arrow;
+        eventGroup.add(arrow);
+        state.misc.push(arrow);
+      }
 
       /* the two incoming protons */
       const pa = makeProton(), pb = makeProton();
@@ -227,21 +243,27 @@
       for (let i = 0; i < shellMats.length; i++) shellMats[i].emissiveIntensity = shellBase[i];
 
       state.doneT = 0;
+      state.flyT = 0;
+      state.metArrow = null;
       setPhase('approach');
     }
 
-    function helix(pT, phi0, eta, rStop, rnd) {
-      const rho = 2.6 * pT;
-      const q = rnd() > 0.5 ? 1 : -1;
+    function helix(pT, phi0, eta, q, rho, rStop) {
       const slope = Math.sinh(eta);
       /* find arc length where track exits rStop (sample) */
       let sMax = 30;
       const ds = 0.1;
       for (let s = ds; s < 40; s += ds) {
-        const x = q > 0 ? -rho * Math.sin(phi0) + rho * Math.sin(phi0 + s / rho)
-                        : rho * Math.sin(phi0) + rho * Math.sin(phi0 + Math.PI - s / rho);
-        const y = q > 0 ? rho * Math.cos(phi0) - rho * Math.cos(phi0 + s / rho)
-                        : -rho * Math.cos(phi0) - rho * Math.cos(phi0 + Math.PI - s / rho);
+        let x, y;
+        if (q === 0) {
+          x = Math.cos(phi0) * s; y = Math.sin(phi0) * s;
+        } else if (q > 0) {
+          x = -rho * Math.sin(phi0) + rho * Math.sin(phi0 + s / rho);
+          y = rho * Math.cos(phi0) - rho * Math.cos(phi0 + s / rho);
+        } else {
+          x = rho * Math.sin(phi0) + rho * Math.sin(phi0 + Math.PI - s / rho);
+          y = -rho * Math.cos(phi0) - rho * Math.cos(phi0 + Math.PI - s / rho);
+        }
         if (Math.sqrt(x * x + y * y) > rStop) { sMax = s; break; }
       }
       return { rho, phi0, q, slope, sMax };
@@ -320,36 +342,39 @@
           state.shock.scale.setScalar(0.3 + k * 14);
           state.shock.material.opacity = 0.85 * (1 - k);
         }
-        if (state.pt >= PHASE_T.impact) { if (state.shock) { state.shock.visible = false; } setPhase('shower'); }
-      } else if (state.phase === 'shower') {
-        state.pEarly = U.smooth(U.clamp(state.pt / PHASE_T.shower, 0, 1));
-        if (state.pt >= PHASE_T.shower) setPhase('hadron');
-      } else if (state.phase === 'hadron') {
-        state.pLate = U.smooth(U.clamp(state.pt / PHASE_T.hadron, 0, 1));
-        if (state.pt >= PHASE_T.hadron) setPhase('layers');
-      } else if (state.phase === 'layers') {
-        if (state.pt >= PHASE_T.layers) setPhase('done');
+        if (state.pt >= PHASE_T.impact) { if (state.shock) { state.shock.visible = false; } setPhase('flight'); }
+      } else if (state.phase === 'flight') {
+        state.flyT += dt;
+        if (state.pt >= PHASE_T.flight) setPhase('readout');
+      } else if (state.phase === 'readout') {
+        state.flyT += dt;
+        if (state.metArrow) state.metArrow.visible = true;   /* the neutrino is inferred */
+        if (state.pt >= PHASE_T.readout) setPhase('done');
       } else if (state.phase === 'done') {
         state.doneT += dt;
         if (state.capShown && state.doneT > DONE_HOLD) { state.onCaption(null); state.capShown = false; }
       }
 
-      /* ---- per-frame visual application ---- */
-      /* track draw-in: two waves */
-      const ne = Math.floor(state.pEarly * 89), nl = Math.floor(state.pLate * 89);
-      for (const line of state.trackLines) {
-        line.geometry.setDrawRange(0, Math.max(0, line.userData.g === 'early' ? ne : nl));
+      /* ---- per-frame visual application — all driven by the flight clock ---- */
+      const flying = state.phase === 'flight' || state.phase === 'readout' || state.phase === 'done';
+      /* track tips move at ONE constant (near-light) speed from the IP */
+      if (flying) {
+        for (const line of state.trackLines) {
+          const sMax = line.userData.sMax || 1;
+          const a = Math.min(state.flyT * V_FLIGHT, sMax);
+          line.geometry.setDrawRange(0, Math.max(0, Math.floor((a / sMax) * 87) + 1));
+        }
       }
-      /* towers rise during 'hadron' and stay up */
-      const towerK = state.pLate;
+      /* towers grow at the moment their particle ARRIVES at the deposit layer */
       for (const t of state.towers) {
-        t.scale.y = Math.max(0.001, t.userData.targetH * towerK);
+        const g = flying ? U.smooth(U.clamp((state.flyT - t.userData.growAt) / 0.5, 0, 1)) : 0;
+        t.scale.y = Math.max(0.001, t.userData.targetH * g);
       }
-      /* shell flashes: radial wave through 'layers' (and decaying after) */
-      if (state.phase === 'layers' || state.phase === 'done') {
-        const t0 = state.phase === 'layers' ? state.pt : PHASE_T.layers + state.doneT;
+      /* shell flashes fire when the light-front reaches each radius */
+      if (flying) {
         for (let i = 0; i < shellMats.length; i++) {
-          shellMats[i].emissiveIntensity = shellBase[i] + 1.5 * flashPulse(t0 - i * 0.2);
+          const tArr = SHELLS[i].r / V_FLIGHT;
+          shellMats[i].emissiveIntensity = shellBase[i] + 1.6 * flashPulse(state.flyT - tArr);
         }
       }
       /* flash decay after the burst */
@@ -367,7 +392,15 @@
 
     function setAuto(v) { state.auto = v; }
     function getInfo() {
-      return { num: state.num, tracks: state.tracks, jets: state.jets, sumET: state.sumET, muons: state.muons };
+      const base = { num: state.num, tracks: state.tracks, jets: state.jets, sumET: state.sumET, muons: state.muons };
+      if (state.info && state.info.ev) {
+        const ev = state.info.ev;
+        base.type = ev.type;
+        base.mass = ev.mass || null;
+        base.sigmaPb = ev.sigmaPb || null;
+        base.ratePerS = ev.sigmaPb ? APP.PP.ratePerS(ev.sigmaPb) : null;
+      }
+      return base;
     }
     function refreshCaption() { if (state.phase === 'done' ? state.capShown : true) emitCaption(); }
 

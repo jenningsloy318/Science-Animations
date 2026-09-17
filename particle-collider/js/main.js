@@ -178,9 +178,10 @@
       collCap.textContent = text;
       collCap.classList.add('show');
     });
-    app.triggerEvent = () => collision.trigger();
+    app.triggerEvent = (type) => collision.trigger(undefined, type);
     app.setAuto = (v) => collision.setAuto(v);
     app.eventInfo = () => collision.getInfo();
+    window.__pcDebug = () => ({ phase: collision.phase(), ...collision.getInfo() });
 
     /* ---- tweens, UI ---- */
     const tweens = APP.tweens = new U.Tweens();

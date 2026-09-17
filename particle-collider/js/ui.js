@@ -102,6 +102,7 @@
     /* dynamic panels */
     buildSystemsList(app);
     buildStageChips(app);
+    buildEvChips(app);
     setLegend('ring', ringLegend());
     setLegend('collision', collisionLegend());
     /* force syncPlayback to rewrite cached strings */
@@ -197,9 +198,38 @@
   }
 
   /* ---------------- collision view -----------------------------------------*/
+  function buildEvChips(app) {
+    const box = $('#evChips');
+    if (!box) return;
+    box.innerHTML = '';
+    const procs = L().collision.processes || {};
+    (window.APP.PP ? APP.PP.TYPES : Object.keys(procs)).forEach((t) => {
+      const pc = procs[t];
+      if (!pc) return;
+      const b = document.createElement('button');
+      b.className = 'evchip';
+      b.dataset.type = t;
+      b.textContent = pc.chip;
+      b.title = pc.sigma + (APP.lang === 'zh' ? '' : '' );
+      b.addEventListener('click', () => app.triggerEvent(t));
+      box.appendChild(b);
+    });
+    /* tooltip 补充实时产率 */
+    if (window.APP.PP) {
+      box.querySelectorAll('.evchip').forEach((b) => {
+        const ev = APP.PP.makeEvent(b.dataset.type, 1);
+        const r = APP.PP.ratePerS(ev.sigmaPb || 0);
+        const rate = r >= 1 ? r.toFixed(r >= 10 ? 0 : 1) + '/s'
+          : (r >= 1 / 60 ? (60 * r).toFixed(1) + '/min' : (3600 * r).toFixed(0) + '/h');
+        b.title = (b.title ? b.title + ' · ' : '') + tr('ev.rate') + ' ≈ ' + rate;
+      });
+    }
+  }
+
   function wireCollision(app) {
     $('#btnTrigger').addEventListener('click', () => app.triggerEvent());
     $('#chkAuto').addEventListener('change', (e) => app.setAuto(e.target.checked));
+    buildEvChips(app);
     setInterval(() => {
       if (document.body.dataset.view !== 'collision') return;
       const info = app.eventInfo();
@@ -208,6 +238,16 @@
       $('#evJets').textContent = info.jets;
       $('#evEt').textContent = info.sumET.toFixed(1);
       $('#evMuons').textContent = info.muons;
+      const massTxt = info.mass
+        ? `${info.mass.label} ${info.mass.value.toFixed(1)}${info.mass.truthName ? ' ≈ ' + info.mass.truthName : ''}` : '–';
+      const massEl = $('#evMass');
+      if (massEl.textContent !== massTxt) {
+        massEl.textContent = massTxt;
+        massEl.classList.remove('reveal');
+        void massEl.offsetWidth;               /* restart the CSS animation */
+        if (info.mass) massEl.classList.add('reveal');
+      }
+      $$('#evChips .evchip').forEach((c) => c.classList.toggle('active', c.dataset.type === info.type));
     }, 400);
   }
 

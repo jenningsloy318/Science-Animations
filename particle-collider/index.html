@@ -202,9 +202,16 @@
   .hint{font-size:11px; color:var(--muted); margin-left:auto}
   .chkRow{display:flex; align-items:center; gap:7px; font-size:12px; color:var(--muted); cursor:pointer}
   .chkRow input{accent-color:var(--gold)}
+  #evChips{display:flex; gap:5px; flex-wrap:wrap}
+  .evchip{border:1px solid var(--line); background:rgba(255,255,255,.03); color:var(--muted);
+    font:600 11px/1 inherit; padding:6px 9px; border-radius:999px; cursor:pointer; white-space:nowrap}
+  .evchip:hover{color:var(--text); border-color:var(--line2)}
+  .evchip.active{color:#f0e6c8; border-color:rgba(216,178,92,.6); background:rgba(216,178,92,.12)}
   .evstats{display:flex; gap:16px; font-size:12px; color:var(--muted);
     font-variant-numeric:tabular-nums}
   .evstats b{color:var(--text); font-weight:600}
+  #evMass.reveal{animation:massReveal 1.8s ease-out}
+  @keyframes massReveal{0%{color:#ffd76a; text-shadow:0 0 14px rgba(255,205,90,.95)} 100%{}}
   .badge{font-size:10px; letter-spacing:.14em; color:var(--danger);
     border:1px solid rgba(224,168,76,.5); background:rgba(224,168,76,.08);
     padding:4px 12px; border-radius:999px}
@@ -338,12 +345,14 @@
     <div id="collbar">
       <button id="btnTrigger" class="btn primary">Trigger event</button>
       <label class="chkRow"><input id="chkAuto" type="checkbox" checked> auto-renew</label>
+      <div id="evChips"></div>
       <div class="evstats">
         <span>event <b id="evNum">#–</b></span>
         <span>tracks <b id="evTracks">–</b></span>
         <span>jets <b id="evJets">–</b></span>
-        <span>ΣE<sub>T</sub> <b id="evEt">–</b></span>
+        <span>ΣE<sub>T</sub> GeV <b id="evEt">–</b></span>
         <span>muons <b id="evMuons">–</b></span>
+        <span>m(rec) GeV <b id="evMass">–</b></span>
       </div>
       <span class="badge">SYNTHETIC EVENT — NOT REAL DATA</span>
     </div>
@@ -375,6 +384,7 @@
   <script src="js/materials.js"></script>
   <script src="js/detector.js"></script>
   <script src="js/ring.js"></script>
+  <script src="js/ppevents.js"></script>
   <script src="js/collision.js"></script>
   <script src="js/ui.js"></script>
   <script src="js/main.js"></script>

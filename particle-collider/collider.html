@@ -202,9 +202,16 @@
   .hint{font-size:11px; color:var(--muted); margin-left:auto}
   .chkRow{display:flex; align-items:center; gap:7px; font-size:12px; color:var(--muted); cursor:pointer}
   .chkRow input{accent-color:var(--gold)}
+  #evChips{display:flex; gap:5px; flex-wrap:wrap}
+  .evchip{border:1px solid var(--line); background:rgba(255,255,255,.03); color:var(--muted);
+    font:600 11px/1 inherit; padding:6px 9px; border-radius:999px; cursor:pointer; white-space:nowrap}
+  .evchip:hover{color:var(--text); border-color:var(--line2)}
+  .evchip.active{color:#f0e6c8; border-color:rgba(216,178,92,.6); background:rgba(216,178,92,.12)}
   .evstats{display:flex; gap:16px; font-size:12px; color:var(--muted);
     font-variant-numeric:tabular-nums}
   .evstats b{color:var(--text); font-weight:600}
+  #evMass.reveal{animation:massReveal 1.8s ease-out}
+  @keyframes massReveal{0%{color:#ffd76a; text-shadow:0 0 14px rgba(255,205,90,.95)} 100%{}}
   .badge{font-size:10px; letter-spacing:.14em; color:var(--danger);
     border:1px solid rgba(224,168,76,.5); background:rgba(224,168,76,.08);
     padding:4px 12px; border-radius:999px}
@@ -338,12 +345,14 @@
     <div id="collbar">
       <button id="btnTrigger" class="btn primary">Trigger event</button>
       <label class="chkRow"><input id="chkAuto" type="checkbox" checked> auto-renew</label>
+      <div id="evChips"></div>
       <div class="evstats">
         <span>event <b id="evNum">#–</b></span>
         <span>tracks <b id="evTracks">–</b></span>
         <span>jets <b id="evJets">–</b></span>
-        <span>ΣE<sub>T</sub> <b id="evEt">–</b></span>
+        <span>ΣE<sub>T</sub> GeV <b id="evEt">–</b></span>
         <span>muons <b id="evMuons">–</b></span>
+        <span>m(rec) GeV <b id="evMass">–</b></span>
       </div>
       <span class="badge">SYNTHETIC EVENT — NOT REAL DATA</span>
     </div>
@@ -381,7 +390,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
 </script>
 <script>
-/* ===== inlined: js/data.js (32,562 bytes) ===== */
+/* ===== inlined: js/data.js (38,543 bytes) ===== */
 /* ============================================================================
  * data.js — verified facts & educational copy (EN + 中文)
  * Sources (consulted 2026-09, official CERN references):
@@ -406,9 +415,9 @@ APP.DATA = {
   about:
     'An interactive, simplified model inspired by CERN\u2019s LHC and the ATLAS detector. ' +
     'Geometry is schematic: proportions (especially the inner radii) are exaggerated so every layer stays readable. ' +
-    'All collision events are synthetic \u2014 generated from math, never real data.',
+    'Collision kinematics come from REAL Standard Model processes (PDG masses, branching ratios; ATLAS Run 3 cross sections) \u2014 the detector response is still simulated schematically.',
 
-  disclaimer: 'Simplified geometry \u00B7 Synthetic events \u00B7 Not an official CERN product',
+  disclaimer: 'Real SM kinematics \u00B7 Simplified geometry \u00B7 Not an official CERN product',
 
   /* ---- detector systems (visibility switches, left panel) --------------- */
   systems: [
@@ -554,7 +563,7 @@ APP.DATA = {
        + 'whole machine fits one screen \u2014 the real tunnel would dwarf the Eiffel Tower\u2019s footprint.',
     facts:['26,659 m circumference \u00B7 tunnel 100 m underground',
            '1,232 main dipole magnets + 392 main quadrupoles (9,593 magnets in total)',
-           'Dipoles run at 1.9 K (\u2212271.3 \u00B0C) \u2014 colder than outer space',
+           'Dipole field 8.33 T at 1.9 K (\u2212271.3 \u00B0C) \u2014 colder than outer space',
            '~2,500 bunches per beam \u00B7 1.6\u00D710\u00B9\u00B9 protons per bunch \u00B7 25 ns spacing',
            '6.8 TeV per beam \u2192 13.6 TeV collisions \u00B7 11,245 turns per second'],
     points:[
@@ -578,21 +587,51 @@ APP.DATA = {
 
   /* ---- collision view ----------------------------------------------------*/
   collision: {
-    title:'Synthetic collision display',
-    body:'A schematic cut-away of the detector with a mathematically generated event. This is NOT real ATLAS data: '
-       + 'track curvature, jets and energy towers are sampled from simplified physics-inspired distributions.',
-    facts:['Charged tracks curve in the 2 T solenoid field \u2014 curvature \u221D 1/p\u209C',
+    title:'Real-process collision display',
+    body:'A schematic cut-away of the detector showing events generated from REAL Standard Model processes \u2014 '
+       + 'PDG masses and branching ratios, exact two-body decay kinematics, invariant-mass reconstruction. '
+       + 'The detector response (resolutions, showers) is still simulated schematically.',
+    facts:['Curvature is REAL: radius r = p\u209C/(0.3B) = p\u209C/6 metres in the 2 T solenoid \u2014 Z muons (45 GeV) barely bend',
            'Sprays of hadrons = \u201Cjets\u201D, shown as energy towers on the calorimeter skins',
            'Gold tracks reaching the outer rings are muons \u2014 they traverse the whole detector'],
-    badge:'SYNTHETIC EVENT \u2014 not real data',
+    /* captions for the "clean" processes (no hadrons in the decay itself) */
+    seqClean:{
+      flight:'The decay products fly out from the interaction point \u2014 charged particles bend in the magnetic field; photons fly straight.',
+      readout:'Watch where each one stops: electrons and photons are caught by the EM calorimeter \u2014 only muons punch through to the outermost layer.',
+    },
+    badge:'REAL DECAY KINEMATICS \u00B7 simplified detector response',
+
+    /* per-process copy — keys match APP.PP.TYPES */
+    processes:{
+      qcd:{ chip:'QCD jets', sigma:'\u03C3 \u2248 80 mb (inelastic pp)',
+        cap0:'Two partons slam together in a hard scatter \u2014 the most common proton\u2013proton process of all, happening billions of times per second.',
+        capEnd:'A QCD multijet event. Inelastic pp collisions (\u03C3 \u2248 80 mb) occur ~1.6 billion times per second at peak luminosity.' },
+      z_mumu:{ chip:'Z\u2192\u03BC\u207A\u03BC\u207B', sigma:'\u03C3\u00D7BR \u2248 2.0 nb',
+        cap0:'A Z\u2070 boson (mass 91.188 GeV, PDG) is born and decays into two muons \u2014 note the two nearly straight gold tracks: 45 GeV of transverse momentum barely bends in a 2 T field.',
+        capEnd:'Reconstructed m(\u03BC\u03BC) \u2248 91.2 GeV \u2014 exactly the Z mass. At peak luminosity Z\u2192\u03BC\u03BC happens about 40 times per second.' },
+      z_ee:{ chip:'Z\u2192e\u207Ae\u207B', sigma:'\u03C3\u00D7BR \u2248 2.0 nb',
+        cap0:'The Z\u2070 also decays into an electron pair (BR 3.363%) \u2014 watch the cyan tracks end in EM showers inside the calorimeter.',
+        capEnd:'m(ee) \u2248 91.2 GeV. W and Z bosons were discovered at CERN in 1983 \u2014 today they are everyday tools.' },
+      z_jj:{ chip:'Z\u2192qq\u0304', sigma:'\u03C3\u00D7BR \u2248 41 nb',
+        cap0:'The Z\u2070 most often decays into a quark pair (BR 69%) \u2014 quarks immediately hadronize into two back-to-back jets.',
+        capEnd:'Dijet mass \u2248 91.2 GeV (jet energy resolution is coarse, so the peak is wide). This channel is also a major background in Higgs searches.' },
+      h_gamgam:{ chip:'H\u2192\u03B3\u03B3', sigma:'\u03C3\u00D7BR \u2248 0.14 pb',
+        cap0:'A Higgs boson (\u2248125.2 GeV) decays into two photons \u2014 branching ratio just 0.227%. White dashed lines are photons: neutral, so the magnetic field cannot bend them.',
+        capEnd:'m(\u03B3\u03B3) \u2248 125.2 GeV! On 4 July 2012 ATLAS and CMS announced the Higgs discovery (5\u03C3) using exactly this \u03B3\u03B3 peak plus the 4-lepton channel. At peak luminosity one H\u2192\u03B3\u03B3 is produced only every ~6 minutes.' },
+      h_zz4l:{ chip:'H\u2192ZZ*\u21924\u2113', sigma:'\u03C3\u00D7BR \u2248 0.007 pb',
+        cap0:'The \u201Cgolden channel\u201D: Higgs \u2192 Z + Z* (one Z forced off its mass shell, since 125 < 2\u00D791) \u2192 then into 2 electrons + 2 muons. Branching ratio only \u22480.012%.',
+        capEnd:'m(4\u2113) \u2248 125.2 GeV \u2014 the clean four-lepton peak is the ruler of the Higgs mass. At peak luminosity only ~one per 2 hours is produced.' },
+      ttbar:{ chip:'tt\u0304\u2192\u2113+jets', sigma:'\u03C3 \u2248 0.9 nb',
+        cap0:'A top-quark pair (\u2248172.7 GeV each \u2014 the heaviest known elementary particle) is produced and decays instantly: t\u2192Wb. One W goes to \u2113\u03BD, the other to qq\u0304.',
+        capEnd:'Final state: 1 lepton track + \u22654 jets (2 of them b-jets) + missing transverse momentum from the neutrino (white dashed = the REAL invisible-pT vector sum). About 18 tt\u0304 pairs per second at peak luminosity.' },
+    },
     /* the step-by-step sequence played on every trigger */
     seq:[
       { phase:'approach', cap:'Two protons race toward each other along the beam pipe at almost the speed of light\u2026' },
       { phase:'impact',   cap:'IMPACT! All their energy concentrates at one point \u2014 and becomes new particles (E = mc\u00B2).' },
-      { phase:'shower',   cap:'Quarks and gluons burst out \u2014 but free quarks cannot exist alone\u2026' },
-      { phase:'hadron',   cap:'Hadronization: each quark drags new particles out of empty space, spraying into \u201Cjets\u201D.' },
-      { phase:'layers',   cap:'Each detector layer flashes as the particles cross it \u2014 pixel \u2192 tracker \u2192 calorimeters \u2192 muon chambers.' },
-      { phase:'done',     cap:'Event measured. Only muons (gold) reach the outermost layer.' },
+      { phase:'flight',   cap:'Everything flies out at near light-speed. In the magnetic field, charged particles curve \u2014 watch each one stop where its energy runs out.' },
+      { phase:'readout',  cap:'Where a particle stops, a tower lights up: electrons die in the EM calorimeter, hadrons in the steel one \u2014 only muons punch through everything.' },
+      { phase:'done',     cap:'Event measured.' },
     ] },
 
   credits: [
@@ -604,6 +643,8 @@ APP.DATA = {
     { t:'ATLAS \u2014 Magnet System', u:'https://atlas.cern/Discover/Detector/Magnet-System' },
     { t:'ATLAS \u2014 Muon Spectrometer', u:'https://atlas.cern/Discover/Detector/Muon-Spectrometer' },
     { t:'ATLAS \u2014 Trigger & DAQ', u:'https://atlas.cern/Discover/Detector/Trigger-DAQ' },
+    { t:'ATLAS \u2014 Higgs at 13.6 TeV (Run 3 brief)', u:'https://atlas.cern/Updates/Briefing/Run3-Higgs' },
+    { t:'PDG \u2014 Particle Data Group (masses, widths, BRs)', u:'https://pdg.lbl.gov/' },
   ],
 
   triggerNote:'Trigger & DAQ (real ATLAS): L1 hardware decides in < 2.5 \u03BCs; the software farm '
@@ -616,8 +657,8 @@ APP.DATA = {
 APP.DATA.zh = {
   about:'这是一个受 CERN 大型强子对撞机（LHC）与 ATLAS 探测器启发的交互式简化模型。'
       + '几何为示意性质：比例（尤其是内层半径）经过夸大，以便每一层都清晰可读。'
-      + '所有对撞事件均为合成事件 —— 由数学生成，绝非真实数据。',
-  disclaimer:'简化几何 · 合成事件 · 非官方 CERN 产品',
+      + '对撞运动学来自真实的标准模型过程（PDG 质量、分支比；ATLAS Run 3 截面）—— 探测器响应仍为简化模拟。',
+  disclaimer:'真实标准模型运动学 · 简化几何 · 非官方 CERN 产品',
 
   systems:[
     { id:'muon',   name:'缪子谱仪', color:'#9fb4c9',
@@ -760,7 +801,7 @@ APP.DATA.zh = {
        + '让整台机器装进一块屏幕 —— 真实隧道的占地面积将远超埃菲尔铁塔。',
     facts:['周长 26,659 m · 隧道位于地下 100 m',
            '1,232 块主二极磁铁 + 392 块主四极磁铁（共 9,593 块磁铁）',
-           '二极磁铁运行在 1.9 K（\u2212271.3 \u00B0C）—— 比外太空还冷',
+           '二极磁铁磁场 8.33 T，运行在 1.9 K（\u2212271.3 \u00B0C）—— 比外太空还冷',
            '每束约 2,500 个束团 · 每束团 1.6\u00D710\u00B9\u00B9 个质子 · 间隔 25 ns',
            '每束 6.8 TeV → 对撞能量 13.6 TeV · 每秒转 11,245 圈'],
     points:[
@@ -783,20 +824,48 @@ APP.DATA.zh = {
     legendBeamA:'束流 1 —— 顺时针', legendBeamB:'束流 2 —— 逆时针' },
 
   collision:{
-    title:'合成对撞显示',
-    body:'探测器的示意剖面图，配上一个数学生成的事件。这不是真实的 ATLAS 数据：'
-       + '径迹弯曲、喷注和能量塔都采样自简化的物理启发分布。',
-    facts:['带电径迹在 2 T 螺线管磁场中弯曲 —— 曲率 ∝ 1/p\u209C',
+    title:'真实过程对撞显示',
+    body:'探测器的示意剖面图，展示由真实标准模型过程生成的事件 —— '
+       + 'PDG 质量与分支比、精确两体衰变运动学、不变质量重建。'
+       + '探测器响应（分辨率、簇射）仍为简化模拟。',
+    facts:['曲率是真实的：2 T 螺线管中半径 r = p\u209C/(0.3B) = p\u209C/6 米 —— Z 缪子（45 GeV）几乎不弯',
            '强子喷雾 = \u201C喷注（jet）\u201D，显示为量能器表皮上的能量塔',
            '到达外环的金色径迹是缪子 —— 它们贯穿整个探测器'],
-    badge:'合成事件 —— 非真实数据',
+    seqClean:{
+      flight:'衰变产物从对撞点飞出 —— 磁场中带电粒子转弯，光子沿直线飞行。',
+      readout:'看它们停在哪一层：电子和光子被电磁量能器截住 —— 只有缪子一路穿透到最外层。',
+    },
+    badge:'真实衰变运动学 · 简化探测器响应',
+
+    processes:{
+      qcd:{ chip:'QCD 喷注', sigma:'σ ≈ 80 mb（非弹性 pp）',
+        cap0:'两个部分子发生硬散射 —— 这是质子对撞中最常见的过程，峰值亮度下每秒发生约 16 亿次。',
+        capEnd:'QCD 多喷注事件。非弹性 pp 对撞截面约 80 mb —— 峰值亮度下每秒约 16 亿次。' },
+      z_mumu:{ chip:'Z→μ⁺μ⁻', sigma:'σ×BR ≈ 2.0 nb',
+        cap0:'一个 Z⁰ 玻色子（质量 91.188 GeV，PDG）诞生并衰变成一对缪子 —— 注意两条近乎笔直的金色径迹：45 GeV 的横动量在 2 T 磁场里几乎弯不动。',
+        capEnd:'重建的 m(μμ) ≈ 91.2 GeV —— 正是 Z 玻色子的质量。峰值亮度下 Z→μμ 每秒约发生 40 次。' },
+      z_ee:{ chip:'Z→e⁺e⁻', sigma:'σ×BR ≈ 2.0 nb',
+        cap0:'Z⁰ 也能衰变成一对电子（分支比 3.363%）—— 注意青色径迹在量能器里终点处的电磁簇射。',
+        capEnd:'m(ee) ≈ 91.2 GeV。W 与 Z 玻色子 1983 年就在 CERN 被发现 —— 如今已是物理学家手里的日常工具。' },
+      z_jj:{ chip:'Z→qq̄', sigma:'σ×BR ≈ 41 nb',
+        cap0:'Z⁰ 最常衰变成一对夸克（分支比 69%）—— 夸克立即强子化，喷出两道背对背的喷注。',
+        capEnd:'双喷注质量 ≈ 91.2 GeV（喷注能量分辨率较粗，所以峰更宽）。它也是希格斯搜索的主要背景之一。' },
+      h_gamgam:{ chip:'H→γγ', sigma:'σ×BR ≈ 0.14 pb',
+        cap0:'希格斯玻色子（≈125.2 GeV）衰变成两个光子 —— 分支比只有 0.227%。白色虚线是光子：不带电，磁场弯不动它。',
+        capEnd:'m(γγ) ≈ 125.2 GeV！2012 年 7 月 4 日，ATLAS 与 CMS 正是用这条 γγ 峰加上 4 轻子通道以 5σ 宣布发现希格斯。峰值亮度下每约 6 分钟才产生一个 H→γγ。' },
+      h_zz4l:{ chip:'H→ZZ*→4ℓ', sigma:'σ×BR ≈ 0.007 pb',
+        cap0:'“黄金通道”：希格斯 → Z + Z*（一个 Z 被迫偏离质量壳，因为 125 < 2×91）→ 再衰变成 2e2μ。分支比仅约 0.012%。',
+        capEnd:'m(4ℓ) ≈ 125.2 GeV —— 干净的 4 轻子峰是测量希格斯质量的“标尺”。峰值亮度下每约 2 小时才产生一个。' },
+      ttbar:{ chip:'tt̄→ℓ+喷注', sigma:'σ ≈ 0.9 nb',
+        cap0:'一对顶夸克（各 ≈172.7 GeV —— 已知最重的基本粒子）产生后立即衰变：t→Wb。一个 W→ℓν，另一个 W→qq̄。',
+        capEnd:'最终态：1 条轻子径迹 + ≥4 道喷注（其中 2 道 b 喷注）+ 中微子造成的丢失横动量（白虚线 = 真实的不可见粒子横动量矢量和）。峰值亮度下每秒约产生 18 对 tt̄。' },
+    },
     seq:[
       { phase:'approach', cap:'两个质子以接近光速沿束流管相向飞来\u2026\u2026' },
       { phase:'impact',   cap:'对撞！全部能量集中在一点 —— 并转化为新的粒子（E = mc\u00B2）。' },
-      { phase:'shower',   cap:'夸克和胶子喷涌而出 —— 但自由的夸克无法单独存在\u2026\u2026' },
-      { phase:'hadron',   cap:'强子化：每个夸克从真空中\u201C拽\u201D出新粒子，喷洒成一道道\u201C喷注\u201D。' },
-      { phase:'layers',   cap:'粒子穿过时，每层探测器依次闪亮 —— 像素 → 径迹器 → 量能器 → 缪子腔室。' },
-      { phase:'done',     cap:'事件测量完成。只有缪子（金色）到达最外层。' },
+      { phase:'flight',   cap:'所有产物以接近光速飞出 —— 磁场中带电粒子转弯；看每一颗粒子在哪里耗尽能量、停下脚步。' },
+      { phase:'readout',  cap:'粒子停在哪一层，哪一层就亮起能量塔：电子停在电磁量能器，强子穿进钢-闪烁体量能器 —— 只有缪子能一路穿透到底。' },
+      { phase:'done',     cap:'事件测量完成。' },
     ] },
 
   credits:[
@@ -808,6 +877,8 @@ APP.DATA.zh = {
     { t:'ATLAS — 磁铁系统（英文）', u:'https://atlas.cern/Discover/Detector/Magnet-System' },
     { t:'ATLAS — 缪子谱仪（英文）', u:'https://atlas.cern/Discover/Detector/Muon-Spectrometer' },
     { t:'ATLAS — 触发与数据采集（英文）', u:'https://atlas.cern/Discover/Detector/Trigger-DAQ' },
+    { t:'ATLAS — 13.6 TeV 希格斯测量（Run 3 简报，英文）', u:'https://atlas.cern/Updates/Briefing/Run3-Higgs' },
+    { t:'PDG — 粒子数据组（质量、宽度、分支比，英文）', u:'https://pdg.lbl.gov/' },
   ],
 
   triggerNote:'触发与数据采集（真实 ATLAS）：一级硬件触发在 2.5 \u03BCs 内做出判断；'
@@ -841,7 +912,8 @@ APP.DATA.ui = {
   'ev.tracks':       { en:'tracks', zh:'径迹' },
   'ev.jets':         { en:'jets', zh:'喷注' },
   'ev.muons':        { en:'muons', zh:'\u03BC 子' },
-  'badge':           { en:'SYNTHETIC EVENT \u2014 NOT REAL DATA', zh:'合成事件 —— 非真实数据' },
+  'ev.rate':         { en:'Rate at peak lumi.', zh:'峰值亮度产率' },
+  'badge':           { en:'REAL DECAY KINEMATICS \u00B7 SIMPLIFIED DETECTOR RESPONSE', zh:'真实衰变运动学 —— 简化探测器响应' },
   'legend.ring':     { en:'Counter-rotating beams', zh:'反向旋转的质子束' },
   'legend.collision':{ en:'Event legend', zh:'事件图例' },
   'leg.hadron':      { en:'charged hadron track', zh:'带电强子径迹' },
@@ -857,8 +929,8 @@ APP.DATA.ui = {
   'help.about':      { en:'About', zh:'关于' },
   'help.controls':   { en:'Controls', zh:'操作' },
   'help.refs':       { en:'Official CERN references', zh:'CERN 官方参考资料' },
-  'help.foot':       { en:'Educational visualization by an independent author — not affiliated with or endorsed by CERN. Geometry is simplified (proportions exaggerated for readability; ring radius compressed \u224860\u00D7). All collision events are synthetic, generated from physics-inspired math — never real detector data. Facts sourced from home.cern and atlas.cern (2026). Rendering: Three.js r158 (MIT). Local, offline, no tracking.',
-                       zh:'由独立作者制作的科普可视化 —— 与 CERN 无关，亦未获其认可。几何经过简化（比例为可读性而夸大；环半径压缩约 60 倍）。所有对撞事件均为合成事件，由物理启发的数学生成 —— 绝非真实探测器数据。事实来源：home.cern 与 atlas.cern（2026）。渲染：Three.js r158（MIT）。本地离线运行，无追踪。' },
+  'help.foot':       { en:'Educational visualization by an independent author — not affiliated with or endorsed by CERN. Geometry is simplified (proportions exaggerated for readability; ring radius compressed \u224860\u00D7). Collision kinematics use real Standard Model values (PDG masses & branching ratios, ATLAS Run 3 cross sections — verified 2026-09); detector response is schematic. Facts sourced from home.cern, atlas.cern and PDG (2026). Rendering: Three.js r158 (MIT). Local, offline, no tracking.',
+                       zh:'由独立作者制作的科普可视化 —— 与 CERN 无关，亦未获其认可。几何经过简化（比例为可读性而夸大；环半径压缩约 60 倍）。对撞运动学采用真实标准模型数值（PDG 质量与分支比、ATLAS Run 3 截面 —— 2026-09 核实）；探测器响应为示意模拟。事实来源：home.cern、atlas.cern 与 PDG（2026）。渲染：Three.js r158（MIT）。本地离线运行，无追踪。' },
   'ctl.scroll':      { en:'scroll (Detector)', zh:'滚轮（探测器）' },
   'ctl.scroll.d':    { en:'disassemble / assemble the detector in six stages', zh:'分六个阶段拆解 / 组装探测器' },
   'ctl.drag':        { en:'drag · right-drag', zh:'拖拽 · 右键拖拽' },
@@ -2111,21 +2183,351 @@ APP.DATA.ui = {
 
 </script>
 <script>
-/* ===== inlined: js/collision.js (17,208 bytes) ===== */
+/* ===== inlined: js/ppevents.js (15,879 bytes) ===== */
 /* ============================================================================
- * collision.js — SYNTHETIC collision display (math-generated, not real data)
- * Schematic cut-away detector + a staged, narrated collision sequence:
- *   approach → impact → parton shower → hadronization → layer flashes → done
- * Helix tracks (curvature ∝ 1/pT in the 2 T solenoid), jets as energy towers,
- * long gold muon tracks, missing-Et arrow.
+ * ppevents.js — REAL Standard Model event kinematics (PDG-verified numbers).
+ *
+ * What is real here:
+ *   • particle masses & widths  (PDG 2024 / ATLAS Run 3 briefing, 2026-09)
+ *   • branching ratios          (PDG)
+ *   • production cross sections (ATLAS Run 3 measurement/prediction, LHC top WG)
+ *   • two-body decay kinematics + transverse boosts (exact relativistic kinematics)
+ *   • invariant-mass reconstruction from the visible four-momenta
+ * What is still simplified (labelled in the UI):
+ *   • shower/hadronization is a coarse cone model, not Pythia
+ *   • detector response (resolutions) are Gaussian stand-ins
+ *
+ * Sources consulted 2026-09:
+ *   https://en.wikipedia.org/wiki/W_and_Z_bosons   (PDG 2024: mZ 91.1880±0.0020,
+ *        ΓZ 2.4955±0.0023 GeV, BR(Z→μμ) 3.366%, BR(Z→ee) 3.363%)
+ *   https://en.wikipedia.org/wiki/Higgs_boson      (BR(H→bb) 57.7%, WW 21.5%,
+ *        ττ 6.3%, ZZ 2.6%, γγ ≈0.2%; discovered 4 Jul 2012 in γγ + 4l at 5σ)
+ *   https://atlas.cern/Updates/Briefing/Run3-Higgs (13.6 TeV: σ(H)=59.9±2.6 pb
+ *        SM prediction; σ(H→γγ)fid 67.6 fb; σ(H→4l)fid 3.67 fb)
+ *   tt̄ at 13.6 TeV ≈ 0.9 nb (LHC top WG NLO+NNLL); pp→Z ≈ 60 nb;
+ *   peak luminosity Run 3 ≈ 2×10³⁴ cm⁻²s⁻¹ (CERN accelerator report).
+ *
+ * Pure module — no THREE dependency. Node-testable.
+ * ==========================================================================*/
+(function () {
+  'use strict';
+  window.APP = window.APP || {};
+
+  const TAU = Math.PI * 2;
+
+  /* ---- verified constants (GeV, natural units c=1) ----------------------- */
+  const M = {
+    e: 0.000511, mu: 0.105658,
+    gamma: 0,
+    b: 4.18,
+    W: 80.4,           /* PDG 2024 ≈80.37; display precision 1 dp  */
+    Z: 91.1880,
+    H: 125.20,         /* PDG-2024-era combined ≈125.2 (ATLAS 125.11, CMS 125.35) */
+    t: 172.7,
+  };
+  const GAMMA_Z = 2.4955;
+
+  const BR = {
+    Z_mumu: 0.03366, Z_ee: 0.03363, Z_qq: 0.6911,
+    H_gamgam: 0.00227, H_ZZ: 0.0264, H_bb: 0.577, H_WW: 0.215, H_tautau: 0.063,
+    W_lnu: 0.1086, W_jj: 0.674,
+  };
+
+  /* production cross sections at √s = 13.6 TeV, in pb */
+  const SIGMA = {
+    inelastic: { v: 80e6,  note: '≈80 mb（非弹性 pp，量级估计）' },
+    Z:         { v: 60e3,  note: '≈60 nb（pp→Z，量级估计）' },
+    ttbar:     { v: 924,   note: '≈0.9 nb（LHC top WG NLO+NNLL 预测）' },
+    H_total:   { v: 59.9,  note: '59.9±2.6 pb（SM 预测，ATLAS Run 3 简报）' },
+    H_gamgam_fid: { v: 0.0676, note: '67.6 fb（fiducial 预测，ATLAS Run 3）' },
+    H_4l_fid:     { v: 0.00367, note: '3.67 fb（fiducial 预测，ATLAS Run 3）' },
+  };
+  const PEAK_LUMI = 2e34;   /* cm⁻² s⁻¹, Run 3 peak (≈2.1e34) */
+
+  /* events per second at peak luminosity: L[cm⁻²s⁻¹] × σ[pb]×1e-36 */
+  function ratePerS(sigmaPb, lumi) { return (lumi === undefined ? PEAK_LUMI : lumi) * sigmaPb * 1e-36; }
+
+  /* deterministic rng — same mulberry32 family as utils.js, kept standalone */
+  function rng(seed) {
+    let a = (seed >>> 0) || 1;
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function gauss(rnd) {  /* Box–Muller */
+    const u = Math.max(rnd(), 1e-12), v = rnd();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(TAU * v);
+  }
+  function expSample(rnd, scale) { return -scale * Math.log(Math.max(rnd(), 1e-12)); }
+
+  /* ---- four-vectors & kinematics -----------------------------------------*/
+  /* two-body decay in the parent rest frame → lab via transverse boost */
+  function twoBodyDecay(M0, m1, m2, rnd) {
+    const E1 = (M0 * M0 + m1 * m1 - m2 * m2) / (2 * M0);
+    const p1 = Math.sqrt(Math.max(0, E1 * E1 - m1 * m1));
+    const cth = 2 * rnd() - 1, phi = rnd() * TAU, sth = Math.sqrt(1 - cth * cth);
+    return [
+      { e: E1, px: p1 * sth * Math.cos(phi), py: p1 * sth * Math.sin(phi), pz: p1 * cth },
+      { e: Math.sqrt(p1 * p1 + m2 * m2), px: -p1 * sth * Math.cos(phi), py: -p1 * sth * Math.sin(phi), pz: -p1 * cth },
+    ];
+  }
+  function boost(v, bx, by, bz) {  /* full Lorentz boost with β⃗ = (bx,by,bz) */
+    const b2 = bx * bx + by * by + bz * bz;
+    const g = 1 / Math.sqrt(1 - b2);
+    const bd = bx * v.px + by * v.py + bz * v.pz;   /* β⃗·p⃗ */
+    const k = (g - 1) * bd / b2;                     /* (γ−1)(β⃗·p⃗)/β² */
+    return {
+      e: g * (v.e + bd),
+      px: v.px + bx * (g * v.e + k),
+      py: v.py + by * (g * v.e + k),
+      pz: v.pz + bz * (g * v.e + k),
+    };
+  }
+  const pT = (v) => Math.hypot(v.px, v.py);
+  function etaOf(v) {
+    const p = Math.sqrt(v.px * v.px + v.py * v.py + v.pz * v.pz);
+    const cth = p > 0 ? v.pz / p : 0;
+    return 0.5 * Math.log((1 + Math.min(cth, 0.999999)) / (1 - Math.max(-0.999999, cth)));
+  }
+  function phiOf(v) { return Math.atan2(v.py, v.px); }
+  function invMass(a, b) {
+    const e = a.e + b.e, px = a.px + b.px, py = a.py + b.py, pz = a.pz + b.pz;
+    const m2 = e * e - px * px - py * py - pz * pz;
+    return m2 > 0 ? Math.sqrt(m2) : 0;
+  }
+
+  /* ---- display-ready event spec -------------------------------------------
+   * particle: { kind:'muon'|'electron'|'photon'|'hadron', pT [GeV], phi, eta,
+   *             q (±1 charged, 0 neutral), group:'early'|'late', stop:layer }
+   * tower:    { phi, eta, e [GeV], em:boolean }
+   * ------------------------------------------------------------------------ */
+  const ETA_MAX = 2.4;   /* tracker acceptance — forward tracks are not drawn */
+
+  function clampEta(eta) { return Math.max(-ETA_MAX, Math.min(ETA_MAX, eta)); }
+
+  /* jet cone: coarse hadronization — n tracks inside ΔR≈0.5, ET-conserving-ish */
+  function fillJet(rnd, jetP, out, opts) {
+    const jphi = phiOf(jetP), jeta = clampEta(etaOf(jetP));
+    const n = opts.nMin + Math.floor(rnd() * (opts.nMax - opts.nMin + 1));
+    const frac = [];
+    let sum = 0;
+    for (let i = 0; i < n; i++) { frac.push(0.05 + rnd() * 0.3); sum += frac[i]; }
+    for (let i = 0; i < n; i++) {
+      const pTi = pT(jetP) * frac[i] / sum;
+      const phi = jphi + (rnd() - 0.5) * 0.5;
+      const eta = clampEta(jeta + (rnd() - 0.5) * 0.6);
+      const hard = i === 0;
+      out.particles.push({
+        kind: 'hadron', pT: pTi, phi, eta, q: rnd() > 0.5 ? 1 : -1,
+        group: hard ? 'early' : 'late', stop: rnd() > 0.5 ? 'trt' : 'had',
+      });
+    }
+    /* calorimeter towers: ~1/3 of the jet energy EM-shower first */
+    out.towers.push({ phi: jphi, eta: jeta, e: jetP.e / 3, em: true });
+    out.towers.push({ phi: jphi + 0.04, eta: jeta, e: (jetP.e * 2) / 3, em: false });
+    out.jets.push({ phi: jphi, eta: jeta, e: jetP.e, b: !!opts.b });
+  }
+
+  function finish(out, type, mass) {
+    /* MET = true vector sum of invisible particles (neutrinos) */
+    let mx = 0, my = 0;
+    for (const inv of out.invisible) { mx += inv.px; my += inv.py; }
+    out.met = out.invisible.length ? { phi: Math.atan2(my, mx), mag: Math.hypot(mx, my) } : null;
+    delete out.invisible;
+    out.type = type;
+    if (mass) out.mass = mass;
+    return out;
+  }
+
+  const builders = {
+
+    /* QCD multijet — the overwhelming background (σ ≈ 80 mb inelastic) */
+    qcd(rnd) {
+      const out = { particles: [], towers: [], jets: [], invisible: [] };
+      const nJets = 2 + Math.floor(rnd() * 3);
+      for (let j = 0; j < nJets; j++) {
+        /* steep pT spectrum: leading jet well separated */
+        const pTj = 30 + 570 * Math.pow(rnd(), 2.6);
+        const E = pTj * Math.cosh((rnd() - 0.5) * 2.4);
+        const th = 2 * Math.atan(Math.exp(-(rnd() - 0.5) * 2.4)) ;
+        const phi = rnd() * TAU;
+        fillJet(rnd, { e: E, px: pTj * Math.cos(phi), py: pTj * Math.sin(phi),
+                       pz: E * Math.cos(th) }, out, { nMin: 5, nMax: 9 });
+      }
+      /* underlying event — soft tracks everywhere */
+      const nUE = 8 + Math.floor(rnd() * 8);
+      for (let k = 0; k < nUE; k++) {
+        out.particles.push({ kind: 'hadron', pT: 0.4 + 2.2 * rnd() * rnd(), phi: rnd() * TAU,
+          eta: clampEta((rnd() - 0.5) * 3.6), q: rnd() > 0.5 ? 1 : -1,
+          group: 'late', stop: rnd() > 0.6 ? 'trt' : 'pixel' });
+      }
+      out.sigmaPb = SIGMA.inelastic.v;
+      return finish(out, 'qcd', null);
+    },
+
+    /* Z → μ⁺μ⁻ — BR 3.366%, clean two clean muons, m(μμ) ≈ 91.19 */
+    z_mumu(rnd) {
+      const zPt = Math.min(25, expSample(rnd, 4)), zPhi = rnd() * TAU;
+      const bx = (zPt / M.Z) * Math.cos(zPhi), by = (zPt / M.Z) * Math.sin(zPhi);
+      const [m1, m2] = twoBodyDecay(M.Z, M.mu, M.mu, rnd).map((v) => boost(v, bx, by, 0));
+      const out = { particles: [], towers: [], jets: [], invisible: [] };
+      for (const [v, q] of [[m1, -1], [m2, 1]]) {
+        out.particles.push({ kind: 'muon', pT: pT(v), phi: phiOf(v), eta: clampEta(etaOf(v)), q,
+          group: 'early', stop: 'muon' });
+      }
+      const mRec = invMass(m1, m2) + gauss(rnd) * 1.3;  /* detector resolution stand-in */
+      out.sigmaPb = SIGMA.Z.v * BR.Z_mumu;
+      return finish(out, 'z_mumu', { value: mRec, label: 'm(μμ)', truth: M.Z, truthName: 'Z⁰', res: 1.3 });
+    },
+
+    /* Z → e⁺e⁻ — BR 3.363%, two EM showers + two electrons */
+    z_ee(rnd) {
+      const zPt = Math.min(25, expSample(rnd, 4)), zPhi = rnd() * TAU;
+      const bx = (zPt / M.Z) * Math.cos(zPhi), by = (zPt / M.Z) * Math.sin(zPhi);
+      const [e1, e2] = twoBodyDecay(M.Z, M.e, M.e, rnd).map((v) => boost(v, bx, by, 0));
+      const out = { particles: [], towers: [], jets: [], invisible: [] };
+      for (const v of [e1, e2]) {
+        out.particles.push({ kind: 'electron', pT: pT(v), phi: phiOf(v), eta: clampEta(etaOf(v)),
+          q: v === e1 ? -1 : 1, group: 'early', stop: 'em' });
+        out.towers.push({ phi: phiOf(v), eta: clampEta(etaOf(v)), e: v.e, em: true });
+      }
+      const mRec = invMass(e1, e2) + gauss(rnd) * 1.6;
+      out.sigmaPb = SIGMA.Z.v * BR.Z_ee;
+      return finish(out, 'z_ee', { value: mRec, label: 'm(ee)', truth: M.Z, truthName: 'Z⁰', res: 1.6 });
+    },
+
+    /* Z → qq̄ — BR 69.1%: two back-to-back jets, dijet mass ≈ 91.19 */
+    z_jj(rnd) {
+      const zPt = Math.min(25, expSample(rnd, 4)), zPhi = rnd() * TAU;
+      const bx = (zPt / M.Z) * Math.cos(zPhi), by = (zPt / M.Z) * Math.sin(zPhi);
+      const [q1, q2] = twoBodyDecay(M.Z, 0.3, 0.3, rnd).map((v) => boost(v, bx, by, 0));
+      const out = { particles: [], towers: [], jets: [], invisible: [] };
+      fillJet(rnd, q1, out, { nMin: 5, nMax: 8 });
+      fillJet(rnd, q2, out, { nMin: 5, nMax: 8 });
+      if (rnd() > 0.7) {  /* initial-state radiation: a third forward jet */
+        const pTj = 10 + 25 * rnd(), phi = rnd() * TAU;
+        fillJet(rnd, { e: pTj * 2, px: pTj * Math.cos(phi), py: pTj * Math.sin(phi), pz: pTj },
+          out, { nMin: 3, nMax: 5 });
+      }
+      const mRec = invMass(q1, q2) + gauss(rnd) * 9;   /* jet energy resolution */
+      out.sigmaPb = SIGMA.Z.v * BR.Z_qq;
+      return finish(out, 'z_jj', { value: mRec, label: 'm(jj)', truth: M.Z, truthName: 'Z⁰', res: 9 });
+    },
+
+    /* H → γγ — BR 0.227%: the discovery channel. m(γγ) ≈ 125.2 ± ~1.5 GeV */
+    h_gamgam(rnd) {
+      const hPt = Math.min(60, expSample(rnd, 15)), hPhi = rnd() * TAU;
+      const bx = (hPt / M.H) * Math.cos(hPhi), by = (hPt / M.H) * Math.sin(hPhi);
+      const [g1, g2] = twoBodyDecay(M.H, 0, 0, rnd).map((v) => boost(v, bx, by, 0));
+      const out = { particles: [], towers: [], jets: [], invisible: [] };
+      for (const v of [g1, g2]) {
+        out.particles.push({ kind: 'photon', pT: pT(v), phi: phiOf(v), eta: clampEta(etaOf(v)),
+          q: 0, group: 'early', stop: 'em' });
+        out.towers.push({ phi: phiOf(v), eta: clampEta(etaOf(v)), e: v.e, em: true });
+      }
+      const mRec = invMass(g1, g2) + gauss(rnd) * 1.5;
+      out.sigmaPb = SIGMA.H_total.v * BR.H_gamgam;
+      return finish(out, 'h_gamgam', { value: mRec, label: 'm(γγ)', truth: M.H, truthName: 'H', res: 1.5 });
+    },
+
+    /* H → ZZ* → 2e2μ — the "golden channel" (BR(H→ZZ) 2.64%, 4l ≈ 0.04%):
+     * one Z on-shell (BW-smeared), the partner off-shell from phase space. */
+    h_zz4l(rnd) {
+      const hPt = Math.min(60, expSample(rnd, 15)), hPhi = rnd() * TAU;
+      const bx = (hPt / M.H) * Math.cos(hPhi), by = (hPt / M.H) * Math.sin(hPhi);
+      /* on-shell Z sampled within ±Γ of its pole (width effect, teaching-grade);
+         its off-shell partner then carries mH − mZ1 ≈ 30–40 GeV — as in real 4l events */
+      const mZ1 = M.Z + (rnd() * 2 - 1) * GAMMA_Z;
+      const mZ2 = M.H - mZ1;                     /* off-shell partner (phase space) */
+      const [z1, z2] = twoBodyDecay(M.H, mZ1, mZ2, rnd).map((v) => boost(v, bx, by, 0));
+      const [eP, eM] = twoBodyDecay(mZ1, M.e, M.e, rnd).map((v) => boost(v, ...beta3(z1)));
+      const [mP, mM] = twoBodyDecay(mZ2, M.mu, M.mu, rnd).map((v) => boost(v, ...beta3(z2)));
+      const out = { particles: [], towers: [], jets: [], invisible: [] };
+      const put = (v, kind, q) => {
+        out.particles.push({ kind, pT: pT(v), phi: phiOf(v), eta: clampEta(etaOf(v)), q,
+          group: 'early', stop: kind === 'muon' ? 'muon' : 'em' });
+        if (kind === 'electron') out.towers.push({ phi: phiOf(v), eta: clampEta(etaOf(v)), e: v.e, em: true });
+      };
+      put(eP, 'electron', -1); put(eM, 'electron', 1);
+      put(mP, 'muon', -1); put(mM, 'muon', 1);
+      const m4 = invMass(invMassV(eP, eM), invMassV(mP, mM));
+      out.sigmaPb = SIGMA.H_total.v * BR.H_ZZ * (4 * BR.Z_ee * BR.Z_mumu);
+      return finish(out, 'h_zz4l', { value: m4 + gauss(rnd) * 1.7, label: 'm(4l)', truth: M.H, truthName: 'H', res: 1.7 });
+    },
+
+    /* tt̄ → ℓν + 4 jets + 2 b — σ ≈ 0.9 nb. Real MET from the neutrino. */
+    ttbar(rnd) {
+      const tPt = Math.min(150, expSample(rnd, 40)), tPhi = rnd() * TAU;
+      const bx = (tPt / (2 * M.t)) * Math.cos(tPhi), by = (tPt / (2 * M.t)) * Math.sin(tPhi);
+      const [t1, t2] = twoBodyDecay(2 * M.t, M.t, M.t, rnd).map((v) => boost(v, bx, by, 0));
+      /* t → W b  (m_b small vs top — coarse but kinematically sound) */
+      const [wP, b1] = twoBodyDecay(M.t, M.W, M.b, rnd).map((v) => boost(v, ...beta3(t1)));
+      const [wM, b2] = twoBodyDecay(M.t, M.W, M.b, rnd).map((v) => boost(v, ...beta3(t2)));
+      /* W+ → ℓ⁺ν (e or μ), W− → qq̄ */
+      const lepton = rnd() > 0.5 ? 'e' : 'mu';
+      const mL = lepton === 'e' ? M.e : M.mu;
+      const [lep, nu] = twoBodyDecay(M.W, mL, 0, rnd).map((v) => boost(v, ...beta3(wP)));
+      const [q1, q2] = twoBodyDecay(M.W, 0.3, 0.3, rnd).map((v) => boost(v, ...beta3(wM)));
+      const out = { particles: [], towers: [], jets: [], invisible: [nu] };
+      out.particles.push({ kind: lepton === 'e' ? 'electron' : 'muon', pT: pT(lep), phi: phiOf(lep),
+        eta: clampEta(etaOf(lep)), q: 1, group: 'early', stop: lepton === 'e' ? 'em' : 'muon' });
+      if (lepton === 'e') out.towers.push({ phi: phiOf(lep), eta: clampEta(etaOf(lep)), e: lep.e, em: true });
+      for (const [jp, isB] of [[b1, true], [b2, true], [q1, false], [q2, false]]) {
+        fillJet(rnd, jp, out, { nMin: isB ? 6 : 4, nMax: isB ? 9 : 7, b: isB });
+      }
+      out.sigmaPb = SIGMA.ttbar.v;
+      return finish(out, 'ttbar', null);
+    },
+  };
+
+  /* helpers */
+  function invMassV(a, b) { /* pair as a four-vector for chaining */
+    return { e: a.e + b.e, px: a.px + b.px, py: a.py + b.py, pz: a.pz + b.pz };
+  }
+  /* boost velocity of a four-vector: β⃗ = p⃗/E (always < 1 for massive parents) */
+  function beta3(v) {
+    return [v.px / v.e, v.py / v.e, v.pz / v.e];
+  }
+
+  const TYPES = ['qcd', 'z_mumu', 'z_ee', 'z_jj', 'h_gamgam', 'h_zz4l', 'ttbar'];
+
+  /* public API */
+  APP.PP = {
+    M, GAMMA_Z, BR, SIGMA, PEAK_LUMI, TYPES,
+    ratePerS,
+    makeEvent(type, seed) {
+      const r = rng(seed === undefined ? (Date.now() & 0xffff) * 2654435761 + Math.floor(Math.random() * 65536) : seed);
+      const b = builders[type] || builders.qcd;
+      return b(r);
+    },
+  };
+})();
+
+</script>
+<script>
+/* ===== inlined: js/collision.js (19,065 bytes) ===== */
+/* ============================================================================
+ * collision.js — collision display driven by REAL Standard Model kinematics
+ * (APP.PP: PDG masses/branching ratios, two-body decays, invariant-mass
+ * reconstruction). The detector response remains simplified/schematic.
+ * Staged, narrated sequence: approach → impact → shower → hadronization →
+ * layer flashes → done.
+ * Track curvature uses the REAL relation r[m] = pT[GeV]/(0.3·B), B = 2 T,
+ * drawn at scene scale 4.86 units/m (TRT outer radius 1.07 m ↔ 5.2 units),
+ * i.e. rho = 0.81 × pT. Photons fly straight; MET = real invisible-pT sum.
  * ==========================================================================*/
 (function () {
   const U = APP.U, TAU = U.TAU;
   const Y_AXIS = new THREE.Vector3(0, 1, 0);
 
   /* track type palette */
-  const COL = { hadron: 0xbfd8ea, electron: 0x6fe3c4, muon: 0xe8c874, jet: 0xd8b25c };
+  const COL = { hadron: 0xbfd8ea, electron: 0x6fe3c4, muon: 0xe8c874, jet: 0xd8b25c, photon: 0xf2ecdc };
   const R_STOP = { pixel: 2.4, sct: 3.8, trt: 5.2, em: 8.3, had: 11.0, muon: 14.6 };
+  const K_SCALE = 4.86;   /* scene units per metre (TRT 1.07 m ↔ 5.2 units) */
+  const HELIX = 0.3 * 2.0 /* B[T] */ ;   /* r[m] = pT/(0.3B) = pT/6 */
   const SHELLS = [
     { r: 2.4, mat: { color: 0x1f3a35, emissive: 0x6fe3c4, emissiveIntensity: 0.12 } },
     { r: 3.8, mat: { color: 0x1f3038, emissive: 0x6fd3e8, emissiveIntensity: 0.10 } },
@@ -2137,8 +2539,14 @@ APP.DATA.ui = {
   ];
 
   /* sequence timing (seconds) */
-  const PHASE_T = { approach: 2.2, impact: 0.55, shower: 1.5, hadron: 1.7, layers: 2.4 };
-  const Z_START = 17, Z_HIT = 0.25, DONE_HOLD = 4.2, AUTO_AFTER = 4.5;
+  const PHASE_T = { approach: 2.2, impact: 0.55, flight: 2.9, readout: 1.4 };
+  const Z_START = 17, Z_HIT = 0.25, DONE_HOLD = 5.0, AUTO_AFTER = 5.0;
+  /* C A U S A L  A N I M A T I O N :
+   * every particle leaves the IP at t=0 and flies at one scaled, constant
+   * (near-light) speed. A track tip reaching its stop radius, the local
+   * tower growth and the outward shell-flash wave are all derived from that
+   * single clock — nothing is decorative. */
+  const V_FLIGHT = 9.5;   /* scene units per second (14.6-unit crossing ≈ 1.5 s) */
 
   APP.Collision = { build };
 
@@ -2163,17 +2571,19 @@ APP.DATA.ui = {
 
     const state = {
       num: 0, tracks: 0, jets: 0, sumET: 0, muons: 0,
-      phase: 'approach', pt: 0, doneT: 0,
-      pEarly: 0, pLate: 0,
+      phase: 'approach', pt: 0, doneT: 0, flyT: 0,
       auto: true, timer: 2.0,
       trackLines: [], towers: [], misc: [],
       protons: [], shock: null,
       onCaption: null, capShown: false,
+      typeIdx: 0, procKey: null, info: null,
     };
     const matsTrack = {};
     for (const k of Object.keys(COL)) {
       matsTrack[k] = new THREE.LineBasicMaterial({ color: COL[k], transparent: true, opacity: 0.95 });
     }
+    matsTrack.photon = new THREE.LineDashedMaterial({ color: COL.photon, dashSize: 0.42, gapSize: 0.26,
+      transparent: true, opacity: 0.9 });
     const towerMat = new THREE.MeshStandardMaterial({
       color: 0x3a3222, emissive: 0xe0b25c, emissiveIntensity: 0.85, metalness: 0.4, roughness: 0.4,
       transparent: true, opacity: 0.95 });
@@ -2194,7 +2604,10 @@ APP.DATA.ui = {
       for (let i = 0; i < n; i++) {
         const s = (i / (n - 1)) * sMax;
         let x, y;
-        if (q > 0) {
+        if (q === 0) {                       /* neutral: straight line (photon) */
+          const c = Math.cos(phi0), sn = Math.sin(phi0);
+          x = c * s; y = sn * s;
+        } else if (q > 0) {
           const a = phi0 + s / rho;
           x = -rho * Math.sin(phi0) + rho * Math.sin(a);
           y = rho * Math.cos(phi0) - rho * Math.cos(a);
@@ -2208,21 +2621,28 @@ APP.DATA.ui = {
       const geo = new THREE.BufferGeometry();
       geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
       const line = new THREE.Line(geo, matsTrack[type]);
+      if (type === 'photon') line.computeLineDistances();
       line.geometry.setDrawRange(0, 0);
       line.userData.g = group;            /* 'early' | 'late' */
+      line.userData.sMax = sMax;          /* arc length — drives the causal flight clock */
       eventGroup.add(line);
       state.trackLines.push(line);
       return line;
     }
 
-    function addTower(phi, r, energy, em) {
-      const h = 0.6 + energy * 0.55;
+    function addTower(phi, r, energy, em, eta) {
+      /* real energies (GeV) — √ scale keeps towers readable 0.5–5 units */
+      const h = U.clamp(0.5 + 0.35 * Math.sqrt(Math.max(0, energy)), 0.4, 5.0);
       const m = new THREE.Mesh(new THREE.BoxGeometry(0.55, 1, 0.55), em ? towerMatEM : towerMat);
       const dir = new THREE.Vector3(Math.cos(phi), Math.sin(phi), 0);
       m.position.copy(dir.clone().multiplyScalar(r));
+      m.position.z = (eta === undefined ? 0 : Math.sinh(eta) * 1.6);
       m.quaternion.setFromUnitVectors(Y_AXIS, dir);
       m.scale.y = 0.001;
       m.userData.targetH = h;
+      /* CAUSAL: the tower grows when the depositing particle ARRIVES —
+       * i.e. after flying the radius of the depositing layer at V_FLIGHT */
+      m.userData.growAt = (em ? 8.3 : 11.0) / V_FLIGHT;
       eventGroup.add(m);
       state.towers.push(m);
     }
@@ -2250,6 +2670,21 @@ APP.DATA.ui = {
 
     function emitCaption() {
       if (!state.onCaption) return;
+      const procs = APP.L().collision.processes || {};
+      const proc = procs[state.procKey];
+      if (state.phase === 'approach' && proc && proc.cap0) {
+        state.onCaption(proc.cap0); state.capShown = true; return;
+      }
+      if (state.phase === 'done') {
+        state.onCaption(proc && proc.capEnd ? proc.capEnd : null);
+        state.capShown = !!proc && !!proc.capEnd; return;
+      }
+      /* clean processes (no hadrons in the decay): their own flight/readout lines */
+      const cleanSet = { z_mumu: 1, z_ee: 1, h_gamgam: 1, h_zz4l: 1 };
+      const cl = APP.L().collision.seqClean;
+      if (cleanSet[state.procKey] && cl && cl[state.phase]) {
+        state.onCaption(cl[state.phase]); state.capShown = true; return;
+      }
       const step = APP.L().collision.seq.find((s) => s.phase === state.phase);
       if (step) { state.onCaption(step.cap); state.capShown = true; }
       else { state.onCaption(null); state.capShown = false; }
@@ -2257,73 +2692,51 @@ APP.DATA.ui = {
 
     function setPhase(p) { state.phase = p; state.pt = 0; emitCaption(); }
 
-    /* ---- the event itself ------------------------------------------------*/
-    function startSequence(seed) {
+    /* ---- the event itself — REAL SM kinematics from APP.PP --------------*/
+    function startSequence(seed, forcedType) {
       clearEvent();
       state.num++;
-      const rnd = U.rng(seed === undefined ? (Date.now() & 0xffff) * 2654435761 + state.num : seed);
-      const info = { tracks: 0, jets: 0, sumET: 0, muons: 0 };
+      const types = (window.APP && APP.PP && APP.PP.TYPES) || ['qcd'];
+      const type = forcedType || types[state.typeIdx % types.length];
+      if (!forcedType) state.typeIdx++;
+      state.procKey = type;
+      const ev = APP.PP.makeEvent(type, seed === undefined ? undefined : seed + 1);
+      const info = { tracks: 0, jets: 0, sumET: 0, muons: 0, ev };
 
-      /* jets first (so some tracks belong to them) */
-      const nJet = 2 + Math.floor(rnd() * 4);
-      const jetAxes = [];
-      for (let j = 0; j < nJet; j++) {
-        const phiJ = rnd() * TAU;
-        const etaJ = (rnd() - 0.5) * 1.6;
-        jetAxes.push({ phiJ, etaJ });
-        const n = 5 + Math.floor(rnd() * 4);
-        for (let k = 0; k < n; k++) {
-          const pT = 1.5 + rnd() * 4.5;
-          const phi0 = phiJ + (rnd() - 0.5) * 0.55;
-          const eta = etaJ + (rnd() - 0.5) * 0.7;
-          addTrack(helix(pT, phi0, eta, R_STOP.had, rnd), k === 0 ? 'early' : 'late', 'hadron');
-          info.tracks++;
-        }
-        /* towers */
-        const e1 = 1.2 + rnd() * 3.6;
-        addTower(phiJ, 9.15, e1, true); info.sumET += e1;
-        addTower(phiJ + 0.06, 11.5, e1 * 1.25, false); info.sumET += e1 * 1.25;
-        for (let t = 0; t < 2; t++) {
-          const e = 0.5 + rnd() * 1.6;
-          addTower(phiJ + (rnd() - 0.5) * 0.5, 9.15, e, true); info.sumET += e;
-          const e2 = e * (1.1 + rnd() * 0.5);
-          addTower(phiJ + (rnd() - 0.5) * 0.5, 11.5, e2, false); info.sumET += e2;
-        }
-        info.jets++;
-      }
-      /* muons: 2–4, long gold tracks — always 'early' (they punch straight out) */
-      const nMu = 2 + Math.floor(rnd() * 3);
-      for (let k = 0; k < nMu; k++) {
-        const pT = 3.5 + rnd() * 6;
-        addTrack(helix(pT, rnd() * TAU, (rnd() - 0.5) * 2.2, R_STOP.muon, rnd), 'muon', 'early');
-        info.tracks++; info.muons++;
-      }
-      /* extra scattered tracks */
-      const nX = 10 + Math.floor(rnd() * 10);
-      for (let k = 0; k < nX; k++) {
-        const r = rnd();
-        const pT = 0.5 + 3.2 * r * r;
-        const type = r > 0.93 ? 'electron' : (pT > 3.4 ? 'muon' : 'hadron');
-        const stop = type === 'electron' ? R_STOP.em : (type === 'muon' ? R_STOP.muon : (rnd() > 0.5 ? R_STOP.trt : R_STOP.had));
-        addTrack(helix(pT, rnd() * TAU, (rnd() - 0.5) * 3.4, stop, rnd), type === 'muon' ? 'hadron' : type,
-          k % 3 === 0 ? 'early' : 'late');
+      /* real pT → real curvature: rho[units] = pT[GeV]/6 × 4.86 */
+      const trackKind = { muon: 'muon', electron: 'electron', photon: 'photon', hadron: 'hadron' };
+      for (const p of ev.particles) {
+        const rho = p.q === 0 ? 1e6 : (p.pT / HELIX) * K_SCALE;
+        addTrack(helix(p.pT, p.phi, p.eta, p.q, rho, R_STOP[p.stop] || R_STOP.had),
+          trackKind[p.kind] || 'hadron', p.group);
         info.tracks++;
+        if (p.kind === 'muon') info.muons++;
       }
-      state.tracks = info.tracks; state.jets = info.jets; state.sumET = info.sumET; state.muons = info.muons;
+      /* calorimeter towers from the real deposits */
+      for (const t of ev.towers) {
+        addTower(t.phi, t.em ? 9.15 : 11.5, t.e, t.em, t.eta);
+        info.sumET += t.e;
+      }
+      info.jets = ev.jets.length;
+      state.tracks = info.tracks; state.jets = info.jets;
+      state.sumET = info.sumET; state.muons = info.muons;
+      state.info = info;
 
-      /* missing-Et arrow: opposite the summed jet vector */
-      let vx = 0, vy = 0;
-      for (const j of jetAxes) { vx += Math.cos(j.phiJ); vy += Math.sin(j.phiJ); }
-      const phiMiss = Math.atan2(-vy, -vx);
-      const arrowGeo = new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(Math.cos(phiMiss) * 1.2, Math.sin(phiMiss) * 1.2, 0),
-        new THREE.Vector3(Math.cos(phiMiss) * 7.5, Math.sin(phiMiss) * 7.5, 0),
-      ]);
-      const arrow = new THREE.Line(arrowGeo, new THREE.LineDashedMaterial({
-        color: 0xe8eaed, dashSize: 0.5, gapSize: 0.32, transparent: true, opacity: 0.7 }));
-      arrow.computeLineDistances();
-      eventGroup.add(arrow);
-      state.misc.push(arrow);
+      /* missing-Et arrow — the REAL vector sum of invisible particles */
+      if (ev.met) {
+        const len = U.clamp(2.2 + 0.09 * ev.met.mag, 2.2, 7.5);
+        const arrowGeo = new THREE.BufferGeometry().setFromPoints([
+          new THREE.Vector3(Math.cos(ev.met.phi) * 1.2, Math.sin(ev.met.phi) * 1.2, 0),
+          new THREE.Vector3(Math.cos(ev.met.phi) * len, Math.sin(ev.met.phi) * len, 0),
+        ]);
+        const arrow = new THREE.Line(arrowGeo, new THREE.LineDashedMaterial({
+          color: 0xe8eaed, dashSize: 0.5, gapSize: 0.32, transparent: true, opacity: 0.7 }));
+        arrow.computeLineDistances();
+        arrow.visible = false;              /* revealed only at 'readout' */
+        state.metArrow = arrow;
+        eventGroup.add(arrow);
+        state.misc.push(arrow);
+      }
 
       /* the two incoming protons */
       const pa = makeProton(), pb = makeProton();
@@ -2341,21 +2754,27 @@ APP.DATA.ui = {
       for (let i = 0; i < shellMats.length; i++) shellMats[i].emissiveIntensity = shellBase[i];
 
       state.doneT = 0;
+      state.flyT = 0;
+      state.metArrow = null;
       setPhase('approach');
     }
 
-    function helix(pT, phi0, eta, rStop, rnd) {
-      const rho = 2.6 * pT;
-      const q = rnd() > 0.5 ? 1 : -1;
+    function helix(pT, phi0, eta, q, rho, rStop) {
       const slope = Math.sinh(eta);
       /* find arc length where track exits rStop (sample) */
       let sMax = 30;
       const ds = 0.1;
       for (let s = ds; s < 40; s += ds) {
-        const x = q > 0 ? -rho * Math.sin(phi0) + rho * Math.sin(phi0 + s / rho)
-                        : rho * Math.sin(phi0) + rho * Math.sin(phi0 + Math.PI - s / rho);
-        const y = q > 0 ? rho * Math.cos(phi0) - rho * Math.cos(phi0 + s / rho)
-                        : -rho * Math.cos(phi0) - rho * Math.cos(phi0 + Math.PI - s / rho);
+        let x, y;
+        if (q === 0) {
+          x = Math.cos(phi0) * s; y = Math.sin(phi0) * s;
+        } else if (q > 0) {
+          x = -rho * Math.sin(phi0) + rho * Math.sin(phi0 + s / rho);
+          y = rho * Math.cos(phi0) - rho * Math.cos(phi0 + s / rho);
+        } else {
+          x = rho * Math.sin(phi0) + rho * Math.sin(phi0 + Math.PI - s / rho);
+          y = -rho * Math.cos(phi0) - rho * Math.cos(phi0 + Math.PI - s / rho);
+        }
         if (Math.sqrt(x * x + y * y) > rStop) { sMax = s; break; }
       }
       return { rho, phi0, q, slope, sMax };
@@ -2434,36 +2853,39 @@ APP.DATA.ui = {
           state.shock.scale.setScalar(0.3 + k * 14);
           state.shock.material.opacity = 0.85 * (1 - k);
         }
-        if (state.pt >= PHASE_T.impact) { if (state.shock) { state.shock.visible = false; } setPhase('shower'); }
-      } else if (state.phase === 'shower') {
-        state.pEarly = U.smooth(U.clamp(state.pt / PHASE_T.shower, 0, 1));
-        if (state.pt >= PHASE_T.shower) setPhase('hadron');
-      } else if (state.phase === 'hadron') {
-        state.pLate = U.smooth(U.clamp(state.pt / PHASE_T.hadron, 0, 1));
-        if (state.pt >= PHASE_T.hadron) setPhase('layers');
-      } else if (state.phase === 'layers') {
-        if (state.pt >= PHASE_T.layers) setPhase('done');
+        if (state.pt >= PHASE_T.impact) { if (state.shock) { state.shock.visible = false; } setPhase('flight'); }
+      } else if (state.phase === 'flight') {
+        state.flyT += dt;
+        if (state.pt >= PHASE_T.flight) setPhase('readout');
+      } else if (state.phase === 'readout') {
+        state.flyT += dt;
+        if (state.metArrow) state.metArrow.visible = true;   /* the neutrino is inferred */
+        if (state.pt >= PHASE_T.readout) setPhase('done');
       } else if (state.phase === 'done') {
         state.doneT += dt;
         if (state.capShown && state.doneT > DONE_HOLD) { state.onCaption(null); state.capShown = false; }
       }
 
-      /* ---- per-frame visual application ---- */
-      /* track draw-in: two waves */
-      const ne = Math.floor(state.pEarly * 89), nl = Math.floor(state.pLate * 89);
-      for (const line of state.trackLines) {
-        line.geometry.setDrawRange(0, Math.max(0, line.userData.g === 'early' ? ne : nl));
+      /* ---- per-frame visual application — all driven by the flight clock ---- */
+      const flying = state.phase === 'flight' || state.phase === 'readout' || state.phase === 'done';
+      /* track tips move at ONE constant (near-light) speed from the IP */
+      if (flying) {
+        for (const line of state.trackLines) {
+          const sMax = line.userData.sMax || 1;
+          const a = Math.min(state.flyT * V_FLIGHT, sMax);
+          line.geometry.setDrawRange(0, Math.max(0, Math.floor((a / sMax) * 87) + 1));
+        }
       }
-      /* towers rise during 'hadron' and stay up */
-      const towerK = state.pLate;
+      /* towers grow at the moment their particle ARRIVES at the deposit layer */
       for (const t of state.towers) {
-        t.scale.y = Math.max(0.001, t.userData.targetH * towerK);
+        const g = flying ? U.smooth(U.clamp((state.flyT - t.userData.growAt) / 0.5, 0, 1)) : 0;
+        t.scale.y = Math.max(0.001, t.userData.targetH * g);
       }
-      /* shell flashes: radial wave through 'layers' (and decaying after) */
-      if (state.phase === 'layers' || state.phase === 'done') {
-        const t0 = state.phase === 'layers' ? state.pt : PHASE_T.layers + state.doneT;
+      /* shell flashes fire when the light-front reaches each radius */
+      if (flying) {
         for (let i = 0; i < shellMats.length; i++) {
-          shellMats[i].emissiveIntensity = shellBase[i] + 1.5 * flashPulse(t0 - i * 0.2);
+          const tArr = SHELLS[i].r / V_FLIGHT;
+          shellMats[i].emissiveIntensity = shellBase[i] + 1.6 * flashPulse(state.flyT - tArr);
         }
       }
       /* flash decay after the burst */
@@ -2481,7 +2903,15 @@ APP.DATA.ui = {
 
     function setAuto(v) { state.auto = v; }
     function getInfo() {
-      return { num: state.num, tracks: state.tracks, jets: state.jets, sumET: state.sumET, muons: state.muons };
+      const base = { num: state.num, tracks: state.tracks, jets: state.jets, sumET: state.sumET, muons: state.muons };
+      if (state.info && state.info.ev) {
+        const ev = state.info.ev;
+        base.type = ev.type;
+        base.mass = ev.mass || null;
+        base.sigmaPb = ev.sigmaPb || null;
+        base.ratePerS = ev.sigmaPb ? APP.PP.ratePerS(ev.sigmaPb) : null;
+      }
+      return base;
     }
     function refreshCaption() { if (state.phase === 'done' ? state.capShown : true) emitCaption(); }
 
@@ -2493,7 +2923,7 @@ APP.DATA.ui = {
 
 </script>
 <script>
-/* ===== inlined: js/ui.js (14,652 bytes) ===== */
+/* ===== inlined: js/ui.js (16,304 bytes) ===== */
 /* ============================================================================
  * ui.js — premium dark UI: tabs, system switches, stage chips, transport,
  * education panel, per-view legends, help modal, toasts, ZH/EN toggle.
@@ -2598,6 +3028,7 @@ APP.DATA.ui = {
     /* dynamic panels */
     buildSystemsList(app);
     buildStageChips(app);
+    buildEvChips(app);
     setLegend('ring', ringLegend());
     setLegend('collision', collisionLegend());
     /* force syncPlayback to rewrite cached strings */
@@ -2693,9 +3124,38 @@ APP.DATA.ui = {
   }
 
   /* ---------------- collision view -----------------------------------------*/
+  function buildEvChips(app) {
+    const box = $('#evChips');
+    if (!box) return;
+    box.innerHTML = '';
+    const procs = L().collision.processes || {};
+    (window.APP.PP ? APP.PP.TYPES : Object.keys(procs)).forEach((t) => {
+      const pc = procs[t];
+      if (!pc) return;
+      const b = document.createElement('button');
+      b.className = 'evchip';
+      b.dataset.type = t;
+      b.textContent = pc.chip;
+      b.title = pc.sigma + (APP.lang === 'zh' ? '' : '' );
+      b.addEventListener('click', () => app.triggerEvent(t));
+      box.appendChild(b);
+    });
+    /* tooltip 补充实时产率 */
+    if (window.APP.PP) {
+      box.querySelectorAll('.evchip').forEach((b) => {
+        const ev = APP.PP.makeEvent(b.dataset.type, 1);
+        const r = APP.PP.ratePerS(ev.sigmaPb || 0);
+        const rate = r >= 1 ? r.toFixed(r >= 10 ? 0 : 1) + '/s'
+          : (r >= 1 / 60 ? (60 * r).toFixed(1) + '/min' : (3600 * r).toFixed(0) + '/h');
+        b.title = (b.title ? b.title + ' · ' : '') + tr('ev.rate') + ' ≈ ' + rate;
+      });
+    }
+  }
+
   function wireCollision(app) {
     $('#btnTrigger').addEventListener('click', () => app.triggerEvent());
     $('#chkAuto').addEventListener('change', (e) => app.setAuto(e.target.checked));
+    buildEvChips(app);
     setInterval(() => {
       if (document.body.dataset.view !== 'collision') return;
       const info = app.eventInfo();
@@ -2704,6 +3164,16 @@ APP.DATA.ui = {
       $('#evJets').textContent = info.jets;
       $('#evEt').textContent = info.sumET.toFixed(1);
       $('#evMuons').textContent = info.muons;
+      const massTxt = info.mass
+        ? `${info.mass.label} ${info.mass.value.toFixed(1)}${info.mass.truthName ? ' ≈ ' + info.mass.truthName : ''}` : '–';
+      const massEl = $('#evMass');
+      if (massEl.textContent !== massTxt) {
+        massEl.textContent = massTxt;
+        massEl.classList.remove('reveal');
+        void massEl.offsetWidth;               /* restart the CSS animation */
+        if (info.mass) massEl.classList.add('reveal');
+      }
+      $$('#evChips .evchip').forEach((c) => c.classList.toggle('active', c.dataset.type === info.type));
     }, 400);
   }
 
@@ -2808,7 +3278,7 @@ APP.DATA.ui = {
 
 </script>
 <script>
-/* ===== inlined: js/main.js (10,308 bytes) ===== */
+/* ===== inlined: js/main.js (10,412 bytes) ===== */
 /* ============================================================================
  * main.js — bootstrap: renderer, three views, playback engine, input, loop
  * ==========================================================================*/
@@ -2989,9 +3459,10 @@ APP.DATA.ui = {
       collCap.textContent = text;
       collCap.classList.add('show');
     });
-    app.triggerEvent = () => collision.trigger();
+    app.triggerEvent = (type) => collision.trigger(undefined, type);
     app.setAuto = (v) => collision.setAuto(v);
     app.eventInfo = () => collision.getInfo();
+    window.__pcDebug = () => ({ phase: collision.phase(), ...collision.getInfo() });
 
     /* ---- tweens, UI ---- */
     const tweens = APP.tweens = new U.Tweens();
