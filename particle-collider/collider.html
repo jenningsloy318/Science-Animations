@@ -2544,7 +2544,7 @@ APP.DATA.ui = {
 
 </script>
 <script>
-/* ===== inlined: js/collision.js (23,233 bytes) ===== */
+/* ===== inlined: js/collision.js (23,680 bytes) ===== */
 /* ============================================================================
  * collision.js — collision display driven by REAL Standard Model kinematics
  * (APP.PP: PDG masses/branching ratios, two-body decays, invariant-mass
@@ -2598,7 +2598,8 @@ APP.DATA.ui = {
     const rim = new THREE.DirectionalLight(0x6fd3e8, 0.8); rim.position.set(-35, 15, -30); scene.add(rim);
     const ipLight = new THREE.PointLight(0xffe9b0, 0, 40, 2); scene.add(ipLight);
 
-    const shellMats = buildCutaway();   /* one material per shell, radial order */
+    const cut = buildCutaway();
+    const shellMats = cut.mats;         /* one material per shell, radial order */
     const shellBase = shellMats.map((m) => m.emissiveIntensity);
     const ipGlow = addIPGlow();
 
@@ -2608,13 +2609,14 @@ APP.DATA.ui = {
 
     const state = {
       num: 0, tracks: 0, jets: 0, sumET: 0, muons: 0,
-      phase: 'approach', pt: 0, doneT: 0, flyT: 0, captionMinT: 0, paused: false,
+      phase: 'approach', pt: 0, doneT: 0, flyT: 0, captionMinT: 0, paused: false, cutGroup: null,
       auto: true, timer: 2.0,
       trackLines: [], towers: [], misc: [],
       protons: [], shock: null,
       onCaption: null, capShown: false,
       typeIdx: 0, procKey: null, info: null,
     };
+    state.cutGroup = cut.cutGroup;      /* rotated each frame to face the camera */
     const matsTrack = {};
     for (const k of Object.keys(COL)) {
       matsTrack[k] = new THREE.LineBasicMaterial({ color: COL[k], transparent: true, opacity: 0.95 });
@@ -2672,7 +2674,7 @@ APP.DATA.ui = {
       const h = U.clamp(0.5 + 0.35 * Math.sqrt(Math.max(0, energy)), 0.4, 5.0);
       const m = new THREE.Mesh(new THREE.BoxGeometry(0.55, 1, 0.55), em ? towerMatEM : towerMat);
       const dir = new THREE.Vector3(Math.cos(phi), Math.sin(phi), 0);
-      m.position.copy(dir.clone().multiplyScalar(r));
+      m.position.copy(dir.clone().multiplyScalar(r + h / 2 + 0.06));   /* base sits ON the shell */
       m.position.z = (eta === undefined ? 0 : Math.sinh(eta) * 1.6);
       m.quaternion.setFromUnitVectors(Y_AXIS, dir);
       m.scale.y = 0.001;
@@ -2758,7 +2760,7 @@ APP.DATA.ui = {
       }
       /* calorimeter towers from the real deposits */
       for (const t of ev.towers) {
-        addTower(t.phi, t.em ? 9.15 : 11.5, t.e, t.em, t.eta);
+        addTower(t.phi, t.em ? 8.3 : 11.0, t.e, t.em, t.eta);
         info.sumET += t.e;
       }
       info.jets = ev.jets.length;
@@ -2830,6 +2832,8 @@ APP.DATA.ui = {
 
     function buildCutaway() {
       const zHalf = Z_HALF;
+      const cutGroup = new THREE.Group();
+      scene.add(cutGroup);
       const mats = [];
       for (const sh of SHELLS) {
         const mat = new THREE.MeshStandardMaterial(Object.assign({
@@ -2840,22 +2844,22 @@ APP.DATA.ui = {
           const cyl = new THREE.Mesh(
             new THREE.CylinderGeometry(sh.r, sh.r, zHalf * 2, 40, 1, true, start * Math.PI / 180, 120 * Math.PI / 180).rotateX(Math.PI / 2),
             mat);
-          scene.add(cyl);
+          cutGroup.add(cyl);
           /* RingGeometry measures azimuth from +x — shift by −90° to match */
           const cap = new THREE.Mesh(
             new THREE.RingGeometry(sh.r - 0.12, sh.r, 40, 1, (start - 90) * Math.PI / 180, 120 * Math.PI / 180),
             new THREE.MeshBasicMaterial({ color: sh.mat.emissive, transparent: true, opacity: 0.35, side: THREE.DoubleSide }));
           cap.position.z = zHalf;
-          scene.add(cap);
+          cutGroup.add(cap);
           const cap2 = cap.clone(); cap2.position.z = -zHalf;
-          scene.add(cap2);
+          cutGroup.add(cap2);
         }
       }
       /* beam axis hint */
       const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, Z_HALF * 2 + 2.5, 10).rotateX(Math.PI / 2),
         new THREE.MeshBasicMaterial({ color: 0x9fe8ff, transparent: true, opacity: 0.5 }));
       scene.add(beam);
-      return mats;
+      return { mats, cutGroup };
     }
 
     function addIPGlow() {
@@ -2981,6 +2985,8 @@ APP.DATA.ui = {
         ipLight.intensity = Math.max(0.25, ipLight.intensity - dt * 3);
       }
 
+      /* cutaway opening always faces the camera (no back-arc peeking) */
+      if (state.cutGroup && orbit && orbit.cur) state.cutGroup.rotation.y = orbit.cur.az - Math.PI / 2;
       /* idle orbit drift */
       if (orbit && orbit.idleT > 4) orbit.des.az += dt * 0.06;
     }
