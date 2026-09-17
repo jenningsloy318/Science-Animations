@@ -23,12 +23,12 @@ def inline() -> str:
     if not m:
         raise SystemExit("markers not found in index.html")
     block = m.group(2)
-    tags = re.findall(r'<script src="([^"]+)"></script>', block)
+    tags = re.findall(r'<script src="([^"]+?)(?:\?[^"]*)?"></script>', block)
     if not tags:
         raise SystemExit("no script tags found between markers")
     parts = ["<!-- SCRIPTS:START -->"]
     for rel in tags:
-        path = (ROOT / rel).resolve()
+        path = (ROOT / rel.split('?')[0]).resolve()
         if not path.exists():
             raise SystemExit(f"missing script file: {rel}")
         code = path.read_text(encoding="utf-8")
