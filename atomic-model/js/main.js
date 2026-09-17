@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { levelEnergyEv, transitionNm, nmToEv, seriesName, hydrogenTransition } from './spectra.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
@@ -30,8 +31,16 @@ const TRANSITION_DATA = {
 };
 
 function getTransitionInfo(from, to) {
+  // 氢: 里德伯公式精确谱线 (真实物理)
+  if (currentElement === 'H') {
+    const t = hydrogenTransition(from, to);
+    return { eV: t.eVText, color: t.cssColor, name: t.colorName, hex: t.hex,
+             wl: t.nmText, real: true, band: t.bandLabel, seriesZh: t.series.zh };
+  }
+  // 多电子元素: 真实谱线是复杂多电子问题, 这里的能量为示意值
   const key1 = `${Math.min(from,to)}-${Math.max(from,to)}`;
-  return TRANSITION_DATA[key1] || { eV: '~2 eV', color: '#fbbf24', name: '光', hex: 0xfbbf24, wl: '~550nm' };
+  const d = TRANSITION_DATA[key1] || { eV: '~2 eV', color: '#fbbf24', name: '光(示意)', hex: 0xfbbf24, wl: '~550nm' };
+  return { eV: d.eV, color: d.color, name: d.name + ' (示意)', hex: d.hex, wl: d.wl, real: false };
 }
 
 /* ================================================================
@@ -99,7 +108,10 @@ const nucleusGroup = new THREE.Group();
 const shellsGroup  = new THREE.Group();
 const electronsGroup = new THREE.Group();
 const effectsGroup = new THREE.Group();
-scene.add(nucleusGroup, shellsGroup, electronsGroup, effectsGroup);
+const cloudsGroup = new THREE.Group();
+scene.add(nucleusGroup, shellsGroup, electronsGroup, effectsGroup, cloudsGroup);
+let cloudMode = false;              // false = 玻尔轨道 | true = 电子云
+let cloudBuiltFor = null;
 
 let electronData = [];
 let shellRings = []; // { shellIndex, ring1, ring2 } — for dynamic color updates
@@ -124,6 +136,137 @@ const electronMat = new THREE.MeshStandardMaterial({
   color: COL.electron, emissive: COL.electron, emissiveIntensity: 0.8,
   roughness: 0.2, metalness: 0.1,
 });
+
+
+/* ================================================================
+   电子云 (量子力学视角) — 氢: 真实 1s/2s/2p 概率密度采样
+   P(1s) ∝ r²e^(-2r/a₀)；2p ∝ r⁴e^(-r/a₀)·cos²θ（哑铃）
+   多电子: 壳层高斯模糊（示意——真实多电子波函数复杂得多）
+   ================================================================ */
+function randDir() {
+  const u = Math.random() * 2 - 1, phi = Math.random() * Math.PI * 2;
+  const s = Math.sqrt(1 - u * u);
+  return [s * Math.cos(phi), u, s * Math.sin(phi)];
+}
+function sample1s(a) {
+  // 拒绝采样 P(r) ∝ r² e^(-2r/a)
+  for (;;) {
+    const r = Math.random() * a * 6;
+    if (Math.random() < (r * r) * Math.exp(-2 * r / a) / (a * a * 0.5 * Math.exp(-1))) {
+      const d = randDir();
+      return [d[0] * r, d[1] * r, d[2] * r];
+    }
+  }
+}
+function sample2p(a, axis) {
+  // r 峰在 4a; 角分布 cos²θ (绕 axis 的哑铃)
+  for (;;) {
+    const r = Math.random() * a * 10;
+    if (Math.random() < (r ** 4) * Math.exp(-r / a) / Math.pow(4 * a, 4) * Math.exp(4)) {
+      let u = Math.random() * 2 - 1;
+      if (Math.random() > u * u) continue;         // cos²θ 权重
+      const s = Math.sqrt(Math.max(0, 1 - u * u));
+      const v = [s * Math.cos(0), u, s * Math.sin(0)];   // 绕 y 轴哑铃
+      return [v[0] * r + axis[0] * 0, v[1] * r, v[2] * r];
+    }
+  }
+}
+function buildCloud() {
+  const key = currentElement + '|' + (atomState) + '|' + (excitedElectron ? excitedElectron.shellIndex : -1);
+  if (cloudBuiltFor === key) return;
+  cloudBuiltFor = key;
+  cloudsGroup.clear();
+  const isH = currentElement === 'H';
+  const a0 = 1.35;   // 玻尔半径 (场景单位, 1s 峰位置)
+  const shellCounts = getShellCounts();
+
+  function addCloud(arr, color, size, opacity) {
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(arr), 3));
+    const mat = new THREE.PointsMaterial({
+      color, size, transparent: true, opacity,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    });
+    cloudsGroup.add(new THREE.Points(geo, mat));
+  }
+
+  if (isH) {
+    const nOcc = excitedElectron ? excitedElectron.shellIndex + 1 : 1;
+    { // 1s 基态云 (始终显示, 淡)
+      const arr = [];
+      for (let i = 0; i < 2600; i++) arr.push(...sample1s(a0));
+      addCloud(arr, 0x38bdf8, 0.035, 0.38);
+    }
+    if (nOcc >= 2) { // n=2: 2s 球 + 2p 哑铃 (激发态云, 金色)
+      const arr = [];
+      for (let i = 0; i < 1400; i++) {          // 2p 哑铃 (绕 y 轴)
+        for (;;) {
+          const r = Math.random() * a0 * 10;
+          if (Math.random() < (r ** 4) * Math.exp(-r / a0) / Math.pow(4 * a0, 4) * Math.exp(4)) {
+            let u = Math.random() * 2 - 1;
+            if (Math.random() > u * u) continue;
+            const s = Math.sqrt(Math.max(0, 1 - u * u));
+            arr.push(s * r, u * r, 0);
+            break;
+          }
+        }
+      }
+      for (let i = 0; i < 800; i++) {           // 2s 球壳 (峰 ~5.2a)
+        for (;;) {
+          const r = Math.random() * a0 * 14;
+          const w = (1 - r / (2 * a0)); 
+          if (Math.random() < r * r * w * w * Math.exp(-r / a0) / (3 * a0 * a0 * Math.exp(-2))) {
+            const d = randDir();
+            arr.push(d[0] * r, d[1] * r, d[2] * r);
+            break;
+          }
+        }
+      }
+      addCloud(arr, 0xfbbf24, 0.035, 0.45);
+    }
+  } else {
+    // 多电子: 每个占据壳层 → 高斯模糊球壳 (示意)
+    shellCounts.forEach((cnt, i) => {
+      if (cnt <= 0) return;
+      const R = SHELL_RADII[i];
+      const arr = [];
+      for (let i2 = 0; i2 < 1800; i2++) {
+        const d = randDir();
+        const r = R + (Math.random() + Math.random() + Math.random() - 1.5) * 0.55;
+        arr.push(d[0] * r, d[1] * r, d[2] * r);
+      }
+      addCloud(arr, 0x7dd3fc, 0.03, 0.30);
+    });
+  }
+  cloudsGroup.visible = cloudMode;
+}
+
+function setCloudMode(on) {
+  cloudMode = on;
+  cloudsGroup.visible = on;
+  shellsGroup.visible = !on;
+  electronsGroup.visible = !on;
+  if (on) buildCloud();
+  const bohr = document.getElementById('btnModelBohr');
+  const cloud = document.getElementById('btnModelCloud');
+  if (bohr) bohr.classList.toggle('active', !on);
+  if (cloud) cloud.classList.toggle('active', on);
+  if (on) {
+    const isH = currentElement === 'H';
+    showNarrStep(
+      isH
+        ? '☁️ <b>电子云</b>：量子力学说电子不是小球跑圈，而是<b>概率云</b>——亮点多的地方=电子更可能出现。氢的 1s 云在原子核附近最密；激发后出现 n=2 的哑铃形 (2p) 与外球壳 (2s)——<b>这才是原子的真实画像</b>'
+        : '☁️ <b>电子云</b>：量子力学中电子是<b>概率云</b>而非轨道小球。多电子原子的真实波函数更复杂，此处为壳层模糊示意',
+      isH ? 'Real quantum probability density (H 1s / 2s / 2p)' : 'Gaussian shell fuzz (schematic)',
+      '1', 'absorption', 0
+    );
+  }
+}
+
+/* 暴露给 buildAtom 重置后刷新 */
+const _origBuildAtom = buildAtom;
+buildAtom = function (...args) { _origBuildAtom(...args); cloudBuiltFor = null; if (cloudMode) { cloudsGroup.visible = true; buildCloud(); setCloudModeVis(); } };
+function setCloudModeVis() { shellsGroup.visible = !cloudMode; electronsGroup.visible = !cloudMode; }
 
 /* ================================================================
    构建原子 BUILD ATOM
@@ -245,18 +388,24 @@ function packSpheres(count, spacing) {
 }
 
 function makeTextSprite(text, size, color) {
+  // 画布自适应文本宽度: 长标签不再被固定宽度截断
+  const font = 'bold 34px Outfit, sans-serif';
+  const probe = document.createElement('canvas').getContext('2d');
+  probe.font = font;
   const canvas = document.createElement('canvas');
-  canvas.width = 196; canvas.height = 64;
+  canvas.width = Math.max(196, Math.ceil(probe.measureText(text).width) + 48);
+  canvas.height = 64;
   const ctx = canvas.getContext('2d');
-  ctx.font = 'bold 34px Outfit, sans-serif';
+  ctx.font = font;
   ctx.fillStyle = color;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(text, 98, 32);
+  ctx.fillText(text, canvas.width / 2, 32);
   const tex = new THREE.CanvasTexture(canvas);
   const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
   const sprite = new THREE.Sprite(mat);
-  sprite.scale.set(size * 1.5, size * 0.5, 1);
+  const aspect = canvas.width / canvas.height;
+  sprite.scale.set(size * 0.5 * aspect, size * 0.5, 1);
   return sprite;
 }
 
@@ -1104,6 +1253,11 @@ function drawEnergyDiagram(fromShell, toShell, direction) {
   const marginL = 22, marginR = 8, marginT = 28, marginB = 20;
   const lineW = W - marginL - marginR;
   const usableH = H - marginT - marginB;
+  const isH = currentElement === 'H';
+  // 氢: 真实标度 E_n = -13.6/n² —— 高能级向 0 聚束 (能级图本来就是"下疏上密")
+  const E_MIN = -14.6, E_MAX = 1.2;
+  const yOfE = E => H - marginB - (E - E_MIN) / (E_MAX - E_MIN) * usableH;
+  const levelY = n => isH ? yOfE(levelEnergyEv(n)) : H - marginB - (n - 1) * (usableH / (levels));
   const spacing = usableH / (levels);
 
   // ── Energy axis arrow (left side) ──
@@ -1140,10 +1294,11 @@ function drawEnergyDiagram(fromShell, toShell, direction) {
   const levelColors = ['#34d399', '#6ee7b7', '#94a3b8', '#fca5a5', '#94a3b8'];
 
   for (let i = 0; i < levels; i++) {
-    const y = H - marginB - i * spacing;
+    const n = i + 1;
+    const y = isH ? levelY(n) : H - marginB - i * spacing;
     yPositions.push(y);
     const isInfinity = i === 4;
-    const label = isInfinity ? '∞ 自由' : `n=${i + 1}`;
+    const label = isInfinity ? '∞ 自由' : `n=${n}`;
 
     ctx.strokeStyle = isInfinity ? 'rgba(148,163,184,0.25)' : levelColors[i];
     ctx.lineWidth = isInfinity ? 1 : 1.8;
@@ -1153,17 +1308,25 @@ function drawEnergyDiagram(fromShell, toShell, direction) {
     ctx.lineTo(marginL + lineW, y);
     ctx.stroke();
 
-    // Level label (right)
+    // Level label (right) — 氢标注真实能量 eV
     ctx.fillStyle = isInfinity ? '#475569' : levelColors[i];
     ctx.font = isInfinity ? '8px Outfit' : 'bold 9px Outfit, sans-serif';
     ctx.textAlign = 'right';
-    ctx.fillText(label, marginL + lineW, y - 4);
+    ctx.fillText(label + (isH && !isInfinity ? `  ${levelEnergyEv(n).toFixed(2)} eV` : ''), marginL + lineW, y - 4);
 
     // Shell name (left)
     if (i < 4) {
       ctx.textAlign = 'left';
       ctx.fillStyle = levelColors[i];
       ctx.fillText(SHELL_NAMES[i], marginL + 2, y - 4);
+    }
+
+    // 氢: 电离能标注 (基态 → ∞)
+    if (isH && i === 0) {
+      ctx.fillStyle = '#6ee7b7';
+      ctx.font = '7px Outfit';
+      ctx.textAlign = 'left';
+      ctx.fillText('电离能 13.6 eV ↑', marginL + 2, y - 6);
     }
 
     // Distance annotation for first and last real level
@@ -1389,6 +1552,8 @@ document.getElementById('btnRelease').addEventListener('click', releaseEnergy);
 document.getElementById('btnLoseE').addEventListener('click', loseElectron);
 document.getElementById('btnGainE').addEventListener('click', gainElectron);
 document.getElementById('btnReset').addEventListener('click', resetAtom);
+document.getElementById('btnModelBohr').addEventListener('click', () => setCloudMode(false));
+document.getElementById('btnModelCloud').addEventListener('click', () => setCloudMode(true));
 
 document.getElementById('btnCompare').addEventListener('click', () => {
   document.getElementById('photonExplainer').classList.remove('show');

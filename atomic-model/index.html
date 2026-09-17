@@ -61,6 +61,13 @@
 
 <!-- ── Bottom Bar ── -->
 <div id="bottomBar">
+  <div class="row">
+    <span style="font-size:0.72rem;color:#94a3b8;align-self:center;">模型:</span>
+    <button class="ctrl-btn model-btn active" id="btnModelBohr" title="玻尔 1913: 电子在确定轨道上（简化但直观）">⚙️ 玻尔轨道</button>
+    <button class="ctrl-btn model-btn" id="btnModelCloud" title="量子力学: 电子是概率云——原子的真实画像">☁️ 电子云</button>
+    <div class="separator"></div>
+    <span style="font-size:0.7rem;color:#64748b;align-self:center;" id="modelNote">氢的谱线/能级为里德伯公式真实值 · 多电子为示意</span>
+  </div>
   <div class="row" id="elemRow"></div>
   <div class="row">
     <button class="ctrl-btn absorb" id="btnAbsorb" title="光子飞入原子 → 被电子吸收 → 电子跳到高能级">
@@ -196,8 +203,8 @@
 <script type="importmap">
 {
   "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    "three": "./vendor/three.module.js",
+    "three/addons/": "./vendor/addons/"
   }
 }
 </script>
