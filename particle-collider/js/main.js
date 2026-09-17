@@ -179,6 +179,9 @@
       collCap.classList.add('show');
     });
     app.triggerEvent = (type) => collision.trigger(undefined, type);
+    app.setCollPaused = (v) => collision.setPaused(v);
+    app.collGotoPhase = (ph) => collision.gotoPhase(ph);
+    app.collStepPhase = (d) => collision.stepPhase(d);
     app.setAuto = (v) => collision.setAuto(v);
     app.eventInfo = () => collision.getInfo();
     window.__pcDebug = () => ({ phase: collision.phase(), ...collision.getInfo() });
@@ -193,7 +196,10 @@
     window.addEventListener('keydown', (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       switch (e.key) {
-        case ' ': e.preventDefault(); if (app.view === 'detector') app.togglePlay(); break;
+        case ' ': e.preventDefault();
+          if (app.view === 'detector') app.togglePlay();
+          else if (app.view === 'collision') { const i = app.eventInfo(); app.setCollPaused(!i.paused); }
+          break;
         case 'r': case 'R': if (app.view === 'detector') app.toggleReverse(); break;
         case 'c': case 'C': if (app.view === 'detector') app.toggleCutaway(); break;
         case '1': app.setView('detector'); break;
@@ -203,8 +209,8 @@
         case 'e': case 'E': if (app.view === 'collision') app.triggerEvent(); break;
         case 'h': case 'H': case '?': document.getElementById('helpModal').classList.toggle('open'); break;
         case 'Escape': document.getElementById('helpModal').classList.remove('open'); break;
-        case 'ArrowRight': if (app.view === 'detector') app.gotoStage(Math.min(6, Math.floor(pb.t * 6 + 1e-6) + 1)); break;
-        case 'ArrowLeft': if (app.view === 'detector') app.gotoStage(Math.max(0, Math.ceil(pb.t * 6 - 1e-6) - 1)); break;
+        case 'ArrowRight': if (app.view === 'detector') app.gotoStage(Math.min(6, Math.floor(pb.t * 6 + 1e-6) + 1)); else if (app.view === 'collision') app.collStepPhase(1); break;
+        case 'ArrowLeft': if (app.view === 'detector') app.gotoStage(Math.max(0, Math.ceil(pb.t * 6 - 1e-6) - 1)); else if (app.view === 'collision') app.collStepPhase(-1); break;
       }
     });
 

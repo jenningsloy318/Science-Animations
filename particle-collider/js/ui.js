@@ -103,6 +103,7 @@
     buildSystemsList(app);
     buildStageChips(app);
     buildEvChips(app);
+    buildPhasePills(app);
     setLegend('ring', ringLegend());
     setLegend('collision', collisionLegend());
     /* force syncPlayback to rewrite cached strings */
@@ -230,6 +231,12 @@
     $('#btnTrigger').addEventListener('click', () => app.triggerEvent());
     $('#chkAuto').addEventListener('change', (e) => app.setAuto(e.target.checked));
     buildEvChips(app);
+    buildPhasePills(app);
+    $('#btnCollPause').addEventListener('click', () => {
+      const info = app.eventInfo();
+      app.setCollPaused(!info.paused);
+      APP.UI.toast(tr(!info.paused ? 'coll.pause' : 'coll.play'));
+    });
     setInterval(() => {
       if (document.body.dataset.view !== 'collision') return;
       const info = app.eventInfo();
@@ -238,6 +245,10 @@
       $('#evJets').textContent = info.jets;
       $('#evEt').textContent = info.sumET.toFixed(1);
       $('#evMuons').textContent = info.muons;
+      syncPhasePills(info);
+      const pb = $('#btnCollPause');
+      const lbl = info.paused ? tr('coll.play') : tr('coll.pause');
+      if (pb.textContent !== lbl) pb.textContent = lbl;
       const massTxt = info.mass
         ? `${info.mass.label} ${info.mass.value.toFixed(1)}${info.mass.truthName ? ' ≈ ' + info.mass.truthName : ''}` : '–';
       const massEl = $('#evMass');
@@ -249,6 +260,30 @@
       }
       $$('#evChips .evchip').forEach((c) => c.classList.toggle('active', c.dataset.type === info.type));
     }, 400);
+  }
+
+  /* ---------------- collision story phase pills -----------------------------*/
+  const PHASE_ORDER = ['approach', 'impact', 'flight', 'readout', 'done'];
+  function buildPhasePills(app) {
+    const box = $('#phasePills');
+    if (!box) return;
+    box.innerHTML = '';
+    box.title = tr('ph.hint');
+    PHASE_ORDER.forEach((ph) => {
+      const b = document.createElement('button');
+      b.className = 'phase-pill';
+      b.dataset.phase = ph;
+      b.textContent = tr('ph.' + ph);
+      b.addEventListener('click', () => app.collGotoPhase(ph));
+      box.appendChild(b);
+    });
+  }
+  function syncPhasePills(info) {
+    const cur = PHASE_ORDER.indexOf(info.phase);
+    $$('#phasePills .phase-pill').forEach((b, i) => {
+      b.classList.toggle('active', i === cur);
+      b.classList.toggle('done', cur >= 0 && i < cur);
+    });
   }
 
   /* ---------------- education panel ----------------------------------------*/

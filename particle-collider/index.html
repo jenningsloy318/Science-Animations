@@ -203,6 +203,13 @@
   .chkRow{display:flex; align-items:center; gap:7px; font-size:12px; color:var(--muted); cursor:pointer}
   .chkRow input{accent-color:var(--gold)}
   #evChips{display:flex; gap:5px; flex-wrap:wrap}
+  #phasePills{display:flex; gap:4px; flex-wrap:wrap}
+  .phase-pill{border:1px solid var(--line); background:rgba(255,255,255,.03); color:var(--muted);
+    font:600 11px/1 inherit; padding:6px 8px; border-radius:999px; cursor:pointer; white-space:nowrap}
+  .phase-pill:hover{color:var(--text); border-color:var(--line2)}
+  .phase-pill.done{color:var(--muted); opacity:.55}
+  .phase-pill.active{color:#f0e6c8; border-color:rgba(216,178,92,.6); background:rgba(216,178,92,.12)}
+  #btnCollPause{min-width:34px}
   .evchip{border:1px solid var(--line); background:rgba(255,255,255,.03); color:var(--muted);
     font:600 11px/1 inherit; padding:6px 9px; border-radius:999px; cursor:pointer; white-space:nowrap}
   .evchip:hover{color:var(--text); border-color:var(--line2)}
@@ -344,7 +351,9 @@
 
     <div id="collbar">
       <button id="btnTrigger" class="btn primary">Trigger event</button>
+      <button id="btnCollPause" class="btn mini">⏸</button>
       <label class="chkRow"><input id="chkAuto" type="checkbox" checked> auto-renew</label>
+      <div id="phasePills"></div>
       <div id="evChips"></div>
       <div class="evstats">
         <span>event <b id="evNum">#–</b></span>

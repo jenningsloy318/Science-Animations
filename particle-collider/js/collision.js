@@ -28,14 +28,15 @@
   ];
 
   /* sequence timing (seconds) */
-  const PHASE_T = { approach: 2.2, impact: 0.55, flight: 2.9, readout: 1.4 };
-  const Z_START = 17, Z_HIT = 0.25, DONE_HOLD = 5.0, AUTO_AFTER = 5.0;
+  const PHASE_T = { approach: 2.2, impact: 0.9, flight: 3.6, readout: 1.6 };
+  const Z_HALF = 9;       /* detector barrel half-length — forward tracks end here */
+  const Z_START = Z_HALF + 8, Z_HIT = 0.25, AUTO_AFTER = 5.0;
   /* C A U S A L  A N I M A T I O N :
    * every particle leaves the IP at t=0 and flies at one scaled, constant
    * (near-light) speed. A track tip reaching its stop radius, the local
    * tower growth and the outward shell-flash wave are all derived from that
    * single clock — nothing is decorative. */
-  const V_FLIGHT = 9.5;   /* scene units per second (14.6-unit crossing ≈ 1.5 s) */
+  const V_FLIGHT = 7.0;   /* scene units per second (14.6-unit crossing ≈ 2.1 s) */
 
   APP.Collision = { build };
 
@@ -60,7 +61,7 @@
 
     const state = {
       num: 0, tracks: 0, jets: 0, sumET: 0, muons: 0,
-      phase: 'approach', pt: 0, doneT: 0, flyT: 0,
+      phase: 'approach', pt: 0, doneT: 0, flyT: 0, captionMinT: 0, paused: false,
       auto: true, timer: 2.0,
       trackLines: [], towers: [], misc: [],
       protons: [], shock: null,
@@ -159,23 +160,29 @@
 
     function emitCaption() {
       if (!state.onCaption) return;
+      state.captionMinT = 0;
       const procs = APP.L().collision.processes || {};
       const proc = procs[state.procKey];
       if (state.phase === 'approach' && proc && proc.cap0) {
-        state.onCaption(proc.cap0); state.capShown = true; return;
+        state.onCaption(proc.cap0); state.capShown = true;
+        state.captionMinT = readingSeconds(proc.cap0); return;
       }
       if (state.phase === 'done') {
         state.onCaption(proc && proc.capEnd ? proc.capEnd : null);
-        state.capShown = !!proc && !!proc.capEnd; return;
+        state.capShown = !!proc && !!proc.capEnd;
+        if (proc && proc.capEnd) state.captionMinT = readingSeconds(proc.capEnd);
+        return;
       }
       /* clean processes (no hadrons in the decay): their own flight/readout lines */
       const cleanSet = { z_mumu: 1, z_ee: 1, h_gamgam: 1, h_zz4l: 1 };
       const cl = APP.L().collision.seqClean;
       if (cleanSet[state.procKey] && cl && cl[state.phase]) {
-        state.onCaption(cl[state.phase]); state.capShown = true; return;
+        state.onCaption(cl[state.phase]); state.capShown = true;
+        state.captionMinT = readingSeconds(cl[state.phase]); return;
       }
       const step = APP.L().collision.seq.find((s) => s.phase === state.phase);
-      if (step) { state.onCaption(step.cap); state.capShown = true; }
+      if (step) { state.onCaption(step.cap); state.capShown = true;
+        state.captionMinT = readingSeconds(step.cap); }
       else { state.onCaption(null); state.capShown = false; }
     }
 
@@ -250,10 +257,13 @@
 
     function helix(pT, phi0, eta, q, rho, rStop) {
       const slope = Math.sinh(eta);
-      /* find arc length where track exits rStop (sample) */
+      /* find arc length where the track exits the detector: either its radial
+       * stop layer OR the barrel end face (|z| > Z_HALF) — forward tracks
+       * leave through the end, never drawn running past the model */
       let sMax = 30;
       const ds = 0.1;
       for (let s = ds; s < 40; s += ds) {
+        if (Math.abs(s * slope) > Z_HALF) { sMax = s; break; }
         let x, y;
         if (q === 0) {
           x = Math.cos(phi0) * s; y = Math.sin(phi0) * s;
@@ -270,7 +280,7 @@
     }
 
     function buildCutaway() {
-      const zHalf = 7;
+      const zHalf = Z_HALF;
       const mats = [];
       for (const sh of SHELLS) {
         const mat = new THREE.MeshStandardMaterial(Object.assign({
@@ -293,7 +303,7 @@
         }
       }
       /* beam axis hint */
-      const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 17.5, 10).rotateX(Math.PI / 2),
+      const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, Z_HALF * 2 + 2.5, 10).rotateX(Math.PI / 2),
         new THREE.MeshBasicMaterial({ color: 0x9fe8ff, transparent: true, opacity: 0.5 }));
       scene.add(beam);
       return mats;
@@ -311,8 +321,22 @@
     /* flash curve: instant attack, exponential decay */
     function flashPulse(tSince) { return tSince < 0 ? 0 : Math.exp(-tSince * 4.2); }
 
+    /* R E A D E R   P A C I N G — the animation waits for the reader.
+     * Estimated silent-reading time: CJK ~6.5 chars/s, latin ~14 chars/s,
+     * plus a 1.6 s base; capped so a phase can never stall forever. */
+    function readingSeconds(text) {
+      if (!text) return 0;
+      let zh = 0;
+      for (const ch of text) if (ch >= '\u4e00' && ch <= '\u9fff') zh++;
+      return Math.min(13, 1.6 + zh / 6.5 + (text.length - zh) / 14);
+    }
+
     function update(dt, orbit, active) {
       if (active === false) return;          /* frozen when the view is not shown */
+      if (state.paused) {                    /* paused: keep rendering, freeze the story clock */
+        if (orbit && orbit.idleT > 4) orbit.des.az += dt * 0.06;
+        return;
+      }
 
       /* ---- sequence state machine ---- */
       state.pt += dt;
@@ -326,7 +350,7 @@
         state.protons[0].children[1].scale.set(g, g, 1);
         state.protons[1].children[1].scale.set(g, g, 1);
         ipGlow.material.opacity = 0.12 + k * 0.5;
-        if (state.pt >= PHASE_T.approach) {
+        if (state.pt >= Math.max(PHASE_T.approach, state.captionMinT)) {
           /* impact: protons vanish, flash + shock ring */
           for (const p of state.protons) p.visible = false;
           state.shock = makeShockRing();
@@ -342,17 +366,18 @@
           state.shock.scale.setScalar(0.3 + k * 14);
           state.shock.material.opacity = 0.85 * (1 - k);
         }
-        if (state.pt >= PHASE_T.impact) { if (state.shock) { state.shock.visible = false; } setPhase('flight'); }
+        if (state.pt >= Math.max(PHASE_T.impact, state.captionMinT)) { if (state.shock) { state.shock.visible = false; } setPhase('flight'); }
       } else if (state.phase === 'flight') {
         state.flyT += dt;
-        if (state.pt >= PHASE_T.flight) setPhase('readout');
+        if (state.pt >= Math.max(PHASE_T.flight, state.captionMinT)) setPhase('readout');
       } else if (state.phase === 'readout') {
         state.flyT += dt;
         if (state.metArrow) state.metArrow.visible = true;   /* the neutrino is inferred */
-        if (state.pt >= PHASE_T.readout) setPhase('done');
+        if (state.pt >= Math.max(PHASE_T.readout, state.captionMinT)) setPhase('done');
       } else if (state.phase === 'done') {
         state.doneT += dt;
-        if (state.capShown && state.doneT > DONE_HOLD) { state.onCaption(null); state.capShown = false; }
+        /* the summary caption stays until the next event starts */
+        if (state.auto && state.doneT > Math.max(AUTO_AFTER, state.captionMinT + 1.5)) startSequence();
       }
 
       /* ---- per-frame visual application — all driven by the flight clock ---- */
@@ -384,18 +409,52 @@
         ipLight.intensity = Math.max(0.25, ipLight.intensity - dt * 3);
       }
 
-      /* auto trigger — only once the sequence has settled */
-      if (state.auto && state.phase === 'done' && state.doneT > AUTO_AFTER) startSequence();
       /* idle orbit drift */
       if (orbit && orbit.idleT > 4) orbit.des.az += dt * 0.06;
     }
 
     function setAuto(v) { state.auto = v; }
+    function setPaused(v) { state.paused = !!v; }
+
+    /* the five story phases, in order */
+    const PHASES = ['approach', 'impact', 'flight', 'readout', 'done'];
+
+    /* jump to a phase; phases skipped OVER are completed instantly so the
+     * reader always sees a coherent frame (no half-drawn states) */
+    function gotoPhase(target) {
+      const ti = PHASES.indexOf(target);
+      if (ti < 0) return;
+      const ci = PHASES.indexOf(state.phase);
+      if (ti === ci) return;
+      state.paused = false;
+      /* complete everything before the target */
+      if (ti >= 2) {                       /* flight or later: full tracks + towers */
+        state.flyT = 99;
+        if (ti === 3) state.doneT = 0;
+      }
+      if (ti <= 1) {                       /* back to the opening: reset the event frame */
+        state.flyT = 0;
+        for (const line of state.trackLines) line.geometry.setDrawRange(0, 0);
+        for (const t of state.towers) t.scale.y = 0.001;
+        for (let i = 0; i < shellMats.length; i++) shellMats[i].emissiveIntensity = shellBase[i];
+      }
+      if (ti >= 1) { for (const pr of state.protons) pr.visible = false; ipGlow.material.opacity = 1; ipLight.intensity = 4.2; }
+      else { for (const pr of state.protons) { pr.visible = true; pr.position.z = Z_START; pr.children[1].scale.set(1, 1, 1); } ipGlow.material.opacity = 0.12; ipGlow.scale.set(3.2, 3.2, 1); ipLight.intensity = 0.15; }
+      if (state.metArrow) state.metArrow.visible = ti >= 3;
+      state.doneT = 0;
+      setPhase(PHASES[ti]);
+    }
+    function stepPhase(dir) {
+      const i = PHASES.indexOf(state.phase);
+      gotoPhase(PHASES[U.clamp(i + dir, 0, PHASES.length - 1)]);
+    }
     function getInfo() {
       const base = { num: state.num, tracks: state.tracks, jets: state.jets, sumET: state.sumET, muons: state.muons };
       if (state.info && state.info.ev) {
         const ev = state.info.ev;
         base.type = ev.type;
+        base.phase = state.phase;
+        base.paused = state.paused;
         base.mass = ev.mass || null;
         base.sigmaPb = ev.sigmaPb || null;
         base.ratePerS = ev.sigmaPb ? APP.PP.ratePerS(ev.sigmaPb) : null;
@@ -406,6 +465,6 @@
 
     startSequence(1337); /* opening event (frozen until the view is shown) */
 
-    return { scene, update, trigger: startSequence, setAuto, getInfo, refreshCaption, phase: () => state.phase, setCaptionSink: (fn) => { state.onCaption = fn; } };
+    return { scene, update, trigger: startSequence, setAuto, setPaused, gotoPhase, stepPhase, getInfo, refreshCaption, phase: () => state.phase, setCaptionSink: (fn) => { state.onCaption = fn; } };
   }
 })();

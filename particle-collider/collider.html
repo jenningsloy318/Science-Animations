@@ -203,6 +203,13 @@
   .chkRow{display:flex; align-items:center; gap:7px; font-size:12px; color:var(--muted); cursor:pointer}
   .chkRow input{accent-color:var(--gold)}
   #evChips{display:flex; gap:5px; flex-wrap:wrap}
+  #phasePills{display:flex; gap:4px; flex-wrap:wrap}
+  .phase-pill{border:1px solid var(--line); background:rgba(255,255,255,.03); color:var(--muted);
+    font:600 11px/1 inherit; padding:6px 8px; border-radius:999px; cursor:pointer; white-space:nowrap}
+  .phase-pill:hover{color:var(--text); border-color:var(--line2)}
+  .phase-pill.done{color:var(--muted); opacity:.55}
+  .phase-pill.active{color:#f0e6c8; border-color:rgba(216,178,92,.6); background:rgba(216,178,92,.12)}
+  #btnCollPause{min-width:34px}
   .evchip{border:1px solid var(--line); background:rgba(255,255,255,.03); color:var(--muted);
     font:600 11px/1 inherit; padding:6px 9px; border-radius:999px; cursor:pointer; white-space:nowrap}
   .evchip:hover{color:var(--text); border-color:var(--line2)}
@@ -344,7 +351,9 @@
 
     <div id="collbar">
       <button id="btnTrigger" class="btn primary">Trigger event</button>
+      <button id="btnCollPause" class="btn mini">⏸</button>
       <label class="chkRow"><input id="chkAuto" type="checkbox" checked> auto-renew</label>
+      <div id="phasePills"></div>
       <div id="evChips"></div>
       <div class="evstats">
         <span>event <b id="evNum">#–</b></span>
@@ -390,7 +399,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
 </script>
 <script>
-/* ===== inlined: js/data.js (38,543 bytes) ===== */
+/* ===== inlined: js/data.js (39,065 bytes) ===== */
 /* ============================================================================
  * data.js — verified facts & educational copy (EN + 中文)
  * Sources (consulted 2026-09, official CERN references):
@@ -913,6 +922,15 @@ APP.DATA.ui = {
   'ev.jets':         { en:'jets', zh:'喷注' },
   'ev.muons':        { en:'muons', zh:'\u03BC 子' },
   'ev.rate':         { en:'Rate at peak lumi.', zh:'峰值亮度产率' },
+  'coll.pause':      { en:'\u23F8 Pause', zh:'\u23F8 暂停' },
+  'coll.play':       { en:'\u25B6 Play', zh:'\u25B6 播放' },
+  'ph.approach':     { en:'Approach', zh:'入场' },
+  'ph.impact':       { en:'Impact', zh:'对撞' },
+  'ph.flight':       { en:'Flight', zh:'飞行' },
+  'ph.readout':      { en:'Readout', zh:'读出' },
+  'ph.done':         { en:'Reconstruct', zh:'重建' },
+  'ph.hint':         { en:'Click a phase to jump \u00B7 Space pause \u00B7 \u2190/\u2192 step',
+                       zh:'点击相位跳转 · 空格暂停 · \u2190/\u2192 单步' },
   'badge':           { en:'REAL DECAY KINEMATICS \u00B7 SIMPLIFIED DETECTOR RESPONSE', zh:'真实衰变运动学 —— 简化探测器响应' },
   'legend.ring':     { en:'Counter-rotating beams', zh:'反向旋转的质子束' },
   'legend.collision':{ en:'Event legend', zh:'事件图例' },
@@ -2508,7 +2526,7 @@ APP.DATA.ui = {
 
 </script>
 <script>
-/* ===== inlined: js/collision.js (19,065 bytes) ===== */
+/* ===== inlined: js/collision.js (22,160 bytes) ===== */
 /* ============================================================================
  * collision.js — collision display driven by REAL Standard Model kinematics
  * (APP.PP: PDG masses/branching ratios, two-body decays, invariant-mass
@@ -2539,14 +2557,15 @@ APP.DATA.ui = {
   ];
 
   /* sequence timing (seconds) */
-  const PHASE_T = { approach: 2.2, impact: 0.55, flight: 2.9, readout: 1.4 };
-  const Z_START = 17, Z_HIT = 0.25, DONE_HOLD = 5.0, AUTO_AFTER = 5.0;
+  const PHASE_T = { approach: 2.2, impact: 0.9, flight: 3.6, readout: 1.6 };
+  const Z_HALF = 9;       /* detector barrel half-length — forward tracks end here */
+  const Z_START = Z_HALF + 8, Z_HIT = 0.25, AUTO_AFTER = 5.0;
   /* C A U S A L  A N I M A T I O N :
    * every particle leaves the IP at t=0 and flies at one scaled, constant
    * (near-light) speed. A track tip reaching its stop radius, the local
    * tower growth and the outward shell-flash wave are all derived from that
    * single clock — nothing is decorative. */
-  const V_FLIGHT = 9.5;   /* scene units per second (14.6-unit crossing ≈ 1.5 s) */
+  const V_FLIGHT = 7.0;   /* scene units per second (14.6-unit crossing ≈ 2.1 s) */
 
   APP.Collision = { build };
 
@@ -2571,7 +2590,7 @@ APP.DATA.ui = {
 
     const state = {
       num: 0, tracks: 0, jets: 0, sumET: 0, muons: 0,
-      phase: 'approach', pt: 0, doneT: 0, flyT: 0,
+      phase: 'approach', pt: 0, doneT: 0, flyT: 0, captionMinT: 0, paused: false,
       auto: true, timer: 2.0,
       trackLines: [], towers: [], misc: [],
       protons: [], shock: null,
@@ -2670,23 +2689,29 @@ APP.DATA.ui = {
 
     function emitCaption() {
       if (!state.onCaption) return;
+      state.captionMinT = 0;
       const procs = APP.L().collision.processes || {};
       const proc = procs[state.procKey];
       if (state.phase === 'approach' && proc && proc.cap0) {
-        state.onCaption(proc.cap0); state.capShown = true; return;
+        state.onCaption(proc.cap0); state.capShown = true;
+        state.captionMinT = readingSeconds(proc.cap0); return;
       }
       if (state.phase === 'done') {
         state.onCaption(proc && proc.capEnd ? proc.capEnd : null);
-        state.capShown = !!proc && !!proc.capEnd; return;
+        state.capShown = !!proc && !!proc.capEnd;
+        if (proc && proc.capEnd) state.captionMinT = readingSeconds(proc.capEnd);
+        return;
       }
       /* clean processes (no hadrons in the decay): their own flight/readout lines */
       const cleanSet = { z_mumu: 1, z_ee: 1, h_gamgam: 1, h_zz4l: 1 };
       const cl = APP.L().collision.seqClean;
       if (cleanSet[state.procKey] && cl && cl[state.phase]) {
-        state.onCaption(cl[state.phase]); state.capShown = true; return;
+        state.onCaption(cl[state.phase]); state.capShown = true;
+        state.captionMinT = readingSeconds(cl[state.phase]); return;
       }
       const step = APP.L().collision.seq.find((s) => s.phase === state.phase);
-      if (step) { state.onCaption(step.cap); state.capShown = true; }
+      if (step) { state.onCaption(step.cap); state.capShown = true;
+        state.captionMinT = readingSeconds(step.cap); }
       else { state.onCaption(null); state.capShown = false; }
     }
 
@@ -2761,10 +2786,13 @@ APP.DATA.ui = {
 
     function helix(pT, phi0, eta, q, rho, rStop) {
       const slope = Math.sinh(eta);
-      /* find arc length where track exits rStop (sample) */
+      /* find arc length where the track exits the detector: either its radial
+       * stop layer OR the barrel end face (|z| > Z_HALF) — forward tracks
+       * leave through the end, never drawn running past the model */
       let sMax = 30;
       const ds = 0.1;
       for (let s = ds; s < 40; s += ds) {
+        if (Math.abs(s * slope) > Z_HALF) { sMax = s; break; }
         let x, y;
         if (q === 0) {
           x = Math.cos(phi0) * s; y = Math.sin(phi0) * s;
@@ -2781,7 +2809,7 @@ APP.DATA.ui = {
     }
 
     function buildCutaway() {
-      const zHalf = 7;
+      const zHalf = Z_HALF;
       const mats = [];
       for (const sh of SHELLS) {
         const mat = new THREE.MeshStandardMaterial(Object.assign({
@@ -2804,7 +2832,7 @@ APP.DATA.ui = {
         }
       }
       /* beam axis hint */
-      const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 17.5, 10).rotateX(Math.PI / 2),
+      const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, Z_HALF * 2 + 2.5, 10).rotateX(Math.PI / 2),
         new THREE.MeshBasicMaterial({ color: 0x9fe8ff, transparent: true, opacity: 0.5 }));
       scene.add(beam);
       return mats;
@@ -2822,8 +2850,22 @@ APP.DATA.ui = {
     /* flash curve: instant attack, exponential decay */
     function flashPulse(tSince) { return tSince < 0 ? 0 : Math.exp(-tSince * 4.2); }
 
+    /* R E A D E R   P A C I N G — the animation waits for the reader.
+     * Estimated silent-reading time: CJK ~6.5 chars/s, latin ~14 chars/s,
+     * plus a 1.6 s base; capped so a phase can never stall forever. */
+    function readingSeconds(text) {
+      if (!text) return 0;
+      let zh = 0;
+      for (const ch of text) if (ch >= '\u4e00' && ch <= '\u9fff') zh++;
+      return Math.min(13, 1.6 + zh / 6.5 + (text.length - zh) / 14);
+    }
+
     function update(dt, orbit, active) {
       if (active === false) return;          /* frozen when the view is not shown */
+      if (state.paused) {                    /* paused: keep rendering, freeze the story clock */
+        if (orbit && orbit.idleT > 4) orbit.des.az += dt * 0.06;
+        return;
+      }
 
       /* ---- sequence state machine ---- */
       state.pt += dt;
@@ -2837,7 +2879,7 @@ APP.DATA.ui = {
         state.protons[0].children[1].scale.set(g, g, 1);
         state.protons[1].children[1].scale.set(g, g, 1);
         ipGlow.material.opacity = 0.12 + k * 0.5;
-        if (state.pt >= PHASE_T.approach) {
+        if (state.pt >= Math.max(PHASE_T.approach, state.captionMinT)) {
           /* impact: protons vanish, flash + shock ring */
           for (const p of state.protons) p.visible = false;
           state.shock = makeShockRing();
@@ -2853,17 +2895,18 @@ APP.DATA.ui = {
           state.shock.scale.setScalar(0.3 + k * 14);
           state.shock.material.opacity = 0.85 * (1 - k);
         }
-        if (state.pt >= PHASE_T.impact) { if (state.shock) { state.shock.visible = false; } setPhase('flight'); }
+        if (state.pt >= Math.max(PHASE_T.impact, state.captionMinT)) { if (state.shock) { state.shock.visible = false; } setPhase('flight'); }
       } else if (state.phase === 'flight') {
         state.flyT += dt;
-        if (state.pt >= PHASE_T.flight) setPhase('readout');
+        if (state.pt >= Math.max(PHASE_T.flight, state.captionMinT)) setPhase('readout');
       } else if (state.phase === 'readout') {
         state.flyT += dt;
         if (state.metArrow) state.metArrow.visible = true;   /* the neutrino is inferred */
-        if (state.pt >= PHASE_T.readout) setPhase('done');
+        if (state.pt >= Math.max(PHASE_T.readout, state.captionMinT)) setPhase('done');
       } else if (state.phase === 'done') {
         state.doneT += dt;
-        if (state.capShown && state.doneT > DONE_HOLD) { state.onCaption(null); state.capShown = false; }
+        /* the summary caption stays until the next event starts */
+        if (state.auto && state.doneT > Math.max(AUTO_AFTER, state.captionMinT + 1.5)) startSequence();
       }
 
       /* ---- per-frame visual application — all driven by the flight clock ---- */
@@ -2895,18 +2938,52 @@ APP.DATA.ui = {
         ipLight.intensity = Math.max(0.25, ipLight.intensity - dt * 3);
       }
 
-      /* auto trigger — only once the sequence has settled */
-      if (state.auto && state.phase === 'done' && state.doneT > AUTO_AFTER) startSequence();
       /* idle orbit drift */
       if (orbit && orbit.idleT > 4) orbit.des.az += dt * 0.06;
     }
 
     function setAuto(v) { state.auto = v; }
+    function setPaused(v) { state.paused = !!v; }
+
+    /* the five story phases, in order */
+    const PHASES = ['approach', 'impact', 'flight', 'readout', 'done'];
+
+    /* jump to a phase; phases skipped OVER are completed instantly so the
+     * reader always sees a coherent frame (no half-drawn states) */
+    function gotoPhase(target) {
+      const ti = PHASES.indexOf(target);
+      if (ti < 0) return;
+      const ci = PHASES.indexOf(state.phase);
+      if (ti === ci) return;
+      state.paused = false;
+      /* complete everything before the target */
+      if (ti >= 2) {                       /* flight or later: full tracks + towers */
+        state.flyT = 99;
+        if (ti === 3) state.doneT = 0;
+      }
+      if (ti <= 1) {                       /* back to the opening: reset the event frame */
+        state.flyT = 0;
+        for (const line of state.trackLines) line.geometry.setDrawRange(0, 0);
+        for (const t of state.towers) t.scale.y = 0.001;
+        for (let i = 0; i < shellMats.length; i++) shellMats[i].emissiveIntensity = shellBase[i];
+      }
+      if (ti >= 1) { for (const pr of state.protons) pr.visible = false; ipGlow.material.opacity = 1; ipLight.intensity = 4.2; }
+      else { for (const pr of state.protons) { pr.visible = true; pr.position.z = Z_START; pr.children[1].scale.set(1, 1, 1); } ipGlow.material.opacity = 0.12; ipGlow.scale.set(3.2, 3.2, 1); ipLight.intensity = 0.15; }
+      if (state.metArrow) state.metArrow.visible = ti >= 3;
+      state.doneT = 0;
+      setPhase(PHASES[ti]);
+    }
+    function stepPhase(dir) {
+      const i = PHASES.indexOf(state.phase);
+      gotoPhase(PHASES[U.clamp(i + dir, 0, PHASES.length - 1)]);
+    }
     function getInfo() {
       const base = { num: state.num, tracks: state.tracks, jets: state.jets, sumET: state.sumET, muons: state.muons };
       if (state.info && state.info.ev) {
         const ev = state.info.ev;
         base.type = ev.type;
+        base.phase = state.phase;
+        base.paused = state.paused;
         base.mass = ev.mass || null;
         base.sigmaPb = ev.sigmaPb || null;
         base.ratePerS = ev.sigmaPb ? APP.PP.ratePerS(ev.sigmaPb) : null;
@@ -2917,13 +2994,13 @@ APP.DATA.ui = {
 
     startSequence(1337); /* opening event (frozen until the view is shown) */
 
-    return { scene, update, trigger: startSequence, setAuto, getInfo, refreshCaption, phase: () => state.phase, setCaptionSink: (fn) => { state.onCaption = fn; } };
+    return { scene, update, trigger: startSequence, setAuto, setPaused, gotoPhase, stepPhase, getInfo, refreshCaption, phase: () => state.phase, setCaptionSink: (fn) => { state.onCaption = fn; } };
   }
 })();
 
 </script>
 <script>
-/* ===== inlined: js/ui.js (16,304 bytes) ===== */
+/* ===== inlined: js/ui.js (17,592 bytes) ===== */
 /* ============================================================================
  * ui.js — premium dark UI: tabs, system switches, stage chips, transport,
  * education panel, per-view legends, help modal, toasts, ZH/EN toggle.
@@ -3029,6 +3106,7 @@ APP.DATA.ui = {
     buildSystemsList(app);
     buildStageChips(app);
     buildEvChips(app);
+    buildPhasePills(app);
     setLegend('ring', ringLegend());
     setLegend('collision', collisionLegend());
     /* force syncPlayback to rewrite cached strings */
@@ -3156,6 +3234,12 @@ APP.DATA.ui = {
     $('#btnTrigger').addEventListener('click', () => app.triggerEvent());
     $('#chkAuto').addEventListener('change', (e) => app.setAuto(e.target.checked));
     buildEvChips(app);
+    buildPhasePills(app);
+    $('#btnCollPause').addEventListener('click', () => {
+      const info = app.eventInfo();
+      app.setCollPaused(!info.paused);
+      APP.UI.toast(tr(!info.paused ? 'coll.pause' : 'coll.play'));
+    });
     setInterval(() => {
       if (document.body.dataset.view !== 'collision') return;
       const info = app.eventInfo();
@@ -3164,6 +3248,10 @@ APP.DATA.ui = {
       $('#evJets').textContent = info.jets;
       $('#evEt').textContent = info.sumET.toFixed(1);
       $('#evMuons').textContent = info.muons;
+      syncPhasePills(info);
+      const pb = $('#btnCollPause');
+      const lbl = info.paused ? tr('coll.play') : tr('coll.pause');
+      if (pb.textContent !== lbl) pb.textContent = lbl;
       const massTxt = info.mass
         ? `${info.mass.label} ${info.mass.value.toFixed(1)}${info.mass.truthName ? ' ≈ ' + info.mass.truthName : ''}` : '–';
       const massEl = $('#evMass');
@@ -3175,6 +3263,30 @@ APP.DATA.ui = {
       }
       $$('#evChips .evchip').forEach((c) => c.classList.toggle('active', c.dataset.type === info.type));
     }, 400);
+  }
+
+  /* ---------------- collision story phase pills -----------------------------*/
+  const PHASE_ORDER = ['approach', 'impact', 'flight', 'readout', 'done'];
+  function buildPhasePills(app) {
+    const box = $('#phasePills');
+    if (!box) return;
+    box.innerHTML = '';
+    box.title = tr('ph.hint');
+    PHASE_ORDER.forEach((ph) => {
+      const b = document.createElement('button');
+      b.className = 'phase-pill';
+      b.dataset.phase = ph;
+      b.textContent = tr('ph.' + ph);
+      b.addEventListener('click', () => app.collGotoPhase(ph));
+      box.appendChild(b);
+    });
+  }
+  function syncPhasePills(info) {
+    const cur = PHASE_ORDER.indexOf(info.phase);
+    $$('#phasePills .phase-pill').forEach((b, i) => {
+      b.classList.toggle('active', i === cur);
+      b.classList.toggle('done', cur >= 0 && i < cur);
+    });
   }
 
   /* ---------------- education panel ----------------------------------------*/
@@ -3278,7 +3390,7 @@ APP.DATA.ui = {
 
 </script>
 <script>
-/* ===== inlined: js/main.js (10,412 bytes) ===== */
+/* ===== inlined: js/main.js (10,820 bytes) ===== */
 /* ============================================================================
  * main.js — bootstrap: renderer, three views, playback engine, input, loop
  * ==========================================================================*/
@@ -3460,6 +3572,9 @@ APP.DATA.ui = {
       collCap.classList.add('show');
     });
     app.triggerEvent = (type) => collision.trigger(undefined, type);
+    app.setCollPaused = (v) => collision.setPaused(v);
+    app.collGotoPhase = (ph) => collision.gotoPhase(ph);
+    app.collStepPhase = (d) => collision.stepPhase(d);
     app.setAuto = (v) => collision.setAuto(v);
     app.eventInfo = () => collision.getInfo();
     window.__pcDebug = () => ({ phase: collision.phase(), ...collision.getInfo() });
@@ -3474,7 +3589,10 @@ APP.DATA.ui = {
     window.addEventListener('keydown', (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
       switch (e.key) {
-        case ' ': e.preventDefault(); if (app.view === 'detector') app.togglePlay(); break;
+        case ' ': e.preventDefault();
+          if (app.view === 'detector') app.togglePlay();
+          else if (app.view === 'collision') { const i = app.eventInfo(); app.setCollPaused(!i.paused); }
+          break;
         case 'r': case 'R': if (app.view === 'detector') app.toggleReverse(); break;
         case 'c': case 'C': if (app.view === 'detector') app.toggleCutaway(); break;
         case '1': app.setView('detector'); break;
@@ -3484,8 +3602,8 @@ APP.DATA.ui = {
         case 'e': case 'E': if (app.view === 'collision') app.triggerEvent(); break;
         case 'h': case 'H': case '?': document.getElementById('helpModal').classList.toggle('open'); break;
         case 'Escape': document.getElementById('helpModal').classList.remove('open'); break;
-        case 'ArrowRight': if (app.view === 'detector') app.gotoStage(Math.min(6, Math.floor(pb.t * 6 + 1e-6) + 1)); break;
-        case 'ArrowLeft': if (app.view === 'detector') app.gotoStage(Math.max(0, Math.ceil(pb.t * 6 - 1e-6) - 1)); break;
+        case 'ArrowRight': if (app.view === 'detector') app.gotoStage(Math.min(6, Math.floor(pb.t * 6 + 1e-6) + 1)); else if (app.view === 'collision') app.collStepPhase(1); break;
+        case 'ArrowLeft': if (app.view === 'detector') app.gotoStage(Math.max(0, Math.ceil(pb.t * 6 - 1e-6) - 1)); else if (app.view === 'collision') app.collStepPhase(-1); break;
       }
     });
 
