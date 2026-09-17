@@ -34,7 +34,30 @@ let isBraking = false;
 let soundEnabled = true;
 let torqueFlow = null;
 
-// Raycasting for interactive inspection
+// Dynamic animation hooks & effect systems
+let radiatorFan = null;
+let waterPumpPulley = null;
+let throttleButterflyPlate = null;
+let throttleLever = null;
+let brakeHeat = 0;
+let diffSpiderAngle = 0;
+
+// Exhaust smoke particle system (tailpipe x ≈ 5.32, y ≈ -0.75, z ≈ -0.75)
+let exhaustPuffGroup = null;
+let exhaustPuffs = [];
+let puffIndex = 0;
+let puffSpawnTimer = 0;
+
+// Coolant hose circulation indicators (upper: engine→radiator; lower: radiator→engine)
+let coolantPulseGroup = null;
+let coolantUpperDots = [];
+let coolantLowerDots = [];
+let upperHoseCurve = null;
+let lowerHoseCurve = null;
+
+// EV 3-Phase Rotating Magnetic Field rings around stator
+let evFluxGroup = null;
+let evFluxRings = [];
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 
@@ -105,6 +128,8 @@ let engineFilter = null;
 
 // Focus Presets — SCENARIO-018: cooling (radiator/water pump) and fuel
 // (tank/pump/injector rail) join the untouched legacy nine.
+let shellVisible = false;
+
 const CAMERA_PRESETS = {
   overview:     { pos: [13, 8, 15],     target: [0, 0.5, 0] },
   engine:       { pos: [-4.2, 3.6, 4.6],  target: [-4.85, 1.0, 0] },
@@ -117,6 +142,7 @@ const CAMERA_PRESETS = {
   evMotor:      { pos: [-1.6, 2.5, 3.4],  target: [-1.6, 0, 0] },
   cooling:      { pos: [-5.6, 2.2, 4.6],  target: [-7.0, 0.7, 0] },
   fuel:         { pos: [3.4, 1.6, 4.0],   target: [2.9, -0.9, 0.3] },
+  exhaust:      { pos: [-1.2, 0.4, -4.2], target: [-1.0, -0.4, -0.7] },
 };
 
 // Layer-2 self-checks (SCENARIO-008/019/022): the step shapes and the preset
@@ -174,6 +200,7 @@ function init3D() {
   scene.add(grid);
 
   parts = buildCarModel(scene);
+  if (parts.bodyShell) parts.bodyShell.visible = shellVisible;
 
   // SCENARIO-017: build the five subsystem groups (parented to the ICE group so
   // they hide in EV mode), then register every one of the 21 new parts into the
@@ -197,6 +224,86 @@ function init3D() {
     JSON.stringify(GEAR_RATIOS) === JSON.stringify({ '1': 0.4, '2': 0.65, '3': 0.85, '4': 1.1, 'R': -0.5 }),
     'SCENARIO-002 failed: GEAR_RATIOS must stay the verbatim legacy table'
   );
+
+  // Dynamic subsystem animation hooks
+  subsystems.cooling.traverse((obj) => {
+    if (obj.name === 'radiatorFanBlades') radiatorFan = obj;
+    if (obj.name === 'waterPumpPulley') waterPumpPulley = obj;
+  });
+  subsystems.airIntake.traverse((obj) => {
+    if (obj.name === 'throttleBodyButterflyPlate') throttleButterflyPlate = obj;
+    if (obj.name === 'throttleBodyLever') throttleLever = obj;
+  });
+
+  // Exhaust smoke particle system at the tailpipe (x ≈ 5.35, y ≈ -0.75, z ≈ -0.75)
+  exhaustPuffGroup = new THREE.Group();
+  exhaustPuffGroup.name = 'exhaustPuffGroup';
+  const puffGeo = new THREE.IcosahedronGeometry(0.055, 0);
+  for (let p = 0; p < 14; p++) {
+    const puff = new THREE.Mesh(
+      puffGeo,
+      new THREE.MeshBasicMaterial({ color: 0xa1a1aa, transparent: true, opacity: 0 })
+    );
+    puff.visible = false;
+    puff.userData.life = 0;
+    puff.userData.maxLife = 1.0;
+    puff.userData.vx = 0;
+    puff.userData.vy = 0;
+    puff.userData.vz = 0;
+    exhaustPuffGroup.add(puff);
+    exhaustPuffs.push(puff);
+  }
+  scene.add(exhaustPuffGroup);
+
+  // Coolant circulation pulses (upper hose engine→radiator; lower hose radiator→engine)
+  coolantPulseGroup = new THREE.Group();
+  coolantPulseGroup.name = 'coolantPulses';
+  const dotGeo = new THREE.SphereGeometry(0.032, 6, 5);
+  const upperMat = new THREE.MeshBasicMaterial({ color: 0xef4444, transparent: true, opacity: 0.85 });
+  const lowerMat = new THREE.MeshBasicMaterial({ color: 0x0284c7, transparent: true, opacity: 0.85 });
+
+  upperHoseCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-5.55, 1.1, 0.3),
+    new THREE.Vector3(-6.1, 1.4, 0.3),
+    new THREE.Vector3(-6.75, 1.45, 0.3),
+    new THREE.Vector3(-6.95, 1.1, 0.25),
+  ]);
+  lowerHoseCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-6.95, 0.28, -0.25),
+    new THREE.Vector3(-6.6, -0.08, -0.2),
+    new THREE.Vector3(-6.15, 0.02, -0.1),
+    new THREE.Vector3(-5.9, 0.25, 0),
+  ]);
+
+  for (let d = 0; d < 8; d++) {
+    const uDot = new THREE.Mesh(dotGeo, upperMat.clone());
+    uDot.userData.u = d / 8;
+    coolantPulseGroup.add(uDot);
+    coolantUpperDots.push(uDot);
+
+    const lDot = new THREE.Mesh(dotGeo, lowerMat.clone());
+    lDot.userData.u = d / 8;
+    coolantPulseGroup.add(lDot);
+    coolantLowerDots.push(lDot);
+  }
+  coolantPulseGroup.visible = false;
+  scene.add(coolantPulseGroup);
+
+  // EV Rotating 3-Phase Magnetic Flux Rings around Motor Stator
+  evFluxGroup = new THREE.Group();
+  evFluxGroup.name = 'evFluxGroup';
+  for (let r = 0; r < 3; r++) {
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(0.58, 0.022, 6, 24),
+      new THREE.MeshBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.7 })
+    );
+    ring.rotation.y = Math.PI / 2;
+    ring.position.set(-1.9 + r * 0.3, 0, 0);
+    evFluxGroup.add(ring);
+    evFluxRings.push(ring);
+  }
+  evFluxGroup.visible = false;
+  scene.add(evFluxGroup);
 
   window.addEventListener('resize', onWindowResize);
   container.addEventListener('pointerdown', onCanvasPointerDown);
@@ -453,8 +560,10 @@ function switchMode(mode) {
   parts.iceParts.visible = (mode === 'ICE');
   parts.evParts.visible  = (mode === 'EV');
   parts.particleMat.color.set(mode === 'ICE' ? 0xfbbf24 : 0x22d3ee);
-  parts.torqueFlowParticles.forEach(p => { p.visible = false; });
   if (torqueFlow) torqueFlow.group.visible = false;
+  if (exhaustPuffGroup) exhaustPuffGroup.visible = false;
+  if (coolantPulseGroup) coolantPulseGroup.visible = false;
+  if (evFluxGroup) evFluxGroup.visible = false;
 
   document.querySelectorAll('.ice-only').forEach(el => el.style.display = mode === 'ICE' ? 'block' : 'none');
   document.querySelectorAll('.ev-only').forEach(el => el.style.display = mode === 'EV' ? 'inline-block' : 'none');
@@ -556,6 +665,109 @@ function animate() {
     if (flowActive) updateTorqueFlow(clock.elapsedTime);
   }
 
+  // Subsystems mechanical animation (Radiator Fan, Water Pump, Throttle Valve)
+  if (currentMode === 'ICE') {
+    if (radiatorFan && (isRunning || currentRPM > 10)) {
+      radiatorFan.rotation.y += dt * Math.max(8, (currentRPM / 60) * 10);
+    }
+    if (waterPumpPulley && (isRunning || currentRPM > 10)) {
+      waterPumpPulley.rotation.z += dt * (currentRPM / 60) * Math.PI * 2;
+    }
+    if (throttleButterflyPlate) {
+      const throttleFrac = Math.max(0, Math.min(1, (currentRPM - 800) / 5200));
+      const targetPlateAngle = (Math.PI / 2 - 0.18) * (1 - throttleFrac) + 0.04;
+      throttleButterflyPlate.rotation.z += (targetPlateAngle - throttleButterflyPlate.rotation.z) * 0.18;
+    }
+    if (throttleLever) {
+      const throttleFrac = Math.max(0, Math.min(1, (currentRPM - 800) / 5200));
+      throttleLever.rotation.x += (throttleFrac * 0.7 - throttleLever.rotation.x) * 0.18;
+    }
+  }
+
+  // Starter Motor Bendix Pinion rapid rotation during cranking
+  if (parts.starterBendixGear) {
+    const isCranking = (crankInterval !== null) || (storyPlaying && storyState.step >= 2 && storyState.step <= 4);
+    if (isCranking) {
+      parts.starterBendixGear.rotation.x += dt * 45;
+    }
+  }
+
+  // Tailpipe Exhaust Smoke Puffs
+  const exhaustActive = isRunning && currentMode === 'ICE' && currentRPM > 50;
+  if (exhaustPuffGroup) {
+    exhaustPuffGroup.visible = exhaustActive;
+    if (exhaustActive) {
+      puffSpawnTimer += dt;
+      const spawnInterval = Math.max(0.04, 1.0 / Math.max(1, (currentRPM / 60) * 2));
+      if (puffSpawnTimer >= spawnInterval) {
+        puffSpawnTimer = 0;
+        const p = exhaustPuffs[puffIndex % exhaustPuffs.length];
+        puffIndex++;
+        p.visible = true;
+        p.userData.life = 0;
+        p.userData.maxLife = 0.8 + Math.random() * 0.4;
+        p.position.set(5.35, -0.75 + (Math.random() - 0.5) * 0.04, -0.75 + (Math.random() - 0.5) * 0.04);
+        p.userData.vx = 0.9 + (currentRPM / 6000) * 1.4;
+        p.userData.vy = 0.12 + Math.random() * 0.08;
+        p.userData.vz = (Math.random() - 0.5) * 0.08;
+        p.scale.setScalar(0.7);
+        p.material.opacity = 0.45;
+      }
+    }
+    for (const p of exhaustPuffs) {
+      if (!p.visible) continue;
+      p.userData.life += dt;
+      if (p.userData.life >= p.userData.maxLife) {
+        p.visible = false;
+        continue;
+      }
+      const progress = p.userData.life / p.userData.maxLife;
+      p.position.x += p.userData.vx * dt;
+      p.position.y += p.userData.vy * dt;
+      p.position.z += p.userData.vz * dt;
+      p.scale.setScalar(0.7 + progress * 2.6);
+      p.material.opacity = Math.max(0, 0.45 * (1 - progress));
+    }
+  }
+
+  // Coolant Flow Pulses along Radiator Hoses
+  const coolantFlowActive = (isRunning || storyPlaying) && currentMode === 'ICE';
+  if (coolantPulseGroup && upperHoseCurve && lowerHoseCurve) {
+    coolantPulseGroup.visible = coolantFlowActive;
+    if (coolantFlowActive) {
+      const flowSpeed = 0.35 * Math.max(0.4, currentRPM / 2000);
+      const tempFraction = Math.max(0, Math.min(1, (telemetryState.coolantTemp - 20) / 70));
+      const hotColor = new THREE.Color().lerpColors(new THREE.Color(0x38bdf8), new THREE.Color(0xef4444), tempFraction);
+
+      for (const dot of coolantUpperDots) {
+        dot.userData.u = (dot.userData.u + dt * flowSpeed) % 1;
+        const pos = upperHoseCurve.getPointAt(dot.userData.u);
+        dot.position.copy(pos);
+        dot.material.color.copy(hotColor);
+      }
+      for (const dot of coolantLowerDots) {
+        dot.userData.u = (dot.userData.u + dt * flowSpeed) % 1;
+        const pos = lowerHoseCurve.getPointAt(dot.userData.u);
+        dot.position.copy(pos);
+      }
+    }
+  }
+
+  // EV Stator 3-Phase Rotating Magnetic Field Pulse
+  const evActive = isRunning && currentMode === 'EV';
+  if (evFluxGroup) {
+    evFluxGroup.visible = evActive;
+    if (evActive) {
+      const fieldAngle = crankAngle * 2;
+      evFluxRings.forEach((ring, idx) => {
+        const phaseOffset = (idx / 3) * Math.PI * 2;
+        const wave = 0.5 + 0.5 * Math.sin(fieldAngle + phaseOffset);
+        ring.material.opacity = 0.25 + wave * 0.65;
+        ring.scale.setScalar(0.95 + wave * 0.12);
+      });
+    }
+  }
+
   // Rotation arrows: orange arc = prop shaft spins lengthwise (纵), cyan arcs
   // = axles spin sideways (横) — the pair makes the differential's 90° flip
   // self-explanatory. Pulsing while the ICE runs.
@@ -568,9 +780,24 @@ function animate() {
     }
   }
 
+  // Brake disc thermal dynamics & glow
+  if (isBraking && (isRunning || currentRPM > 30)) {
+    brakeHeat = Math.min(1.0, brakeHeat + dt * 1.8);
+  } else {
+    brakeHeat = Math.max(0.0, brakeHeat - dt * 0.6);
+  }
   parts.brakeDiscs.forEach(disc => {
-    disc.material.emissive = new THREE.Color(isBraking ? 0xef4444 : 0x000000);
-    disc.material.emissiveIntensity = isBraking ? 0.6 : 0;
+    if (brakeHeat > 0.02) {
+      disc.material.emissive = new THREE.Color().lerpColors(
+        new THREE.Color(0xef4444),
+        new THREE.Color(0xfb923c),
+        Math.min(1, brakeHeat * 1.2)
+      );
+      disc.material.emissiveIntensity = brakeHeat * 0.85;
+    } else {
+      disc.material.emissive = new THREE.Color(0x000000);
+      disc.material.emissiveIntensity = 0;
+    }
   });
 
   updateHUD(dt);
@@ -609,6 +836,16 @@ function applyDrivelineVisuals(drivetrain) {
 
   const diffSpin = (drivetrain.outerWheelSpeed - drivetrain.innerWheelSpeed) * shaftSpeed;
   parts.differential.userData.spiderGearsGroup.rotation.z = -shaftSpeed * 0.5 + diffSpin * 0.5;
+
+  // Real spider gear self-spin on their pins (自转) when differentiating:
+  const spiderGears = parts.differential.userData.spiderGearsGroup.children.filter(
+    (c) => c.geometry && c.geometry.type === 'ConeGeometry'
+  );
+  diffSpiderAngle += diffSpin * 0.5;
+  spiderGears.forEach((sg, idx) => {
+    const dir = (idx % 2 === 0) ? 1 : -1;
+    sg.rotation.y = diffSpiderAngle * dir;
+  });
 
   // SCENARIO-014: front wheels deflect with steering (capped at ±0.5 rad).
   const frontYaw = drivetrain.frontWheelYaw;
@@ -650,18 +887,53 @@ function updateEngineVisuals(drivetrain) {
     rod.rotation.x = Math.atan2(-pinZ, span);
 
     const s = parts.sparkSparks[i];
+    const isIntake = cylPhase < Math.PI;
+    const isCompress = cylPhase >= Math.PI && cylPhase < Math.PI * 2;
     const isPower = cylPhase >= Math.PI * 2 && cylPhase < Math.PI * 3;
+    const isExhaust = cylPhase >= Math.PI * 3;
     const powerProgress = (cylPhase - Math.PI * 2) / Math.PI;
 
-    s.spark.material.emissive = new THREE.Color(isPower && powerProgress < 0.2 ? 0xffff00 : 0x000000);
-    s.flame.material.opacity = (isPower && powerProgress < 0.5) ? (1 - powerProgress / 0.5) * 0.85 : 0;
-    s.flame.scale.setScalar(1 + powerProgress * 0.5);
-
     // Cam-driven valve lift (nose hits at mid-stroke, matching the lobes)
-    const isIntake = cylPhase < Math.PI;
-    const isExhaust = cylPhase >= Math.PI * 3;
     s.inValve.position.y = VALVE_BASE_Y - (isIntake ? Math.sin(cylPhase) * VALVE_LIFT : 0);
     s.exValve.position.y = VALVE_BASE_Y - (isExhaust ? Math.sin(cylPhase - Math.PI * 3) * VALVE_LIFT : 0);
+
+    // 4-Stroke Cylinder Gas Dynamics & Combustion Flame (Animagraffs-inspired educational truth)
+    const chamberH = Math.max(0.12, 1.25 - pistonY);
+    s.flame.position.y = (1.25 + pistonY) * 0.5;
+
+    const engineActive = isRunning || isStepMode || (storyPlaying && storyState.step >= 4);
+
+    if (!engineActive) {
+      s.spark.material.emissive.set(0x000000);
+      s.flame.material.opacity = 0;
+    } else if (isIntake) {
+      // Stroke 1: 吸气 Intake — Fresh cool cyan air/fuel mixture drawn into the descending cylinder
+      const intakeProg = cylPhase / Math.PI;
+      s.spark.material.emissive.set(0x000000);
+      s.flame.material.color.set(0x38bdf8);
+      s.flame.scale.set(0.95, chamberH / 0.52, 0.95);
+      s.flame.material.opacity = 0.15 + intakeProg * 0.45;
+    } else if (isCompress) {
+      // Stroke 2: 压缩 Compression — Both valves sealed, mixture compressed from cyan to golden amber
+      const compProg = (cylPhase - Math.PI) / Math.PI;
+      s.spark.material.emissive.set(0x000000);
+      s.flame.material.color.lerpColors(new THREE.Color(0x38bdf8), new THREE.Color(0xf59e0b), compProg);
+      s.flame.scale.set(0.95 - compProg * 0.15, chamberH / 0.52, 0.95 - compProg * 0.15);
+      s.flame.material.opacity = 0.55 + compProg * 0.3;
+    } else if (isPower) {
+      // Stroke 3: 做功 Power — Spark plug fires, explosive fire pushes piston downward
+      s.spark.material.emissive.set(powerProgress < 0.2 ? 0xffff44 : 0x000000);
+      s.flame.material.color.set(powerProgress < 0.25 ? 0xffeb3b : (powerProgress < 0.6 ? 0xff5722 : 0xe11d48));
+      s.flame.scale.set(1.1 + Math.sin(powerProgress * Math.PI) * 0.25, chamberH / 0.52, 1.1 + Math.sin(powerProgress * Math.PI) * 0.25);
+      s.flame.material.opacity = (1 - powerProgress * 0.55) * 0.95;
+    } else {
+      // Stroke 4: 排气 Exhaust — Exhaust valve open, dark smoky burned gas swept out
+      const exhaustProg = (cylPhase - Math.PI * 3) / Math.PI;
+      s.spark.material.emissive.set(0x000000);
+      s.flame.material.color.set(0x64748b);
+      s.flame.scale.set(0.85 - exhaustProg * 0.35, Math.max(0.1, chamberH / 0.52), 0.85 - exhaustProg * 0.35);
+      s.flame.material.opacity = Math.max(0, (1 - exhaustProg) * 0.55);
+    }
   }
 
   parts.crankshaft.rotation.x = theta;
@@ -732,6 +1004,16 @@ function setupEvents() {
 
   document.getElementById('btnICE').addEventListener('click', () => switchMode('ICE'));
   document.getElementById('btnEV').addEventListener('click', () => switchMode('EV'));
+
+  const shellBtn = document.getElementById('shellBtn');
+  if (shellBtn) {
+    shellBtn.addEventListener('click', () => {
+      shellVisible = !shellVisible;
+      if (parts && parts.bodyShell) parts.bodyShell.visible = shellVisible;
+      shellBtn.innerText = shellVisible ? '🚘 车身外壳: 显示' : '🚘 车身外壳: 隐藏';
+      shellBtn.classList.toggle('active', shellVisible);
+    });
+  }
 
   document.getElementById('soundBtn').addEventListener('click', () => {
     soundEnabled = !soundEnabled;

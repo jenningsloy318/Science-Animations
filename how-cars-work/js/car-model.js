@@ -187,9 +187,9 @@ export function buildCarModel(scene) {
   {
     const blockGroup = new THREE.Group();
 
-    // Crankcase: wide skirt around the crank, semi-transparent
+    // Crankcase: wide skirt around the crank, crystal-clear cutaway
     const crankcase = tagInspectable(
-      new THREE.Mesh(new THREE.BoxGeometry(2.45, 0.72, 1.35), glassMat(0x64748b, 0.25)),
+      new THREE.Mesh(new THREE.BoxGeometry(2.45, 0.72, 1.35), glassMat(0x64748b, 0.10)),
       '曲轴箱 Crankcase', '发动机机体', '包裹曲轴的箱体，5道主轴承座支撑曲轴高速旋转。'
     );
     crankcase.position.set(-4.78, 0.0, 0);
@@ -205,16 +205,16 @@ export function buildCarModel(scene) {
 
     // Cylinder block proper (deck at DECK_Y)
     const blockMesh = tagInspectable(
-      new THREE.Mesh(new THREE.BoxGeometry(2.45, 0.95, 1.1), glassMat(0x9aa5b1, 0.20)),
+      new THREE.Mesh(new THREE.BoxGeometry(2.45, 0.95, 1.1), glassMat(0x9aa5b1, 0.08)),
       '发动机气缸体 Cylinder Block', '发动机机体', '铝合金缸体，内有4个气缸孔。活塞就在这些孔里上下飞奔！'
     );
     blockMesh.position.set(-4.78, 0.78, 0);
     blockMesh.name = 'cylinderBlock';
     blockGroup.add(blockMesh);
 
-    // Water jacket: coolant sheets sandwiching the bores (blue tint)
+    // Water jacket: coolant sheets sandwiching the bores (subtle blue tint)
     for (const z of [-0.42, 0.42]) {
-      const jacket = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.8, 0.14), glassMat(0x0ea5e9, 0.35));
+      const jacket = new THREE.Mesh(new THREE.BoxGeometry(2.3, 0.8, 0.14), glassMat(0x0ea5e9, 0.14));
       jacket.name = 'waterJacket';
       jacket.position.set(-4.78, 0.78, z);
       blockGroup.add(jacket);
@@ -224,7 +224,7 @@ export function buildCarModel(scene) {
     for (let i = 0; i < 4; i++) {
       const liner = new THREE.Mesh(
         new THREE.CylinderGeometry(0.24, 0.24, 0.88, 18, 1, true),
-        glassMat(0xe2e8f0, 0.18)
+        glassMat(0xe2e8f0, 0.08)
       );
       liner.name = `cylinderLiner${i + 1}`;
       liner.position.set(CYL_X[i], 0.84, 0);
@@ -239,7 +239,7 @@ export function buildCarModel(scene) {
 
     // Cylinder head with intake/exhaust port stubs
     const head = tagInspectable(
-      new THREE.Mesh(new THREE.BoxGeometry(2.45, 0.5, 1.1), glassMat(0xaab4bf, 0.22)),
+      new THREE.Mesh(new THREE.BoxGeometry(2.45, 0.5, 1.1), glassMat(0xaab4bf, 0.10)),
       '气缸盖 Cylinder Head', '配气机构', '缸盖里藏着进气道、排气道和气门。进气门放混合气进来，排气门把废气放走！'
     );
     head.position.set(-4.78, DECK_Y + 0.28, 0);
@@ -249,7 +249,7 @@ export function buildCarModel(scene) {
     // Valve cover with lengthwise ribs + oil filler cap (real DOHC look)
     const cover = new THREE.Group();
     const coverTop = tagInspectable(
-      new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.24, 0.95), glassMat(0xb91c1c, 0.35)),
+      new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.24, 0.95), glassMat(0xb91c1c, 0.18)),
       '气门室盖 Valve Cover', '配气机构', '红色透明气门室盖保护着两根凸轮轴，你能看到凸轮压气门的全过程！'
     );
     coverTop.name = 'coverTop';
@@ -854,7 +854,7 @@ export function buildCarModel(scene) {
   // ═══════════ 10. 变速箱 Gearbox（双轴 5 组齿轮） ═══════════
   {
     const gearboxCase = tagInspectable(
-      new THREE.Mesh(new THREE.BoxGeometry(1.85, 1.6, 1.4), glassMat(0x38bdf8, 0.16)),
+      new THREE.Mesh(new THREE.BoxGeometry(1.85, 1.6, 1.4), glassMat(0x38bdf8, 0.08)),
       '变速箱 Gearbox', '变速箱', '两组轴、5对齿轮：低挡扭矩大、高挡跑得快，R挡反转倒车。'
     );
     gearboxCase.position.set(-2.4, 0, 0);

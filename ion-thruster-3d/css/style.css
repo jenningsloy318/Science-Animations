@@ -180,3 +180,98 @@
   transform: translateY(-1px);
 }
 #homeBtn:active { transform: translateY(0); }
+
+  /* ——— 任务预设导航条 ——— */
+  #missionBar {
+    display: flex; gap: 6px; align-items: center; justify-content: center;
+    margin-top: 6px; pointer-events: auto; flex-wrap: wrap;
+  }
+  .mission-label { font-size: 0.7rem; color: #94a3b8; margin-right: 4px; }
+  .mission-btn {
+    background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #cbd5e1; font-size: 0.72rem; padding: 3px 10px; border-radius: 999px;
+    cursor: pointer; transition: all 0.18s ease; backdrop-filter: blur(8px);
+  }
+  .mission-btn:hover { background: rgba(30, 41, 59, 0.9); color: #ffffff; border-color: #38bdf8; }
+  .mission-btn.active {
+    background: rgba(56, 189, 248, 0.22); border-color: #38bdf8; color: #7dd3fc;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.3); font-weight: 600;
+  }
+
+  /* ——— 常平架矢量偏转小部件 ——— */
+  #gimbalWidget {
+    position: fixed; left: 70px; top: 50%; transform: translateY(-50%);
+    background: rgba(13, 18, 30, 0.88); backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 16px;
+    padding: 14px 16px; z-index: 12; display: none; width: 220px;
+    box-shadow: 0 12px 35px rgba(0, 0, 0, 0.55); animation: slideIn 0.2s ease;
+  }
+  #gimbalWidget.open { display: block; }
+  #gimbalWidget h4 { font-size: 0.82rem; color: #7dd3fc; margin-bottom: 8px; display: flex; justify-content: space-between; }
+  .gimbal-row { display: flex; flex-direction: column; gap: 4px; margin-bottom: 10px; font-size: 0.72rem; color: #94a3b8; }
+  .gimbal-row input[type="range"] { accent-color: #38bdf8; width: 100%; cursor: pointer; }
+  .gimbal-val-row { display: flex; justify-content: space-between; }
+  .gimbal-btn-row { display: flex; gap: 8px; margin-top: 6px; }
+  .gimbal-reset-btn {
+    flex: 1; padding: 4px 8px; background: #1e293b; border: 1px solid #334155;
+    color: #e2e8f0; border-radius: 6px; font-size: 0.7rem; cursor: pointer;
+  }
+  .gimbal-reset-btn:hover { background: #334155; color: #fff; }
+
+  /* ——— 栅格单孔微观等离子体透镜模态框 ——— */
+  #apertureModal {
+    position: fixed; inset: 0; z-index: 40; display: none;
+    background: rgba(3, 7, 18, 0.85); backdrop-filter: blur(20px);
+    place-items: center; padding: 16px; animation: fadeIn 0.25s ease;
+  }
+  #apertureModal.open { display: grid; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  .aperture-dialog {
+    width: min(920px, 94vw); max-height: 92vh; background: rgba(15, 23, 42, 0.95);
+    border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.75); display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .aperture-header {
+    padding: 14px 20px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .aperture-header h3 { font-size: 1.05rem; color: #7dd3fc; display: flex; align-items: center; gap: 8px; }
+  .aperture-close {
+    background: none; border: none; font-size: 1.2rem; color: #94a3b8;
+    cursor: pointer; padding: 4px 8px; border-radius: 6px;
+  }
+  .aperture-close:hover { color: #fff; background: rgba(255, 255, 255, 0.1); }
+
+  .aperture-body {
+    display: flex; flex-direction: column; gap: 12px; padding: 16px 20px;
+    overflow-y: auto;
+  }
+  #apertureCanvas {
+    width: 100%; height: 320px; background: #02040a; border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1); display: block;
+  }
+  .aperture-controls {
+    display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+    background: rgba(10, 15, 28, 0.6); padding: 10px 14px; border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+  }
+  .aperture-stats {
+    display: flex; gap: 16px; align-items: center; flex-wrap: wrap;
+    font-size: 0.76rem; color: #94a3b8;
+  }
+  .aperture-stats b { color: #38bdf8; }
+  .regime-tag {
+    padding: 3px 10px; border-radius: 999px; font-weight: 600; font-size: 0.72rem;
+  }
+  .regime-tag.optimal { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #10b981; }
+  .regime-tag.under_focused { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; }
+  .regime-tag.over_focused { background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid #f59e0b; }
+  .aperture-expl {
+    font-size: 0.75rem; line-height: 1.7; color: #cbd5e1; background: rgba(2, 6, 23, 0.4);
+    padding: 10px 14px; border-radius: 10px; border-left: 3px solid #38bdf8;
+  }
+
+  /* 音效与控制按钮状态 */
+  .tool-btn.muted { color: #64748b; }

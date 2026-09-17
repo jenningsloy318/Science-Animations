@@ -161,6 +161,25 @@ function buildCooling() {
       m.position.z = -0.6 + f * 0.3;
     });
   }
+  // Circular fan shroud on the back of the radiator core
+  addMesh(radiator, new THREE.TorusGeometry(0.32, 0.02, 6, 16), steelMat(0x334155), 'radiatorFanShroud', (m) => {
+    m.position.set(0.12, 0, 0);
+    m.rotation.y = Math.PI / 2;
+  });
+  // Radiator fan hub and 6 blades
+  const fanMesh = addMesh(radiator, new THREE.CylinderGeometry(0.08, 0.08, 0.04, 10), steelMat(0x1e293b), 'radiatorFanBlades', (m) => {
+    m.position.set(0.12, 0, 0);
+    m.rotation.z = Math.PI / 2;
+  });
+  for (let b = 0; b < 6; b++) {
+    const bAng = (b / 6) * Math.PI * 2;
+    const blade = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.22, 0.07), steelMat(0x475569));
+    blade.name = `radiatorFanBlade${b + 1}`;
+    blade.userData.partId = 'radiator';
+    blade.position.set(0, Math.cos(bAng) * 0.16, Math.sin(bAng) * 0.16);
+    blade.rotation.x = bAng + 0.35;
+    fanMesh.add(blade);
+  }
   group.add(radiator);
 
   const waterPump = makePart('waterPump', -6.3, 0.25, 0);

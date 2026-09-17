@@ -15,21 +15,57 @@
 
 <header>
   <h1>🚀 离子推进器 · 3D 交互式工作原理</h1>
-  <p class="subtitle">参考 NASA NSTAR / NEXT 栅格离子推进器 — “黎明号”深空探测器同款技术</p>
+  <p class="subtitle">参考 NASA NSTAR / NEXT / ESA T6 栅格离子推进器 — 真实深空探测电推进工程</p>
+  <div id="missionBar">
+    <span class="mission-label">深空任务预设：</span>
+    <button class="mission-btn active" data-mission="NSTAR_DAWN">🛸 黎明号 NSTAR (30cm)</button>
+    <button class="mission-btn" data-mission="NEXT_NASA">🚀 NASA NEXT (40cm)</button>
+    <button class="mission-btn" data-mission="BEPICOLOMBO_T6">🪐 贝皮科伦坡 T6</button>
+    <button class="mission-btn" data-mission="LIPS_300">🇨🇳 天宫/实践 LIPS-300</button>
+  </div>
 </header>
 
 <nav id="tools">
   <button class="tool-btn" id="btnExplore"  title="自由探索">🖱️</button>
   <button class="tool-btn" id="btnTour"     title="引导浏览（分步讲解）">🎬</button>
-  <button class="tool-btn" id="btnCut"      title="剖面视图">✂️</button>
-  <button class="tool-btn" id="btnExplode"  title="爆炸视图">💥</button>
+  <button class="tool-btn" id="btnCut"      title="放电室剖面视图">✂️</button>
+  <button class="tool-btn" id="btnExplode"  title="爆炸分离视图">💥</button>
   <button class="tool-btn" id="btnFollow"   title="跟随一颗离子飞出栅格">🎯</button>
+  <button class="tool-btn" id="btnAperture" title="🔬 栅格单孔微观等离子体透镜视图">🔬</button>
+  <button class="tool-btn" id="btnGimbal"   title="🎛️ 常平架推力矢量偏转">🎛️</button>
+  <button class="tool-btn" id="btnGridMode" title="📐 双栅极 / 三栅极 (Decel Grid) 切换">📐</button>
+  <button class="tool-btn" id="btnSound"    title="🔊 引擎声效开关">🔊</button>
   <button class="tool-btn active" id="btnLabels" title="部件标签">🏷️</button>
-  <button class="tool-btn" id="btnMag"      title="磁力线">🧲</button>
-  <button class="tool-btn active" id="btnField"  title="栅格间电场">⚡</button>
+  <button class="tool-btn" id="btnMag"      title="环形尖点磁力线">🧲</button>
+  <button class="tool-btn active" id="btnField"  title="栅格间加速电场">⚡</button>
 </nav>
 
 <div id="followChip">🎯 正在跟随一颗 Xe⁺ 离子穿越栅格…（再次点击 🎯 退出）</div>
+
+<!-- 常平架推力矢量控制小部件 -->
+<div id="gimbalWidget">
+  <h4>
+    <span>🎛️ 常平架推力矢量</span>
+    <span style="font-weight:normal;font-size:0.68rem;color:#94a3b8">Gimbal 2-Axis</span>
+  </h4>
+  <div class="gimbal-row">
+    <div class="gimbal-val-row">
+      <span>俯仰角 (Pitch):</span>
+      <b id="gimbalPitchVal" style="color:#38bdf8">0.0°</b>
+    </div>
+    <input type="range" id="gimbalPitchSlider" min="-5" max="5" step="0.2" value="0">
+  </div>
+  <div class="gimbal-row">
+    <div class="gimbal-val-row">
+      <span>偏航角 (Yaw):</span>
+      <b id="gimbalYawVal" style="color:#38bdf8">0.0°</b>
+    </div>
+    <input type="range" id="gimbalYawSlider" min="-5" max="5" step="0.2" value="0">
+  </div>
+  <div class="gimbal-btn-row">
+    <button class="gimbal-reset-btn" id="gimbalResetBtn">回正 0°</button>
+  </div>
+</div>
 
 <div id="bottomBar">
   <div class="row" id="stats">
@@ -37,19 +73,26 @@
     <div>比冲 <b id="sIsp">3100 s</b></div>
     <div>排气速度 <b id="sVe">46.9 km/s</b></div>
     <div>质量流量 <b id="sMdot">3.0 mg/s</b></div>
-    <div>功率 <b id="sPow">2.3 kW</b></div>
+    <div>束电流 <b id="sIb">1.76 A</b></div>
+    <div>总功率 <b id="sPow">2.3 kW</b></div>
+    <div>电气效率 <b id="sEff">68.5%</b></div>
   </div>
   <div class="row">
     <button class="ctrl-btn" id="toggleBtn">⏸ 暂停</button>
     <button class="ctrl-btn" id="resetBtn">🔄 重置粒子</button>
     <button class="ctrl-btn" id="camBtn">🎥 重置视角</button>
     <div class="ctrl-group">
-      <span>电场强度</span>
+      <span>屏栅电压 (屏极)</span>
       <input type="range" id="voltageSlider" min="800" max="2500" step="50" value="1500">
       <span class="val" id="voltageVal">1500 V</span>
     </div>
     <div class="ctrl-group">
-      <span>流量</span>
+      <span>加速极电压</span>
+      <input type="range" id="accelSlider" min="-400" max="-100" step="10" value="-300">
+      <span class="val" id="accelVal">-300 V</span>
+    </div>
+    <div class="ctrl-group">
+      <span>氙气流量</span>
       <input type="range" id="flowSlider" min="1" max="8" step="0.5" value="4">
       <span class="val" id="flowVal">3.0 mg/s</span>
     </div>
@@ -60,12 +103,12 @@
     </div>
   </div>
   <div class="row legend">
-    <div class="legend-item"><div class="dot" style="background:#94a3b8"></div>氙原子</div>
-    <div class="legend-item"><div class="dot" style="background:#38bdf8;box-shadow:0 0 5px #38bdf8"></div>Xe⁺ 离子</div>
-    <div class="legend-item"><div class="dot" style="background:#a855f7;box-shadow:0 0 5px #a855f7"></div>中和后</div>
-    <div class="legend-item"><div class="dot" style="background:#f43f5e;box-shadow:0 0 4px #f43f5e"></div>轰击电子</div>
+    <div class="legend-item"><div class="dot" style="background:#94a3b8"></div>氙原子 (Xe⁰)</div>
+    <div class="legend-item"><div class="dot" style="background:#38bdf8;box-shadow:0 0 5px #38bdf8"></div>Xe⁺ 离子束</div>
+    <div class="legend-item"><div class="dot" style="background:#a855f7;box-shadow:0 0 5px #a855f7"></div>中和原子 (羽流)</div>
+    <div class="legend-item"><div class="dot" style="background:#f43f5e;box-shadow:0 0 4px #f43f5e"></div>阴极轰击电子</div>
     <div class="legend-item"><div class="dot" style="background:#facc15;box-shadow:0 0 4px #facc15"></div>中和电子</div>
-    <div class="legend-item"><div class="dot" style="background:transparent;border:1.5px solid #22d3ee"></div>磁力线</div>
+    <div class="legend-item"><div class="dot" style="background:transparent;border:1.5px solid #22d3ee"></div>尖点磁力线</div>
   </div>
 </div>
 
@@ -85,6 +128,42 @@
     <div class="dots-nav" id="tourDots"></div>
     <button class="ctrl-btn" id="tourNext">下一步 →</button>
     <button class="ctrl-btn" id="tourExit">退出</button>
+  </div>
+</div>
+
+<!-- 栅格单孔微观等离子体透镜模态框 -->
+<div id="apertureModal">
+  <div class="aperture-dialog">
+    <div class="aperture-header">
+      <h3>
+        <span>🔬 栅格单孔微观离子光学 · 等离子体鞘层凹透镜</span>
+      </h3>
+      <button class="aperture-close" id="apertureClose">✕ 关闭</button>
+    </div>
+    <div class="aperture-body">
+      <canvas id="apertureCanvas"></canvas>
+      <div class="aperture-controls">
+        <div class="ctrl-group">
+          <span>屏极电压:</span>
+          <input type="range" id="apertureVSlider" min="800" max="2500" step="50" value="1500">
+          <span class="val" id="apertureVVal">1500 V</span>
+        </div>
+        <div class="ctrl-group">
+          <span>等离子体密度:</span>
+          <input type="range" id="apertureNSlider" min="0.4" max="2.0" step="0.05" value="1.0">
+          <span class="val" id="apertureNVal">1.00×</span>
+        </div>
+        <button class="ctrl-btn active" id="apertureGridBtn">当前：三栅极 (Screen + Accel + Decel)</button>
+      </div>
+      <div class="aperture-stats">
+        <div>聚焦状态：<span class="regime-tag optimal" id="apertureRegimeTag">✅ 最佳匹配 (Optimal)</span></div>
+        <div>导流系数比 (Perveance Ratio)：<b id="aperturePervVal">1.00</b></div>
+        <div>孔壁安全间隙裕度：<b id="apertureMarginVal">26.3%</b></div>
+      </div>
+      <div class="aperture-expl" id="apertureDescText">
+        最佳导流匹配：等离子体鞘层界面（Meniscus）受等离子体热压与电场拉力平衡形成凹面，天然构成凹面静电聚焦透镜，将提取的离子精准聚焦成细窄束腰（Beamlet Waist），穿过加速栅孔心而完全不碰伤栅极孔壁（避免溅射腐蚀）。
+      </div>
+    </div>
   </div>
 </div>
 

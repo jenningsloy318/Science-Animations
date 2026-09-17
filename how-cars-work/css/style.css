@@ -48,6 +48,28 @@ header p {
   gap: 12px;
 }
 
+.shell-toggle-btn {
+  background: #1e293b;
+  border: 1px solid #334155;
+  color: #38bdf8;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.shell-toggle-btn:hover {
+  background: #334155;
+  color: #ffffff;
+}
+.shell-toggle-btn.active {
+  background: linear-gradient(135deg, #0284c7, #2563eb);
+  color: #ffffff;
+  border-color: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+
 .sound-toggle-btn {
   background: #1e293b;
   border: 1px solid #334155;
@@ -512,6 +534,34 @@ input[type="range"] { width: 100%; accent-color: #38bdf8; cursor: pointer; }
   background: rgba(249, 115, 22, 0.15);
   box-shadow: 0 0 8px rgba(249, 115, 22, 0.3);
 }
+
+#scIntake.active {
+  border-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.15);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.4);
+}
+#scIntake.active .sc-name { color: #38bdf8; }
+
+#scCompress.active {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.15);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.4);
+}
+#scCompress.active .sc-name { color: #f59e0b; }
+
+#scPower.active {
+  border-color: #ef4444;
+  background: rgba(239, 68, 68, 0.18);
+  box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+}
+#scPower.active .sc-name { color: #f87171; }
+
+#scExhaust.active {
+  border-color: #94a3b8;
+  background: rgba(148, 163, 184, 0.15);
+  box-shadow: 0 0 10px rgba(148, 163, 184, 0.4);
+}
+#scExhaust.active .sc-name { color: #cbd5e1; }
 
 .sc-name {
   font-size: 0.74rem;
