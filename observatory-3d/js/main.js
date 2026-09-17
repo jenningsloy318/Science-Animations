@@ -82,6 +82,8 @@ document.addEventListener('DOMContentLoaded', () => {
         APP.UI.setLang(meta.observ);
         // 页签模块可声明 onEnter 重建流水线/面板
         if (mod.onEnter) mod.onEnter(ctx);
+        // 通用「🧮 推导链」卡：把本仪器的读数接进六个推理模式（书 006 第 9 章）
+        if (window.APP.Derive) APP.Derive.mount(id);
       });
     },
     setBeat(b) { this.beat = b; this.beatT = 0; APP.UI.setBeat(b, this.auto); },

@@ -155,6 +155,30 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
   color:var(--gold);font-size:11.5px;cursor:pointer}
 .mini-btn:hover{background:rgba(30,36,46,.95)}
 .mini-btn.on{background:rgba(216,178,92,.15);border-color:var(--gold)}
+
+/* ── 🧮 推导链卡片（derive.js）───────────────────────── */
+.derive-card{margin-top:8px;border:1px solid rgba(216,178,92,.35);border-radius:12px;
+  background:rgba(216,178,92,.05);padding:10px 12px;font-size:.86rem;color:#dfe6f2}
+.derive-card summary{cursor:pointer;font-weight:700;color:#d8b25c;letter-spacing:.02em;
+  user-select:none;list-style:none}
+.derive-card summary::before{content:'▸ ';transition:transform .15s}
+.derive-card[open] summary::before{content:'▾ '}
+.dc-target{margin:8px 0 6px;font-weight:700;color:#f2d9a0;line-height:1.5}
+.dc-badge{display:inline-block;background:rgba(216,178,92,.16);border:1px solid rgba(216,178,92,.45);
+  border-radius:999px;padding:1px 9px;font-size:.74rem;color:#f2d9a0;vertical-align:1px}
+.dc-obs{display:inline-block;background:rgba(148,163,184,.14);border-radius:999px;
+  padding:1px 8px;font-size:.72rem;color:#9fb3d8;margin-left:4px}
+.dc-steps{display:flex;flex-direction:column;gap:6px;margin:4px 0}
+.dc-st{display:flex;gap:8px;align-items:flex-start;background:rgba(10,16,30,.55);
+  border:1px solid rgba(148,163,184,.18);border-radius:9px;padding:6px 9px;line-height:1.55}
+.dc-k{flex:0 0 58px;font-size:.7rem;color:#8fa3bf;padding-top:2px;letter-spacing:.06em}
+.dc-t{flex:1}
+.dc-read .dc-k{color:#7dd3fc}.dc-eq .dc-k{color:#c4b5fd}.dc-calc .dc-k{color:#fbbf24}.dc-res .dc-k{color:#6ee7b7}
+.dc-res{border-color:rgba(110,231,183,.35)}
+.dc-nav{display:flex;align-items:center;gap:8px;margin-top:6px}
+.dc-prog{font-size:.72rem;color:#8fa3bf}
+.dc-bias{margin-top:7px;font-size:.78rem;color:#f0c987;background:rgba(216,178,92,.08);
+  border:1px dashed rgba(216,178,92,.4);border-radius:9px;padding:6px 9px;line-height:1.55}
 </style>
 </head>
 <body>
@@ -230,6 +254,7 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 <script src="js/tab-t6-ao.js"></script>
 <script src="js/tab-t7-detector.js"></script>
 <script src="js/tab-t8-nonlight.js"></script>
+<script src="js/derive.js"></script>
 <script src="js/main.js"></script>
 <!-- SCRIPTS:END -->
 

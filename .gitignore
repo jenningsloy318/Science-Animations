@@ -1,3 +1,4 @@
 .worktree
 .caddy-storage
 how-cars-work/tests/.cache/
+.playwright-mcp/
