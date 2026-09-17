@@ -62,7 +62,7 @@
 
     const state = {
       num: 0, tracks: 0, jets: 0, sumET: 0, muons: 0,
-      phase: 'approach', pt: 0, doneT: 0, flyT: 0, captionMinT: 0, paused: false, cutGroup: null, speed: 1,
+      phase: 'approach', pt: 0, doneT: 0, flyT: 0, captionMinT: 0, paused: false, cutGroup: null, speed: 1, realT: 0, capT0: -99, realDoneT: 0,
       auto: true, timer: 2.0,
       trackLines: [], towers: [], misc: [],
       protons: [], shock: null,
@@ -163,6 +163,7 @@
     function emitCaption() {
       if (!state.onCaption) return;
       state.captionMinT = 0;
+      state.capT0 = state.realT;
       const procs = APP.L().collision.processes || {};
       const proc = procs[state.procKey];
       if (state.phase === 'approach' && proc && proc.cap0) {
@@ -255,6 +256,7 @@
       state.doneT = 0;
       state.flyT = 0;
       state.metArrow = null;
+      state.realT = 0; state.realDoneT = 0; state.capT0 = 0;
       rebuildStory();
       setPhase('approach');
     }
@@ -367,7 +369,12 @@
         if (orbit && orbit.idleT > 4) orbit.des.az += dt * 0.06;
         return;
       }
-      dt *= state.speed;                     /* user-adjustable story speed (0.25x - 3x) */
+      /* TWO CLOCKS: scaled dt drives the motion, raw dt drives the reading
+       * gate - so the speed slider changes particle/collision speed while
+       * captions always hold for their real reading time */
+      const dtRaw = dt;
+      dt *= state.speed;
+      state.realT += dtRaw;
 
       /* ---- sequence state machine ---- */
       state.pt += dt;
@@ -381,7 +388,7 @@
         state.protons[0].children[1].scale.set(g, g, 1);
         state.protons[1].children[1].scale.set(g, g, 1);
         ipGlow.material.opacity = 0.12 + k * 0.5;
-        if (state.pt >= Math.max(PHASE_T.approach, state.captionMinT)) {
+        if (state.pt >= PHASE_T.approach && state.realT - state.capT0 >= state.captionMinT) {
           /* impact: protons vanish, flash + shock ring */
           for (const p of state.protons) p.visible = false;
           state.shock = makeShockRing();
@@ -397,18 +404,18 @@
           state.shock.scale.setScalar(0.3 + k * 14);
           state.shock.material.opacity = 0.85 * (1 - k);
         }
-        if (state.pt >= Math.max(PHASE_T.impact, state.captionMinT)) { if (state.shock) { state.shock.visible = false; } setPhase('flight'); }
+        if (state.pt >= PHASE_T.impact && state.realT - state.capT0 >= state.captionMinT) { if (state.shock) { state.shock.visible = false; } setPhase('flight'); }
       } else if (state.phase === 'flight') {
         state.flyT += dt;
-        if (state.pt >= Math.max(PHASE_T.flight, state.captionMinT)) setPhase('readout');
+        if (state.pt >= PHASE_T.flight && state.realT - state.capT0 >= state.captionMinT) setPhase('readout');
       } else if (state.phase === 'readout') {
         state.flyT += dt;
         if (state.metArrow) state.metArrow.visible = true;   /* the neutrino is inferred */
-        if (state.pt >= Math.max(PHASE_T.readout, state.captionMinT)) setPhase('done');
+        if (state.pt >= PHASE_T.readout && state.realT - state.capT0 >= state.captionMinT) setPhase('done');
       } else if (state.phase === 'done') {
-        state.doneT += dt;
+        state.realDoneT += dtRaw;
         /* the summary caption stays until the next event starts */
-        if (state.auto && state.doneT > Math.max(AUTO_AFTER, state.captionMinT + 1.5)) startSequence();
+        if (state.auto && state.realDoneT > Math.max(AUTO_AFTER, state.captionMinT + 1.5)) startSequence();
       }
 
       /* ---- per-frame visual application — all driven by the flight clock ---- */
