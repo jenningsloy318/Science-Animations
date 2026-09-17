@@ -2544,7 +2544,7 @@ APP.DATA.ui = {
 
 </script>
 <script>
-/* ===== inlined: js/collision.js (23,680 bytes) ===== */
+/* ===== inlined: js/collision.js (23,636 bytes) ===== */
 /* ============================================================================
  * collision.js — collision display driven by REAL Standard Model kinematics
  * (APP.PP: PDG masses/branching ratios, two-body decays, invariant-mass
@@ -2840,14 +2840,15 @@ APP.DATA.ui = {
           metalness: 0.75, roughness: 0.5, side: THREE.DoubleSide, envMap: APP.MATS.env,
           transparent: true, opacity: 0.55 }, sh.mat));
         mats.push(mat);
-        for (const start of [120, 300]) {  /* solid sectors centered ±y; gaps face ±x (camera) */
+        {  /* single 240-deg solid sector: one gap toward the default camera */
+          const start = 60;   /* solid 60->300, gap centered on theta 0 (+z, default camera) */  /* solid sectors centered ±y; gaps face ±x (camera) */
           const cyl = new THREE.Mesh(
-            new THREE.CylinderGeometry(sh.r, sh.r, zHalf * 2, 40, 1, true, start * Math.PI / 180, 120 * Math.PI / 180).rotateX(Math.PI / 2),
+            new THREE.CylinderGeometry(sh.r, sh.r, zHalf * 2, 40, 1, true, start * Math.PI / 180, 240 * Math.PI / 180).rotateX(Math.PI / 2),
             mat);
           cutGroup.add(cyl);
           /* RingGeometry measures azimuth from +x — shift by −90° to match */
           const cap = new THREE.Mesh(
-            new THREE.RingGeometry(sh.r - 0.12, sh.r, 40, 1, (start - 90) * Math.PI / 180, 120 * Math.PI / 180),
+            new THREE.RingGeometry(sh.r - 0.12, sh.r, 40, 1, (start - 90) * Math.PI / 180, 240 * Math.PI / 180),
             new THREE.MeshBasicMaterial({ color: sh.mat.emissive, transparent: true, opacity: 0.35, side: THREE.DoubleSide }));
           cap.position.z = zHalf;
           cutGroup.add(cap);
@@ -2985,8 +2986,6 @@ APP.DATA.ui = {
         ipLight.intensity = Math.max(0.25, ipLight.intensity - dt * 3);
       }
 
-      /* cutaway opening always faces the camera (no back-arc peeking) */
-      if (state.cutGroup && orbit && orbit.cur) state.cutGroup.rotation.y = orbit.cur.az - Math.PI / 2;
       /* idle orbit drift */
       if (orbit && orbit.idleT > 4) orbit.des.az += dt * 0.06;
     }
