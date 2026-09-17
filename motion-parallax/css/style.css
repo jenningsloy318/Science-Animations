@@ -1,0 +1,158 @@
+/* ═══ 运动视差 · hub 风格 ═══ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gold: #e8b84b;
+  --gold-dim: rgba(232, 184, 75, 0.14);
+  --sky: #7dd3fc;
+  --green: #6ee7b7;
+  --violet: #c4b5fd;
+  --cream: #fff1c4;
+  --ink: #e8ecf4;
+  --ink-dim: #97a3b8;
+  --panel: rgba(8, 12, 24, 0.82);
+  --line: rgba(255, 255, 255, 0.09);
+}
+
+html, body { height: 100%; overflow: hidden; }
+body {
+  background: #050811;
+  color: var(--ink);
+  font-family: 'PingFang SC', 'Microsoft YaHei', -apple-system, sans-serif;
+  user-select: none;
+}
+
+#gl, #topo { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+#topo { display: none; }
+body[data-view="topo"] #gl { display: none; }
+body[data-view="topo"] #topo { display: block; }
+
+#labelLayer { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+.mp-label {
+  position: absolute; transform: translate(-50%, -100%);
+  padding: 3px 9px 4px; border-radius: 999px;
+  background: rgba(6, 10, 20, 0.72); border: 1px solid var(--line);
+  font-size: 12.5px; white-space: nowrap; line-height: 1.35;
+  backdrop-filter: blur(3px);
+}
+.mp-label .nm { font-weight: 600; }
+.mp-label .om { color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+.mp-label.peaked { border-color: var(--gold); box-shadow: 0 0 14px rgba(232,184,75,.35); }
+
+/* ── 顶栏 ── */
+#topbar {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+  display: flex; align-items: center; gap: 18px;
+  padding: 10px 18px;
+  background: linear-gradient(rgba(5, 8, 17, 0.9), rgba(5, 8, 17, 0.55) 80%, transparent);
+}
+#topbar .title { font-weight: 800; font-size: 17px; letter-spacing: .02em; color: #f5f0e2; }
+#topbar .title small { color: var(--ink-dim); font-weight: 400; margin-left: 8px; font-size: 12px; }
+#tabs { display: flex; gap: 8px; }
+.tab {
+  appearance: none; border: 1px solid var(--line); border-radius: 999px;
+  background: rgba(10, 14, 26, 0.6); color: var(--ink-dim);
+  font: inherit; font-size: 13.5px; padding: 7px 16px; cursor: pointer;
+  transition: all .18s;
+}
+.tab:hover { color: var(--ink); border-color: rgba(255,255,255,.22); }
+.tab.active {
+  color: #1c1607; background: var(--gold); border-color: var(--gold);
+  font-weight: 700;
+}
+
+/* ── 右侧面板 ── */
+#sidePanel {
+  position: fixed; top: 62px; right: 14px; z-index: 15;
+  width: 308px; max-height: calc(100vh - 148px);
+  overflow-y: auto; overscroll-behavior: contain;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+  padding: 14px 15px; backdrop-filter: blur(8px);
+  scrollbar-width: thin;
+}
+body[data-view="topo"] #sidePanel { top: 62px; }
+
+#sidePanel h2 { font-size: 14.5px; margin-bottom: 8px; color: #f5f0e2; }
+#sidePanel h2 small { color: var(--ink-dim); font-weight: 400; margin-left: 6px; font-size: 11.5px; }
+#sidePanel p.note { font-size: 12px; color: var(--ink-dim); line-height: 1.55; margin: 7px 0; }
+#sidePanel .formula {
+  font-family: 'Cambria Math', Georgia, serif; font-size: 15.5px;
+  background: var(--gold-dim); border: 1px solid rgba(232,184,75,.25);
+  color: #ffe9ae; border-radius: 9px; padding: 8px 12px; margin: 8px 0;
+  text-align: center;
+}
+
+/* HUD 行 */
+.hudrow {
+  display: grid; grid-template-columns: 14px 1fr auto; gap: 4px 8px;
+  align-items: center; padding: 7px 8px; border-radius: 9px;
+  margin: 5px 0; background: rgba(255,255,255,0.03);
+}
+.hudrow.peaked { background: var(--gold-dim); outline: 1px solid rgba(232,184,75,.4); }
+.hudrow .dot { width: 10px; height: 10px; border-radius: 50%; }
+.hudrow .nm { font-size: 13px; font-weight: 600; }
+.hudrow .nm small { color: var(--ink-dim); font-weight: 400; margin-left: 5px; }
+.hudrow .om { font-size: 13px; font-variant-numeric: tabular-nums; text-align: right; }
+.hudrow .om b { font-size: 15px; }
+.hudrow .bar { grid-column: 1 / -1; height: 4px; border-radius: 4px; background: rgba(255,255,255,.07); }
+.hudrow .bar i { display: block; height: 100%; border-radius: 4px; transition: width .12s linear; }
+
+/* 事实卡 */
+.facts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+.fact {
+  background: rgba(255,255,255,.035); border: 1px solid var(--line);
+  border-radius: 10px; padding: 9px 10px;
+}
+.fact .fi { font-size: 17px; }
+.fact .ft { font-size: 12.5px; font-weight: 700; margin: 3px 0 2px; }
+.fact .fd { font-size: 11.5px; color: var(--ink-dim); line-height: 1.5; }
+
+/* ── 底部控制条 ── */
+#bottomBar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
+  display: flex; align-items: center; justify-content: center; gap: 14px;
+  padding: 12px 18px 16px;
+  background: linear-gradient(transparent, rgba(5, 8, 17, 0.72) 30%, rgba(5,8,17,.9));
+  flex-wrap: wrap;
+}
+.ctl {
+  display: flex; align-items: center; gap: 9px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 999px;
+  padding: 7px 14px; font-size: 13px;
+}
+.ctl label { color: var(--ink-dim); white-space: nowrap; }
+.ctl output { min-width: 108px; font-variant-numeric: tabular-nums; color: #ffe9ae; }
+input[type="range"] {
+  appearance: none; width: 150px; height: 4px; border-radius: 4px;
+  background: rgba(255,255,255,.16); outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none; width: 16px; height: 16px; border-radius: 50%;
+  background: var(--gold); border: 2px solid #1c1607; cursor: pointer;
+  box-shadow: 0 0 8px rgba(232,184,75,.5);
+}
+.btn {
+  appearance: none; font: inherit; font-size: 13px; cursor: pointer;
+  color: var(--ink); background: var(--panel);
+  border: 1px solid var(--line); border-radius: 999px; padding: 8px 15px;
+  transition: all .15s; white-space: nowrap;
+}
+.btn:hover { border-color: rgba(255,255,255,.3); }
+.btn.on { color: #1c1607; background: var(--gold); border-color: var(--gold); font-weight: 700; }
+
+/* ── 每视图面板容器：切页切换 ── */
+#sidePanel > .viewpanel { display: none; }
+#sidePanel > .viewpanel.active { display: block; }
+#bottomBar > .viewbar { display: none; }
+#bottomBar > .viewbar.active {
+  display: flex; gap: 14px; align-items: center;
+  justify-content: center; flex-wrap: wrap; width: 100%;
+}
+
+/* ── topo 布局 ── */
+#topoWrap { position: fixed; inset: 0; display: none; flex-direction: column; }
+body[data-view="topo"] #topoWrap { display: flex; }
+@media (max-width: 860px) {
+  #sidePanel { width: 250px; font-size: 12px; }
+  #topbar .title small { display: none; }
+}

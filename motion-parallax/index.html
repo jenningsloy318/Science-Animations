@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>运动视差 · 为什么近物跑得快，远物跑得慢</title>
+  <meta name="description" content="乘车视角的 3D 运动视差实验：感知角速度 ω ≈ v/d，扫角几何，以及从树木到恒星视差的真相。">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-view="ride">
+  <canvas id="gl"></canvas>
+  <div id="labelLayer"></div>
+  <canvas id="topo"></canvas>
+
+  <header id="topbar">
+    <div class="title">🌄 运动视差<small>Motion Parallax — 为什么近物跑得快，远物跑得慢</small></div>
+    <nav id="tabs">
+      <button class="tab active" data-view="ride">① 乘车体验</button>
+      <button class="tab" data-view="topo">② 扫角几何</button>
+      <button class="tab" data-view="space">③ 从树木到星空</button>
+    </nav>
+  </header>
+
+  <aside id="sidePanel"></aside>
+  <footer id="bottomBar"></footer>
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "./vendor/three.module.js",
+      "three/addons/": "./vendor/addons/"
+    }
+  }
+  </script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

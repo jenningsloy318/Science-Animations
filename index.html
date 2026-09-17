@@ -159,6 +159,9 @@
     .card--solarsystem::before { background: radial-gradient(circle at 30% 20%, rgba(245,158,11,0.12), transparent 70%); }
     .card--solarsystem .card__icon { background: rgba(245,158,11,0.18); }
     .card--solarsystem:hover { border-color: rgba(56,189,248,0.55); }
+    .card--parallax::before { background: radial-gradient(circle at 30% 20%, rgba(232,184,75,0.10), transparent 70%); }
+    .card--parallax .card__icon  { background: rgba(232,184,75,0.14); }
+    .card--parallax:hover { border-color: rgba(232,184,75,0.5); }
 
     .card__title {
       font-size: 1.15rem;
@@ -295,6 +298,14 @@
       <div class="card__icon">🔭</div>
       <div class="card__title">Observatory 观天仪器</div>
       <div class="card__desc">How we observe the universe — 8 interactive 3D instruments: telescope optics, spectrograph, Doppler shift, interferometer, adaptive optics, detectors, and gravitational waves. Every tab shows the full data pipeline from raw reading to real published result.</div>
+      <span class="card__arrow">Open →</span>
+    </a>
+
+    <!-- Motion Parallax card -->
+    <a class="card card--parallax" href="motion-parallax/" id="link-motion-parallax">
+      <div class="card__icon">🚙</div>
+      <div class="card__title">Motion Parallax 运动视差</div>
+      <div class="card__desc">为什么近物跑得快，远物跑得慢？坐进驾驶位看真实的 3D 透视：感知角速度 ω ≈ v/d，俯视扫角几何，以及同一几何如何量出恒星距离。</div>
       <span class="card__arrow">Open →</span>
     </a>
   </div>
