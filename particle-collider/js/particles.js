@@ -109,19 +109,27 @@
     const chain = ['\u5938\u514B', '\u8D28\u5B50/\u4E2D\u5B50', '\u539F\u5B50\u6838', '\u539F\u5B50', '\u5206\u5B50', '\u4F60'];
     chain.forEach((t, i) => {
       const sp = makeLabel(t, '', 150);
-      sp.position.set((i - 2.5) * 3.2, -7.2, -4);
+      sp.position.set((i - 2.5) * 2.6 - 8.5, -7.2, -4);
       sp.material.opacity = 0.75;
       group.add(sp);
       if (i < chain.length - 1) {
         const arrow = makeLabel('\u2192', '', 60);
-        arrow.position.set((i - 2.5) * 3.2 + 1.6, -7.2, -4);
+        arrow.position.set((i - 2.5) * 2.6 + 1.3, -7.2, -4);
         group.add(arrow);
       }
     });
 
-    /* ── composite builder (front center) ── */
+    /* ── column headers ── */
+    const colL = makeLabel('\u57FA\u672C\u7C92\u5B50 \u00B7 \u6807\u51C6\u6A21\u578B\uFF08\u9759\u6001\uFF09', 'Standard Model \u00B7 static', 680);
+    colL.position.set(-8.5, 6.6, -6);
+    group.add(colL);
+    const colR = makeLabel('\u5B83\u4EEC\u7EC4\u6210\u7684\u5927\u7C92\u5B50\uFF08\u52A8\u753B\uFF09', 'composites \u00B7 animated', 640);
+    colR.position.set(9.2, 4.6, 4);
+    group.add(colR);
+
+    /* ── composite builder (right column) ── */
     const compGroup = new THREE.Group();
-    compGroup.position.set(9.6, 0.4, 4);
+    compGroup.position.set(9.2, 0.6, 2);
     scene.add(compGroup);
     let tubeMats = [], electronPivots = [];
     const fluxMat = () => new THREE.MeshStandardMaterial({ color: 0xd8b25c, emissive: 0xd8b25c,
@@ -220,7 +228,6 @@
       const pulse = 0.45 + 0.25 * Math.sin(t * 3.2);
       for (const m of tubeMats) m.emissiveIntensity = pulse;
       for (const e of electronPivots) e.pivot.rotation.y += dt * e.el.userData.orbSpeed;
-      if (orbit && orbit.idleT > 4) orbit.des.az += dt * 0.05;
     }
 
     return { scene, update, setComposite };

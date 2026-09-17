@@ -66,7 +66,7 @@
       ring: new U.Orbit(canvas, { az: 0.9, pol: 1.02, dist: 185, minDist: 70, maxDist: 420,
         onUserInput: () => { if (ring.flight.active) cancelFlight(); } }),
       collision: new U.Orbit(canvas, { az: 0.0, pol: 1.545, dist: 40, minDist: 16, maxDist: 80 }),
-      particles: new U.Orbit(canvas, { az: 0.32, pol: 1.22, dist: 33, minDist: 10, maxDist: 90 }),
+      particles: new U.Orbit(canvas, { az: 0.0, pol: 1.32, dist: 37, minDist: 10, maxDist: 90 }),
     };
     const saved = {};
     for (const k of Object.keys(orbits)) saved[k] = orbits[k].save();
