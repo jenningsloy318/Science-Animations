@@ -97,7 +97,7 @@
       const cell = LAYOUT[p.s];
       let gx, gy, gz;
       if (cell) {
-        gx = (cell[0] - 1.6) * 3.1; gy = 4.1 - cell[1] * 2.75; gz = -6;
+        gx = (cell[0] - 1.6) * 4.2 - 10.5; gy = 4.1 - cell[1] * 3.6; gz = -6;
       }
       const r = 0.24 + 0.42 * Math.min(1, Math.log10(p.mv + 1.2) / 5.24);
       const mesh = new THREE.Mesh(new THREE.SphereGeometry(r, 28, 20),
@@ -116,12 +116,12 @@
     const chain = ['\u5938\u514B', '\u8D28\u5B50/\u4E2D\u5B50', '\u539F\u5B50\u6838', '\u539F\u5B50', '\u5206\u5B50', '\u4F60'];
     chain.forEach((t, i) => {
       const sp = makeLabel(t, '', 150);
-      sp.position.set((i - 2.5) * 2.6 - 8.5, -7.2, -4);
+      sp.position.set((i - 2.5) * 2.6 - 10.5, -8.8, -4);
       sp.material.opacity = 0.75;
       group.add(sp);
       if (i < chain.length - 1) {
         const arrow = makeLabel('\u2192', '', 60);
-        arrow.position.set((i - 2.5) * 2.6 + 1.3, -7.2, -4);
+        arrow.position.set((i - 2.5) * 2.6 + 1.3, -8.8, -4);
         group.add(arrow);
       }
     });
@@ -136,7 +136,7 @@
 
     /* ── composite builder (right column) ── */
     const compGroup = new THREE.Group();
-    compGroup.position.set(9.2, 0.6, 2);
+    compGroup.position.set(11.5, 0.6, 2);
     scene.add(compGroup);
     let tubeMats = [], electronPivots = [];
     const fluxMat = () => new THREE.MeshStandardMaterial({ color: 0xd8b25c, emissive: 0xd8b25c,
