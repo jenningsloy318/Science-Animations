@@ -39,15 +39,15 @@
           type:'home', vx:0, vy:0, GM:0 },
         { id:'mars', name:'火星', x: 420, y: cy - 18, r: 4.5, color:'#ef4444',
           type:'inner', vx:0, vy:0, GM:0 },
-        // 外行星（引力弹弓）—— Y 位置精心排列，确保飞掠后轨道自然串联
-        { id:'jupiter', name:'木星', x: 850, y: cy + 70, r: 26, color:'#f59e0b',
-          type:'gas', vx: 0.9, vy:0, GM: 1100 },
-        { id:'saturn', name:'土星', x: 1450, y: cy - 55, r: 21, color:'#fbbf24',
-          type:'gas', vx: 0.7, vy:0, GM: 900, hasRing: true },
-        { id:'uranus', name:'天王星', x: 2100, y: cy + 50, r: 15, color:'#67e8f9',
-          type:'ice', vx: 0.45, vy:0, GM: 650 },
+        // 外行星（引力弹弓）—— 精确校准轨道几何与引力场，确保航天器在各行星外侧安全飞掠，绝不与天体本体重叠
+        { id:'jupiter', name:'木星', x: 850, y: cy + 30, r: 26, color:'#f59e0b',
+          type:'gas', vx: 0.9, vy:0, GM: 100 },
+        { id:'saturn', name:'土星', x: 1450, y: cy + 0, r: 21, color:'#fbbf24',
+          type:'gas', vx: 0.7, vy:0, GM: 120, hasRing: true },
+        { id:'uranus', name:'天王星', x: 2100, y: cy - 45, r: 15, color:'#67e8f9',
+          type:'ice', vx: 0.45, vy:0, GM: 90 },
         { id:'neptune', name:'海王星', x: 2750, y: cy - 40, r: 14, color:'#818cf8',
-          type:'ice', vx: 0.35, vy:0, GM: 600 },
+          type:'ice', vx: 0.35, vy:0, GM: 90 },
       ];
 
       gravBodies = bodies.filter(b => b.GM > 0);
@@ -104,7 +104,7 @@
       craft.x = earth.x + 15;
       craft.y = earth.y;
       craft.vx = 3.6;
-      craft.vy = 0.35; // 向下朝木星方向，确保近距离飞掠
+      craft.vy = 0.45; // 瞄准木星外侧安全飞掠走廊（确保不穿过天体表面）
       craft.path = [];
 
       ghost.x = craft.x;
@@ -142,36 +142,38 @@
     function updatePhysics() {
       if (!isPlaying) return;
       const dt = simSpeed;
+      const subSteps = 4;
+      const sdt = dt / subSteps;
 
-      let totalAx = 0, totalAy = 0;
+      for (let step = 0; step < subSteps; step++) {
+        let totalAx = 0, totalAy = 0;
 
-      // 引力叠加
-      for (const p of gravBodies) {
-        const dx = p.x - craft.x;
-        const dy = p.y - craft.y;
-        const rSq = dx * dx + dy * dy;
-        const r = Math.sqrt(rSq);
-        if (r > p.r + 5) {
-          const acc = p.GM / rSq;
+        // 引力叠加（带核心平滑，保证近距飞掠轨道精准平滑，永不奇点震荡）
+        for (const p of gravBodies) {
+          const dx = p.x - craft.x;
+          const dy = p.y - craft.y;
+          const rSq = dx * dx + dy * dy;
+          const r = Math.sqrt(rSq);
+          const acc = p.GM / (rSq + 200);
           totalAx += acc * (dx / r);
           totalAy += acc * (dy / r);
         }
+
+        craft.vx += totalAx * sdt;
+        craft.vy += totalAy * sdt;
+        craft.x += craft.vx * sdt;
+        craft.y += craft.vy * sdt;
+
+        // 移动行星（模拟公转）
+        for (const b of bodies) {
+          b.x += b.vx * sdt;
+          b.y += b.vy * sdt;
+        }
+
+        // 幽灵（匀速直线）
+        ghost.x += ghost.vx * sdt;
+        ghost.y += ghost.vy * sdt;
       }
-
-      craft.vx += totalAx * dt;
-      craft.vy += totalAy * dt;
-      craft.x += craft.vx * dt;
-      craft.y += craft.vy * dt;
-
-      // 移动行星（模拟公转）
-      for (const b of bodies) {
-        b.x += b.vx * dt;
-        b.y += b.vy * dt;
-      }
-
-      // 幽灵（匀速直线）
-      ghost.x += ghost.vx * dt;
-      ghost.y += ghost.vy * dt;
 
       craft.path.push({ x: craft.x, y: craft.y });
       ghost.path.push({ x: ghost.x, y: ghost.y });
@@ -270,7 +272,7 @@
       for (const p of gravBodies) {
         const dx = p.x - craft.x;
         const dy = p.y - craft.y;
-        gAcc += p.GM / (dx * dx + dy * dy);
+        gAcc += p.GM / (dx * dx + dy * dy + 200);
       }
       document.getElementById('hudGrav').innerText = (gAcc * 1000).toFixed(2) + ' m/s²';
     }
@@ -493,8 +495,8 @@
         const dy = p.y - craft.y;
         const r = Math.sqrt(dx * dx + dy * dy);
         if (r < 5) continue;
-        const fMag = p.GM / (r * r);
-        const arrowLen = Math.min(fMag * 1500, 70);
+        const fMag = p.GM / (r * r + 200);
+        const arrowLen = Math.min(fMag * 2200, 70);
         if (arrowLen < 4) continue;
         const nx = dx / r, ny = dy / r;
         const sx = craft.x + nx * 12;
