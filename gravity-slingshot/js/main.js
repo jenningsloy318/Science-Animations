@@ -11,6 +11,9 @@ import {
   calculateHyperbolicDeltaV,
   calculatePlanetSpeedChange,
   calculateKineticEnergyDelta,
+  hyperbolicTrajectory,
+  earthEscapeTrajectory,
+  REAL_ENCOUNTERS,
   MISSION_PRESETS
 } from './physics.js';
 import { createVoyagerSpacecraft } from './voyager-model.js';
@@ -51,6 +54,14 @@ let craftTrajectoryLine;
 let trajectoryPoints = [];
 let simTime = 0;
 let lastPeriapsisTriggered = false;
+let flybyConic = null;            // 缓存的真实双曲圆锥曲线 (patched conic)
+let flybyConicKey = '';
+let flybyPathLine = null;         // 预测路径线 (真实形状)
+let launchScene = null;           // 发射段: { rocket, pad, pathLine, dirUp }
+const LAUNCH = { active: false, t: 0, dur: 16, vInf: 9.3 };
+
+// 逃逸双曲轨迹缓存
+let launchConic = null, launchConicVInf = -1;
 
 // 仿真动力学状态
 const simPhysics = {
@@ -220,6 +231,7 @@ function buildSolarSystemBodies() {
 
   planetKeys.forEach(key => {
     const p = createPlanet(key, displayRadii[key]);
+    p.displayRadius = displayRadii[key];
     const dist = displayDistances[key];
     p.orbitRadius = dist;
     p.orbitAngle = Math.random() * Math.PI * 2;
@@ -301,6 +313,8 @@ export function setMission(missionKey) {
   simTime = 0;
   STATE.currentStageIdx = 0;
   lastPeriapsisTriggered = false;
+  flybyConicKey = '';        // 强制重建真实圆锥曲线
+  resetLaunch();
 
   // 根据任务类型智能匹配初始几何模式
   if (mission.type === 'DECELERATE') {
@@ -355,8 +369,268 @@ export function setGeometryMode(modeKey) {
 /**
  * 核心动力学模拟更新循环
  */
+
+/* ── 真实双曲圆锥曲线缓存 ─────────────────────────────────────────
+   数据源: REAL_ENCOUNTERS.VOYAGER_2 (NASA/JPL, 2026-09-17 核实);
+   其它任务/行星用典型 v∞ 并在 HUD 标注"近似"。 */
+const FALLBACK_V_INF = { venus: 8.0, jupiter: 10.5, saturn: 6.0, uranus: 5.0, neptune: 8.0 };
+
+function getFlybyConic(planetKey, geomMode) {
+  const key = STATE.activeMission + '|' + planetKey + '|' + geomMode;
+  if (flybyConicKey === key) return flybyConic;
+
+  const P = CONSTANTS.PLANETS[planetKey];
+  const enc = (STATE.activeMission === 'VOYAGER_2' && REAL_ENCOUNTERS.VOYAGER_2[planetKey]) || null;
+  const v_inf = enc ? enc.v_inf_kms : (FALLBACK_V_INF[planetKey] ?? 8.0);
+  const rp_km = enc ? enc.rp_km : P.radius_km * 2.0;
+
+  const traj = hyperbolicTrajectory(P.mu, v_inf, rp_km, { nuMaxDeg: 150, samples: 240 });
+
+  // 入射渐近线方向（近拱点系，数值方向）
+  const pts = traj.points;
+  const a0 = pts[0], a1 = pts[6];
+  const incAng = Math.atan2(a1.z - a0.z, a1.x - a0.x);
+  // 期望入射方向: TRAILING/POLAR → 与行星速度反向（从后面追上）; LEADING → 正向（迎面）
+  const desiredAng = geomMode === 'LEADING' ? 0 : Math.PI;
+  const rot = desiredAng - incAng;
+
+  // 场景可见范围: 双曲线本身延伸到无穷远, 只画 r_scene <= R_CAP 的部分
+  const R_CAP = 150;                                   // 场景单位
+  const sceneK0 = (planets[planetKey]?.displayRadius ?? 3.6) / P.radius_km;
+  let nuLo = -traj.nuMax, nuHi = traj.nuMax;
+  {
+    const inCap = traj.points.filter(pt => pt.r / 1000.0 * sceneK0 <= R_CAP);
+    if (inCap.length >= 2) { nuLo = inCap[0].nu; nuHi = inCap[inCap.length - 1].nu; }
+  }
+  flybyConic = {
+    e: traj.e,
+    p: traj.p,
+    nuMax: traj.nuMax,
+    nuLo, nuHi,
+    deltaDeg: traj.deflectionDeg,
+    vPeriapsis_kms: traj.vPeriapsis_kms,
+    v_inf_kms: v_inf,
+    v_inf_ms: traj.v_inf_ms,
+    rp_km,
+    rot,
+    encounter: enc || null,
+    sceneKBody: P.radius_km
+  };
+  flybyConicKey = key;
+
+  // 重建预测路径线（真实形状!），挂在行星 group 下（两种参考系都跟随）
+  rebuildFlybyPath(planetKey, flybyConic);
+  return flybyConic;
+}
+
+function rebuildFlybyPath(planetKey, conic) {
+  const planet = planets[planetKey];
+  if (!planet) return;
+  if (flybyPathLine) { flybyPathLine.parent?.remove(flybyPathLine); flybyPathLine.geometry.dispose(); flybyPathLine.material.dispose(); flybyPathLine = null; }
+  const sceneK = planet.displayRadius / CONSTANTS.PLANETS[planetKey].radius_km;
+  const cs = Math.cos(conic.rot), sn = Math.sin(conic.rot);
+  const pts = [];
+  const N = 180;
+  for (let i = 0; i <= N; i++) {
+    const nu = conic.nuLo + (conic.nuHi - conic.nuLo) * i / N;
+    const r = conic.p / (1 + conic.e * Math.cos(nu));
+    const x = (r * Math.cos(nu) * cs - r * Math.sin(nu) * sn) / 1000.0 * sceneK;
+    const z = (r * Math.cos(nu) * sn + r * Math.sin(nu) * cs) / 1000.0 * sceneK;
+    const y = STATE.geometryMode === 'POLAR' ? r / 1000.0 * sceneK * Math.sin(Math.max(0, nu)) * 0.95 : 0;
+    pts.push(new THREE.Vector3(x, y, z));
+  }
+  const geo = new THREE.BufferGeometry().setFromPoints(pts);
+  const mat = new THREE.LineBasicMaterial({ color: 0xf59e0b, transparent: true, opacity: 0.45 });
+  flybyPathLine = new THREE.Line(geo, mat);
+  flybyPathLine.name = 'flybyPath';
+  planet.group.add(flybyPathLine);
+}
+
+/* ── 发射段: 从地球表面看"泰坦三号E"爬升入逃逸双曲线 ─────────────── */
+function buildLaunchScene() {
+  if (launchScene) { launchScene.group.visible = true; return; }
+  const earth = planets.earth;
+  const group = new THREE.Group();
+  earth.group.add(group);
+
+  // 发射场 (卡纳维拉尔角 SLC-41, 示意位置): 放在 +x 表面
+  const dirUp = new THREE.Vector3(1, 0, 0);
+  const R = earth.displayRadius;
+  const padY = 0.012;
+  const pad = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.035, 0.045, padY, 20),
+    new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.8 })
+  );
+  pad.position.set(R + padY / 2, 0, 0);
+  group.add(pad);
+  // 塔架
+  const tower = new THREE.Mesh(
+    new THREE.BoxGeometry(0.008, 0.075, 0.008),
+    new THREE.MeshStandardMaterial({ color: 0x9aa3ad, metalness: 0.7, roughness: 0.4 })
+  );
+  tower.position.set(R + padY + 0.037, 0, -0.028);
+  group.add(tower);
+
+  // 泰坦三号E-半人马座 (示意模型: 芯级 + 两枚固体助推)
+  const rocket = new THREE.Group();
+  const core = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.0042, 0.0042, 0.062, 12),
+    new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.5 })
+  );
+  core.position.y = 0.031;
+  const nose = new THREE.Mesh(
+    new THREE.ConeGeometry(0.0042, 0.014, 12),
+    new THREE.MeshStandardMaterial({ color: 0xcbd5e1, roughness: 0.5 })
+  );
+  nose.position.y = 0.069;
+  rocket.add(core, nose);
+  for (const dz of [-0.0068, 0.0068]) {
+    const booster = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.003, 0.003, 0.045, 10),
+      new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.6 })
+    );
+    booster.position.set(0, 0.0225, dz);
+    rocket.add(booster);
+  }
+  const flame = new THREE.Mesh(
+    new THREE.ConeGeometry(0.006, 0.02, 10),
+    new THREE.MeshBasicMaterial({ color: 0xfbbf24, transparent: true, opacity: 0.85 })
+  );
+  flame.rotation.x = Math.PI;
+  flame.position.y = -0.012;
+  rocket.add(flame);
+  rocket.position.set(R, 0.012, 0);
+  // 使火箭的 +y 对准径向向外
+  rocket.rotation.z = -Math.PI / 2;
+  group.add(rocket);
+
+  // 尾焰脉动
+  const trail = new THREE.Mesh(
+    new THREE.SphereGeometry(0.004, 8, 8),
+    new THREE.MeshBasicMaterial({ color: 0xfde68a, transparent: true, opacity: 0.9 })
+  );
+  trail.visible = false;
+  group.add(trail);
+
+  // 发动机亮斑: 真实夜射从地面看到的就是这颗"移动的星"
+  const beacon = new THREE.Sprite(new THREE.SpriteMaterial({
+    color: 0xfff3c4, transparent: true, opacity: 0.95, depthWrite: false
+  }));
+  beacon.scale.set(0.02, 0.02, 1);
+  rocket.add(beacon);
+
+  launchScene = { group, rocket, pad, dirUp, R, trail, lastAltKm: 0 };
+  rebuildLaunchPath();
+}
+
+function rebuildLaunchPath() {
+  if (!launchScene) return;
+  const vInf = LAUNCH.vInf;
+  launchConic = earthEscapeTrajectory(vInf);
+  launchConicVInf = vInf;
+  if (launchScene.pathLine) {
+    launchScene.pathLine.parent.remove(launchScene.pathLine);
+    launchScene.pathLine.geometry.dispose(); launchScene.pathLine.material.dispose();
+  }
+  const earth = planets.earth;
+  const sceneK = earth.displayRadius / CONSTANTS.PLANETS.earth.radius_km;
+  const pts = [];
+  const N = 160;
+  for (let i = 0; i <= N; i++) {
+    const nu = (launchConic.nuMax * 0.92) * (i / N);   // 从近地点(发射台)向外爬升
+    const r = launchConic.p / (1 + launchConic.e * Math.cos(nu));
+    pts.push(new THREE.Vector3(r / 1000.0 * sceneK, 0, 0));
+  }
+  const geo = new THREE.BufferGeometry().setFromPoints(pts);
+  const mat = new THREE.LineDashedMaterial({ color: 0x60a5fa, dashSize: 0.02, gapSize: 0.014, transparent: true, opacity: 0.65 });
+  const line = new THREE.Line(geo, mat);
+  line.computeLineDistances();
+  launchScene.pathLine = line;
+  launchScene.group.add(line);
+}
+
+function updateLaunchView(dt) {
+  if (!launchScene) buildLaunchScene();
+  if (launchConicVInf !== LAUNCH.vInf) rebuildLaunchPath();
+
+  LAUNCH.t += dt * 0.5 * STATE.simSpeed;
+  const k = Math.min(1, LAUNCH.t / LAUNCH.dur);
+  const conic = launchConic;
+  const earth = planets.earth;
+  const sceneK = earth.displayRadius / CONSTANTS.PLANETS.earth.radius_km;
+  const muE = CONSTANTS.PLANETS.earth.mu;
+
+  const easeK = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;  // easeInOut
+  const nu = conic.nuMax * 0.92 * easeK;
+  const r_m = conic.p / (1 + conic.e * Math.cos(nu));
+  const rScene = r_m / 1000.0 * sceneK;
+
+  const rocket = launchScene.rocket;
+  rocket.position.set(rScene, 0.012, 0);
+  const altKm = Math.max(0, r_m - 6371000);
+  launchScene.lastAltKm = altKm;
+
+  const vKms = Math.sqrt(conic.v_inf_ms ** 2 + 2 * muE / r_m) / 1000;
+  const speedEl = document.getElementById('bigSpeed');
+  if (speedEl) speedEl.innerText = vKms.toFixed(2);
+  const gainEl = document.getElementById('speedGainBadge');
+  if (gainEl) {
+    gainEl.innerText = `高度 ${altKm < 1000 ? altKm.toFixed(0) + ' km' : (altKm / 10000).toFixed(1) + ' 万 km'}`;
+    gainEl.className = 'speed-gain-badge';
+  }
+
+  // 尾焰 + 拖尾点
+  const burning = k < 0.62;
+  if (launchScene.trail) {
+    launchScene.trail.visible = burning;
+    launchScene.trail.position.set(rScene - 0.01, 0.012, 0);
+    launchScene.trail.material.opacity = 0.5 + 0.4 * Math.sin(performance.now() * 0.03);
+  }
+
+  if (STATE.cameraMode === 'EARTH_LAUNCH') {
+    // 相机固定在地球表面发射场旁, 抬头看火箭爬升 —— "从地球看发射"
+    camera.position.set(earth.displayRadius + 0.012, 0.05, 0.16);
+    controls.target.copy(rocket.getWorldPosition(new THREE.Vector3()));
+  }
+
+  window.__gsDebug = () => ({
+    cam: camera.position.toArray().map(v => +v.toFixed(3)),
+    target: controls.target.toArray().map(v => +v.toFixed(3)),
+    earthPos: planets.earth.group.position.toArray(),
+    earthVisible: planets.earth.group.visible,
+    rocketLocal: rocket.position.toArray().map(v => +v.toFixed(4)),
+    rocketWorld: rocket.getWorldPosition(new THREE.Vector3()).toArray().map(v => +v.toFixed(3)),
+    launchVisible: launchScene.group.visible,
+    rScene,
+    altKm: Math.round(altKm)
+  });
+
+  simPhysics.currentSpeed_kms = vKms;
+  simPhysics.gain_kms = vKms - 7.8;   // 相对地表逃逸参考
+  simPhysics.vRel_kms = [vKms, 0, 0];
+  simPhysics.deflectionDeg = conic.deflectionDeg;
+  simPhysics.rp_km = 6371 + 200;
+  simPhysics.eccentricity = conic.e;
+  simPhysics.v_inf_kms = LAUNCH.vInf;
+  simPhysics.vPeriapsis_kms = conic.vPeriapsis_kms;
+  simPhysics.encounter = null;
+}
+
+function resetLaunch() {
+  LAUNCH.t = 0;
+}
+
 function updateSimulationPhysics(dt) {
   if (!STATE.isPlaying) return;
+  if (LAUNCH.active) {
+    planets.earth.group.position.set(0, 0, 0);   // 地球参考系: 地球静止于中心
+    // 发射近景只保留地球: 隐藏太阳/其它行星/轨道环, 相机才不会被吞进太阳球体
+    sunObj.group.visible = false;
+    for (const k2 in planets) if (k2 !== 'earth') planets[k2].group.visible = false;
+    for (const k2 in orbitLines) orbitLines[k2].visible = false;
+    if (gravityWellMesh) gravityWellMesh.visible = false;
+    updateLaunchView(dt); updateHUD(); return;
+  }
 
   const mission = MISSION_PRESETS[STATE.activeMission];
   const targetPlanetKey = mission.primaryBody || 'jupiter';
@@ -391,35 +665,29 @@ function updateSimulationPhysics(dt) {
     gravityWellMesh.position.y -= 0.2;
   }
 
-  // 3. 航天器相对于行星的飞掠轨道模拟 (双曲切片参数化)
-  // 双曲参数方程: x = a * cosh(u), y = b * sinh(u)
-  // 映射周期进程序: progress 从 -3 到 +3
+  // 3. 航天器相对于行星的飞掠: 真实双曲圆锥曲线 (patched conic)
+  // r(ν) = p / (1 + e·cosν), e = 1 + rp·v∞²/μ —— 尺寸/形状/转角全部来自真实任务参数
+  const conic = getFlybyConic(targetPlanetKey, STATE.geometryMode);
+  const muPlanet = CONSTANTS.PLANETS[targetPlanetKey].mu;
+  const sceneK = planet.displayRadius / CONSTANTS.PLANETS[targetPlanetKey].radius_km; // km → 场景
   const cycle = (simTime * 0.4) % 6.0;
   const u = cycle - 3.0; // -3 到 +3，u=0 为近拱点 (Periapsis)
+  const nu = (conic.nuLo + conic.nuHi) / 2.0 + (conic.nuHi - conic.nuLo) / 2.0 * Math.tanh(u * 1.1);
 
-  // 几何偏折配置
-  let impactDist = 5.2; // 瞄准近心距
-  let flybyPlaneNormal = new THREE.Vector3(0, 1, 0); // 默认黄道平面
+  const r_m = conic.p / (1.0 + conic.e * Math.cos(nu));      // 真实距离 (米)
+  const r_km = r_m / 1000.0;
+  const rScene = r_km * sceneK;
+  const px = r_m * Math.cos(nu), pz = r_m * Math.sin(nu);    // 近拱点系 (x = 拱线)
 
-  if (STATE.geometryMode === 'TRAILING') {
-    // 轨道后方飞掠 -> 增速 (绕向行星身后)
-    impactDist = 5.0;
-  } else if (STATE.geometryMode === 'LEADING') {
-    // 轨道前方飞掠 -> 减速 (绕向行星正前方阻碍速度)
-    impactDist = -5.0;
-  } else if (STATE.geometryMode === 'POLAR') {
-    // 极区飞掠 -> 倾角 3D 翻转 (绕过北极)
-    flybyPlaneNormal.set(1, 0, 0);
+  // 旋转: 入射渐近线对准 ±行星公转方向 (TRAILING 背面掠 → 增速 / LEADING 正面 → 减速)
+  const cs = Math.cos(conic.rot), sn = Math.sin(conic.rot);
+  let relX = (px * cs - pz * sn) / 1000.0 * sceneK;
+  let relZ = (px * sn + pz * cs) / 1000.0 * sceneK;
+  let relY = 0;
+  if (STATE.geometryMode === 'POLAR') {
+    relY = rScene * Math.sin(Math.max(0, nu)) * 0.95;   // 出射段翻出黄道面 (倾角示意)
   }
-
-  // 计算相对位置 (以行星为原点的双曲线)
-  const hypA = Math.abs(impactDist) * 0.8;
-  const hypB = Math.abs(impactDist) * 1.1;
-  const hypX = -Math.sinh(u) * hypB;
-  const hypZ = (Math.cosh(u) - 1.0) * (impactDist > 0 ? hypA : -hypA) + impactDist;
-  const hypY = STATE.geometryMode === 'POLAR' ? Math.sinh(u * 0.8) * 4.0 : 0;
-
-  const relCraftPos = new THREE.Vector3(hypX, hypY, hypZ);
+  const relCraftPos = new THREE.Vector3(relX, relY, relZ);
 
   // 4. 根据当前参考系放置飞船 3D 位置
   if (STATE.referenceFrame === 'PLANETOCENTRIC') {
@@ -435,15 +703,21 @@ function updateSimulationPhysics(dt) {
     simPhysics.pos.copy(worldCraftPos);
   }
 
-  // 5. 速度与引力计算
-  // 相对速度 (双曲导数)
-  const relVx = -Math.cosh(u) * hypB * 1.5;
-  const relVz = Math.sinh(u) * (impactDist > 0 ? hypA : -hypA) * 1.5;
-  const relVy = STATE.geometryMode === 'POLAR' ? Math.cosh(u * 0.8) * 3.2 : 0;
-  const vRelVec = new THREE.Vector3(relVx, relVy, relVz);
-  const vRelMag = vRelVec.length();
+  // 5. 速度与引力计算 —— 能量守恒给出真实相对速度: v(ν) = √(v∞² + 2μ/r)
+  const vRelMag = Math.sqrt(conic.v_inf_ms ** 2 + 2.0 * muPlanet / r_m) / 1000.0; // km/s
+  // 方向: 数值微分 (旋转后的场景系)
+  const nu2 = Math.min(nu + 0.004, conic.nuMax);
+  const r2m = conic.p / (1.0 + conic.e * Math.cos(nu2));
+  const q1x = (r_m * Math.cos(nu) * cs - r_m * Math.sin(nu) * sn) / 1000.0 * sceneK;
+  const q1z = (r_m * Math.cos(nu) * sn + r_m * Math.sin(nu) * cs) / 1000.0 * sceneK;
+  const q2x = (r2m * Math.cos(nu2) * cs - r2m * Math.sin(nu2) * sn) / 1000.0 * sceneK;
+  const q2z = (r2m * Math.cos(nu2) * sn + r2m * Math.sin(nu2) * cs) / 1000.0 * sceneK;
+  const q1y = relY, q2y = STATE.geometryMode === 'POLAR'
+    ? r2m * sceneK * Math.sin(Math.max(0, nu2)) * 0.95 : 0;
+  const vRelVec = new THREE.Vector3(q2x - q1x, q2y - q1y, q2z - q1z);
+  if (vRelVec.lengthSq() > 1e-9) vRelVec.normalize();
 
-  simPhysics.vRel_kms = [vRelVec.x * 2.2, vRelVec.y * 2.2, vRelVec.z * 2.2];
+  simPhysics.vRel_kms = [vRelVec.x * vRelMag, vRelVec.y * vRelMag, vRelVec.z * vRelMag];
 
   // 太阳系速度 = 行星速度 + 相对速度
   let helioVx, helioVy, helioVz;
@@ -467,14 +741,11 @@ function updateSimulationPhysics(dt) {
     voyagerCraft.group.lookAt(lookTarget);
   }
 
-  // 6. 引力大小与近拱点检测
-  const distToPlanet = relCraftPos.length();
-  const muPlanet = CONSTANTS.PLANETS[targetPlanetKey].mu;
-  const r_meters = Math.max(distToPlanet * 70000.0, 71492000.0);
-  simPhysics.gravForce_ms2 = muPlanet / (r_meters * r_meters);
+  // 6. 引力大小与近拱点检测 (真实距离)
+  simPhysics.gravForce_ms2 = muPlanet / (r_m * r_m);
 
   // 近拱点飞掠事件
-  if (Math.abs(u) < 0.15) {
+  if (Math.abs(nu) < 0.05) {
     if (!lastPeriapsisTriggered) {
       lastPeriapsisTriggered = true;
       voyagerCraft.fireRCS(true);
@@ -482,7 +753,7 @@ function updateSimulationPhysics(dt) {
       playSpeedBoostTone(simPhysics.gain_kms);
       setTimeout(() => voyagerCraft.fireRCS(false), 350);
     }
-  } else if (Math.abs(u) > 1.2) {
+  } else if (Math.abs(nu) > 0.4) {
     lastPeriapsisTriggered = false;
   }
 
@@ -515,13 +786,13 @@ function updateSimulationPhysics(dt) {
     simPhysics.currentSpeed_kms
   );
 
-  // 双曲偏折角计算
-  const deflData = calculateDeflectionAngle(
-    Math.hypot(simPhysics.vRel_kms[0], simPhysics.vRel_kms[2]),
-    simPhysics.rp_km,
-    muPlanet
-  );
-  simPhysics.deflectionDeg = deflData.degrees;
+  // 双曲几何 (真实参数): e / δ / rp / v∞
+  simPhysics.rp_km = conic.rp_km;
+  simPhysics.deflectionDeg = conic.deltaDeg;
+  simPhysics.eccentricity = conic.e;
+  simPhysics.v_inf_kms = conic.v_inf_kms;
+  simPhysics.vPeriapsis_kms = conic.vPeriapsis_kms;
+  simPhysics.encounter = conic.encounter;
 
   updateHUD();
 }
@@ -561,6 +832,20 @@ function updateHUD() {
   const energyEl = document.getElementById('hudEnergyDelta');
   if (energyEl) {
     energyEl.innerText = `${(simPhysics.energyGain_J / 1e9).toFixed(2)} GJ`;
+  }
+
+  // 真实圆锥曲线几何 (patched conic)
+  const eccEl = document.getElementById('hudEcc');
+  if (eccEl && simPhysics.eccentricity) eccEl.innerText = simPhysics.eccentricity.toFixed(3);
+  const vpEl = document.getElementById('hudVPeri');
+  if (vpEl && simPhysics.vPeriapsis_kms) vpEl.innerText = `${simPhysics.vPeriapsis_kms.toFixed(1)} km/s`;
+  const rpEl = document.getElementById('hudRp');
+  if (rpEl && simPhysics.rp_km) rpEl.innerText = `${simPhysics.rp_km.toLocaleString()} km`;
+  const encEl = document.getElementById('hudEncounter');
+  if (encEl) {
+    const enc = simPhysics.encounter;
+    encEl.innerText = enc ? enc.date : '示意参数';
+    encEl.style.color = enc ? '#6ee7b7' : '#fbbf24';
   }
 }
 
@@ -607,11 +892,32 @@ export function setCameraPreset(mode) {
     const planet = planets[mission.primaryBody || 'jupiter'];
     if (planet) {
       controls.target.copy(planet.group.position);
-      camera.position.copy(planet.group.position).add(new THREE.Vector3(12, 8, 16));
+      // 真实近拱点 rp ≈ 9 R_J → 相机要拉到能框住整个双曲弯折
+      const d = (planet.displayRadius ?? 3.6) * 14;
+      camera.position.copy(planet.group.position).add(new THREE.Vector3(d * 0.55, d * 0.38, d * 0.74));
     }
   } else if (mode === 'FOLLOW') {
     controls.target.copy(voyagerCraft.group.position);
     camera.position.copy(voyagerCraft.group.position).add(new THREE.Vector3(-4, 3, -6));
+  }
+
+  // 发射模式开关
+  LAUNCH.active = (mode === 'EARTH_LAUNCH');
+  if (LAUNCH.active) {
+    setReferenceFrame('PLANETOCENTRIC');
+    buildLaunchScene();
+    simTime = 0;
+    resetLaunch();
+    const lp = document.getElementById('launchPanel');
+    if (lp) lp.style.display = 'block';
+  } else {
+    if (launchScene) launchScene.group.visible = false;
+    const lp = document.getElementById('launchPanel');
+    if (lp) lp.style.display = 'none';
+    if (gravityWellMesh) gravityWellMesh.visible = STATE.showGravityWell;
+    sunObj.group.visible = true;
+    for (const k2 in planets) planets[k2].group.visible = true;
+    for (const k2 in orbitLines) orbitLines[k2].visible = true;
   }
 }
 
@@ -741,6 +1047,7 @@ function initEvents() {
   const btnReset = document.getElementById('btnReset');
   if (btnReset) {
     btnReset.addEventListener('click', () => {
+      resetLaunch();
       simTime = 0;
       trajectoryPoints = [];
       updateTrajectory(voyagerCraft.group.position);

@@ -88,3 +88,51 @@ test('MISSION_PRESETS: Voyager 2, Parker, Ulysses, New Horizons profiles are int
   assert.strictEqual(MISSION_PRESETS.PARKER_SOLAR_PROBE.type, 'DECELERATE');
   assert.strictEqual(MISSION_PRESETS.ULYSSES.type, 'POLAR_INCLINATION');
 });
+
+// ── 2026-09-17 新增: 真实圆锥曲线引擎 (patched conics) ──
+import { hyperbolicTrajectory, earthEscapeTrajectory, REAL_ENCOUNTERS } from '../js/physics.js';
+
+test('REAL_ENCOUNTERS: Voyager 2 Jupiter numbers match NASA/JPL sources', () => {
+  const enc = REAL_ENCOUNTERS.VOYAGER_2.jupiter;
+  assert.equal(enc.date, '1979-07-09 22:29 UT');
+  // 近拱点 ≈ 645,000 km（云顶上方 ~57 万 km ≈ 9.0 R_J）
+  assert.ok(enc.rp_km > 600000 && enc.rp_km < 700000, `rp = ${enc.rp_km}`);
+  assert.ok(enc.rp_km / 71492 > 8.5 && enc.rp_km / 71492 < 9.5);
+  // 日心速度 10 → 20 km/s（Planetary Society）
+  assert.equal(enc.helio_in_kms, 10.0);
+  assert.equal(enc.helio_out_kms, 20.0);
+});
+
+test('hyperbolicTrajectory: Voyager 2 Jupiter flyby reproduces e≈1.56, δ≈80°, vp≈22.4', () => {
+  const enc = REAL_ENCOUNTERS.VOYAGER_2.jupiter;
+  const t = hyperbolicTrajectory(CONSTANTS.PLANETS.jupiter.mu, enc.v_inf_kms, enc.rp_km);
+  assert.ok(t.e > 1.5 && t.e < 1.62, `e = ${t.e}`);
+  assert.ok(t.deflectionDeg > 76 && t.deflectionDeg < 84, `δ = ${t.deflectionDeg}`);
+  // 能量守恒: v_p = sqrt(v∞² + 2μ/rp) ≈ 22.4 km/s
+  assert.ok(t.vPeriapsis_kms > 21.5 && t.vPeriapsis_kms < 23.5, `vp = ${t.vPeriapsis_kms}`);
+  // 渐近线角与转角自洽: ν∞ = 90° + δ/2
+  assert.ok(Math.abs(t.nuAsymptoteDeg - (90 + t.deflectionDeg / 2)) < 1.0);
+  // 解析自洽: 半通径 p = a(1-e²), rp = p/(1+e)
+  const rpAnalytic = t.p / (1 + t.e);
+  assert.ok(Math.abs(rpAnalytic - enc.rp_km * 1000) < 1.0, `rp analytic = ${rpAnalytic}`);
+});
+
+test('earthEscapeTrajectory: v∞=9.3 gives e≈2.4, perigee speed ≈14.4 km/s', () => {
+  const esc = earthEscapeTrajectory(9.3, 200);
+  assert.ok(esc.e > 2.2 && esc.e < 2.6, `e = ${esc.e}`);
+  assert.ok(esc.vPeriapsis_kms > 14.0 && esc.vPeriapsis_kms < 15.0, `vp = ${esc.vPeriapsis_kms}`);
+  // C3 = v∞² ≈ 86.5 km²/s²（量级正确）
+  const c3 = 9.3 * 9.3;
+  assert.ok(c3 > 80 && c3 < 95);
+});
+
+test('hyperbolicTrajectory: shape is symmetric and asymptotic', () => {
+  const t = hyperbolicTrajectory(CONSTANTS.PLANETS.jupiter.mu, 10.5, 645000);
+  const n = t.points.length;
+  const first = t.points[0], last = t.points[n - 1];
+  // 入射/出射渐近线对称: |r(-νmax)| == |r(+νmax)|
+  assert.ok(Math.abs(first.r - last.r) < 1.0);
+  // 出射距离远大于 rp（真实"甩出"形状: 绘图截断在渐近线的 94%）
+  assert.ok(last.r > t.rp_m * 10, `outbound r = ${last.r / 1e9} Gm vs rp`);
+  assert.ok(Math.abs(first.r - last.r) / last.r < 1e-9);
+});

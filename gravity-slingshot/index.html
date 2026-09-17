@@ -68,6 +68,22 @@
       <button class="pill-btn active" data-cam="OVERVIEW">🔭 太阳系全局</button>
       <button class="pill-btn" data-cam="PLANET_FOCUS">🪐 行星近景</button>
       <button class="pill-btn" data-cam="FOLLOW">🛰️ 飞船跟随</button>
+      <button class="pill-btn" data-cam="EARTH_LAUNCH" title="相机固定在地球发射场，抬头看火箭爬升入逃逸双曲线">🚀 从地球看发射</button>
+    </div>
+
+    <!-- 🚀 发射段控制（仅 EARTH_LAUNCH 视角显示） -->
+    <div id="launchPanel" style="display:none;">
+      <div class="control-group-title" style="margin-top:6px;">
+        <span>🚀 发射段 · 地球逃逸双曲线</span>
+      </div>
+      <label style="font-size:0.72rem;color:#94a3b8;display:block;">
+        双曲超额速度 v∞ = <span id="launchVInfVal" style="color:#fbbf24;font-weight:700;">9.3</span> km/s
+        <input type="range" id="launchVInf" min="3" max="12" step="0.1" value="9.3" style="width:100%;">
+      </label>
+      <p style="font-size:0.7rem;color:#64748b;line-height:1.5;margin:4px 0 0;">
+        1977-08-20 14:29 UT · 卡纳维拉尔角 SLC-41 · 泰坦三号E-半人马座。<br>
+        v∞ 决定逃逸双曲线的"张开"程度：v∞ 越大 → e 越小 → 转角 δ 越小。
+      </p>
     </div>
 
     <p id="frameTipText" style="font-size:0.72rem;color:#94a3b8;line-height:1.5;margin-top:4px;">
@@ -92,12 +108,28 @@
         <span class="t-val" id="hudVRel" style="color:var(--accent-cyan)">10.8 km/s</span>
       </div>
       <div class="t-row">
-        <span class="t-lbl">引力加速度 a_grav</span>
-        <span class="t-val" id="hudGravAcc" style="color:var(--accent-orange)">0.00 m/s²</span>
+        <span class="t-lbl">双曲偏心率 e</span>
+        <span class="t-val" id="hudEcc" style="color:var(--accent-cyan)">1.561</span>
       </div>
       <div class="t-row">
-        <span class="t-lbl">双曲偏折角 δ</span>
-        <span class="t-val" id="hudDeflection" style="color:#a78bfa">78.5°</span>
+        <span class="t-lbl">飞掠转角 δ</span>
+        <span class="t-val" id="hudDeflection" style="color:var(--accent-purple)">79.7°</span>
+      </div>
+      <div class="t-row">
+        <span class="t-lbl">近拱点速度 v_p</span>
+        <span class="t-val" id="hudVPeri" style="color:var(--accent-cyan)">22.4 km/s</span>
+      </div>
+      <div class="t-row">
+        <span class="t-lbl">近拱点距离 rp</span>
+        <span class="t-val" id="hudRp" style="color:var(--accent-cyan)">645,000 km</span>
+      </div>
+      <div class="t-row">
+        <span class="t-lbl">数据认证</span>
+        <span class="t-val" id="hudEncounter" style="color:#6ee7b7">—</span>
+      </div>
+      <div class="t-row">
+        <span class="t-lbl">引力加速度 a_grav</span>
+        <span class="t-val" id="hudGravAcc" style="color:var(--accent-orange)">0.00 m/s²</span>
       </div>
       <div class="t-row">
         <span class="t-lbl">行星微观减速 ΔV_p</span>
