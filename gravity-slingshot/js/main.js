@@ -326,7 +326,17 @@
 
     let fieldAngle = 0;
 
+    /* ── 刷新率无关的固定步长驱动 ──
+     * updatePhysics() 以"参考 60Hz 帧"为基准记账：高刷屏（144Hz）不再让
+     * 模拟跑得更快，低帧率时补帧（上限防切标签页跳变）。 */
+    let lastFrame = performance.now();
+    let frameDebt = 0;
+
     function render() {
+      const nowMs = performance.now();
+      const rdt = Math.min((nowMs - lastFrame) / 1000, 0.1);
+      lastFrame = nowMs;
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawStars();
 
@@ -533,8 +543,15 @@
 
       ctx.restore();
 
-      fieldAngle += 0.004;
-      updatePhysics();
+      fieldAngle += 0.24 * rdt;          /* 帧率无关的场线旋转 */
+      if (isPlaying) {
+        frameDebt += rdt * 60;           /* 折算成 60Hz 参考帧数 */
+        let n = Math.min(Math.floor(frameDebt), 8);
+        frameDebt -= n;
+        while (n-- > 0) updatePhysics();
+      } else {
+        frameDebt = 0;
+      }
       requestAnimationFrame(render);
     }
 
