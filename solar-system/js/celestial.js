@@ -335,12 +335,17 @@ export class SolarSystemManager {
   }
 
   createLabelSprite(textZh, textEn, yOffset, isMoon = false) {
+    // 画布自适应文本宽度: 长标签（英文名+中文名）不再被 256px 截断
+    const font = isMoon ? 'bold 22px system-ui, sans-serif' : 'bold 26px system-ui, sans-serif';
+    const probe = document.createElement('canvas').getContext('2d');
+    probe.font = font;
+    const label = `${textZh} · ${textEn}`;
     const canvas = document.createElement('canvas');
-    canvas.width = 256;
+    canvas.width = Math.max(256, Math.ceil(probe.measureText(label).width) + 48);
     canvas.height = 64;
     const ctx = canvas.getContext('2d');
 
-    ctx.font = isMoon ? 'bold 22px system-ui, sans-serif' : 'bold 26px system-ui, sans-serif';
+    ctx.font = font;
     ctx.fillStyle = isMoon ? '#cbd5e1' : '#f8fafc';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
@@ -348,7 +353,7 @@ export class SolarSystemManager {
     // Soft drop shadow
     ctx.shadowColor = 'rgba(0, 0, 0, 0.8)';
     ctx.shadowBlur = 6;
-    ctx.fillText(`${textZh} · ${textEn}`, 128, 32);
+    ctx.fillText(label, canvas.width / 2, 32);
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
@@ -361,7 +366,9 @@ export class SolarSystemManager {
 
     const sprite = new THREE.Sprite(spriteMat);
     sprite.position.set(0, yOffset, 0);
-    sprite.scale.set(isMoon ? 4.5 : 7.0, isMoon ? 1.2 : 1.75, 1);
+    const aspect = canvas.width / canvas.height;
+    const h = isMoon ? 1.2 : 1.75;
+    sprite.scale.set(h * aspect, h, 1);
     sprite.name = 'LabelSprite';
     return sprite;
   }
