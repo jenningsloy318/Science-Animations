@@ -180,6 +180,7 @@
     });
     app.triggerEvent = (type) => collision.trigger(undefined, type);
     app.setCollPaused = (v) => collision.setPaused(v);
+    app.setCollSpeed = (v) => collision.setSpeed(v);
     app.collGotoPhase = (ph) => collision.gotoPhase(ph);
     app.collStepPhase = (d) => collision.stepPhase(d);
     app.setAuto = (v) => collision.setAuto(v);

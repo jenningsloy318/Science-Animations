@@ -521,6 +521,7 @@ APP.DATA.ui = {
   'ev.muons':        { en:'muons', zh:'\u03BC 子' },
   'ev.rate':         { en:'Rate at peak lumi.', zh:'峰值亮度产率' },
   'coll.pause':      { en:'\u23F8 Pause', zh:'\u23F8 暂停' },
+  'coll.speed':      { en:'Speed', zh:'速度' },
   'coll.play':       { en:'\u25B6 Play', zh:'\u25B6 播放' },
   'ph.approach':     { en:'Approach', zh:'入场' },
   'ph.impact':       { en:'Impact', zh:'对撞' },

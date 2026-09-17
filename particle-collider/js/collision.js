@@ -62,7 +62,7 @@
 
     const state = {
       num: 0, tracks: 0, jets: 0, sumET: 0, muons: 0,
-      phase: 'approach', pt: 0, doneT: 0, flyT: 0, captionMinT: 0, paused: false, cutGroup: null,
+      phase: 'approach', pt: 0, doneT: 0, flyT: 0, captionMinT: 0, paused: false, cutGroup: null, speed: 1,
       auto: true, timer: 2.0,
       trackLines: [], towers: [], misc: [],
       protons: [], shock: null,
@@ -367,6 +367,7 @@
         if (orbit && orbit.idleT > 4) orbit.des.az += dt * 0.06;
         return;
       }
+      dt *= state.speed;                     /* user-adjustable story speed (0.25x - 3x) */
 
       /* ---- sequence state machine ---- */
       state.pt += dt;
@@ -445,6 +446,7 @@
 
     function setAuto(v) { state.auto = v; }
     function setPaused(v) { state.paused = !!v; }
+    function setSpeed(v) { state.speed = U.clamp(v, 0.25, 3); }
 
     /* jump to a phase; phases skipped OVER are completed instantly so the
      * reader always sees a coherent frame (no half-drawn states) */
@@ -493,6 +495,6 @@
 
     startSequence(1337); /* opening event (frozen until the view is shown) */
 
-    return { scene, update, trigger: startSequence, setAuto, setPaused, gotoPhase, stepPhase, getInfo, refreshCaption, phase: () => state.phase, setCaptionSink: (fn) => { state.onCaption = fn; } };
+    return { scene, update, trigger: startSequence, setAuto, setPaused, setSpeed, gotoPhase, stepPhase, getInfo, refreshCaption, phase: () => state.phase, setCaptionSink: (fn) => { state.onCaption = fn; } };
   }
 })();

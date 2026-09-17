@@ -72,6 +72,8 @@
       if (tn) tn.textContent = ' ' + tr('autorenew');
     }
     $('#ringbar .sliderRow').childNodes[0].textContent = tr('beamspeed') + ' ';
+    const csRow = $('#collSpeed');
+    if (csRow) csRow.parentElement.childNodes[0].textContent = tr('coll.speed') + ' ';
     $('#ringbar .hint').textContent = tr('hint.ring');
     $('#collbar .badge').textContent = tr('badge');
     /* evstats labels: first text node of each span */
@@ -235,6 +237,8 @@
     $('#chkAuto').addEventListener('change', (e) => app.setAuto(e.target.checked));
     buildEvChips(app);
     buildPhasePills(app);
+    const spd = $('#collSpeed');
+    if (spd) spd.addEventListener('input', () => app.setCollSpeed(parseFloat(spd.value)));
     $('#btnCollPause').addEventListener('click', () => {
       const info = app.eventInfo();
       app.setCollPaused(!info.paused);
