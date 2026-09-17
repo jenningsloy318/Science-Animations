@@ -9,7 +9,7 @@ import { showNarr } from './ui.js';
 export const meta = {
   nav: '🔧 分离装置：PN结',
   title: '🔧 太阳能电池 · 第3章：先造一个"电荷分离器"',
-  sub: 'Chapter 1 · Silicon lattice, doping & the PN junction',
+  sub: 'Chapter 3 · Silicon lattice, doping & the PN junction',
 };
 
 let root, atoms = [];

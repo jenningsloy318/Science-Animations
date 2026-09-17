@@ -11,13 +11,15 @@ import * as ch1 from './ch1_crystal.js';
 import * as ch2 from './ch2_bands.js';
 import * as ch3 from './ch3_junction.js';
 import * as ch4 from './ch4_current.js';
+import * as ch5 from './ch5_real.js';
 
-const CHAPTERS = [ch1, ch2, ch3, ch4];
+const CHAPTERS = [ch1, ch2, ch3, ch4, ch5];
 const CAM_PRESETS = {
   0: { pos: [9, 5.5, 12], tgt: [0, 0.6, 0] },
   1: { pos: [11.2, 5, 11], tgt: [3.2, 1.4, 0] },   // 原子偏左半屏，右半屏是能带图
   2: { pos: [8, 6, 11], tgt: [0, 1, 0] },
   3: { pos: [10, 6.5, 13], tgt: [0, 1.2, 0] },
+  4: { pos: [7.5, 5.2, 9.5], tgt: [0, 1.1, 0] },
 };
 
 const canvas = document.getElementById('c3d');
@@ -88,6 +90,18 @@ ch4.bindActionsRefresh(refreshActions);
 
 document.getElementById('btnPrev').onclick = () => gotoChapter(current - 1);
 document.getElementById('btnNext').onclick = () => gotoChapter(current + 1);
+
+/* ── chapter 5: click-to-pick bridge (drag vs click) ── */
+let downPos = null;
+addEventListener('pointerdown', e => { downPos = [e.clientX, e.clientY]; });
+addEventListener('pointerup', e => {
+  if (!downPos || current < 0) return;
+  const moved = Math.abs(e.clientX - downPos[0]) + Math.abs(e.clientY - downPos[1]);
+  downPos = null;
+  if (moved < 6 && CHAPTERS[current].onPointerUp) {
+    try { CHAPTERS[current].onPointerUp(e.clientX, e.clientY, true); } catch (err) { console.warn(err); }
+  }
+});
 
 /* ── loop ── */
 function animate() {

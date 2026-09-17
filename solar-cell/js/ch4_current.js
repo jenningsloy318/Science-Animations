@@ -13,7 +13,7 @@ import { showNarr, showBand, getBandCtx, bandSize } from './ui.js';
 export const meta = {
   nav: '✨ 光子的一生',
   title: '✨ 太阳能电池 · 第4章：一颗光子的一生',
-  sub: 'Chapter 2 · The life of one photon: from light to current',
+  sub: 'Chapter 4 · The life of one photon: from light to current',
 };
 
 let root, env;
@@ -179,7 +179,7 @@ function exciteAt(bondPos, ph, heat) {
     const wp = bondPos.clone().add(root.position);
     flyCamera(env.camera, env.controls, [wp.x + 2.2, wp.y + 2.4, wp.z + 3.2], [wp.x, wp.y + 0.6, wp.z], 1.2);
     showNarr(
-      `<b>激发</b>！还记得原子模型吗？电子吸收光子从 K 壳层跳到 L 壳层 = 换座位。晶体也一样：电子从<b>价带</b>（锁死的座位）跳上<b>导带</b>（自由座位，${ph.E.toFixed(2)} eV > 1.12 eV）。<b>它没有逃出晶体</b>——那是"电离"；这里只需要"换座位"就够发电了！原地留下一个<b>空穴</b>`,
+      `<b>激发</b>！还记得原子模型吗？电子吸收光子从 K 壳层跳到 L 壳层 = 换座位。晶体也一样：电子从<b>价带</b>（锁死的座位）跳上<b>导带</b>（自由座位，${ph.E.toFixed(2)} eV > 1.12 eV）。<b>它没有逃出晶体</b>——那是"电离"；这里只需要"换座位"就够发电了！原地留下一个<b>空穴</b>。记住一个硬规矩：<b>一颗光子最多产生一对</b>电子-空穴——多余的能量只会变热（这也是效率极限的来源，第 5 章见）`,
       'Excitation = changing seats (valence → conduction), not escaping the crystal',
       'gold'
     );

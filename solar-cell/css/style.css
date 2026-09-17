@@ -384,3 +384,20 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
   transform: translateY(-1px);
 }
 #homeBtn:active { transform: translateY(0); }
+
+/* ── ch5: live photon-fate counter (light trapping scene) ── */
+.fate-counter {
+  position: absolute;
+  top: 84px;
+  left: 14px;
+  padding: 10px 14px;
+  background: rgba(8, 12, 24, 0.78);
+  border: 1px solid rgba(216, 178, 92, 0.35);
+  border-radius: 12px;
+  color: #e2e8f0;
+  font-size: 0.82rem;
+  line-height: 1.65;
+  pointer-events: none;
+  backdrop-filter: blur(6px);
+}
+.fate-counter small { font-size: 0.72rem; }
