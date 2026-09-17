@@ -165,16 +165,12 @@
       const proc = procs[state.procKey];
       if (state.phase === 'approach' && proc && proc.cap0) {
         state.onCaption(proc.cap0); state.capShown = true;
-        state.captionMinT = readingSeconds(proc.cap0);
-        storyPush('approach', proc.cap0); return;
+        state.captionMinT = readingSeconds(proc.cap0); return;
       }
       if (state.phase === 'done') {
         state.onCaption(proc && proc.capEnd ? proc.capEnd : null);
         state.capShown = !!proc && !!proc.capEnd;
-        if (proc && proc.capEnd) {
-          state.captionMinT = readingSeconds(proc.capEnd);
-          storyPush('done', proc.capEnd);
-        }
+        if (proc && proc.capEnd) state.captionMinT = readingSeconds(proc.capEnd);
         return;
       }
       /* clean processes (no hadrons in the decay): their own flight/readout lines */
@@ -182,14 +178,12 @@
       const cl = APP.L().collision.seqClean;
       if (cleanSet[state.procKey] && cl && cl[state.phase]) {
         state.onCaption(cl[state.phase]); state.capShown = true;
-        state.captionMinT = readingSeconds(cl[state.phase]);
-        storyPush(state.phase, cl[state.phase]); return;
+        state.captionMinT = readingSeconds(cl[state.phase]); return;
       }
       const step = APP.L().collision.seq.find((s) => s.phase === state.phase);
       if (step) {
         state.onCaption(step.cap); state.capShown = true;
         state.captionMinT = readingSeconds(step.cap);
-        storyPush(state.phase, step.cap);
       } else { state.onCaption(null); state.capShown = false; }
     }
 
@@ -259,7 +253,7 @@
       state.doneT = 0;
       state.flyT = 0;
       state.metArrow = null;
-      storyLog.length = 0;
+      rebuildStory();
       setPhase('approach');
     }
 
@@ -341,14 +335,25 @@
 
     const PHASES = ['approach', 'impact', 'flight', 'readout', 'done'];
 
-    /* story log — every phase caption is kept so the reader can revisit
-     * the whole event afterwards (rendered in the right-side panel) */
+    /* story log — the FULL five-step story is pre-filled the moment an event
+     * starts (titles only for future steps; captions fill in as the story
+     * reaches them), so the right-side panel always has content and keeps
+     * the whole event readable afterwards. Independent of the caption sink. */
     const storyLog = [];
-    function storyPush(phase, cap) {
-      const i = PHASES.indexOf(phase);
-      if (i < 0) return;
-      storyLog.length = i;               /* entering an earlier phase truncates later steps */
-      storyLog.push({ phase, cap });
+    function rebuildStory() {
+      const L = APP.L().collision;
+      const procs = L.processes || {};
+      const proc = procs[state.procKey] || {};
+      const clean = { z_mumu: 1, z_ee: 1, h_gamgam: 1, h_zz4l: 1 }[state.procKey];
+      const capOf = (phase) => {
+        if (phase === 'approach') return proc.cap0 || null;
+        if (phase === 'done') return proc.capEnd || null;
+        if (clean && L.seqClean && L.seqClean[phase]) return L.seqClean[phase];
+        const st = L.seq.find((x) => x.phase === phase);
+        return st ? st.cap : null;
+      };
+      storyLog.length = 0;
+      for (const ph of PHASES) storyLog.push({ phase: ph, cap: capOf(ph) });
     }
 
     function update(dt, orbit, active) {

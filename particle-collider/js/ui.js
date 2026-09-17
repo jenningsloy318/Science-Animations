@@ -269,8 +269,8 @@
   /* ---------------- right-panel story log -----------------------------------*/
   let storyKey = '';
   function syncStoryLog(info) {
-    if (!info.story) return;
-    const key = info.num + '|' + info.phase + '|' + info.story.length;
+    if (!info.story || !info.story.length) return;
+    const key = info.num + '|' + info.phase + '|' + info.story.map((e) => e.cap ? 1 : 0).join('');
     if (key === storyKey) return;
     storyKey = key;
     const log = $('#storyLog');
@@ -281,7 +281,8 @@
       const li = document.createElement('li');
       if (i < curIdx) li.className = 'done';
       else if (i === curIdx) li.className = 'current';
-      li.innerHTML = `<b>${tr('ph.' + e.phase)}</b>${e.cap}`;
+      /* future steps: title only (no spoiler); reached steps: full text */
+      li.innerHTML = `<b>${tr('ph.' + e.phase)}</b>${i <= curIdx ? e.cap || '' : ''}`;
       li.title = tr('ph.hint');
       li.addEventListener('click', () => appRef.collGotoPhase(e.phase));
       log.appendChild(li);
