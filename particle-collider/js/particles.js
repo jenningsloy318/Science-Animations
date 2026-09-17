@@ -63,19 +63,26 @@
     const pickables = [];
     const group = new THREE.Group(); scene.add(group);
 
-    function makeLabel(title, sub, w) {
+    function makeLabel(title, sub, minW, k) {
+      /* auto-size: canvas width from measured text - nothing gets chopped */
+      k = k || 1;
+      const probe = document.createElement('canvas').getContext('2d');
+      probe.font = 'bold 46px Outfit, sans-serif';
+      const wT = probe.measureText(title).width;
+      probe.font = '28px Outfit, sans-serif';
+      const wS = sub ? probe.measureText(sub).width : 0;
       const c = document.createElement('canvas');
-      c.width = w || 300; c.height = 128;
+      c.width = Math.max(minW || 0, Math.ceil(Math.max(wT, wS)) + 44);
+      c.height = 128;
       const x = c.getContext('2d');
       x.textAlign = 'center'; x.textBaseline = 'middle';
-      x.fillStyle = '#f0e6c8'; x.font = 'bold 44px Outfit, sans-serif';
+      x.fillStyle = '#f0e6c8'; x.font = 'bold 46px Outfit, sans-serif';
       x.fillText(title, c.width / 2, 36);
-      x.fillStyle = '#9fb4c9'; x.font = '26px Outfit, sans-serif';
-      x.fillText(sub, c.width / 2, 90);
+      if (sub) { x.fillStyle = '#9fb4c9'; x.font = '28px Outfit, sans-serif'; x.fillText(sub, c.width / 2, 92); }
       const tex = new THREE.CanvasTexture(c);
       tex.colorSpace = THREE.SRGBColorSpace;
       const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false }));
-      sp.scale.set((w || 300) / 128, 1, 1);
+      sp.scale.set((c.width / 128) * k, k, 1);
       return sp;
     }
 
@@ -99,7 +106,7 @@
       mesh.position.set(gx, gy, gz);
       mesh.userData.p = p;
       g.add(mesh); pickables.push(mesh);
-      const lbl = makeLabel(p.s + ' ' + p.zh, p.m + ' \u00B7 q=' + p.q, 260);
+      const lbl = makeLabel(p.s + ' ' + p.zh, p.m + ' \u00B7 q=' + p.q, 260, 1.45);
       lbl.position.set(gx, gy + r + 0.55, gz);
       g.add(lbl);
       group.add(g);
@@ -120,10 +127,10 @@
     });
 
     /* ── column headers ── */
-    const colL = makeLabel('\u57FA\u672C\u7C92\u5B50 \u00B7 \u6807\u51C6\u6A21\u578B\uFF08\u9759\u6001\uFF09', 'Standard Model \u00B7 static', 680);
+    const colL = makeLabel('\u57FA\u672C\u7C92\u5B50 \u00B7 \u6807\u51C6\u6A21\u578B\uFF08\u9759\u6001\uFF09', 'Standard Model \u00B7 static', 680, 1.15);
     colL.position.set(-8.5, 6.6, -6);
     group.add(colL);
-    const colR = makeLabel('\u5B83\u4EEC\u7EC4\u6210\u7684\u5927\u7C92\u5B50\uFF08\u52A8\u753B\uFF09', 'composites \u00B7 animated', 640);
+    const colR = makeLabel('\u5B83\u4EEC\u7EC4\u6210\u7684\u5927\u7C92\u5B50\uFF08\u52A8\u753B\uFF09', 'composites \u00B7 animated', 640, 1.15);
     colR.position.set(9.2, 4.6, 4);
     group.add(colR);
 
@@ -187,9 +194,9 @@
           compGroup.add(pivot);
         }
       }
-      const title = makeLabel(c.name + ' \u00B7 ' + c.comp, c.m + ' \u00B7 q=' + c.q, 420);
+      const title = makeLabel(c.name + ' \u00B7 ' + c.comp, c.m + ' \u00B7 q=' + c.q, 420, 1.15);
       title.position.set(0, 2.6, 0); compGroup.add(title);
-      const note = makeLabel(c.note.slice(0, 26), '', 560);
+      const note = makeLabel(c.note, '', 560, 1.05);
       note.position.set(0, -2.4, 0); compGroup.add(note);
     }
     setComposite('p');
