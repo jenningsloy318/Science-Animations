@@ -44,9 +44,9 @@
     pi: { name: '\u03C0\u207A \u4ECB\u5B50', comp: 'u d\u0305', m: '139.6 MeV', q: '+1',
           quarks: [['u', COL.q], ['d\u0305', COL.anti]], note: '\u5938\u514B+\u53CD\u5938\u514B\u7684\u7ED3\u5408 \u2014 \u4ECB\u5B50\u5BB6\u65CF\u7684\u4EE3\u8868' },
     h:  { name: '\u6C22\u539F\u5B50', comp: 'p + e\u207B', m: '\u2248938.8 MeV', q: '0',
-          quarks: [['p', 0xd8b25c]], note: '\u4E00\u4E2A\u8D28\u5B50\u6838 + 1 \u4E2A\u7535\u5B50\u7ED5\u8F68 \u2014 \u7535\u78C1\u529B\u628A\u4ED6\u4EEC\u7ED1\u4F4F\uFF08\u7ED3\u5408\u80FD 13.6 eV\uFF09', electron: true },
+          quarks: [['p', 0xd8b25c]], note: '\u4E00\u4E2A\u8D28\u5B50\u6838 + 1 \u4E2A\u7535\u5B50\u7ED5\u8F68 \u2014 \u7535\u78C1\u529B\u628A\u4ED6\u4EEC\u7ED1\u4F4F\uFF08\u7ED3\u5408\u80FD 13.6 eV\uFF09', electron: true, electrons: 1 },
     he: { name: '\u6C26-4 \u539F\u5B50', comp: '2p + 2n + 2e\u207B', m: '\u22483.73 GeV', q: '0',
-          quarks: [['p', 0xd8b25c], ['p', 0xd8b25c], ['n', 0x8b95a2], ['n', 0x8b95a2]], note: '\u539F\u5B50\u6838\uFF082p+2n\uFF09+ 2 \u4E2A\u7535\u5B50 \u2014 \u5269\u4F59\u5F3A\u6838\u529B\u62B5\u6297\u7535\u78C1\u65A5\u529B', electron: true },
+          quarks: [['p', 0xd8b25c], ['p', 0xd8b25c], ['n', 0x8b95a2], ['n', 0x8b95a2]], note: '\u539F\u5B50\u6838\uFF082p+2n\uFF09+ 2 \u4E2A\u7535\u5B50 \u2014 \u5269\u4F59\u5F3A\u6838\u529B\u62B5\u6297\u7535\u78C1\u65A5\u529B', electron: true, electrons: 2 },
     pb: { name: '\u53CD\u8D28\u5B50 p\u0305', comp: '\u016B\u016B d\u0305', m: '938.3 MeV', q: '-1',
           quarks: [['\u016B', 0x93a7ff], ['\u016B', 0x93a7ff], ['d\u0305', 0x7fc4ff]],
           note: '\u8D28\u5B50\u7684\u53CD\u7C92\u5B50 \u2014 1955 \u5E74 Bevatron \u53D1\u73B0\uFF1B\u4E0E\u8D28\u5B50\u76F8\u9047\u5373\u6E4A\u706D\uFF0C\u91CA\u653E\u80FD\u91CF' },
@@ -57,7 +57,7 @@
           quarks: [['d', 0xb388ff], ['\u016B', 0x93a7ff]],
           note: '\u03C0\u207A \u7684\u53CD\u7C92\u5B50 \u2014 \u5E26\u4E00\u4E2A\u5355\u4F4D\u8D1F\u7535\u8377' },
     ah: { name: '\u53CD\u6C22\u539F\u5B50 H\u0305', comp: 'p\u0305 + e\u207A', m: '\u2248938.8 MeV', q: '0',
-          quarks: [['p\u0305', 0xe8927c]], note: '\u9996\u4E2A\u53CD\u539F\u5B50 \u2014 1995 \u5E74 CERN \u9020\u51FA 9 \u4E2A\uFF1B2011 \u5E74 ALPHA \u9996\u6B21\u78C1\u6355\u83B7', electron: true, positron: true },
+          quarks: [['p\u0305', 0xe8927c]], note: '\u9996\u4E2A\u53CD\u539F\u5B50 \u2014 1995 \u5E74 CERN \u9020\u51FA 9 \u4E2A\uFF1B2011 \u5E74 ALPHA \u9996\u6B21\u78C1\u6355\u83B7', electron: true, positron: true, electrons: 1 },
     ahe4:{ name: '\u53CD\u6C26-4 \u6838', comp: '2p\u0305 + 2n\u0305', m: '\u22483.73 GeV', q: '0',
           quarks: [['p\u0305', 0xe8927c], ['p\u0305', 0xe8927c], ['n\u0305', 0x9db4cc], ['n\u0305', 0x9db4cc]],
           note: '2011 \u5E74 RHIC \u53D1\u73B0 \u2014 \u8FC4\u4ECA\u6700\u91CD\u7684\u53CD\u7269\u8D28\u539F\u5B50\u6838' },
@@ -195,7 +195,7 @@
         for (let j = i + 1; j < balls.length; j++)
           compGroup.add(fluxTube(balls[i].position.clone(), balls[j].position.clone(), 0.6));
       if (c.electron) {
-        const cnt = kind === 'h' ? 1 : 2;
+        const cnt = c.electrons || 1;
         for (let e = 0; e < cnt; e++) {
           const pivot = new THREE.Group(); pivot.rotation.y = (e / cnt) * Math.PI;
           const orb = new THREE.Mesh(new THREE.TorusGeometry(2.6, 0.012, 6, 64),
