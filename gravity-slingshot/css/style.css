@@ -1,575 +1,235 @@
-/* gravity-slingshot/css/style.css - 3D 引力弹弓现代航天风格样式表 */
-:root {
-  --bg: #050811;
-  --panel-bg: rgba(11, 17, 32, 0.85);
-  --panel-border: rgba(56, 189, 248, 0.2);
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
-  --accent-gold: #f59e0b;
-  --accent-green: #22c55e;
-  --accent-cyan: #38bdf8;
-  --accent-orange: #f97316;
-  --accent-purple: #a855f7;
-  --btn-bg: #1e293b;
-  --btn-hover: #334155;
-  --font: 'Outfit', system-ui, -apple-system, sans-serif;
-}
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #05080f;
+      color: #e2e8f0;
+      font-family: 'Outfit', -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
 
-*, *::before, *::after {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+    header {
+      padding: 10px 24px;
+      background: linear-gradient(180deg, #0d1117 0%, #080c15 100%);
+      border-bottom: 1px solid #1e293b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    header h1 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      background: linear-gradient(135deg, #38bdf8, #818cf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    header p { font-size: 0.75rem; color: #64748b; }
 
-html, body {
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background-color: var(--bg);
-  color: var(--text-main);
-  font-family: var(--font);
-  user-select: none;
-}
+    .container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
 
-#stage {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-}
+    .canvas-container {
+      flex: 1;
+      position: relative;
+      background: radial-gradient(ellipse at 10% 50%, #0c1220 0%, #040609 100%);
+    }
+    canvas { width: 100%; height: 100%; display: block; }
 
-/* 返回首页按钮 */
+    /* 右侧任务面板 */
+    .mission-panel {
+      width: 290px;
+      background: rgba(13, 17, 23, 0.97);
+      border-left: 1px solid #1e293b;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    .mission-panel::-webkit-scrollbar { width: 4px; }
+    .mission-panel::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+
+    .section {
+      background: #111827;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #1e293b;
+    }
+    .section-title {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+
+    /* 速度显示 */
+    .speed-display {
+      text-align: center;
+      padding: 10px 0;
+    }
+    .speed-value {
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #4ade80, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .speed-unit { font-size: 0.75rem; color: #64748b; }
+    .speed-sub {
+      font-size: 0.78rem;
+      margin-top: 4px;
+    }
+    .speed-gain { color: #4ade80; }
+    .speed-loss { color: #f87171; }
+
+    /* 飞行日志 */
+    .log-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 0;
+      border-bottom: 1px solid #1e293b;
+      font-size: 0.78rem;
+    }
+    .log-item:last-child { border-bottom: none; }
+    .log-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      border: 2px solid;
+      transition: all 0.3s;
+    }
+    .log-dot.visited {
+      box-shadow: 0 0 6px currentColor;
+    }
+    .log-name { flex: 1; color: #94a3b8; }
+    .log-name.visited { color: #e2e8f0; font-weight: 500; }
+    .log-speed { font-family: monospace; font-size: 0.72rem; color: #4ade80; }
+
+    /* 控制按钮 */
+    .ctrl-row {
+      display: flex;
+      gap: 8px;
+    }
+    .ctrl-btn {
+      flex: 1;
+      padding: 8px;
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #e2e8f0;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .ctrl-btn:hover { background: #334155; }
+    .ctrl-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.73rem;
+      color: #94a3b8;
+      margin-bottom: 3px;
+    }
+    .ctrl-label .val { color: #38bdf8; font-family: monospace; }
+    input[type="range"] {
+      width: 100%;
+      accent-color: #3b82f6;
+      cursor: pointer;
+      margin-bottom: 8px;
+    }
+
+    /* 画布上的浮层 */
+    .hud-speed {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: rgba(5, 8, 15, 0.85);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: #cbd5e1;
+      pointer-events: none;
+    }
+    .hud-row { display: flex; justify-content: space-between; gap: 14px; margin-bottom: 3px; }
+    .hud-row:last-child { margin-bottom: 0; }
+
+    .hud-legend {
+      position: absolute;
+      bottom: 14px;
+      left: 14px;
+      background: rgba(5, 8, 15, 0.85);
+      border: 1px solid rgba(56, 189, 248, 0.15);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 0.7rem;
+      color: #94a3b8;
+      pointer-events: none;
+    }
+    .legend-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+    .legend-row:last-child { margin-bottom: 0; }
+    .leg-line { width: 20px; height: 2px; border-radius: 1px; flex-shrink: 0; }
+
+    /* 任务状态 */
+    .mission-status {
+      text-align: center;
+      font-size: 0.82rem;
+      color: #fbbf24;
+      padding: 6px;
+      background: rgba(251, 191, 36, 0.08);
+      border-radius: 6px;
+      min-height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+/* ── Back-to-home button (shared across all pages) ── */
 #homeBtn {
   position: fixed;
   top: 14px;
   left: 14px;
-  z-index: 50;
-  display: flex;
+  z-index: 100;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  min-height: 44px;
-  min-width: 44px;
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: 10px;
-  color: #f1f5f9;
-  font-size: 0.88rem;
-  font-weight: 600;
-  text-decoration: none;
-  backdrop-filter: blur(10px);
-  transition: background 0.2s, border-color 0.2s, transform 0.2s;
-}
-
-#homeBtn:hover {
-  background: var(--btn-hover);
-  border-color: var(--accent-cyan);
-  transform: translateY(-2px);
-}
-
-/* 顶部标题栏与任务预设栏 */
-header {
-  position: fixed;
-  top: 14px;
-  left: 120px;
-  right: 14px;
-  z-index: 40;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  pointer-events: none;
-}
-
-header > * {
-  pointer-events: auto;
-}
-
-.header-title-box {
-  background: var(--panel-bg);
-  padding: 8px 16px;
-  border-radius: 12px;
-  border: 1px solid var(--panel-border);
-  backdrop-filter: blur(10px);
-}
-
-h1 {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.subtitle {
-  font-size: 0.76rem;
-  color: var(--text-muted);
-  margin-top: 2px;
-}
-
-#missionBar {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--panel-bg);
-  padding: 6px 10px;
-  border-radius: 12px;
-  border: 1px solid var(--panel-border);
-  backdrop-filter: blur(10px);
-  overflow-x: auto;
-}
-
-.mission-btn {
-  padding: 6px 12px;
-  min-height: 44px;
-  background: var(--btn-bg);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #cbd5e1;
-  font-size: 0.78rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.mission-btn:hover {
-  background: var(--btn-hover);
-  color: #fff;
-  border-color: var(--accent-cyan);
-}
-
-.mission-btn.active {
-  background: rgba(56, 189, 248, 0.25);
-  border-color: var(--accent-cyan);
-  color: #38bdf8;
-  box-shadow: 0 0 12px rgba(56, 189, 248, 0.3);
-}
-
-/* 顶部工具栏 */
-#tools {
-  position: fixed;
-  top: 80px;
-  left: 14px;
-  z-index: 40;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.tool-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  color: #cbd5e1;
-  font-size: 1.15rem;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  backdrop-filter: blur(10px);
-  transition: all 0.2s;
-}
-
-.tool-btn:hover {
-  background: var(--btn-hover);
-  border-color: var(--accent-cyan);
-  transform: scale(1.05);
-}
-
-.tool-btn.active {
-  background: rgba(56, 189, 248, 0.25);
-  border-color: var(--accent-cyan);
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.35);
-}
-
-/* 左下角参考系与几何调控浮动条 */
-#physicsControlBar {
-  position: fixed;
-  bottom: 20px;
-  left: 14px;
-  z-index: 40;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  padding: 12px 14px;
-  border-radius: 14px;
+  gap: 7px;
+  height: 38px;
+  padding: 0 18px 0 14px;
+  background: rgba(15, 23, 42, 0.82);
   backdrop-filter: blur(12px);
-  max-width: 380px;
-}
-
-.control-group-title {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--accent-cyan);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.toggle-pills {
-  display: flex;
-  gap: 6px;
-}
-
-.pill-btn {
-  flex: 1;
-  padding: 6px 10px;
-  min-height: 44px;
-  background: var(--btn-bg);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  color: #cbd5e1;
-  font-size: 0.78rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-}
-
-.pill-btn:hover {
-  background: var(--btn-hover);
-  border-color: var(--accent-cyan);
-}
-
-.pill-btn.active {
-  background: rgba(56, 189, 248, 0.25);
-  border-color: var(--accent-cyan);
-  color: #38bdf8;
-  box-shadow: 0 0 10px rgba(56, 189, 248, 0.25);
-}
-
-.pill-btn.gold.active {
-  background: rgba(245, 158, 11, 0.25);
-  border-color: var(--accent-gold);
-  color: #f59e0b;
-}
-
-.pill-btn.purple.active {
-  background: rgba(168, 85, 247, 0.25);
-  border-color: var(--accent-purple);
-  color: #c084fc;
-}
-
-/* 右侧任务控制与真实物理数据面板 */
-#telemetryPanel {
-  position: fixed;
-  top: 80px;
-  right: 14px;
-  bottom: 20px;
-  width: 340px;
-  z-index: 40;
-  background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
-  border-radius: 14px;
-  padding: 16px;
-  backdrop-filter: blur(12px);
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  overflow-y: auto;
-}
-
-.hud-speed-box {
-  background: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(56, 189, 248, 0.25);
-  border-radius: 10px;
-  padding: 12px;
-  text-align: center;
-}
-
-.big-speed-num {
-  font-size: 2.2rem;
-  font-weight: 900;
-  color: var(--accent-green);
-  font-feature-settings: 'tnum';
-  line-height: 1;
-}
-
-.big-speed-unit {
-  font-size: 0.76rem;
-  color: var(--text-muted);
-  margin-top: 4px;
-}
-
-.speed-gain-badge {
-  display: inline-block;
-  margin-top: 6px;
-  padding: 3px 8px;
-  border-radius: 999px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  background: rgba(34, 197, 94, 0.15);
-  color: var(--accent-green);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-}
-
-.speed-gain-badge.negative {
-  background: rgba(239, 68, 68, 0.15);
-  color: #ef4444;
-  border-color: rgba(239, 68, 68, 0.3);
-}
-
-/* 遥测数据行 */
-.telemetry-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-size: 0.78rem;
-}
-
-.t-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 5px 8px;
-  background: rgba(15, 23, 42, 0.6);
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-.t-lbl {
-  color: var(--text-muted);
-}
-
-.t-val {
-  font-weight: 700;
-  font-feature-settings: 'tnum';
-}
-
-/* 矢量图例 */
-.vector-legend {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px 10px;
-  background: rgba(15, 23, 42, 0.5);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  font-size: 0.74rem;
-}
-
-.v-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.v-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-/* 飞行日志阶段轴 */
-.log-timeline {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  max-height: 180px;
-  overflow-y: auto;
-  padding-right: 4px;
-}
-
-.stage-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 8px;
-  border-radius: 8px;
-  background: rgba(15, 23, 42, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  font-size: 0.75rem;
-  transition: background 0.2s;
-}
-
-.stage-item.current {
-  background: rgba(56, 189, 248, 0.15);
-  border-color: var(--accent-cyan);
-}
-
-.stage-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #64748b;
-  flex-shrink: 0;
-}
-
-.stage-item.passed .stage-dot {
-  background: var(--accent-green);
-  box-shadow: 0 0 6px var(--accent-green);
-}
-
-.stage-info {
-  flex: 1;
-}
-
-.stage-name {
-  font-weight: 700;
-  color: #f1f5f9;
-}
-
-.stage-detail {
-  font-size: 0.68rem;
-  color: var(--text-muted);
-}
-
-/* 播放控制条 */
-.playback-bar {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.sim-slider-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 0.75rem;
-}
-
-input[type="range"] {
-  accent-color: var(--accent-cyan);
-  cursor: pointer;
-}
-
-/* 原理解释折叠面板 */
-.theory-card {
-  border: 1px solid rgba(245, 158, 11, 0.3);
-  background: rgba(245, 158, 11, 0.06);
-  border-radius: 10px;
-  padding: 10px 12px;
-  font-size: 0.76rem;
-  line-height: 1.55;
-  color: #fef08a;
-}
-
-.theory-card summary {
-  cursor: pointer;
-  font-weight: 700;
-  color: #f59e0b;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.theory-card p {
-  margin-top: 6px;
-  color: #fde68a;
-}
-
-/* 导览对话气泡 (Tour overlay) */
-#tourDialog {
-  position: fixed;
-  top: 140px;
-  left: 76px;
-  max-width: 360px;
-  z-index: 60;
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid var(--accent-cyan);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-  border-radius: 14px;
-  padding: 16px;
-  backdrop-filter: blur(16px);
-  display: none;
-}
-
-#tourDialog.visible {
-  display: block;
-}
-
-.tour-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-weight: 800;
-  color: var(--accent-cyan);
-  font-size: 0.92rem;
-  margin-bottom: 8px;
-}
-
-.tour-body {
-  font-size: 0.82rem;
-  line-height: 1.6;
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 19px;
   color: #e2e8f0;
-}
-
-.tour-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.tour-btn {
-  padding: 6px 12px;
-  min-height: 44px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: var(--btn-bg);
-  color: #fff;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
   cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  transition: background 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
 }
+#homeBtn:hover {
+  background: rgba(30, 41, 59, 0.95);
+  border-color: rgba(148, 163, 184, 0.45);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+#homeBtn:active { transform: translateY(0); }
 
-.tour-btn.primary {
-  background: #0284c7;
-  border-color: var(--accent-cyan);
-}
-
-/* 响应式适配 */
-@media (max-width: 1024px) {
-  header {
-    left: 70px;
-  }
-  #telemetryPanel {
-    width: 290px;
-  }
-}
-
-@media (max-width: 768px) {
-  header {
-    position: relative;
-    top: 0;
-    left: 0;
-    right: 0;
-    padding: 60px 14px 10px;
-  }
-  #tools {
-    top: auto;
-    bottom: 20px;
-    left: 14px;
-    flex-direction: row;
-    flex-wrap: wrap;
-    max-width: calc(100% - 28px);
-  }
-  #telemetryPanel {
-    position: relative;
-    top: auto;
-    right: auto;
-    bottom: auto;
-    width: 100%;
-    max-height: 40vh;
-  }
-  #physicsControlBar {
-    position: relative;
-    bottom: auto;
-    left: auto;
-    width: 100%;
-    max-width: 100%;
-  }
-}
+/* ── make room for the fixed #homeBtn ── */
+header { padding-left: 132px; }
+@media (max-width: 720px) { header { padding-left: 24px; } }

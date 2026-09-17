@@ -3,208 +3,117 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>引力弹弓 3D — 太阳系航行与轨道力学仿真</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+  <title>引力弹弓 — 太阳系航行模拟</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-  <!-- 返回首页 -->
+  <!-- Back to home (shared) -->
   <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
 
-  <!-- 3D 渲染舞台 -->
-  <div id="stage"></div>
 
-  <!-- 顶部标题栏与任务预设 -->
   <header>
-    <div class="header-title-box">
-      <h1>🪐 引力弹弓 3D · 太阳系轨道力学</h1>
-      <p class="subtitle">双参考系对照 · 真实矢量三角形 · 动量转移与行星摄动物理仿真</p>
-    </div>
-
-    <div id="missionBar">
-      <button class="mission-btn active" data-mission="VOYAGER_2">🚀 旅行者2号 (大旅行)</button>
-      <button class="mission-btn" data-mission="PARKER_SOLAR_PROBE">☀️ 帕克探测器 (减速弹弓)</button>
-      <button class="mission-btn" data-mission="ULYSSES">🧭 尤利西斯号 (极区变轨 80.2°)</button>
-      <button class="mission-btn" data-mission="NEW_HORIZONS">⚡ 新视野号 (木星极速)</button>
+    <div>
+      <h1>🚀 引力弹弓 — 太阳系航行模拟</h1>
+      <p>模拟旅行者号探测器利用行星引力弹弓穿越太阳系的壮举</p>
     </div>
   </header>
 
-  <!-- 左侧工具栏 -->
-  <nav id="tools">
-    <button class="tool-btn" id="btnPlay" title="播放 / 暂停 (Space)">⏸</button>
-    <button class="tool-btn" id="btnReset" title="重新开始飞掠 (R)">🔄</button>
-    <button class="tool-btn active" id="btnVectors" title="3D 速度合成矢量三角形">📐</button>
-    <button class="tool-btn" id="btnGravityWell" title="时空曲率/引力势阱漏斗网格">🌀</button>
-    <button class="tool-btn" id="btnTour" title="导览讲解 (分步教学)">🎬</button>
-    <button class="tool-btn" id="btnSound" title="音效开关">🔇</button>
-  </nav>
+  <div class="container">
+    <div class="canvas-container">
+      <canvas id="simCanvas"></canvas>
 
-  <!-- 左下角核心物理控制卡片 -->
-  <div id="physicsControlBar">
-    <div class="control-group-title">
-      <span>📐 观测参考系 (Reference Frame)</span>
-    </div>
-    <div class="toggle-pills" id="framePills">
-      <button class="pill-btn active" data-frame="HELIOCENTRIC">☀️ 太阳参考系</button>
-      <button class="pill-btn" data-frame="PLANETOCENTRIC">🪐 行星参考系</button>
-    </div>
+      <div class="hud-speed">
+        <div class="hud-row"><span>当前速度:</span><span id="hudSpeed" style="color:#4ade80">0 km/s</span></div>
+        <div class="hud-row"><span>引力弹弓增速:</span><span id="hudGain" style="color:#38bdf8">+0 km/s</span></div>
+        <div class="hud-row"><span>引力加速度:</span><span id="hudGrav" style="color:#fb923c">0</span></div>
+      </div>
 
-    <div class="control-group-title" style="margin-top:6px;">
-      <span>🎯 飞掠几何模式 (Flyby Geometry)</span>
-    </div>
-    <div class="toggle-pills" id="geomPills">
-      <button class="pill-btn active" data-geom="TRAILING" title="轨道后方掠过：借走行星动能加速">🟢 增速 (后方掠过)</button>
-      <button class="pill-btn" data-geom="LEADING" title="轨道前方掠过：受引力拖慢减速">🔴 减速 (前方掠过)</button>
-      <button class="pill-btn purple" data-geom="POLAR" title="极区上空掠过：扭转轨道空间倾角">🟣 倾角 (极区翻转)</button>
-    </div>
-
-    <div class="control-group-title" style="margin-top:6px;">
-      <span>🎥 机位视角 (Camera Presets)</span>
-    </div>
-    <div class="toggle-pills" id="camPills">
-      <button class="pill-btn active" data-cam="OVERVIEW">🔭 太阳系全局</button>
-      <button class="pill-btn" data-cam="PLANET_FOCUS">🪐 行星近景</button>
-      <button class="pill-btn" data-cam="FOLLOW">🛰️ 飞船跟随</button>
-      <button class="pill-btn" data-cam="EARTH_LAUNCH" title="相机固定在地球发射场，抬头看火箭爬升入逃逸双曲线">🚀 从地球看发射</button>
-    </div>
-
-    <!-- 🚀 发射段控制（仅 EARTH_LAUNCH 视角显示） -->
-    <div id="launchPanel" style="display:none;">
-      <div class="control-group-title" style="margin-top:6px;">
-        <span>🚀 发射段 · 地球逃逸双曲线</span>
-      </div>
-      <label style="font-size:0.72rem;color:#94a3b8;display:block;">
-        双曲超额速度 v∞ = <span id="launchVInfVal" style="color:#fbbf24;font-weight:700;">9.3</span> km/s
-        <input type="range" id="launchVInf" min="3" max="12" step="0.1" value="9.3" style="width:100%;">
-      </label>
-      <p style="font-size:0.7rem;color:#64748b;line-height:1.5;margin:4px 0 0;">
-        1977-08-20 14:29 UT · 卡纳维拉尔角 SLC-41 · 泰坦三号E-半人马座。<br>
-        v∞ 决定逃逸双曲线的"张开"程度：v∞ 越大 → e 越小 → 转角 δ 越小。
-      </p>
-    </div>
-
-    <p id="frameTipText" style="font-size:0.72rem;color:#94a3b8;line-height:1.5;margin-top:4px;">
-      ☀️ <strong>太阳参考系：</strong>行星以轨道速度 V 移动。双曲转向后的相对速度与行星速度矢量相加，<strong>v_总 = V_行星 + v_相对</strong>，太阳系航速发生跃升！
-    </p>
-  </div>
-
-  <!-- 右侧遥测与物理面板 -->
-  <div id="telemetryPanel">
-    <!-- 航天器速度仪表 -->
-    <div class="hud-speed-box">
-      <div style="font-size:0.75rem;color:var(--text-muted);">航天器太阳系绝对航速</div>
-      <div class="big-speed-num" id="bigSpeed">36.0</div>
-      <div class="big-speed-unit">km/s (千米/秒)</div>
-      <div class="speed-gain-badge" id="speedGainBadge">+0.0 km/s 速度跃迁</div>
-    </div>
-
-    <!-- 真实物理遥测表格 -->
-    <div class="telemetry-grid">
-      <div class="t-row">
-        <span class="t-lbl">双曲相对速度 v_rel</span>
-        <span class="t-val" id="hudVRel" style="color:var(--accent-cyan)">10.8 km/s</span>
-      </div>
-      <div class="t-row">
-        <span class="t-lbl">双曲偏心率 e</span>
-        <span class="t-val" id="hudEcc" style="color:var(--accent-cyan)">1.561</span>
-      </div>
-      <div class="t-row">
-        <span class="t-lbl">飞掠转角 δ</span>
-        <span class="t-val" id="hudDeflection" style="color:var(--accent-purple)">79.7°</span>
-      </div>
-      <div class="t-row">
-        <span class="t-lbl">近拱点速度 v_p</span>
-        <span class="t-val" id="hudVPeri" style="color:var(--accent-cyan)">22.4 km/s</span>
-      </div>
-      <div class="t-row">
-        <span class="t-lbl">近拱点距离 rp</span>
-        <span class="t-val" id="hudRp" style="color:var(--accent-cyan)">645,000 km</span>
-      </div>
-      <div class="t-row">
-        <span class="t-lbl">数据认证</span>
-        <span class="t-val" id="hudEncounter" style="color:#6ee7b7">—</span>
-      </div>
-      <div class="t-row">
-        <span class="t-lbl">引力加速度 a_grav</span>
-        <span class="t-val" id="hudGravAcc" style="color:var(--accent-orange)">0.00 m/s²</span>
-      </div>
-      <div class="t-row">
-        <span class="t-lbl">行星微观减速 ΔV_p</span>
-        <span class="t-val" id="hudPlanetSlow" style="color:#fcd34d">3.95e-21 m/s</span>
-      </div>
-      <div class="t-row">
-        <span class="t-lbl">转移轨道动能 ΔEk</span>
-        <span class="t-val" id="hudEnergyDelta" style="color:var(--accent-green)">+148.0 GJ</span>
+      <div class="hud-legend">
+        <div class="legend-row"><div class="leg-line" style="background:#38bdf8"></div><span>实际轨道 (引力弹弓)</span></div>
+        <div class="legend-row"><div class="leg-line" style="background:repeating-linear-gradient(90deg,#f472b6 0 4px,transparent 4px 7px)"></div><span>无行星时直线轨道</span></div>
+        <div class="legend-row"><div class="leg-line" style="background:#fb923c"></div><span>引力 (指向行星)</span></div>
       </div>
     </div>
 
-    <!-- 矢量图例 -->
-    <div class="vector-legend">
-      <div style="font-weight:700;color:#cbd5e1;margin-bottom:2px;">3D 速度合成三角形图例:</div>
-      <div class="v-item"><div class="v-dot" style="background:#22c55e"></div><span>v_总: 太阳系航速 (Green)</span></div>
-      <div class="v-item"><div class="v-dot" style="background:#f59e0b"></div><span>V_p: 行星公转速度 (Gold)</span></div>
-      <div class="v-item"><div class="v-dot" style="background:#06b6d4"></div><span>v_rel: 相对超速 (Cyan)</span></div>
-      <div class="v-item"><div class="v-dot" style="background:#f97316"></div><span>F_g: 万有引力指向 (Orange)</span></div>
-    </div>
+    <!-- 任务面板 -->
+    <div class="mission-panel">
 
-    <!-- 任务飞行日志 -->
-    <div style="font-size:0.75rem;font-weight:700;color:var(--accent-cyan);margin-top:2px;">
-      📋 任务阶段里程碑 (Flight Log)
-    </div>
-    <div class="log-timeline" id="logTimeline">
-      <!-- 由 JS 动态渲染阶段 -->
-    </div>
-
-    <!-- 仿真速度滑块 -->
-    <div class="sim-slider-wrap">
-      <div style="display:flex;justify-content:space-between;color:var(--text-muted);">
-        <span>仿真推演流速</span>
-        <span id="speedVal" style="color:#fff;font-weight:700;">1.0×</span>
+      <div class="section">
+        <div class="section-title">📡 任务状态</div>
+        <div class="mission-status" id="missionStatus">🌍 从地球出发，目标：木星</div>
       </div>
-      <input type="range" id="speedSlider" min="0.2" max="3.0" step="0.1" value="1.0">
-    </div>
 
-    <!-- 科学原理深入剖析卡片 -->
-    <details class="theory-card">
-      <summary>📖 为什么引力是保守场，却能给飞船加速？</summary>
-      <p id="missionDescText">
-        <strong>动网球拍物理模型：</strong> 当球拍以速度 V 迎面击球，静止系中反弹球速最大可达 u + 2V！<br><br>
-        <strong>严格动量守恒：</strong> 探测器增加的动量，全部来自行星！m_飞船 × Δv = M_行星 × ΔV。由于木星质量重达 1.9×10²⁷ kg，旅行者号借走 10.5 km/s 速度只让木星轨道减慢了 3.95×10⁻²¹ m/s（相当于 50 亿年累积偏差还不到原子直径），天体物理规律严密自洽！
-      </p>
-    </details>
-  </div>
+      <div class="section">
+        <div class="section-title">⚡ 航天器速度</div>
+        <div class="speed-display">
+          <div class="speed-value" id="bigSpeed">0</div>
+          <div class="speed-unit">km/s</div>
+          <div class="speed-sub">引力弹弓总增益: <span class="speed-gain" id="totalGain">+0.0 km/s</span></div>
+        </div>
+      </div>
 
-  <!-- 分步导览弹窗 -->
-  <div id="tourDialog">
-    <div class="tour-header">
-      <span class="tour-title">导览讲解</span>
-      <span class="tour-step-count" style="font-size:0.75rem;color:var(--text-muted)">1 / 5</span>
-    </div>
-    <div class="tour-body"></div>
-    <div class="tour-actions">
-      <button class="tour-btn" id="tourPrevBtn">上一步</button>
-      <button class="tour-btn primary" id="tourNextBtn">下一步 →</button>
-      <button class="tour-btn" id="tourCloseBtn">退出</button>
+      <div class="section">
+        <div class="section-title">📋 飞行日志</div>
+        <div id="flightLog">
+          <div class="log-item">
+            <div class="log-dot visited" style="border-color:#3b82f6;color:#3b82f6;background:#3b82f6"></div>
+            <span class="log-name visited">🌍 地球 (出发)</span>
+            <span class="log-speed" id="logEarth">—</span>
+          </div>
+          <div class="log-item">
+            <div class="log-dot" id="dotJupiter" style="border-color:#f59e0b;color:#f59e0b"></div>
+            <span class="log-name" id="nameJupiter">🪐 木星</span>
+            <span class="log-speed" id="logJupiter">等待中…</span>
+          </div>
+          <div class="log-item">
+            <div class="log-dot" id="dotSaturn" style="border-color:#fbbf24;color:#fbbf24"></div>
+            <span class="log-name" id="nameSaturn">🪐 土星</span>
+            <span class="log-speed" id="logSaturn">等待中…</span>
+          </div>
+          <div class="log-item">
+            <div class="log-dot" id="dotUranus" style="border-color:#67e8f9;color:#67e8f9"></div>
+            <span class="log-name" id="nameUranus">⭐ 天王星</span>
+            <span class="log-speed" id="logUranus">等待中…</span>
+          </div>
+          <div class="log-item">
+            <div class="log-dot" id="dotNeptune" style="border-color:#818cf8;color:#818cf8"></div>
+            <span class="log-name" id="nameNeptune">🔵 海王星</span>
+            <span class="log-speed" id="logNeptune">等待中…</span>
+          </div>
+          <div class="log-item">
+            <div class="log-dot" id="dotEscape" style="border-color:#a78bfa;color:#a78bfa"></div>
+            <span class="log-name" id="nameEscape">🌌 飞出太阳系</span>
+            <span class="log-speed" id="logEscape">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">🎮 控制</div>
+        <div class="ctrl-label"><span>动画速度</span><span class="val" id="valSpeed">0.35×</span></div>
+        <input type="range" id="sliderSpeed" min="0.1" max="1.0" step="0.05" value="0.35" oninput="updateSpeed()">
+        <div class="ctrl-row">
+          <button class="ctrl-btn" id="btnPlay" onclick="togglePlay()">⏸ 暂停</button>
+          <button class="ctrl-btn" onclick="resetSim()">🔄 重新发射</button>
+        </div>
+      </div>
+
+      <div class="section" style="background:#0c0f1a;border-color:#312e81;">
+        <div class="section-title" style="color:#a78bfa;">📖 你知道吗？</div>
+        <p style="font-size:0.72rem;color:#a5b4fc;line-height:1.55;">
+          <strong>旅行者2号</strong> 于1977年从地球发射，先后利用了
+          <strong>木星</strong>(1979)、<strong>土星</strong>(1981)、
+          <strong>天王星</strong>(1986)、<strong>海王星</strong>(1989)
+          的引力弹弓加速，最终于2018年飞出太阳系日球层！<br><br>
+          每次飞掠，行星的公转动能就"送"给航天器一点速度。
+          观察<span style="color:#fb923c">橙色箭头</span>——那就是每颗行星对航天器施加的引力！
+        </p>
+      </div>
+
     </div>
   </div>
 
-  <script>
-    window.__errs = [];
-    window.addEventListener('error', e => window.__errs.push(e.message));
-  </script>
-  <script async src="https://ga.jspm.io/npm:es-module-shims@1.10.0/dist/es-module-shims.js"></script>
-  <script type="importmap">
-  {
-    "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
-    }
-  }
-  </script>
-
-  <script type="module" src="js/main.js"></script>
+  <script src="js/main.js"></script>
 </body>
 </html>
