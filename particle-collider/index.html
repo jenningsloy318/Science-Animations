@@ -154,6 +154,19 @@
   #flightCaption.show{opacity:1}
 
   /* ---------- collision sequence caption ---------- */
+  #particleBar{display:none; position:fixed; z-index:16; left:50%; bottom:64px; transform:translateX(-50%);
+    gap:6px; flex-wrap:wrap; max-width:min(94vw,760px); justify-content:center}
+  body[data-view="particles"] #particleBar{display:flex}
+  .pc-chip{border:1px solid var(--line); background:rgba(255,255,255,.04); color:#c9d2dc;
+    font:600 11.5px/1 inherit; padding:7px 11px; border-radius:999px; cursor:pointer; white-space:nowrap}
+  .pc-chip:hover{color:#fff; border-color:var(--line2)}
+  .pc-chip.active{color:#f0e6c8; border-color:rgba(216,178,92,.6); background:rgba(216,178,92,.12)}
+  #particleInfo{display:none; position:fixed; z-index:20; left:18px; bottom:96px; width:280px;
+    background:rgba(10,14,20,.92); border:1px solid rgba(216,178,92,.35); border-radius:10px;
+    padding:12px 14px; color:var(--muted); font-size:12px; line-height:1.55}
+  #particleInfo.show{display:block}
+  #particleInfo b{display:block; color:#f0e6c8; font-size:14px; margin-bottom:4px}
+  #particleInfo .pi-row{display:block; color:#9fb4c9; margin-bottom:4px}
   #collCaption{display:none; position:fixed; z-index:18; left:50%; bottom:150px; transform:translateX(-50%);
     width:min(720px, calc(100vw - 40px)); text-align:center;
     background:var(--panel2); border:1px solid rgba(216,178,92,.45); color:#f0e6c8;
@@ -298,6 +311,7 @@
       <button class="tab active" data-view="detector">Detector</button>
       <button class="tab" data-view="ring">Accelerator</button>
       <button class="tab" data-view="collision">Collisions</button>
+      <button class="tab" data-view="particles">粒子家族</button>
     </nav>
     <div class="topright">
       <span id="disclaimer" class="disclaimer"></span>
@@ -333,6 +347,8 @@
 
   <div id="flightCaption"></div>
   <div id="collCaption"></div>
+  <div id="particleBar"></div>
+  <div id="particleInfo"></div>
 
   <footer id="bottombar">
     <div id="transport">
@@ -415,6 +431,7 @@
   <script src="js/ring.js?v=20260917b"></script>
   <script src="js/ppevents.js?v=20260917b"></script>
   <script src="js/collision.js?v=20260917b"></script>
+  <script src="js/particles.js?v=20260917b"></script>
   <script src="js/ui.js?v=20260917b"></script>
   <script src="js/main.js?v=20260917b"></script>
   <!-- SCRIPTS:END -->

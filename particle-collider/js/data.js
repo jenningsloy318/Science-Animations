@@ -241,6 +241,16 @@ APP.DATA = {
       { phase:'done',     cap:'Event measured.' },
     ] },
 
+  particles: {
+    title: 'The particle zoo \u2014 known particles',
+    body: 'The Standard Model contains 17 elementary particles: 6 quarks, 6 leptons, 4 force carriers and the Higgs. '
+        + 'Quarks never live alone - triplets form baryons (proton, neutron), quark-antiquark pairs form mesons, '
+        + 'and nucleons build nuclei that with electrons make every atom. Click any sphere for its data.',
+    facts: ['61 SM particles in total incl. colour states; 17 shown here',
+            'Masses: PDG rounded values; quark masses are scheme-dependent',
+            'Neutrino masses are tiny but non-zero (oscillations prove it)'],
+  },
+
   credits: [
     { t:'CERN \u2014 The Large Hadron Collider', u:'https://home.cern/science/accelerators/large-hadron-collider' },
     { t:'CERN \u2014 ATLAS experiment', u:'https://home.cern/science/experiments/atlas' },
@@ -475,6 +485,16 @@ APP.DATA.zh = {
       { phase:'done',     cap:'事件测量完成。' },
     ] },
 
+  particles: {
+    title: '粒子家族 —— 已知的粒子',
+    body: '标准模型包含 17 种基本粒子：6 种夸克、6 种轻子、4 种力传递粒子与希格斯玻色子。'
+        + '夸克从不单独存在 —— 三结合成重子（质子、中子），夸克-反夸克对构成介子；'
+        + '核子组成原子核，加上电子就是原子 —— 这就是身边的一切物质。点击任意球体查看数据。',
+    facts: ['含色荷态共 61 种粒子，这里展示 17 种基本粒子',
+            '质量为 PDG 取整值；夸克质量依赖理论方案（方案相关）',
+            '中微子质量极小但非零（振荡实验证明）'],
+  },
+
   credits:[
     { t:'CERN — 大型强子对撞机（英文）', u:'https://home.cern/science/accelerators/large-hadron-collider' },
     { t:'CERN — ATLAS 实验（英文）', u:'https://home.cern/science/experiments/atlas' },
@@ -500,6 +520,7 @@ APP.DATA.ui = {
   'tab.detector':    { en:'Detector',    zh:'探测器' },
   'tab.ring':        { en:'Accelerator', zh:'加速器' },
   'tab.collision':   { en:'Collisions',  zh:'对撞' },
+  'tab.particles':   { en:'Particles',   zh:'粒子家族' },
   'brand.sub':       { en:'LHC · ATLAS-inspired — educational', zh:'LHC · ATLAS 灵感 — 科普可视化' },
   'panel.systems':   { en:'Detector systems', zh:'探测器系统' },
   'panel.note':      { en:'Counts = parts rendered in this simplified model — hover a row for the real CERN figures. Click a system name to focus the camera and read about it.',
@@ -559,7 +580,7 @@ APP.DATA.ui = {
   'ctl.space.d':     { en:'play/pause · reverse assembly', zh:'播放/暂停 · 反向组装' },
   'ctl.arrows':      { en:'\u2190 / \u2192', zh:'\u2190 / \u2192' },
   'ctl.arrows.d':    { en:'previous / next stage', zh:'上一阶段 / 下一阶段' },
-  'ctl.views':       { en:'1 · 2 · 3', zh:'1 · 2 · 3' },
+  'ctl.views':       { en:'1 · 2 · 3 \u00b7 4', zh:'1 · 2 · 3 \u00b7 4' },
   'ctl.views.d':     { en:'Detector · Accelerator · Collisions views', zh:'探测器 · 加速器 · 对撞视图' },
   'ctl.cutaway':     { en:'C', zh:'C' },
   'ctl.cutaway.d':   { en:'toggle 3D cutaway view (reveals interior & center)', zh:'切换 3D 剖切视图（展示内部构造与中空核心）' },

@@ -106,6 +106,7 @@
     buildStageChips(app);
     buildEvChips(app);
     buildPhasePills(app);
+    buildParticleChips(app);
     const st = $('#storyTitle');
     if (st) st.textContent = tr('story.title');
     storyKey = '';                       /* re-render the log with new strings */
@@ -335,6 +336,10 @@
       const R = L().ring;
       t.textContent = R.title; b.textContent = R.body;
       f.innerHTML = R.facts.map(x => `<li>${x}</li>`).join('');
+    } else if (kind === 'particles') {
+      const E = L().particles;
+      t.textContent = E.title; b.textContent = E.body;
+      f.innerHTML = E.facts.map((x) => `<li>${x}</li>`).join('');
     } else if (kind === 'collision') {
       const C = L().collision;
       t.textContent = C.title; b.textContent = C.body;
@@ -345,8 +350,31 @@
   APP.UI.showEduForView = (view) => {
     if (view === 'ring') showEdu(null, 'ring');
     else if (view === 'collision') showEdu(null, 'collision');
+    else if (view === 'particles') showEdu(null, 'particles');
     else showEdu(null, 'overview');
   };
+  /* composite chips for the particles view */
+  function buildParticleChips(app) {
+    const box = $('#particleBar');
+    if (!box) return;
+    box.innerHTML = '';
+    const chips = [['p', '\u8D28\u5B50 p\u207A'], ['n', '\u4E2D\u5B50 n'], ['pi', '\u03C0\u207A \u4ECB\u5B50'],
+                   ['h', '\u6C22\u539F\u5B50'], ['he', '\u6C26-4\u539F\u5B50']];
+    chips.forEach(([k, label]) => {
+      const b = document.createElement('button');
+      b.className = 'pc-chip';
+      b.dataset.k = k;
+      b.textContent = label;
+      b.addEventListener('click', () => {
+        $$('#particleBar .pc-chip').forEach((c) => c.classList.remove('active'));
+        b.classList.add('active');
+        app.setComposite(k);
+      });
+      box.appendChild(b);
+    });
+    box.querySelector('.pc-chip').classList.add('active');
+  }
+  APP.UI.buildParticleChips = buildParticleChips;
   APP.UI.updateStageEdu = (app, stageIdx) => {
     if (document.body.dataset.view !== 'detector') return;
     const key = 'stage:' + stageIdx + ':' + APP.lang;

@@ -23,6 +23,7 @@
     const detector = APP.Detector.build(renderer);
     const ring = APP.Ring.build(renderer);
     const collision = APP.Collision.build(renderer);
+    const particles = APP.Particles.build(renderer);
 
     const app = {
       detector, ring, collision,
@@ -65,6 +66,7 @@
       ring: new U.Orbit(canvas, { az: 0.9, pol: 1.02, dist: 185, minDist: 70, maxDist: 420,
         onUserInput: () => { if (ring.flight.active) cancelFlight(); } }),
       collision: new U.Orbit(canvas, { az: 0.0, pol: 1.545, dist: 40, minDist: 16, maxDist: 80 }),
+      particles: new U.Orbit(canvas, { az: 0.32, pol: 1.22, dist: 33, minDist: 10, maxDist: 90 }),
     };
     const saved = {};
     for (const k of Object.keys(orbits)) saved[k] = orbits[k].save();
@@ -181,6 +183,7 @@
     app.triggerEvent = (type) => collision.trigger(undefined, type);
     app.setCollPaused = (v) => collision.setPaused(v);
     app.setCollSpeed = (v) => collision.setSpeed(v);
+    app.setComposite = (k) => particles.setComposite(k);
     app.collGotoPhase = (ph) => collision.gotoPhase(ph);
     app.collStepPhase = (d) => collision.stepPhase(d);
     app.setAuto = (v) => collision.setAuto(v);
@@ -206,6 +209,7 @@
         case '1': app.setView('detector'); break;
         case '2': app.setView('ring'); break;
         case '3': app.setView('collision'); break;
+        case '4': app.setView('particles'); break;
         case 'f': case 'F': app.startFlight(); break;
         case 'e': case 'E': if (app.view === 'collision') app.triggerEvent(); break;
         case 'h': case 'H': case '?': document.getElementById('helpModal').classList.toggle('open'); break;
@@ -244,12 +248,15 @@
         orbits.detector.update(dt, camera, 1 + pb.t * 0.32);
       } else if (app.view === 'ring') {
         orbits.ring.update(dt, camera);
+      } else if (app.view === 'particles') {
+        orbits.particles.update(dt, camera);
       } else {
         orbits.collision.update(dt, camera);
       }
 
       if (app.view === 'ring') ring.update(dt, camera);
       collision.update(dt, orbits.collision, app.view === 'collision');
+      particles.update(dt, orbits.particles, app.view === 'particles', camera);
       renderer.render(views()[app.view].scene, camera);
 
       /* fps */
@@ -260,7 +267,7 @@
         if (el) el.textContent = Math.round(fps) + ' fps';
       }
     }
-    const views = () => ({ detector, ring, collision });
+    const views = () => ({ detector, ring, collision, particles });
     loop();
 
     /* expose for debugging */
