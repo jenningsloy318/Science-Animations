@@ -21168,20 +21168,20 @@ body[data-view="topo"] #topoWrap { display: flex; }
 
   // js/topview.js
   var OBJ = [
-    { name: "\u6811", d: 10, x0: -60, color: "#e8b84b" },
-    { name: "\u623F", d: 60, x0: 40, color: "#7dd3fc" },
-    { name: "\u8FDC\u6811", d: 200, x0: 130, color: "#6ee7b7" }
+    { name: "\u6811", d: 10, x0: 45, color: "#e8b84b", hero: true },
+    { name: "\u5C71", d: 200, x0: 45, color: "#6ee7b7" }
   ];
   var P = 300;
-  var WINDOW = 300;
-  var CHART_T = 12;
+  var K0 = 1.5;
+  var CHART_T = 14;
+  var TRAIL_T = 3;
   function wrap(u) {
     return (u % P + P * 1.5) % P - P / 2;
   }
   function buildTopView() {
     const canvas2 = document.getElementById("topo");
     const ctx = canvas2.getContext("2d");
-    const state = { v_kmh: 72, dist: 0, paused: false, t: 0 };
+    const state = { v_kmh: 36, dist: 0, paused: false, t: 0 };
     const trail = OBJ.map(() => []);
     const hist = OBJ.map(() => []);
     let dpr = 1;
@@ -21196,16 +21196,16 @@ body[data-view="topo"] #topoWrap { display: flex; }
     panel.dataset.view = "topo";
     document.getElementById("sidePanel").appendChild(panel);
     panel.innerHTML = `
-    <h2>\u89C6\u7EBF\u626B\u8FC7\u7684\u89D2\u5EA6<small>\u4FEF\u89C6\u51E0\u4F55</small></h2>
+    <h2>\u626B\u89D2\u51E0\u4F55\uFF1A\u4E3A\u4EC0\u4E48\u8FD1\u7684\u5FEB<small>\u4FEF\u89C6\u56FE \xB7 \u771F\u5B9E\u6BD4\u4F8B \xB7 \u4E24\u4E2A\u76EE\u6807\u540C\u901F\u51FA\u53D1</small></h2>
     <div class="formula">\u03C9 = v\xB7d / (d\xB2 + x\xB2)</div>
-    <p class="note">\u2460 \u0394t \u5185\u8F66\u524D\u8FDB \u0394x = v\xB7\u0394t\uFF1B\u2461 tan \u0394\u03B8 \u2248 \u0394x / d\uFF1B
-    \u2462 \u5C0F\u89D2\u5EA6\u8FD1\u4F3C \u2192 \u0394\u03B8 \u2248 v\xB7\u0394t/d\uFF0C\u9664\u4EE5 \u0394t \u5F97 <b>\u03C9 \u2248 v/d</b>\uFF08x=0 \u9F50\u5E73\u65F6\u7684\u5CF0\u503C\uFF09\u3002</p>
-    <p class="note">\u4E00\u822C\u65F6\u523B\u7528\u7CBE\u786E\u5F0F\uFF1A\u6CBF\u8F68\u504F\u79FB x \u8D8A\u5927 \u03C9 \u8D8A\u5C0F\uFF0C\u6240\u4EE5\u66F2\u7EBF\u5448"\u5C71\u5CF0"\u2014\u2014
-    \u76EE\u6807\u63A0\u8FC7\u8EAB\u8FB9\u65F6\u6700\u9661\u3002\u4E09\u6761\u66F2\u7EBF\u5C31\u662F\u4E09\u5EA7\u9AD8\u5EA6\u4E0D\u540C\u7684\u5C71\u3002</p>
-    <p class="note">\u4E0A\u56FE\u4E2D\u5F69\u8272\u5C04\u7EBF\u662F\u89C6\u7EBF\uFF0C\u6D45\u8272\u4F59\u8FF9\u662F\u8FC7\u53BB\u51E0\u79D2\u7684\u89C6\u7EBF\u65B9\u5411\u2014\u2014
-    <b>\u8FD1\u7684\u76EE\u6807\u540C\u4E00\u65F6\u95F4\u626B\u8FC7\u5927\u89D2</b>\uFF0C\u8FD9\u5C31\u662F\u5927\u8111\u611F\u77E5\u5230\u7684"\u5FEB"\u3002</p>
-    <p class="note">2000 m \u7684\u9AD8\u5C71\uFF1F\u5B83\u7684\u66F2\u7EBF\u5728\u2460\u91CC\u5E73\u5F97\u51E0\u4E4E\u8D34\u5730\u2014\u2014
-    \u03C9(2000m) = 0.01 rad/s \u2248 0.57\xB0/s\uFF0C\u53EA\u6709\u5927\u6811\u7684 1/200\u3002</p>
+    <p class="note"><b>\u2460 \u53EA\u76EF\u91D1\u8272\u7684\u6811\u3002</b>\u8F66\u5411\u524D\u5F00\uFF0C\u89C6\u7EBF\u5FC5\u987B\u4E00\u76F4"\u8FFD\u7740"\u5B83\u8F6C\u3002
+    \u6811\u8EAB\u540E\u62D6\u51FA\u7684\u91D1\u8272\u6247\u9762 = \u8FC7\u53BB 3 \u79D2\u89C6\u7EBF\u626B\u8FC7\u7684\u89D2\u3002<b>\u6247\u9762\u5F20\u5F00\u5F97\u8D8A\u5927\uFF0C\u611F\u89C9\u8D8A\u5FEB\u3002</b></p>
+    <p class="note"><b>\u2461 \u540C\u4E00\u65F6\u523B\u6BD4\u4E24\u6761\u89C6\u7EBF\u3002</b>\u6811\u8FD1\uFF08d=10 m\uFF09\uFF0C\u63A0\u8FC7\u8EAB\u8FB9\u65F6 1 \u79D2\u8F6C\u51E0\u5341\u5EA6\uFF1B
+    \u5C71\u8FDC\uFF08d=200 m\uFF09\uFF0C\u4ECE\u5934\u5230\u5C3E\u6BCF\u79D2\u4E0D\u8D85\u8FC7 3\xB0\u2014\u2014\u6240\u4EE5\u5C71\u770B\u8D77\u6765"\u6C38\u8FDC\u4E0D\u52A8"\u3002</p>
+    <p class="note"><b>\u2462 \u9F50\u5E73\u7684\u4E00\u523B\u6700\u5FEB\u3002</b>\u76EE\u6807\u7A7F\u8FC7\u767D\u8272\u865A\u7EBF\u65F6 \u03C9 \u8FBE\u5230\u5CF0\u503C = v/d\u3002
+    \u8F66\u901F 36 km/h\uFF0810 m/s\uFF09\uFF1A\u6811 10\xF710 \u2248 <b>57\xB0/s</b>\uFF0C\u5C71\u8981\u9664\u4EE5 200\uFF0C\u53EA\u6709 <b>2.9\xB0/s</b>\u2014\u2014\u5DEE 20 \u500D\u3002</p>
+    <p class="note"><b>\u2463 \u4E0B\u65B9\u7684\u66F2\u7EBF</b>\u8BB0\u5F55\u6BCF\u4E00\u523B\u7684\u626B\u901F\uFF1A\u6811\u63A0\u8FC7\u8EAB\u8FB9\u65F6\u62F1\u8D77\u9AD8\u9AD8\u7684"\u5C71\u5CF0"\uFF0C
+    \u5C71\u7684\u5CF0\u53EA\u6709\u4E00\u70B9\u70B9\u2014\u2014\u8FD9\u5C31\u662F"\u8FD1\u7684\u5FEB\u3001\u8FDC\u7684\u6162"\u7684\u5168\u90E8\u79D8\u5BC6\u3002</p>
   `;
     const bar = document.createElement("div");
     bar.className = "viewbar";
@@ -21213,10 +21213,10 @@ body[data-view="topo"] #topoWrap { display: flex; }
     document.getElementById("bottomBar").appendChild(bar);
     bar.innerHTML = `
     <div class="ctl"><label>\u8F66\u901F v</label>
-      <input type="range" id="tV" min="10" max="120" step="2" value="72">
-      <output id="tVOut">72 km/h = 20.0 m/s</output></div>
+      <input type="range" id="tV" min="10" max="72" step="2" value="36">
+      <output id="tVOut">36 km/h = 10.0 m/s</output></div>
     <button class="btn" id="tPause">\u23F8 \u6682\u505C</button>
-    <button class="btn" id="tReset">\u21BA \u590D\u4F4D</button>
+    <button class="btn" id="tReset">\u21BA \u91CD\u64AD</button>
   `;
     const vS = bar.querySelector("#tV"), vOut = bar.querySelector("#tVOut");
     vS.addEventListener("input", () => {
@@ -21243,8 +21243,10 @@ body[data-view="topo"] #topoWrap { display: flex; }
         const x = wrap(o.x0 - state.dist);
         const phi = Math.atan2(o.d, x);
         if (!state.paused) {
+          const prev = trail[i][trail[i].length - 1];
+          if (prev && Math.abs(phi - prev.phi) > Math.PI / 2) trail[i].length = 0;
           trail[i].push({ t: state.t, phi });
-          while (trail[i].length && state.t - trail[i][0].t > 3) trail[i].shift();
+          while (trail[i].length && state.t - trail[i][0].t > TRAIL_T) trail[i].shift();
           hist[i].push({ t: state.t, w: toDegPerS(omegaExact(state.v_kmh * KMH_TO_MS, o.d, x)) });
           while (hist[i].length && state.t - hist[i][0].t > CHART_T) hist[i].shift();
         }
@@ -21259,21 +21261,35 @@ body[data-view="topo"] #topoWrap { display: flex; }
       const w = W / dpr, h = H / dpr;
       ctx.fillStyle = "#070b16";
       ctx.fillRect(0, 0, w, h);
-      const topH = h * 0.56, gap = 8;
+      const topH = h * 0.58, gap = 8;
       const pad = 60;
       drawTop(w, topH - gap, pad);
       drawChart(0, topH + gap + 44, w, h - topH - gap - 54, pad);
     }
-    function xToPx(x, w, pad) {
-      return pad + (x + WINDOW) / (2 * WINDOW) * (w - 2 * pad);
+    function geo(w, topH) {
+      const rect = panel.getBoundingClientRect();
+      const panelW = rect && rect.width > 40 ? rect.width : 330;
+      const roadY = topH - 34;
+      const carPx = Math.max(150, Math.min(w - panelW - 60 - 240, 780));
+      const K = K0;
+      return {
+        roadY,
+        carPx,
+        K,
+        xToPx: (x) => carPx + x * K,
+        dToPy: (d) => roadY - d * K
+      };
     }
-    function dToPy(d, topH) {
-      const lo = 108, hi = topH - 48;
-      return hi - Math.min(d, 260) / 260 * (hi - lo);
+    function sweptDeg(i, DT) {
+      const tr = trail[i];
+      const old = tr.find((s) => state.t - s.t <= DT);
+      if (!old || !tr.length) return 0;
+      return Math.abs(tr[tr.length - 1].phi - old.phi) * 180 / Math.PI;
     }
     function drawTop(w, topH, pad) {
       ctx.save();
       const y0 = 58;
+      const g = geo(w, topH);
       ctx.fillStyle = "rgba(255,255,255,0.025)";
       ctx.strokeStyle = "rgba(255,255,255,0.08)";
       roundRect(ctx, pad * 0.4, y0, w - pad * 0.8, topH - y0 - 4, 12);
@@ -21281,68 +21297,138 @@ body[data-view="topo"] #topoWrap { display: flex; }
       ctx.stroke();
       ctx.fillStyle = "#97a3b8";
       ctx.font = "13px sans-serif";
-      ctx.fillText("\u4FEF\u89C6\u56FE \xB7 \u8F66\u56FA\u5B9A\u5728\u539F\u70B9\uFF0C\u4E16\u754C\u5411\u540E\u6D41", pad * 0.4 + 16, y0 + 22);
-      const roadY = topH - 34;
+      ctx.fillText("\u4FEF\u89C6\u56FE \xB7 \u771F\u5B9E\u6BD4\u4F8B \xB7 \u8F66\u56FA\u5B9A\u5728\u539F\u70B9\uFF0C\u4E16\u754C\u5411\u540E\u6D41\uFF08\u4E24\u76EE\u6807\u540C\u901F\uFF0C\u53EA\u5DEE\u8FDC\u8FD1\uFF09", pad * 0.4 + 16, y0 + 22);
+      const roadY = g.roadY, carPx = g.carPx;
       ctx.fillStyle = "#2c303a";
       ctx.fillRect(pad * 0.4, roadY, w - pad * 0.8, 14);
       ctx.fillStyle = "rgba(255,255,255,0.25)";
-      for (let x = -WINDOW; x < WINDOW; x += 24) {
-        const xx = xToPx(wrap(x - state.dist % 24), w, pad);
-        ctx.fillRect(xx, roadY + 6, 10, 2);
+      for (let x = -P / 2; x < P / 2; x += 24) {
+        const xx = g.xToPx(wrap(x - state.dist % 24));
+        if (xx > pad * 0.4 && xx < w - pad * 0.4) ctx.fillRect(xx, roadY + 6, 10, 2);
       }
-      const carPx = xToPx(0, w, pad);
-      OBJ.forEach((o, i) => {
-        const oPx = xToPx(o.x, w, pad), oPy = dToPy(o.d, topH);
-        for (let k = 0; k < trail[i].length; k += 2) {
-          const s = trail[i][k];
-          const age = (state.t - s.t) / 3;
+      ctx.strokeStyle = "rgba(255,255,255,0.10)";
+      ctx.fillStyle = "rgba(151,163,184,0.55)";
+      ctx.font = "10px sans-serif";
+      ctx.textAlign = "center";
+      for (let a = 0; a <= 90; a += 15) {
+        const rad = a * Math.PI / 180;
+        const r1 = 34, r2 = a % 30 === 0 ? 46 : 41;
+        ctx.beginPath();
+        ctx.moveTo(carPx + Math.cos(rad) * r1, roadY - Math.sin(rad) * r1);
+        ctx.lineTo(carPx + Math.cos(rad) * r2, roadY - Math.sin(rad) * r2);
+        ctx.stroke();
+        if (a % 30 === 0 && a > 0) {
+          ctx.fillText(a + "\xB0", carPx + Math.cos(rad) * 58, roadY - Math.sin(rad) * 58 + 3);
+        }
+      }
+      ctx.textAlign = "left";
+      ctx.strokeStyle = "rgba(255,255,255,0.30)";
+      ctx.setLineDash([4, 6]);
+      ctx.beginPath();
+      ctx.moveTo(carPx, y0 + 34);
+      ctx.lineTo(carPx, roadY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = "rgba(255,255,255,0.65)";
+      ctx.font = "11px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("\u9F50\u5E73\u7EBF \u2014\u2014 \u7A7F\u8FC7\u7684\u4E00\u523B\u6700\u5FEB \u03C9 = v/d", carPx, y0 + 30);
+      ctx.textAlign = "left";
+      [10, 100, 200].forEach((dd) => {
+        const py = g.dToPy(dd);
+        if (py < y0 + 40) return;
+        ctx.strokeStyle = "rgba(255,255,255,0.07)";
+        ctx.beginPath();
+        ctx.moveTo(pad * 0.4, py);
+        ctx.lineTo(w - pad * 0.4, py);
+        ctx.stroke();
+        ctx.fillStyle = "rgba(151,163,184,0.8)";
+        ctx.font = "11px sans-serif";
+        ctx.fillText(dd + " m", pad * 0.4 + 4, py - 3);
+      });
+      const order = [1, 0];
+      order.forEach((i) => {
+        const o = OBJ[i];
+        const oPx = g.xToPx(o.x), oPy = g.dToPy(o.d);
+        const inView = oPx > pad * 0.4 - 20 && oPx < w - pad * 0.4 + 20;
+        if (o.hero && inView) {
+          const tr2 = trail[i];
+          if (tr2.length > 2) {
+            const old = tr2[0], now2 = tr2[tr2.length - 1];
+            const ccw = now2.phi > old.phi;
+            ctx.save();
+            ctx.beginPath();
+            roundRect(ctx, pad * 0.4, y0, w - pad * 0.8, topH - y0 - 4, 12);
+            ctx.clip();
+            const grad = ctx.createRadialGradient(carPx, roadY, 6, carPx, roadY, 330);
+            grad.addColorStop(0, "rgba(232,184,75,0.30)");
+            grad.addColorStop(1, "rgba(232,184,75,0.07)");
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.moveTo(carPx, roadY);
+            ctx.arc(carPx, roadY, 330, -old.phi, -now2.phi, ccw);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = "rgba(232,184,75,0.35)";
+            ctx.beginPath();
+            ctx.moveTo(carPx, roadY);
+            ctx.lineTo(carPx + Math.cos(old.phi) * 330, roadY - Math.sin(old.phi) * 330);
+            ctx.stroke();
+            ctx.restore();
+          }
+        }
+        if (inView) {
           ctx.strokeStyle = o.color;
-          ctx.globalAlpha = 0.28 * (1 - age);
+          ctx.lineWidth = o.hero ? 2.2 : 1.2;
+          ctx.setLineDash(o.hero ? [] : [6, 5]);
           ctx.beginPath();
           ctx.moveTo(carPx, roadY);
-          ctx.lineTo(carPx + Math.cos(s.phi) * 900, roadY - Math.sin(s.phi) * 900);
+          ctx.lineTo(oPx, oPy);
           ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.lineWidth = 1;
+          ctx.fillStyle = o.color;
+          ctx.beginPath();
+          ctx.arc(oPx, oPy, o.hero ? 8 : 6, 0, 6.29);
+          ctx.fill();
+          ctx.fillStyle = "#0a0e1a";
+          ctx.font = "bold 10px sans-serif";
+          ctx.textAlign = "center";
+          ctx.fillText(o.name, oPx, oPy + 3.5);
+          ctx.textAlign = "left";
+          ctx.font = o.hero ? "bold 12px sans-serif" : "bold 12px sans-serif";
+          const lbl = `d=${o.d}m  \u03C9=${fmt(o.omega)}\xB0/s`;
+          const lx = o.hero ? oPx - 14 : oPx;
+          const ly = o.hero ? oPy - 12 : oPy - 14;
+          ctx.textAlign = o.hero ? "right" : "center";
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = "rgba(7,11,22,0.75)";
+          ctx.strokeText(lbl, lx, ly);
+          ctx.fillStyle = o.color;
+          ctx.fillText(lbl, lx, ly);
+          ctx.lineWidth = 1;
+          ctx.textAlign = "left";
         }
-        ctx.globalAlpha = 1;
-        ctx.strokeStyle = o.color;
-        ctx.lineWidth = 1.6;
-        ctx.beginPath();
-        ctx.moveTo(carPx, roadY);
-        ctx.lineTo(carPx + Math.cos(o.phi) * 900, roadY - Math.sin(o.phi) * 900);
-        ctx.stroke();
-        ctx.lineWidth = 1;
-        ctx.fillStyle = o.color;
-        ctx.beginPath();
-        ctx.arc(oPx, oPy, 7, 0, 6.29);
-        ctx.fill();
-        ctx.fillStyle = "#0a0e1a";
-        ctx.font = "bold 10px sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillText(o.name, oPx, oPy + 3.5);
-        ctx.fillStyle = o.color;
-        ctx.font = "12px sans-serif";
-        ctx.fillText(`d=${o.d}m  \u03C9=${fmt(o.omega)}\xB0/s`, oPx, oPy - 13);
-        ctx.textAlign = "left";
       });
       const tr = trail[0];
-      const old = tr.find((s) => state.t - s.t <= 1.2);
-      if (old && tr.length) {
+      if (tr.length > 2) {
+        const old = tr.find((s) => state.t - s.t <= 1.2) || tr[0];
         const nowPhi = tr[tr.length - 1].phi;
-        ctx.strokeStyle = "rgba(232,184,75,0.85)";
-        ctx.lineWidth = 2;
+        ctx.strokeStyle = "rgba(255,233,174,0.9)";
+        ctx.lineWidth = 2.5;
         ctx.beginPath();
-        ctx.arc(carPx, roadY, 54, -nowPhi, -old.phi, old.phi > nowPhi);
+        ctx.arc(carPx, roadY, 64, -nowPhi, -old.phi, old.phi > nowPhi);
         ctx.stroke();
         ctx.lineWidth = 1;
-        const mid = (-nowPhi - old.phi) / 2;
-        const dDeg = Math.abs(nowPhi - old.phi) * 180 / Math.PI;
+        const dT = sweptDeg(0, 1.2), dM = sweptDeg(1, 1.2);
+        ctx.font = "bold 13px sans-serif";
+        const msg = dT >= dM ? `\u540C\u6837 1.2 \u79D2\uFF1A\u6811\u8F6C ${dT.toFixed(1)}\xB0 \xB7 \u5C71\u53EA\u8F6C ${dM.toFixed(1)}\xB0` : `\u540C\u6837 1.2 \u79D2\uFF1A\u6811 ${dT.toFixed(1)}\xB0 \xB7 \u5C71 ${dM.toFixed(1)}\xB0\uFF08\u90FD\u5F88\u6162\u2014\u2014\u5FEB\u6162\u5DEE\u5728\u9F50\u5E73\u9644\u8FD1\u624D\u62C9\u5F00\uFF09`;
+        const tw = ctx.measureText(msg).width;
+        const tx = carPx - 24 - tw, ty = roadY - 46;
+        ctx.fillStyle = "rgba(7,11,22,0.66)";
+        ctx.fillRect(tx - 8, ty - 16, tw + 16, 22);
         ctx.fillStyle = "#ffe9ae";
-        ctx.font = "12px sans-serif";
-        ctx.fillText(
-          `\u0394\u03B8(1.2s)=${dDeg.toFixed(1)}\xB0`,
-          carPx + Math.cos(mid) * 72 - 30,
-          roadY - Math.sin(mid) * 72
-        );
+        ctx.fillText(msg, tx, ty);
       }
       ctx.fillStyle = "#e8b84b";
       ctx.beginPath();
@@ -21356,17 +21442,6 @@ body[data-view="topo"] #topoWrap { display: flex; }
       ctx.fillStyle = "#97a3b8";
       ctx.font = "12px sans-serif";
       ctx.fillText(`v = ${state.v_kmh} km/h`, carPx + 10, roadY + 30);
-      [10, 60, 200].forEach((dd) => {
-        const py = dToPy(dd, topH);
-        ctx.strokeStyle = "rgba(255,255,255,0.07)";
-        ctx.beginPath();
-        ctx.moveTo(pad * 0.4, py);
-        ctx.lineTo(w - pad * 0.4, py);
-        ctx.stroke();
-        ctx.fillStyle = "rgba(151,163,184,0.8)";
-        ctx.font = "11px sans-serif";
-        ctx.fillText(dd + " m", pad * 0.4 + 4, py - 3);
-      });
       ctx.restore();
     }
     function drawChart(_x2, y0, w, hChart, pad) {
@@ -21378,24 +21453,31 @@ body[data-view="topo"] #topoWrap { display: flex; }
       ctx.fill();
       ctx.stroke();
       const v_ms = state.v_kmh * KMH_TO_MS;
-      const maxW = toDegPerS(omegaPeak(v_ms, 10)) * 1.12;
+      const peak = toDegPerS(omegaPeak(v_ms, 10));
+      const maxW = peak * 1.15;
       const px0 = pad + 8, px1 = w - pad - 8, py0 = y0 + 14, py1 = y0 + hChart - 26;
       const t1 = state.t, t0 = t1 - CHART_T;
       const tToPx = (t) => px0 + (t - t0) / CHART_T * (px1 - px0);
       const wToPy = (wv) => py1 - Math.min(wv, maxW) / maxW * (py1 - py0);
       ctx.fillStyle = "#97a3b8";
       ctx.font = "13px sans-serif";
-      ctx.fillText('\u611F\u77E5\u89D2\u901F\u5EA6 \u03C9(t) \u2014\u2014 \u6BCF\u4E2A\u76EE\u6807\u63A0\u8FC7\u8EAB\u8FB9\u65F6\u51FA\u73B0"\u5C71\u5CF0"\uFF08\u9F50\u5E73 = v/d\uFF09', px0, y0 + 24);
-      ctx.strokeStyle = "rgba(255,255,255,0.06)";
-      ctx.beginPath();
-      ctx.moveTo(px0, py1);
-      ctx.lineTo(px1, py1);
-      ctx.stroke();
+      ctx.fillText('\u611F\u77E5\u89D2\u901F\u5EA6 \u03C9(t) \u2014\u2014 \u63A0\u8FC7\u8EAB\u8FB9\u65F6\u62F1\u8D77"\u5C71\u5CF0"\uFF08\u9F50\u5E73 = v/d\uFF09', px0, y0 + 24);
+      ctx.font = "11px sans-serif";
+      [[0, "0"], [peak / 2, `${(peak / 2).toFixed(0)}`], [peak, `\u5CF0\u503C ${peak.toFixed(0)}\xB0/s`]].forEach(([wv, txt]) => {
+        const py = wToPy(wv);
+        ctx.strokeStyle = "rgba(255,255,255,0.06)";
+        ctx.beginPath();
+        ctx.moveTo(px0, py);
+        ctx.lineTo(px1, py);
+        ctx.stroke();
+        ctx.fillStyle = "rgba(151,163,184,0.7)";
+        ctx.fillText(txt, px0 + 4, py - 3);
+      });
       OBJ.forEach((o, i) => {
         const a = hist[i];
         if (a.length < 2) return;
         ctx.strokeStyle = o.color;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = o.hero ? 2.4 : 1.4;
         ctx.beginPath();
         a.forEach((p, k) => {
           const X = tToPx(p.t), Y = wToPy(p.w);
@@ -21408,19 +21490,9 @@ body[data-view="topo"] #topoWrap { display: flex; }
         ctx.beginPath();
         ctx.arc(tToPx(last.t), wToPy(last.w), 3.5, 0, 6.29);
         ctx.fill();
-        ctx.font = "12px sans-serif";
-        ctx.fillText(`${o.name} ${fmt(last.w)}`, Math.min(last.t === t1 ? px1 - 88 : tToPx(last.t) + 6, px1 - 88), wToPy(last.w) - 6);
+        ctx.font = o.hero ? "bold 12px sans-serif" : "12px sans-serif";
+        ctx.fillText(`${o.name} ${fmt(last.w)}\xB0/s`, Math.min(tToPx(last.t) + 6, px1 - 92), wToPy(last.w) - 6);
       });
-      const pk = wToPy(toDegPerS(omegaPeak(v_ms, 10)));
-      ctx.strokeStyle = "rgba(232,184,75,0.4)";
-      ctx.setLineDash([5, 5]);
-      ctx.beginPath();
-      ctx.moveTo(px0, pk);
-      ctx.lineTo(px1, pk);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      ctx.fillStyle = "rgba(232,184,75,0.75)";
-      ctx.fillText("\u6811\u7684\u5CF0\u503C \u03C9 = v/d", px0 + 6, pk - 5);
       ctx.restore();
     }
     function fmt(v) {
