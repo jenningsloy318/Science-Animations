@@ -104,6 +104,9 @@
     buildStageChips(app);
     buildEvChips(app);
     buildPhasePills(app);
+    const st = $('#storyTitle');
+    if (st) st.textContent = tr('story.title');
+    storyKey = '';                       /* re-render the log with new strings */
     setLegend('ring', ringLegend());
     setLegend('collision', collisionLegend());
     /* force syncPlayback to rewrite cached strings */
@@ -259,7 +262,32 @@
         if (info.mass) massEl.classList.add('reveal');
       }
       $$('#evChips .evchip').forEach((c) => c.classList.toggle('active', c.dataset.type === info.type));
+      syncStoryLog(info);
     }, 400);
+  }
+
+  /* ---------------- right-panel story log -----------------------------------*/
+  let storyKey = '';
+  function syncStoryLog(info) {
+    if (!info.story) return;
+    const key = info.num + '|' + info.phase + '|' + info.story.length;
+    if (key === storyKey) return;
+    storyKey = key;
+    const log = $('#storyLog');
+    if (!log) return;
+    log.innerHTML = '';
+    const curIdx = info.story.findIndex((e) => e.phase === info.phase);
+    info.story.forEach((e, i) => {
+      const li = document.createElement('li');
+      if (i < curIdx) li.className = 'done';
+      else if (i === curIdx) li.className = 'current';
+      li.innerHTML = `<b>${tr('ph.' + e.phase)}</b>${e.cap}`;
+      li.title = tr('ph.hint');
+      li.addEventListener('click', () => appRef.collGotoPhase(e.phase));
+      log.appendChild(li);
+    });
+    const cur = log.querySelector('.current');
+    if (cur) cur.scrollIntoView({ block: 'nearest' });
   }
 
   /* ---------------- collision story phase pills -----------------------------*/

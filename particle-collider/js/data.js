@@ -527,6 +527,7 @@ APP.DATA.ui = {
   'ph.flight':       { en:'Flight', zh:'飞行' },
   'ph.readout':      { en:'Readout', zh:'读出' },
   'ph.done':         { en:'Reconstruct', zh:'重建' },
+  'story.title':     { en:'Event story \u2014 what happened', zh:'事件故事 —— 每一步发生了什么' },
   'ph.hint':         { en:'Click a phase to jump \u00B7 Space pause \u00B7 \u2190/\u2192 step',
                        zh:'点击相位跳转 · 空格暂停 · \u2190/\u2192 单步' },
   'badge':           { en:'REAL DECAY KINEMATICS \u00B7 SIMPLIFIED DETECTOR RESPONSE', zh:'真实衰变运动学 —— 简化探测器响应' },

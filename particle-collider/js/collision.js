@@ -165,12 +165,16 @@
       const proc = procs[state.procKey];
       if (state.phase === 'approach' && proc && proc.cap0) {
         state.onCaption(proc.cap0); state.capShown = true;
-        state.captionMinT = readingSeconds(proc.cap0); return;
+        state.captionMinT = readingSeconds(proc.cap0);
+        storyPush('approach', proc.cap0); return;
       }
       if (state.phase === 'done') {
         state.onCaption(proc && proc.capEnd ? proc.capEnd : null);
         state.capShown = !!proc && !!proc.capEnd;
-        if (proc && proc.capEnd) state.captionMinT = readingSeconds(proc.capEnd);
+        if (proc && proc.capEnd) {
+          state.captionMinT = readingSeconds(proc.capEnd);
+          storyPush('done', proc.capEnd);
+        }
         return;
       }
       /* clean processes (no hadrons in the decay): their own flight/readout lines */
@@ -178,12 +182,15 @@
       const cl = APP.L().collision.seqClean;
       if (cleanSet[state.procKey] && cl && cl[state.phase]) {
         state.onCaption(cl[state.phase]); state.capShown = true;
-        state.captionMinT = readingSeconds(cl[state.phase]); return;
+        state.captionMinT = readingSeconds(cl[state.phase]);
+        storyPush(state.phase, cl[state.phase]); return;
       }
       const step = APP.L().collision.seq.find((s) => s.phase === state.phase);
-      if (step) { state.onCaption(step.cap); state.capShown = true;
-        state.captionMinT = readingSeconds(step.cap); }
-      else { state.onCaption(null); state.capShown = false; }
+      if (step) {
+        state.onCaption(step.cap); state.capShown = true;
+        state.captionMinT = readingSeconds(step.cap);
+        storyPush(state.phase, step.cap);
+      } else { state.onCaption(null); state.capShown = false; }
     }
 
     function setPhase(p) { state.phase = p; state.pt = 0; emitCaption(); }
@@ -252,6 +259,7 @@
       state.doneT = 0;
       state.flyT = 0;
       state.metArrow = null;
+      storyLog.length = 0;
       setPhase('approach');
     }
 
@@ -328,7 +336,19 @@
       if (!text) return 0;
       let zh = 0;
       for (const ch of text) if (ch >= '\u4e00' && ch <= '\u9fff') zh++;
-      return Math.min(13, 1.6 + zh / 6.5 + (text.length - zh) / 14);
+      return Math.min(16, 2.2 + zh / 4.5 + (text.length - zh) / 9);
+    }
+
+    const PHASES = ['approach', 'impact', 'flight', 'readout', 'done'];
+
+    /* story log — every phase caption is kept so the reader can revisit
+     * the whole event afterwards (rendered in the right-side panel) */
+    const storyLog = [];
+    function storyPush(phase, cap) {
+      const i = PHASES.indexOf(phase);
+      if (i < 0) return;
+      storyLog.length = i;               /* entering an earlier phase truncates later steps */
+      storyLog.push({ phase, cap });
     }
 
     function update(dt, orbit, active) {
@@ -416,9 +436,6 @@
     function setAuto(v) { state.auto = v; }
     function setPaused(v) { state.paused = !!v; }
 
-    /* the five story phases, in order */
-    const PHASES = ['approach', 'impact', 'flight', 'readout', 'done'];
-
     /* jump to a phase; phases skipped OVER are completed instantly so the
      * reader always sees a coherent frame (no half-drawn states) */
     function gotoPhase(target) {
@@ -455,6 +472,7 @@
         base.type = ev.type;
         base.phase = state.phase;
         base.paused = state.paused;
+        base.story = storyLog.map((e) => ({ phase: e.phase, cap: e.cap }));
         base.mass = ev.mass || null;
         base.sigmaPb = ev.sigmaPb || null;
         base.ratePerS = ev.sigmaPb ? APP.PP.ratePerS(ev.sigmaPb) : null;

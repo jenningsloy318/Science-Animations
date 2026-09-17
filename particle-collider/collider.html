@@ -114,6 +114,19 @@
   #rightPanel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.12); border-radius:4px}
   #eduTitle{font-size:15px; color:#f0e6c8; margin-bottom:8px; letter-spacing:.02em}
   #eduBody{font-size:12.5px; color:#c4cad2; line-height:1.6}
+  #storyBox{display:none; margin-top:16px; border-top:1px solid var(--line); padding-top:12px}
+  body[data-view="collision"] #storyBox{display:block}
+  #storyTitle{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); margin:0 0 8px}
+  #storyLog{list-style:none; margin:0; padding:0; max-height:34vh; overflow:auto}
+  #storyLog li{font-size:11.5px; color:var(--muted); padding:7px 8px 7px 26px; position:relative;
+    border-left:2px solid rgba(255,255,255,.08); margin-left:6px; cursor:pointer}
+  #storyLog li b{display:block; color:var(--text); font-size:11px; margin-bottom:2px}
+  #storyLog li::before{content:"○"; position:absolute; left:2px; top:8px; color:var(--muted); font-size:10px}
+  #storyLog li.done{opacity:.62}
+  #storyLog li.done::before{content:"\2713"; color:#8fd8a8}
+  #storyLog li.current{color:var(--text); border-left-color:var(--gold); background:rgba(216,178,92,.07)}
+  #storyLog li.current::before{content:"\25CF"; color:var(--gold)}
+  #storyLog li:hover{background:rgba(255,255,255,.05)}
   #eduFacts{margin-top:12px; list-style:none}
   #eduFacts li{font-size:11.5px; color:var(--muted); padding:7px 0 7px 18px; position:relative;
     border-top:1px solid rgba(255,255,255,.05); line-height:1.5}
@@ -309,6 +322,10 @@
     <div id="eduTitle"></div>
     <p id="eduBody"></p>
     <ul id="eduFacts"></ul>
+    <div id="storyBox">
+      <h3 id="storyTitle">Event story</h3>
+      <ol id="storyLog"></ol>
+    </div>
   </aside>
 
   <section id="legend-ring" class="legend"><h2>Counter-rotating beams</h2></section>
@@ -399,7 +416,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
 </script>
 <script>
-/* ===== inlined: js/data.js (39,065 bytes) ===== */
+/* ===== inlined: js/data.js (39,152 bytes) ===== */
 /* ============================================================================
  * data.js — verified facts & educational copy (EN + 中文)
  * Sources (consulted 2026-09, official CERN references):
@@ -929,6 +946,7 @@ APP.DATA.ui = {
   'ph.flight':       { en:'Flight', zh:'飞行' },
   'ph.readout':      { en:'Readout', zh:'读出' },
   'ph.done':         { en:'Reconstruct', zh:'重建' },
+  'story.title':     { en:'Event story \u2014 what happened', zh:'事件故事 —— 每一步发生了什么' },
   'ph.hint':         { en:'Click a phase to jump \u00B7 Space pause \u00B7 \u2190/\u2192 step',
                        zh:'点击相位跳转 · 空格暂停 · \u2190/\u2192 单步' },
   'badge':           { en:'REAL DECAY KINEMATICS \u00B7 SIMPLIFIED DETECTOR RESPONSE', zh:'真实衰变运动学 —— 简化探测器响应' },
@@ -2526,7 +2544,7 @@ APP.DATA.ui = {
 
 </script>
 <script>
-/* ===== inlined: js/collision.js (22,160 bytes) ===== */
+/* ===== inlined: js/collision.js (22,835 bytes) ===== */
 /* ============================================================================
  * collision.js — collision display driven by REAL Standard Model kinematics
  * (APP.PP: PDG masses/branching ratios, two-body decays, invariant-mass
@@ -2694,12 +2712,16 @@ APP.DATA.ui = {
       const proc = procs[state.procKey];
       if (state.phase === 'approach' && proc && proc.cap0) {
         state.onCaption(proc.cap0); state.capShown = true;
-        state.captionMinT = readingSeconds(proc.cap0); return;
+        state.captionMinT = readingSeconds(proc.cap0);
+        storyPush('approach', proc.cap0); return;
       }
       if (state.phase === 'done') {
         state.onCaption(proc && proc.capEnd ? proc.capEnd : null);
         state.capShown = !!proc && !!proc.capEnd;
-        if (proc && proc.capEnd) state.captionMinT = readingSeconds(proc.capEnd);
+        if (proc && proc.capEnd) {
+          state.captionMinT = readingSeconds(proc.capEnd);
+          storyPush('done', proc.capEnd);
+        }
         return;
       }
       /* clean processes (no hadrons in the decay): their own flight/readout lines */
@@ -2707,12 +2729,15 @@ APP.DATA.ui = {
       const cl = APP.L().collision.seqClean;
       if (cleanSet[state.procKey] && cl && cl[state.phase]) {
         state.onCaption(cl[state.phase]); state.capShown = true;
-        state.captionMinT = readingSeconds(cl[state.phase]); return;
+        state.captionMinT = readingSeconds(cl[state.phase]);
+        storyPush(state.phase, cl[state.phase]); return;
       }
       const step = APP.L().collision.seq.find((s) => s.phase === state.phase);
-      if (step) { state.onCaption(step.cap); state.capShown = true;
-        state.captionMinT = readingSeconds(step.cap); }
-      else { state.onCaption(null); state.capShown = false; }
+      if (step) {
+        state.onCaption(step.cap); state.capShown = true;
+        state.captionMinT = readingSeconds(step.cap);
+        storyPush(state.phase, step.cap);
+      } else { state.onCaption(null); state.capShown = false; }
     }
 
     function setPhase(p) { state.phase = p; state.pt = 0; emitCaption(); }
@@ -2781,6 +2806,7 @@ APP.DATA.ui = {
       state.doneT = 0;
       state.flyT = 0;
       state.metArrow = null;
+      storyLog.length = 0;
       setPhase('approach');
     }
 
@@ -2857,7 +2883,19 @@ APP.DATA.ui = {
       if (!text) return 0;
       let zh = 0;
       for (const ch of text) if (ch >= '\u4e00' && ch <= '\u9fff') zh++;
-      return Math.min(13, 1.6 + zh / 6.5 + (text.length - zh) / 14);
+      return Math.min(16, 2.2 + zh / 4.5 + (text.length - zh) / 9);
+    }
+
+    const PHASES = ['approach', 'impact', 'flight', 'readout', 'done'];
+
+    /* story log — every phase caption is kept so the reader can revisit
+     * the whole event afterwards (rendered in the right-side panel) */
+    const storyLog = [];
+    function storyPush(phase, cap) {
+      const i = PHASES.indexOf(phase);
+      if (i < 0) return;
+      storyLog.length = i;               /* entering an earlier phase truncates later steps */
+      storyLog.push({ phase, cap });
     }
 
     function update(dt, orbit, active) {
@@ -2945,9 +2983,6 @@ APP.DATA.ui = {
     function setAuto(v) { state.auto = v; }
     function setPaused(v) { state.paused = !!v; }
 
-    /* the five story phases, in order */
-    const PHASES = ['approach', 'impact', 'flight', 'readout', 'done'];
-
     /* jump to a phase; phases skipped OVER are completed instantly so the
      * reader always sees a coherent frame (no half-drawn states) */
     function gotoPhase(target) {
@@ -2984,6 +3019,7 @@ APP.DATA.ui = {
         base.type = ev.type;
         base.phase = state.phase;
         base.paused = state.paused;
+        base.story = storyLog.map((e) => ({ phase: e.phase, cap: e.cap }));
         base.mass = ev.mass || null;
         base.sigmaPb = ev.sigmaPb || null;
         base.ratePerS = ev.sigmaPb ? APP.PP.ratePerS(ev.sigmaPb) : null;
@@ -3000,7 +3036,7 @@ APP.DATA.ui = {
 
 </script>
 <script>
-/* ===== inlined: js/ui.js (17,592 bytes) ===== */
+/* ===== inlined: js/ui.js (18,711 bytes) ===== */
 /* ============================================================================
  * ui.js — premium dark UI: tabs, system switches, stage chips, transport,
  * education panel, per-view legends, help modal, toasts, ZH/EN toggle.
@@ -3107,6 +3143,9 @@ APP.DATA.ui = {
     buildStageChips(app);
     buildEvChips(app);
     buildPhasePills(app);
+    const st = $('#storyTitle');
+    if (st) st.textContent = tr('story.title');
+    storyKey = '';                       /* re-render the log with new strings */
     setLegend('ring', ringLegend());
     setLegend('collision', collisionLegend());
     /* force syncPlayback to rewrite cached strings */
@@ -3262,7 +3301,32 @@ APP.DATA.ui = {
         if (info.mass) massEl.classList.add('reveal');
       }
       $$('#evChips .evchip').forEach((c) => c.classList.toggle('active', c.dataset.type === info.type));
+      syncStoryLog(info);
     }, 400);
+  }
+
+  /* ---------------- right-panel story log -----------------------------------*/
+  let storyKey = '';
+  function syncStoryLog(info) {
+    if (!info.story) return;
+    const key = info.num + '|' + info.phase + '|' + info.story.length;
+    if (key === storyKey) return;
+    storyKey = key;
+    const log = $('#storyLog');
+    if (!log) return;
+    log.innerHTML = '';
+    const curIdx = info.story.findIndex((e) => e.phase === info.phase);
+    info.story.forEach((e, i) => {
+      const li = document.createElement('li');
+      if (i < curIdx) li.className = 'done';
+      else if (i === curIdx) li.className = 'current';
+      li.innerHTML = `<b>${tr('ph.' + e.phase)}</b>${e.cap}`;
+      li.title = tr('ph.hint');
+      li.addEventListener('click', () => appRef.collGotoPhase(e.phase));
+      log.appendChild(li);
+    });
+    const cur = log.querySelector('.current');
+    if (cur) cur.scrollIntoView({ block: 'nearest' });
   }
 
   /* ---------------- collision story phase pills -----------------------------*/
