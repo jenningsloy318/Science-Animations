@@ -47,6 +47,20 @@
           quarks: [['p', 0xd8b25c]], note: '\u4E00\u4E2A\u8D28\u5B50\u6838 + 1 \u4E2A\u7535\u5B50\u7ED5\u8F68 \u2014 \u7535\u78C1\u529B\u628A\u4ED6\u4EEC\u7ED1\u4F4F\uFF08\u7ED3\u5408\u80FD 13.6 eV\uFF09', electron: true },
     he: { name: '\u6C26-4 \u539F\u5B50', comp: '2p + 2n + 2e\u207B', m: '\u22483.73 GeV', q: '0',
           quarks: [['p', 0xd8b25c], ['p', 0xd8b25c], ['n', 0x8b95a2], ['n', 0x8b95a2]], note: '\u539F\u5B50\u6838\uFF082p+2n\uFF09+ 2 \u4E2A\u7535\u5B50 \u2014 \u5269\u4F59\u5F3A\u6838\u529B\u62B5\u6297\u7535\u78C1\u65A5\u529B', electron: true },
+    pb: { name: '\u53CD\u8D28\u5B50 p\u0305', comp: '\u016B\u016B d\u0305', m: '938.3 MeV', q: '-1',
+          quarks: [['\u016B', 0x93a7ff], ['\u016B', 0x93a7ff], ['d\u0305', 0x7fc4ff]],
+          note: '\u8D28\u5B50\u7684\u53CD\u7C92\u5B50 \u2014 1955 \u5E74 Bevatron \u53D1\u73B0\uFF1B\u4E0E\u8D28\u5B50\u76F8\u9047\u5373\u6E4A\u706D\uFF0C\u91CA\u653E\u80FD\u91CF' },
+    nb: { name: '\u53CD\u4E2D\u5B50 n\u0305', comp: '\u016B d\u0305 d\u0305', m: '939.6 MeV', q: '0',
+          quarks: [['\u016B', 0x93a7ff], ['d\u0305', 0x7fc4ff], ['d\u0305', 0x7fc4ff]],
+          note: '1956 \u5E74\u53D1\u73B0 \u2014 \u4E0D\u5E26\u7535\uFF0C\u4F46\u78C1\u77E9\u4E0E\u4E2D\u5B50\u76F8\u53CD' },
+    pim:{ name: '\u03C0\u207B \u4ECB\u5B50', comp: 'd \u016B', m: '139.6 MeV', q: '-1',
+          quarks: [['d', 0xb388ff], ['\u016B', 0x93a7ff]],
+          note: '\u03C0\u207A \u7684\u53CD\u7C92\u5B50 \u2014 \u5E26\u4E00\u4E2A\u5355\u4F4D\u8D1F\u7535\u8377' },
+    ah: { name: '\u53CD\u6C22\u539F\u5B50 H\u0305', comp: 'p\u0305 + e\u207A', m: '\u2248938.8 MeV', q: '0',
+          quarks: [['p\u0305', 0xe8927c]], note: '\u9996\u4E2A\u53CD\u539F\u5B50 \u2014 1995 \u5E74 CERN \u9020\u51FA 9 \u4E2A\uFF1B2011 \u5E74 ALPHA \u9996\u6B21\u78C1\u6355\u83B7', electron: true, positron: true },
+    ahe4:{ name: '\u53CD\u6C26-4 \u6838', comp: '2p\u0305 + 2n\u0305', m: '\u22483.73 GeV', q: '0',
+          quarks: [['p\u0305', 0xe8927c], ['p\u0305', 0xe8927c], ['n\u0305', 0x9db4cc], ['n\u0305', 0x9db4cc]],
+          note: '2011 \u5E74 RHIC \u53D1\u73B0 \u2014 \u8FC4\u4ECA\u6700\u91CD\u7684\u53CD\u7269\u8D28\u539F\u5B50\u6838' },
   };
 
   window.APP = window.APP || {};
@@ -187,8 +201,13 @@
           const orb = new THREE.Mesh(new THREE.TorusGeometry(2.6, 0.012, 6, 64),
             new THREE.MeshBasicMaterial({ color: 0x6fd3e8, transparent: true, opacity: 0.4 }));
           orb.rotation.x = Math.PI / 2; pivot.add(orb);
+          const isPos = c.positron;
           const el = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12),
-            new THREE.MeshStandardMaterial({ color: 0x6fe3c4, emissive: 0x6fe3c4, emissiveIntensity: 0.8 }));
+            new THREE.MeshStandardMaterial({ color: isPos ? 0xffcf8a : 0x6fe3c4,
+              emissive: isPos ? 0xffcf8a : 0x6fe3c4, emissiveIntensity: 0.8 }));
+          if (isPos) {
+            const lb = makeLabel('e\u207A', '', 90); lb.scale.set(0.75, 0.75, 1); lb.position.y = 0.42; el.add(lb);
+          }
           el.position.x = 2.6; el.userData.orbSpeed = 1.6 + e * 0.4; pivot.add(el);
           electronPivots.push({ pivot, el });
           compGroup.add(pivot);

@@ -359,7 +359,9 @@
     if (!box) return;
     box.innerHTML = '';
     const chips = [['p', '\u8D28\u5B50 p\u207A'], ['n', '\u4E2D\u5B50 n'], ['pi', '\u03C0\u207A \u4ECB\u5B50'],
-                   ['h', '\u6C22\u539F\u5B50'], ['he', '\u6C26-4\u539F\u5B50']];
+                   ['h', '\u6C22\u539F\u5B50'], ['he', '\u6C26-4\u539F\u5B50'],
+                   ['pb', '\u53CD\u8D28\u5B50 p\u0305'], ['nb', '\u53CD\u4E2D\u5B50 n\u0305'], ['pim', '\u03C0\u207B \u4ECB\u5B50'],
+                   ['ah', '\u53CD\u6C22\u539F\u5B50'], ['ahe4', '\u53CD\u6C26-4\u6838']];
     chips.forEach(([k, label]) => {
       const b = document.createElement('button');
       b.className = 'pc-chip';
