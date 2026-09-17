@@ -94,17 +94,25 @@ export function flyCamera(cam, ctrl, pos, tgt, dur = 1.4) {
 
 /* ── helpers ── */
 export function makeTextSprite(text, size = 0.7, color = '#e2e8f0') {
+  // 画布自适应文本宽度: 长标签不再被 256px 画布截断
+  const font = 'bold 40px Outfit, sans-serif';
+  const probe = document.createElement('canvas').getContext('2d');
+  probe.font = font;
+  const textW = probe.measureText(text).width;
+  const pad = 24;
   const canvas = document.createElement('canvas');
-  canvas.width = 256; canvas.height = 84;
+  canvas.width = Math.max(256, Math.ceil(textW + pad * 2));
+  canvas.height = 84;
   const ctx = canvas.getContext('2d');
-  ctx.font = 'bold 40px Outfit, sans-serif';
+  ctx.font = font;
   ctx.fillStyle = color;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(text, 128, 42);
+  ctx.fillText(text, canvas.width / 2, 42);
   const tex = new THREE.CanvasTexture(canvas);
   const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false });
   const sprite = new THREE.Sprite(mat);
-  sprite.scale.set(size * 2.2, size * 0.72, 1);
+  const aspect = canvas.width / canvas.height;
+  sprite.scale.set(size * 0.72 * aspect, size * 0.72, 1);
   return sprite;
 }
 

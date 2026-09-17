@@ -169,7 +169,7 @@ function buildStructure() {
   });
   const totalTop = layers[layers.length - 1].mesh.position.y + layers[layers.length - 1].h / 2 + 0.5;
   const scaleTag = makeTextSprite('比例：绒面金字塔画大了 ~40 倍（真实 2–5 μm）', 0.5, '#94a3b8');
-  scaleTag.position.set(2.2, totalTop + 1.5, D / 2);
+  scaleTag.position.set(0, totalTop + 1.5, D / 2);
   root.add(scaleTag);
 
   flyCamera(env.camera, env.controls, [7.5, 5.2, 9.5], [0, 1.1, 0], 1.3);

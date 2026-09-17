@@ -165,7 +165,10 @@ h1 {
 #actionBar {
   position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
   z-index: 20; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  /* 窄屏防溢出: 限宽让按钮换行, 而不是把首尾按钮截到屏幕外 */
+  max-width: min(92vw, 720px);
 }
+#actionBtns .act-btn { white-space: nowrap; }
 #actionBtns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 #actionSliders { display: flex; gap: 22px; flex-wrap: wrap; justify-content: center; }
 .act-btn {
