@@ -74,7 +74,57 @@ const state = {
   tourActive: false,
   tourStep: null,
   tourDriving: false,
+  split: 'standard', // 'standard' | 'cs' | 'sr' | 'symmetric'
+  soundEnabled: false,
+  keff: 1.0,
 };
+
+/* ——— Web Audio 裂变物理音效合成器（零外部依赖，默认静音） ——— */
+let fissionAudioCtx = null;
+function getFissionAudio() {
+  if (!fissionAudioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) fissionAudioCtx = new AC();
+  }
+  if (fissionAudioCtx && fissionAudioCtx.state === 'suspended') fissionAudioCtx.resume();
+  return fissionAudioCtx;
+}
+function playFissionBoom() {
+  if (!state.soundEnabled) return;
+  const ctx = getFissionAudio();
+  if (!ctx) return;
+  try {
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(115, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(26, ctx.currentTime + 1.1);
+    g.gain.setValueAtTime(0.35, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.2);
+    osc.connect(g);
+    g.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 1.3);
+  } catch (e) {}
+}
+function playNeutronCapture() {
+  if (!state.soundEnabled) return;
+  const ctx = getFissionAudio();
+  if (!ctx) return;
+  try {
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(320, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(640, ctx.currentTime + 0.35);
+    g.gain.setValueAtTime(0.2, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+    osc.connect(g);
+    g.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.45);
+  } catch (e) {}
+}
 
 /* three.js 上下文（WebGL 不可用时保持 null → 走降级分支） */
 let renderer = null;
@@ -101,7 +151,15 @@ function updateLedger(phaseKey) {
   const panel = document.getElementById('ledgerPanel');
   if (!panel) return;
   if (phaseKey === 'fission') {
-    panel.textContent = '守恒验算 ▸ 质量数 236 = 141 + 92 + 3 ｜ 电荷数 92 = 56 + 36';
+    if (state.split === 'cs') {
+      panel.textContent = '守恒验算 ▸ 质量数 236 = 137 + 96 + 3 ｜ 电荷数 92 = 55 + 37';
+    } else if (state.split === 'sr') {
+      panel.textContent = '守恒验算 ▸ 质量数 236 = 144 + 90 + 2 ｜ 电荷数 92 = 54 + 38';
+    } else if (state.split === 'symmetric') {
+      panel.textContent = '守恒验算 ▸ 质量数 236 = 118 + 118 ｜ 电荷数 92 = 46 + 46';
+    } else {
+      panel.textContent = '守恒验算 ▸ 质量数 236 = 141 + 92 + 3 ｜ 电荷数 92 = 56 + 36';
+    }
     panel.hidden = false;
   } else {
     panel.hidden = true;
@@ -318,6 +376,89 @@ document.querySelectorAll('#tourPanel [data-step]').forEach((el, i) => {
   el.addEventListener('click', () => goToTourStep(i));
 });
 
+/* ── 新增科学交互浮窗控制 ── */
+const popovers = {
+  yield: document.getElementById('yieldPanel'),
+  energy: document.getElementById('energyPanel'),
+  moderator: document.getElementById('moderatorPanel'),
+};
+function togglePopover(key) {
+  for (const [k, el] of Object.entries(popovers)) {
+    if (!el) continue;
+    if (k === key) {
+      el.hidden = !el.hidden;
+    } else {
+      el.hidden = true;
+    }
+  }
+}
+
+const btnSound = document.getElementById('btnSound');
+if (btnSound) {
+  btnSound.addEventListener('click', () => {
+    state.soundEnabled = !state.soundEnabled;
+    btnSound.textContent = state.soundEnabled ? '🔊' : '🔇';
+    btnSound.classList.toggle('active', state.soundEnabled);
+    if (state.soundEnabled) playNeutronCapture();
+  });
+}
+const btnYield = document.getElementById('btnYield');
+if (btnYield) {
+  btnYield.addEventListener('click', () => {
+    togglePopover('yield');
+    btnYield.classList.toggle('active', !popovers.yield.hidden);
+  });
+}
+const btnEnergy = document.getElementById('btnEnergy');
+if (btnEnergy) {
+  btnEnergy.addEventListener('click', () => {
+    togglePopover('energy');
+    btnEnergy.classList.toggle('active', !popovers.energy.hidden);
+  });
+}
+const btnModerator = document.getElementById('btnModerator');
+if (btnModerator) {
+  btnModerator.addEventListener('click', () => {
+    togglePopover('moderator');
+    btnModerator.classList.toggle('active', !popovers.moderator.hidden);
+  });
+}
+
+// 裂变产物碎片选择
+document.querySelectorAll('.split-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.split-btn').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.split = btn.dataset.split;
+    if (popovers.yield) popovers.yield.hidden = true;
+    if (btnYield) btnYield.classList.remove('active');
+    updateLedger(state.phaseKey);
+    if (state.phaseKey === 'fission') {
+      enterPhase('fission');
+    }
+  });
+});
+
+// 临界系数控制棒调节
+const keffDesc = document.getElementById('keffDesc');
+document.querySelectorAll('.keff-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.keff-btn').forEach((b) => b.classList.remove('active'));
+    btn.classList.add('active');
+    const kType = btn.dataset.k;
+    if (kType === 'sub') {
+      state.keff = 0.95;
+      if (keffDesc) keffDesc.textContent = '当前状态：次临界 k=0.95 · 控制棒深插入，中子吸收增多，链式反应逐渐熄灭。';
+    } else if (kType === 'super') {
+      state.keff = 1.05;
+      if (keffDesc) keffDesc.textContent = '当前状态：超临界 k=1.05 · 控制棒微提，中子增殖，热功率稳步上升。';
+    } else {
+      state.keff = 1.0;
+      if (keffDesc) keffDesc.textContent = '当前状态：临界 k=1.00 · 反应堆输出恒定功率，约 0.65% 缓发中子提供宝贵的受控反应时间！';
+    }
+  });
+});
+
 /* ————————————————————————————————————————————————————————————
    three.js 场景素材
    ———————————————————————————————————————————————————————————— */
@@ -495,14 +636,21 @@ function buildNeutron() {
   storyGroup.add(neutron);
   attachLabel(neutron, '慢中子', '#cbd5e1', 0.55);
   sceneLabel('第 2 幕 · 中子俘获：复核铀-236* 剧烈振荡变形', '#fbbf24', 4.6);
+
+  let captured = false;
   world = {
     update(dt, t) {
       if (t < 6) {
         const u = Math.min(t / 6, 1);
         neutron.position.x = -9.5 + 8.7 * Math.pow(u, 0.7);
       } else {
+        if (!captured) {
+          playNeutronCapture();
+          captured = true;
+        }
         neutron.visible = false;
-        const amp = 0.05 * Math.min((t - 6) / 2, 1);
+        // 玻尔-惠勒液滴模型四极振荡 (Bohr-Wheeler Quadrupole Oscillation)
+        const amp = 0.08 * Math.min((t - 6) / 2, 1);
         const s = 1 + Math.sin(t * 9) * amp;
         nucleus.group.scale.set(s, 1 / s, s);
       }
@@ -517,20 +665,55 @@ function buildFission() {
   const nucleus = buildNucleus(92, 143);
   storyGroup.add(nucleus.group);
   attachLabel(nucleus.group, '复核铀-236*（振荡变形）', '#fbbf24', 0.6);
-  const ba = buildNucleus(56, 85);  // 钡-141：56 质子 + 85 中子
-  const kr = buildNucleus(36, 56);  // 氪-92：36 质子 + 56 中子
+
+  // 玻尔-惠勒液滴半透明变形外壳（显示哑铃细颈断裂）
+  const dropGeo = new THREE.SphereGeometry(2.1, 24, 18);
+  const dropMat = new THREE.MeshBasicMaterial({
+    color: 0xf59e0b, transparent: true, opacity: 0.22, wireframe: true
+  });
+  const dropMesh = new THREE.Mesh(dropGeo, dropMat);
+  nucleus.group.add(dropMesh);
+
+  // 碎片核配置（支持双峰产额切换）
+  let p1 = 56, n1 = 85, name1 = '钡-141（56 质子 + 85 中子）', col1 = '#fbbf24';
+  let p2 = 36, n2 = 56, name2 = '氪-92（36 质子 + 56 中子）', col2 = '#7dd3fc';
+  let nNeutrons = 3;
+  let eqStr = 'U-235 + n → Ba-141 + Kr-92 + 3n · 200 MeV（≈3.2e-11 J）';
+
+  if (state.split === 'cs') {
+    p1 = 55; n1 = 82; name1 = '铯-137（55 质子 + 82 中子 · N=82 幻数闭壳）'; col1 = '#f59e0b';
+    p2 = 37; n2 = 59; name2 = '铷-96（37 质子 + 59 中子）'; col2 = '#38bdf8';
+    nNeutrons = 3;
+    eqStr = 'U-235 + n → Cs-137 + Rb-96 + 3n · 200 MeV（≈3.2e-11 J）';
+  } else if (state.split === 'sr') {
+    p1 = 54; n1 = 90; name1 = '氙-144（54 质子 + 90 中子 · 反应堆毒物）'; col1 = '#a855f7';
+    p2 = 38; n2 = 52; name2 = '锶-90（38 质子 + 52 中子）'; col2 = '#4ade80';
+    nNeutrons = 2;
+    eqStr = 'U-235 + n → Xe-144 + Sr-90 + 2n · 200 MeV（≈3.2e-11 J）';
+  } else if (state.split === 'symmetric') {
+    p1 = 46; n1 = 72; name1 = '钯-118（46 质子 + 72 中子 · 对称裂变）'; col1 = '#ec4899';
+    p2 = 46; n2 = 72; name2 = '钯-118（46 质子 + 72 中子）'; col2 = '#ec4899';
+    nNeutrons = 0;
+    eqStr = 'U-235 + n → 2 Pd-118 · 对称分裂受到强烈压制（产额 <0.01%）';
+  }
+
+  const ba = buildNucleus(p1, n1);
+  const kr = buildNucleus(p2, n2);
   ba.group.visible = false;
   kr.group.visible = false;
   storyGroup.add(ba.group, kr.group);
-  attachLabel(ba.group, '钡-141（56 质子 + 85 中子）', '#fbbf24', 0.6);
-  attachLabel(kr.group, '氪-92（36 质子 + 56 中子）', '#7dd3fc', 0.6);
+  attachLabel(ba.group, name1, col1, 0.6);
+  attachLabel(kr.group, name2, col2, 0.6);
+
   const freeNeutrons = [];
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < nNeutrons; i++) {
     const n = neutronMesh();
     n.visible = false;
     storyGroup.add(n);
     freeNeutrons.push(n);
   }
+
+  // 库仑爆炸能量闪光与冲击波环
   const flash = new THREE.Sprite(
     new THREE.SpriteMaterial({
       map: makeGlowTexture(),
@@ -542,28 +725,50 @@ function buildFission() {
   );
   flash.visible = false;
   storyGroup.add(flash);
-  const eqLabel = sceneLabel(
-    'U-235 + n → Ba-141 + Kr-92 + 3n · 200 MeV（≈3.2e-11 J）', '#7dd3fc', 4.6
-  );
+
+  const ringGeo = new THREE.RingGeometry(0.2, 0.5, 32);
+  const ringMat = new THREE.MeshBasicMaterial({
+    color: 0xf59e0b, transparent: true, opacity: 0.8, side: THREE.DoubleSide
+  });
+  const shockRing = new THREE.Mesh(ringGeo, ringMat);
+  shockRing.visible = false;
+  storyGroup.add(shockRing);
+
+  const eqLabel = sceneLabel(eqStr, '#7dd3fc', 4.6);
   eqLabel.visible = false;
+
+  let boomPlayed = false;
+
   world = {
     update(dt, t) {
       if (t < SPLIT_T) {
-        const s = 1 + Math.sin(t * 10) * 0.06;
-        nucleus.group.scale.set(s, 1 / s, s);
+        // 玻尔-惠勒液滴模型：从球形 → 椭球 → 哑铃颈缩形 (Necking & Scission)
+        const u = t / SPLIT_T;
+        const stretch = 1 + u * 0.7 + Math.sin(t * 10) * 0.06;
+        const pinch = 1 / Math.sqrt(stretch);
+        nucleus.group.scale.set(stretch, pinch, pinch);
+        dropMesh.scale.set(stretch * 1.05, pinch * 0.9, pinch * 0.9);
         nucleus.group.rotation.y += dt * 0.4;
         return;
       }
       const ft = t - SPLIT_T;
+      if (!boomPlayed) {
+        playFissionBoom();
+        boomPlayed = true;
+      }
       nucleus.group.visible = false;
       eqLabel.visible = true;
       ba.group.visible = true;
       kr.group.visible = true;
-      const d = Math.min(ft * 1.9, 7.5);
+
+      // 库仑爆炸排斥动力学：两带正电碎片在近距离受强大静电力迅速加速分离
+      const d = 7.6 * (1 - Math.exp(-ft * 0.92));
       ba.group.position.set(-d, -0.04 * d, 0);
       kr.group.position.set(d, 0.04 * d, 0);
       ba.group.rotation.y += dt * 0.6;
       kr.group.rotation.y -= dt * 0.6;
+
+      // 瞬发中子蒸发高速向外射出 (~2 MeV)
       freeNeutrons.forEach((n, i) => {
         n.visible = true;
         const a = -0.55 + i * 0.55;
@@ -574,13 +779,20 @@ function buildFission() {
           Math.sin(a * 2.1) * nd * 0.3
         );
       });
+
       if (ft < FLASH_T) {
         flash.visible = true;
         const s = 2 + ft * 6;
         flash.scale.set(s, s, 1);
         flash.material.opacity = Math.max(0.95 * (1 - ft / FLASH_T), 0);
+
+        shockRing.visible = true;
+        const rs = 1 + ft * 9;
+        shockRing.scale.set(rs, rs, 1);
+        shockRing.material.opacity = Math.max(0.85 * (1 - ft / FLASH_T), 0);
       } else {
         flash.visible = false;
+        shockRing.visible = false;
       }
     },
   };

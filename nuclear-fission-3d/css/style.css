@@ -215,6 +215,74 @@ h1 {
   font-size: .66rem; line-height: 1.9; color: #64748b; text-align: right;
 }
 
+/* ── 弹窗浮层公共样式 (Hud Popovers) ── */
+.hud-popover {
+  position: fixed; left: 70px; top: 50%; transform: translateY(-50%);
+  z-index: 100; width: min(390px, 92vw); max-height: 82vh; overflow-y: auto;
+  background: rgba(15,23,42,.92); backdrop-filter: blur(18px);
+  border: 1px solid rgba(245,158,11,.28); border-radius: 16px;
+  padding: 16px 18px; box-shadow: 0 16px 48px rgba(0,0,0,.65);
+}
+.hud-popover[hidden] { display: none; }
+.hud-popover__title { font-size: 0.88rem; font-weight: 700; color: #f59e0b; margin-bottom: 8px; }
+.hud-popover__desc { font-size: 0.72rem; color: #94a3b8; line-height: 1.6; margin-bottom: 10px; }
+
+/* 质量产额双峰曲线与选择 */
+.yield-chart { background: rgba(8,12,22,0.65); border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 6px; margin-bottom: 10px; }
+.curve-svg { width: 100%; height: 75px; display: block; }
+.split-options { display: flex; flex-direction: column; gap: 8px; }
+.split-btn {
+  min-height: 44px; text-align: left; background: #16233a; border: 1px solid #26364f;
+  border-radius: 10px; padding: 8px 12px; color: #cbd5e1; cursor: pointer;
+  font-family: inherit; display: flex; flex-direction: column; gap: 3px;
+  transition: all 0.2s ease;
+}
+.split-btn:hover { background: #1e3252; border-color: rgba(245,158,11,.4); color: #fff; }
+.split-btn.active {
+  background: rgba(245,158,11,.16); border-color: #f59e0b; color: #fff;
+  box-shadow: 0 0 12px rgba(245,158,11,.25);
+}
+.split-btn b { font-size: 0.76rem; color: #f8fafc; }
+.split-btn span { font-size: 0.68rem; color: #94a3b8; }
+
+/* 200 MeV 能量分配 */
+.energy-list { display: flex; flex-direction: column; gap: 6px; }
+.e-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.72rem; color: #cbd5e1; }
+.e-row.highlight { color: #f59e0b; font-weight: 700; font-size: 0.76rem; }
+.e-bar-wrap { width: 100%; height: 4px; background: #1e293b; border-radius: 2px; overflow: hidden; margin: 1px 0 4px; }
+.e-bar { height: 100%; background: linear-gradient(90deg, #f59e0b, #ef4444); border-radius: 2px; }
+.e-val { font-weight: 600; color: #f8fafc; font-variant-numeric: tabular-nums; }
+.e-pct { font-size: 0.66rem; color: #64748b; width: 44px; text-align: right; }
+.e-footer { font-size: 0.68rem; color: #94a3b8; line-height: 1.6; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 8px; }
+
+/* 慢化剂与链式反应 */
+.mod-grid { display: flex; flex-direction: column; gap: 8px; }
+.mod-card {
+  background: rgba(8,12,22,0.65); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px; padding: 8px 12px;
+}
+.mod-card.highlight { border-color: rgba(74,222,128,0.35); background: rgba(6,24,16,0.6); }
+.mod-tag { font-size: 0.76rem; font-weight: 700; color: #f8fafc; margin-bottom: 2px; }
+.mod-spec { font-size: 0.68rem; color: #7dd3fc; }
+.mod-cross { font-size: 0.74rem; margin-top: 3px; }
+.mod-note { font-size: 0.64rem; color: #94a3b8; margin-top: 3px; }
+.mod-arrow { font-size: 0.68rem; color: #f59e0b; text-align: center; font-weight: 600; }
+.keff-section { margin-top: 10px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 8px; }
+.keff-title { font-size: 0.72rem; color: #7dd3fc; font-weight: 600; margin-bottom: 6px; }
+.keff-controls { display: flex; gap: 6px; }
+.keff-btn {
+  min-height: 44px; flex: 1; background: #16233a; border: 1px solid #26364f;
+  border-radius: 8px; color: #cbd5e1; font-size: 0.68rem; cursor: pointer;
+  font-family: inherit; transition: all 0.2s;
+}
+.keff-btn:hover { background: #1e3252; color: #fff; }
+.keff-btn.active {
+  background: rgba(74,222,128,0.2); border-color: #4ade80; color: #86efac; font-weight: 600;
+}
+.keff-desc { font-size: 0.66rem; color: #94a3b8; line-height: 1.5; margin-top: 6px; }
+
+.split-btn:focus-visible, .keff-btn:focus-visible { outline: 2px solid #f59e0b; outline-offset: 2px; }
+
 /* ── 响应式断点：8px 栅格体系下 640 / 768 / 1024 三档 ── */
 @media (max-width: 1024px) {
   #narration { width: min(620px, 90vw); }

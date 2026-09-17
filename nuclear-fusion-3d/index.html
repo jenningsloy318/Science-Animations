@@ -20,17 +20,68 @@
   <p class="subtitle">氘（²H）+ 氚（³H）→ 氦-4 + 中子 + 能量 — 从原子结构到等离子体的聚变之旅</p>
 </header>
 
-<!-- SCENARIO-005 (AC-03): tool nav — 🎬 引导浏览 guided tour -->
+<!-- SCENARIO-005 (AC-03): tool nav — 🎬 引导浏览 guided tour + 🔊 音效 + 🧪 反应切换 -->
 <nav id="tools">
   <button class="tool-btn" id="btnTour" title="引导浏览（分步讲解）">🎬</button>
+  <button class="tool-btn" id="btnSound" title="音效开关 Sound Toggle">🔊</button>
+  <button class="tool-btn" id="btnRxn" title="切换聚变反应类型 (D-T / D-D / p-11B)">⚛️</button>
 </nav>
 
-<!-- SCENARIO-025 (AC-10): 第二幕实时温度计 — 常温 20℃ 一路冲向 1 亿℃ 点火条件 -->
+<!-- 反应选择浮窗 -->
+<div id="rxnPanel" class="hud-popover" hidden>
+  <div class="hud-popover__title">🌟 聚变反应类型选择</div>
+  <div class="rxn-options">
+    <button class="rxn-btn active" data-rxn="dt">
+      <span class="rxn-tag tag--hot">主流基准</span>
+      <b>D–T 氘-氚聚变</b>
+      <span class="rxn-formula">²H + ³H → ⁴He (3.5 MeV) + n (14.1 MeV)</span>
+      <span class="rxn-note">点火门槛最低（~1 亿℃ / 10 keV）· 能量增益高（17.6 MeV）</span>
+    </button>
+    <button class="rxn-btn" data-rxn="dd">
+      <span class="rxn-tag tag--sea">取之不尽</span>
+      <b>D–D 氘-氘聚变（双分支）</b>
+      <span class="rxn-formula">²H + ²H → ³He + n (3.27 MeV) / ³H + p (4.03 MeV)</span>
+      <span class="rxn-note">海水含氘充足 · 需更高温度（~4 亿℃ / 40 keV）</span>
+    </button>
+    <button class="rxn-btn" data-rxn="pb">
+      <span class="rxn-tag tag--clean">先进无中子</span>
+      <b>p–¹¹B 质子-硼11（洁净聚变）</b>
+      <span class="rxn-formula">p + ¹¹B → 3 ⁴He + 8.68 MeV</span>
+      <span class="rxn-note">产物全为 α 粒子 · 零中子辐射 · 极高点火门槛（~14 亿℃ / 120 keV）</span>
+    </button>
+  </div>
+</div>
+
+<!-- SCENARIO-025 (AC-10): 第二幕实时温度计 + 约束方式切换 + 劳森判据 HUD -->
 <div id="tempHud" hidden>
   <div id="tempNow">🌡️ 20 ℃</div>
   <div id="tempBarWrap"><div id="tempBar"></div></div>
   <div id="tempStage">🫧 常温气体：加热中…</div>
   <div id="tempGoal">目标 ≈ 1 亿℃ · D–T 聚变点火条件</div>
+  <div id="confinementBar">
+    <span class="c-label">约束方案:</span>
+    <button class="c-btn active" id="btnTokamak" title="托卡马克磁约束 (ITER / EAST) — 螺旋环向强磁场牢牢约束等离子体">🧲 托卡马克磁约束</button>
+    <button class="c-btn" id="btnLaser" title="激光惯性约束 (NIF) — 192路激光对称对轰靶丸内爆压缩">⚡ 激光惯性约束</button>
+  </div>
+  <div id="lawsonGauge">
+    <div class="lawson-title">劳森判据三乘积 n·T·τ<sub style="font-size:0.55rem">E</sub></div>
+    <div class="lawson-val" id="lawsonVal">0.00 × 10²¹ keV·s/m³</div>
+    <div class="lawson-bar"><div id="lawsonFill"></div><span class="lawson-target">点火门槛 3.0</span></div>
+  </div>
+</div>
+
+<!-- 第三幕：库仑势垒与量子隧穿 (Gamow Peak) HUD -->
+<div id="tunnelingHud" hidden>
+  <div class="th-title">⚡ 库仑排斥阻挡 vs 量子隧穿 (Gamow Peak)</div>
+  <div class="th-row">
+    <span>静电斥力势垒:</span> <b id="coulombVal">410 keV (经典物理需数十亿度!)</b>
+  </div>
+  <div class="th-row">
+    <span>德布罗意波长:</span> <b id="deBroglieVal">λ ≈ 1.8 fm (与核子尺寸相当)</b>
+  </div>
+  <div class="th-row">
+    <span>量子隧穿概率:</span> <b id="tunnelProb" style="color:#34d399">P ~ e<sup style="font-size:0.6rem">-2πη</sup> (伽莫夫峰共振开启!)</b>
+  </div>
 </div>
 
 <!-- SCENARIO-005 (AC-03): bottom control bar -->

@@ -85,7 +85,62 @@ const ELECTRON_R = 0.13;
 /* §3 SCENARIO-010 (AC-04): the phase state — simTime 累计器门控一切（SCENARIO-017
    的暂停语义：暂停冻结粒子运动和阶段时钟，恢复后从冻结处继续）。
    SCENARIO-025 (AC-10): autoAdvance=false 时手动换幕 —— 到点不自动前进。 */
-const state = { phaseKey: 'atoms', phaseTime: 0, simTime: 0, paused: false, autoAdvance: true };
+const state = {
+  phaseKey: 'atoms',
+  phaseTime: 0,
+  simTime: 0,
+  paused: false,
+  autoAdvance: true,
+  reaction: 'dt',         // 'dt' | 'dd' | 'pb'
+  confinement: 'tokamak', // 'tokamak' | 'laser'
+  soundEnabled: false,
+};
+
+/* ——— Web Audio 物理音效合成器（原生无外部依赖，默认静音） ——— */
+let audioCtx = null;
+function getAudio() {
+  if (!audioCtx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) audioCtx = new AC();
+  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+function playTone(freq, dur = 0.12, type = 'sine', gainVal = 0.15) {
+  if (!state.soundEnabled) return;
+  const ctx = getAudio();
+  if (!ctx) return;
+  try {
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ctx.currentTime);
+    g.gain.setValueAtTime(gainVal, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+    osc.connect(g);
+    g.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + dur);
+  } catch (e) {}
+}
+function playFusionBoom() {
+  if (!state.soundEnabled) return;
+  const ctx = getAudio();
+  if (!ctx) return;
+  try {
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(160, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(36, ctx.currentTime + 1.2);
+    g.gain.setValueAtTime(0.4, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 1.3);
+    osc.connect(g);
+    g.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 1.4);
+  } catch (e) {}
+}
 
 const stage = document.getElementById('stage');
 
@@ -244,12 +299,30 @@ function init() {
      §4 SCENARIO-007 (AC-04) 第一幕 原子结构：氘（1质子+1中子）与
      氚（1质子+2中子）并排，各带 1 颗绕轨道电子 + CSS2D 质子/中子/电子标签。
      ———————————————————————————————————————————————————————————— */
+  /* ————————————————————————————————————————————————————————————
+     §4 SCENARIO-007 (AC-04) 第一幕 原子结构：氘（1质子+1中子）与
+     氚（1质子+2中子）并排，各带 1 颗绕轨道电子 + CSS2D 质子/中子/电子标签。
+     ———————————————————————————————————————————————————————————— */
   function buildAtoms() {
     const atoms = [];
-    const defs = [
-      { name: '氘 ²H', x: -2.7, protons: 1, neutrons: 1, orbitR: 1.55, tilt: 0.55, spin: 1.5 },
-      { name: '氚 ³H', x: 2.7, protons: 1, neutrons: 2, orbitR: 1.8, tilt: -0.45, spin: -1.2 },
-    ];
+    let defs;
+    if (state.reaction === 'dd') {
+      defs = [
+        { name: '氘核 A (²H)', x: -2.7, protons: 1, neutrons: 1, orbitR: 1.55, tilt: 0.55, spin: 1.5 },
+        { name: '氘核 B (²H)', x: 2.7, protons: 1, neutrons: 1, orbitR: 1.55, tilt: -0.45, spin: -1.2 },
+      ];
+    } else if (state.reaction === 'pb') {
+      defs = [
+        { name: '质子 (¹H)', x: -3.2, protons: 1, neutrons: 0, orbitR: 1.2, tilt: 0.35, spin: 1.8 },
+        { name: '硼-11 (¹¹B)', x: 2.5, protons: 5, neutrons: 6, orbitR: 2.1, tilt: -0.4, spin: -1.0 },
+      ];
+    } else {
+      defs = [
+        { name: '氘 ²H', x: -2.7, protons: 1, neutrons: 1, orbitR: 1.55, tilt: 0.55, spin: 1.5 },
+        { name: '氚 ³H', x: 2.7, protons: 1, neutrons: 2, orbitR: 1.8, tilt: -0.45, spin: -1.2 },
+      ];
+    }
+
     for (const d of defs) {
       const atom = new THREE.Group();
       atom.position.set(d.x, 0, 0);
@@ -273,9 +346,11 @@ function init() {
       storyGroup.add(atom);
       atoms.push({ atom, nucleus: nucleus.group, electron, meshes: nucleus.meshes, orbitR: d.orbitR, angle: Math.random() * 6.28, spin: d.spin, bob: d.x });
     }
-    /* 代表性粒子标签：挂在氘原子的质子 / 中子 / 电子上 */
+    /* 代表性粒子标签：挂在第 1 个原子的质子 / 中子 / 电子上（SCENARIO-007 强制契约） */
     attachLabel(atoms[0].meshes[0], '质子（+ 带正电）', '#f87171', 0.6);
-    attachLabel(atoms[0].meshes[1], '中子（不带电）', '#a5b4cf', 0.6);
+    if (atoms[0].meshes[1]) {
+      attachLabel(atoms[0].meshes[1], '中子（不带电）', '#a5b4cf', 0.6);
+    }
     attachLabel(atoms[0].electron, '电子（− 最小）', '#67e8f9', 0.45);
     sceneLabel('第 1 幕 · 原子结构：左边氘 ²H，右边氚 ³H', '#e2e8f0', 3.6);
 
@@ -330,23 +405,90 @@ function init() {
       });
     }
     attachLabel(electrons[0].obj, '自由电子 e⁻（已脱离原子核）', '#67e8f9', 0.45);
+
+    /* 托卡马克磁场 / 激光惯性约束视觉辅助体 */
+    const confinementGroup = new THREE.Group();
+    storyGroup.add(confinementGroup);
+
+    if (state.confinement === 'tokamak') {
+      // 12 组 D 形极向场线圈环
+      const coilMat = new THREE.LineBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.35 });
+      for (let c = 0; c < 12; c++) {
+        const ang = (c / 12) * Math.PI * 2;
+        const pts = [];
+        for (let j = 0; j <= 36; j++) {
+          const v = (j / 36) * Math.PI * 2;
+          const r = 3.2 + 1.4 * Math.cos(v);
+          const y = 2.0 * Math.sin(v);
+          pts.push(new THREE.Vector3(r * Math.cos(ang), y, r * Math.sin(ang)));
+        }
+        const coilGeo = new THREE.BufferGeometry().setFromPoints(pts);
+        confinementGroup.add(new THREE.LineLoop(coilGeo, coilMat));
+      }
+      // 螺旋环向磁力线 (Helical field lines on magnetic flux surface)
+      const helixMat = new THREE.LineBasicMaterial({ color: 0x67e8f9, transparent: true, opacity: 0.6 });
+      const hPts = [];
+      const q = 3.2; // 安全因子 q
+      for (let k = 0; k <= 360; k++) {
+        const u = (k / 360) * Math.PI * 8;
+        const theta = u;
+        const phi = u / q;
+        const R = 3.2 + 1.2 * Math.cos(phi);
+        const y = 1.3 * Math.sin(phi);
+        hPts.push(new THREE.Vector3(R * Math.cos(theta), y, R * Math.sin(theta)));
+      }
+      const helixGeo = new THREE.BufferGeometry().setFromPoints(hPts);
+      confinementGroup.add(new THREE.Line(helixGeo, helixMat));
+    } else {
+      // 激光惯性约束：对称对轰高能激光束
+      const laserMat = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.4 });
+      for (let l = 0; l < 8; l++) {
+        const phi = Math.acos(-1 + (2 * l) / 8);
+        const theta = Math.sqrt(8 * Math.PI) * phi;
+        const dir = new THREE.Vector3(
+          Math.cos(theta) * Math.sin(phi),
+          Math.sin(theta) * Math.sin(phi),
+          Math.cos(phi)
+        ).normalize();
+        const beamGeo = new THREE.CylinderGeometry(0.04, 0.28, 7.0, 8);
+        const beam = new THREE.Mesh(beamGeo, laserMat);
+        beam.position.copy(dir.clone().multiplyScalar(3.6));
+        beam.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.clone().negate());
+        confinementGroup.add(beam);
+      }
+    }
+
     /* 环境粒子汤：ONE THREE.Points + BufferGeometry（typed-array 位置更新） */
     const pos = new Float32Array(FIELD_N * 3);
     const vel = new Float32Array(FIELD_N * 3);
     for (let i = 0; i < FIELD_N; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 14;
-      pos[i * 3 + 1] = (Math.random() - 0.5) * 8;
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 8;
-      vel[i * 3] = (Math.random() - 0.5) * 0.9;
-      vel[i * 3 + 1] = (Math.random() - 0.5) * 0.9;
-      vel[i * 3 + 2] = (Math.random() - 0.5) * 0.9;
+      if (state.confinement === 'tokamak') {
+        const th = Math.random() * Math.PI * 2;
+        const ph = Math.random() * Math.PI * 2;
+        const R = 3.2 + (Math.random() * 0.9 + 0.2) * Math.cos(ph);
+        pos[i * 3] = R * Math.cos(th);
+        pos[i * 3 + 1] = 1.2 * Math.sin(ph);
+        pos[i * 3 + 2] = R * Math.sin(th);
+        // 沿环向磁场高速回旋流动
+        vel[i * 3] = -Math.sin(th) * 2.2 + (Math.random() - 0.5) * 0.5;
+        vel[i * 3 + 1] = (Math.random() - 0.5) * 0.7;
+        vel[i * 3 + 2] = Math.cos(th) * 2.2 + (Math.random() - 0.5) * 0.5;
+      } else {
+        pos[i * 3] = (Math.random() - 0.5) * 14;
+        pos[i * 3 + 1] = (Math.random() - 0.5) * 8;
+        pos[i * 3 + 2] = (Math.random() - 0.5) * 8;
+        vel[i * 3] = (Math.random() - 0.5) * 0.9;
+        vel[i * 3 + 1] = (Math.random() - 0.5) * 0.9;
+        vel[i * 3 + 2] = (Math.random() - 0.5) * 0.9;
+      }
     }
     const fieldGeo = new THREE.BufferGeometry();
     fieldGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     const field = new THREE.Points(
       fieldGeo,
       new THREE.PointsMaterial({
-        color: 0xffb37c, size: 0.09, transparent: true, opacity: 0.9,
+        color: state.confinement === 'tokamak' ? 0x67e8f9 : 0xffb37c,
+        size: 0.09, transparent: true, opacity: 0.9,
         depthWrite: false, sizeAttenuation: true
       })
     );
@@ -365,6 +507,9 @@ function init() {
 
     world = {
       update(dt) {
+        if (state.confinement === 'tokamak') {
+          confinementGroup.rotation.y += dt * 0.15;
+        }
         for (const n of nuclei) {
           /* 随机速度 jitter：热运动 */
           n.vel.x += (Math.random() - 0.5) * 16 * dt;
@@ -428,22 +573,57 @@ function init() {
     const N_SPEED = 5.4;   // 中子反冲速度（~14.1 MeV，约 4 倍于氦核）
     const HE_SPEED = 1.35; // 氦核反冲速度（~3.5 MeV）
 
-    const dGrp = buildNucleus(1, 1).group; // 氘核
-    const tGrp = buildNucleus(1, 2).group; // 氚核
+    let leftNuc, rightNuc;
+    if (state.reaction === 'dd') {
+      leftNuc = buildNucleus(1, 1).group;
+      rightNuc = buildNucleus(1, 1).group;
+    } else if (state.reaction === 'pb') {
+      leftNuc = buildNucleus(1, 0).group;
+      rightNuc = buildNucleus(5, 6).group;
+    } else {
+      leftNuc = buildNucleus(1, 1).group; // 氘核
+      rightNuc = buildNucleus(1, 2).group; // 氚核
+    }
+    const dGrp = leftNuc;
+    const tGrp = rightNuc;
     dGrp.position.set(-5.4, 0, 0);
     tGrp.position.set(5.4, 0, 0);
     storyGroup.add(dGrp, tGrp);
+
+    /* 🔬 量子隧穿 de Broglie 物质波包与库仑势垒可视化 */
+    const waveMatL = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.35, wireframe: true });
+    const waveMatR = new THREE.MeshBasicMaterial({ color: 0xf472b6, transparent: true, opacity: 0.35, wireframe: true });
+    const waveL = new THREE.Mesh(new THREE.SphereGeometry(1.0, 16, 12), waveMatL);
+    const waveR = new THREE.Mesh(new THREE.SphereGeometry(1.0, 16, 12), waveMatR);
+    dGrp.add(waveL);
+    tGrp.add(waveR);
+
+    // 发光的中央库仑排斥势垒平面
+    const barrierMat = new THREE.MeshBasicMaterial({
+      color: 0xef4444, transparent: true, opacity: 0.25, side: THREE.DoubleSide
+    });
+    const barrier = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 3.6), barrierMat);
+    barrier.position.set(0, 0, 0);
+    storyGroup.add(barrier);
 
     /* 产物：⁴He（2 质子 + 2 中子）与反冲中子，聚变瞬间才现身 */
     const heGrp = buildNucleus(2, 2).group;
     heGrp.visible = false;
     storyGroup.add(heGrp);
+
     const neutron = new THREE.Mesh(
       new THREE.SphereGeometry(NEUTRON_R, 20, 14),
       new THREE.MeshBasicMaterial({ color: 0xb9c4d8 })
     );
     neutron.visible = false;
     storyGroup.add(neutron);
+
+    // p-11B 专用产物（3 颗高速 α 粒子）
+    const extraAlpha1 = buildNucleus(2, 2).group;
+    const extraAlpha2 = buildNucleus(2, 2).group;
+    extraAlpha1.visible = false;
+    extraAlpha2.visible = false;
+    storyGroup.add(extraAlpha1, extraAlpha2);
 
     /* 能量闪光：Sprite + AdditiveBlending（E=mc² 的化身） */
     const flash = new THREE.Sprite(
@@ -461,16 +641,24 @@ function init() {
     const coulombLabel = sceneLabel('⚠ 库仑斥力：越近推得越开', '#fca5a5', 1.7);
     attachLabel(heGrp, '⁴He 氦核（2质子+2中子）· 反冲 ~3.5 MeV', '#fbbf24', 0.75);
     attachLabel(neutron, '中子 n · 反冲 ~14.1 MeV', '#cbd5e1', 0.6);
-    const eqLabel = sceneLabel(
-      '²H + ³H → ⁴He + n + ' + PHYS.Q_MEV + ' MeV ⚡ ' + PHYS.E_MC2_LABEL +
-        '（亏损 ' + PHYS.MASS_DEFECT_U_ROUNDED + ' → ' + PHYS.E_J + ' J）',
-      '#7dd3fc', 3.6
-    );
+
+    let formulaText = '²H + ³H → ⁴He + n + ' + PHYS.Q_MEV + ' MeV ⚡ ' + PHYS.E_MC2_LABEL +
+      '（亏损 ' + PHYS.MASS_DEFECT_U_ROUNDED + ' → ' + PHYS.E_J + ' J）';
+    if (state.reaction === 'dd') {
+      formulaText = '²H + ²H → ³He + n (3.27 MeV) / ³H + p (4.03 MeV) ⚡ 均值 ~3.65 MeV';
+    } else if (state.reaction === 'pb') {
+      formulaText = 'p + ¹¹B → 3 ⁴He + 8.68 MeV ⚡ 先进洁净聚变（零中子辐射）';
+    }
+    const eqLabel = sceneLabel(formulaText, '#7dd3fc', 3.6);
     eqLabel.visible = false;
+
+    const tunnelingHud = document.getElementById('tunnelingHud');
+    let soundFired = false;
 
     world = {
       update(dt, t) {
         if (t < MERGE_T) {
+          if (tunnelingHud) tunnelingHud.hidden = false;
           /* 减速逼近：pow(u, 0.55) 先快后慢 — 库仑斥力在近距最强 */
           const u = Math.min(t / MERGE_T, 1);
           const ease = Math.pow(u, 0.55);
@@ -480,19 +668,50 @@ function init() {
           dGrp.rotation.z += dt * 1.6;
           tGrp.rotation.z -= dt * 1.6;
           coulombLabel.visible = u < 0.92;
+
+          // 德布罗意波包波动与库仑势垒呼吸
+          const pulse = 1 + 0.18 * Math.sin(t * 16);
+          waveL.scale.setScalar(pulse);
+          waveR.scale.setScalar(pulse);
+          barrierMat.opacity = 0.15 + 0.65 * ease;
+
+          // 更新量子隧穿 HUD
+          const distFm = (1 - ease) * 12 + 1.2;
+          const prob = Math.min(Math.exp(-distFm * 0.35) * 100, 99.8).toFixed(1);
+          const probEl = document.getElementById('tunnelProb');
+          if (probEl) probEl.textContent = `P ~ ${prob}% (伽莫夫峰共振开启!)`;
           return;
         }
+
+        if (tunnelingHud) tunnelingHud.hidden = true;
         /* 聚变！合并 → 产物反冲 → 闪光展开后淡出（SCENARIO-021：淡出后自动重演） */
         const ft = t - MERGE_T;
+        if (!soundFired) {
+          playFusionBoom();
+          soundFired = true;
+        }
         dGrp.visible = false;
         tGrp.visible = false;
+        barrier.visible = false;
         coulombLabel.visible = false;
         heGrp.visible = true;
-        neutron.visible = true;
         eqLabel.visible = true;
-        heGrp.position.set(-0.25 - ft * HE_SPEED, -0.1 * ft, 0);
-        heGrp.rotation.z -= dt * 2.2;
-        neutron.position.set(0.25 + ft * N_SPEED * 0.85, 0.15 + ft * N_SPEED * 0.5, 0);
+
+        if (state.reaction === 'pb') {
+          // 3 颗 α 粒子沿 120° 对称反冲
+          extraAlpha1.visible = true;
+          extraAlpha2.visible = true;
+          const rSpeed = 3.2;
+          heGrp.position.set(Math.cos(0) * ft * rSpeed, Math.sin(0) * ft * rSpeed, 0);
+          extraAlpha1.position.set(Math.cos(2.094) * ft * rSpeed, Math.sin(2.094) * ft * rSpeed, 0);
+          extraAlpha2.position.set(Math.cos(4.188) * ft * rSpeed, Math.sin(4.188) * ft * rSpeed, 0);
+        } else {
+          neutron.visible = true;
+          heGrp.position.set(-0.25 - ft * HE_SPEED, -0.1 * ft, 0);
+          heGrp.rotation.z -= dt * 2.2;
+          neutron.position.set(0.25 + ft * N_SPEED * 0.85, 0.15 + ft * N_SPEED * 0.5, 0);
+        }
+
         if (ft < FLASH_T) {
           flash.visible = true;
           const s = 1.2 + ft * 3.2;
@@ -684,6 +903,8 @@ function init() {
     return '🎯 1 亿℃ 达成：满足 D–T 聚变条件！';
   }
   let lastTempText = '';
+  const lawsonValEl = document.getElementById('lawsonVal');
+  const lawsonFillEl = document.getElementById('lawsonFill');
   function updateTempHud() {
     if (state.phaseKey !== 'plasma') {
       if (!tempHud.hidden) tempHud.hidden = true;
@@ -697,7 +918,65 @@ function init() {
       tempNowEl.textContent = text;
       tempStageEl.textContent = tempStageText(T);
     }
-    tempBar.style.width = (Math.min(state.phaseTime / PHASES[1].duration, 1) * 100).toFixed(1) + '%';
+    const u = Math.min(state.phaseTime / PHASES[1].duration, 1);
+    tempBar.style.width = (u * 100).toFixed(1) + '%';
+
+    // 劳森判据三乘积计算：n * T * tau_E (keV * s / m^3)
+    if (lawsonValEl && lawsonFillEl) {
+      const tripleVal = (Math.pow(u, 2.5) * 3.2).toFixed(2);
+      lawsonValEl.textContent = `${tripleVal} × 10²¹ keV·s/m³`;
+      const fillPct = Math.min((parseFloat(tripleVal) / 3.0) * 100, 100);
+      lawsonFillEl.style.width = `${fillPct}%`;
+    }
+  }
+
+  /* 约束模式按钮事件 */
+  const btnTokamak = document.getElementById('btnTokamak');
+  const btnLaser = document.getElementById('btnLaser');
+  if (btnTokamak && btnLaser) {
+    btnTokamak.onclick = () => {
+      state.confinement = 'tokamak';
+      btnTokamak.classList.add('active');
+      btnLaser.classList.remove('active');
+      if (state.phaseKey === 'plasma') startRun('plasma');
+    };
+    btnLaser.onclick = () => {
+      state.confinement = 'laser';
+      btnLaser.classList.add('active');
+      btnTokamak.classList.remove('active');
+      if (state.phaseKey === 'plasma') startRun('plasma');
+    };
+  }
+
+  /* 反应类型选择与浮窗 */
+  const btnRxn = document.getElementById('btnRxn');
+  const rxnPanel = document.getElementById('rxnPanel');
+  if (btnRxn && rxnPanel) {
+    btnRxn.onclick = () => {
+      rxnPanel.hidden = !rxnPanel.hidden;
+      btnRxn.classList.toggle('active', !rxnPanel.hidden);
+    };
+    document.querySelectorAll('.rxn-btn').forEach((btn) => {
+      btn.onclick = () => {
+        document.querySelectorAll('.rxn-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.reaction = btn.dataset.rxn;
+        rxnPanel.hidden = true;
+        btnRxn.classList.remove('active');
+        startRun(state.phaseKey);
+      };
+    });
+  }
+
+  /* 音效开关 */
+  const btnSound = document.getElementById('btnSound');
+  if (btnSound) {
+    btnSound.onclick = () => {
+      state.soundEnabled = !state.soundEnabled;
+      btnSound.textContent = state.soundEnabled ? '🔊' : '🔇';
+      btnSound.classList.toggle('active', state.soundEnabled);
+      if (state.soundEnabled) playTone(440, 0.1);
+    };
   }
 
   /* §3 SCENARIO-010 (AC-04): observable runtime API — window.fusionSim */

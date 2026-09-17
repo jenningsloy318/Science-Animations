@@ -23,10 +23,118 @@
   <p class="subtitle">铀-235 + 中子 → 钡-141 + 氪-92 + 3 个中子 + 能量 — 三幕看懂核裂变</p>
 </header>
 
-<!-- SCENARIO-019 (AC-07): 🎬 引导浏览入口 -->
+<!-- SCENARIO-019 (AC-07): 🎬 引导浏览入口 + 🔊 音效 + 📊 质量产额 + ⚡ 能量分配 + 💧 慢化剂 -->
 <nav id="tools">
   <button class="tool-btn" id="btnTour" title="引导浏览（分步讲解）" aria-pressed="false">🎬</button>
+  <button class="tool-btn" id="btnSound" title="音效开关 Sound Toggle" aria-label="音效开关">🔊</button>
+  <button class="tool-btn" id="btnYield" title="碎片产额双峰分布 Yields" aria-label="碎片产额双峰分布">📊</button>
+  <button class="tool-btn" id="btnEnergy" title="200 MeV 能量详细分配 Energy Partition" aria-label="200 MeV 能量分配">⚡</button>
+  <button class="tool-btn" id="btnModerator" title="中子慢化与链式反应 Neutron Moderation" aria-label="中子慢化与链式反应">💧</button>
 </nav>
+
+<!-- 📊 裂变产物质量双峰产额曲线与裂变对选择浮窗 -->
+<div id="yieldPanel" class="hud-popover" hidden>
+  <div class="hud-popover__title">📊 裂变碎片质量双峰分布（骆驼曲线）</div>
+  <p class="hud-popover__desc">铀-235 吸收慢中子裂变时，<b>不对称分裂</b>占绝对优势（壳层幻数 Z=50, N=82 驱动）；纯对称分裂（118/118）概率低于 0.01%！</p>
+  <div class="yield-chart">
+    <div class="yield-curve-svg">
+      <svg viewBox="0 0 280 80" class="curve-svg">
+        <path d="M 10,75 Q 40,75 55,50 Q 75,8 90,8 Q 105,8 120,55 Q 140,75 160,75 Q 175,75 190,52 Q 210,12 225,12 Q 240,12 255,55 Q 268,75 275,75" fill="none" stroke="#f59e0b" stroke-width="2.5"/>
+        <text x="80" y="32" fill="#7dd3fc" font-size="9" font-weight="bold">轻峰 A≈95</text>
+        <text x="210" y="34" fill="#fbbf24" font-size="9" font-weight="bold">重峰 A≈139</text>
+        <text x="135" y="70" fill="#f87171" font-size="8">对称谷 &lt;0.01%</text>
+      </svg>
+    </div>
+  </div>
+  <div class="split-options">
+    <button class="split-btn active" data-split="standard">
+      <b>① 经典主产物（教材基准）</b>
+      <span>⁵⁶₁₄₁Ba (钡-141) + ³⁶₉₂Kr (氪-92) + 3 个中子</span>
+    </button>
+    <button class="split-btn" data-split="cs">
+      <b>② 铯-137 强辐射同位素对（中子幻数 N=82 稳定壳）</b>
+      <span>⁵⁵₁₃₇Cs (铯-137) + ³⁷₉₆Rb (铷-96) + 3 个中子</span>
+    </button>
+    <button class="split-btn" data-split="sr">
+      <b>③ 锶-90 / 氙-144 裂变对（反应堆毒物）</b>
+      <span>⁵⁴₁₄₄Xe (氙-144) + ³⁸₉₀Sr (锶-90) + 2 个中子</span>
+    </button>
+    <button class="split-btn" data-split="symmetric">
+      <b>④ 对称裂变（极端罕见 · 产额 &lt;0.01%）</b>
+      <span>⁴⁶₁₁₈Pd (钯-118) + ⁴⁶₁₁₈Pd (钯-118) — 强核壳层排斥对称分裂</span>
+    </button>
+  </div>
+</div>
+
+<!-- ⚡ 200 MeV 能量分配详细面板 -->
+<div id="energyPanel" class="hud-popover" hidden>
+  <div class="hud-popover__title">⚡ 一次裂变 200 MeV 能量去向明细</div>
+  <div class="energy-list">
+    <div class="e-row highlight">
+      <span class="e-name">💥 裂变碎片动能（库仑排斥膨胀）</span>
+      <span class="e-val">~168 MeV</span>
+      <span class="e-pct">84.0%</span>
+    </div>
+    <div class="e-bar-wrap"><div class="e-bar" style="width:84%"></div></div>
+    <div class="e-row">
+      <span class="e-name">💨 瞬发中子动能（~2 MeV × 2.5个）</span>
+      <span class="e-val">~5 MeV</span>
+      <span class="e-pct">2.5%</span>
+    </div>
+    <div class="e-row">
+      <span class="e-name">✨ 瞬发伽马光子辐射</span>
+      <span class="e-val">~7 MeV</span>
+      <span class="e-pct">3.5%</span>
+    </div>
+    <div class="e-row">
+      <span class="e-name">☢️ 碎片后继贝塔衰变能</span>
+      <span class="e-val">~8 MeV</span>
+      <span class="e-pct">4.0%</span>
+    </div>
+    <div class="e-row">
+      <span class="e-name">💫 碎片后继缓发伽马辐射</span>
+      <span class="e-val">~7 MeV</span>
+      <span class="e-pct">3.5%</span>
+    </div>
+    <div class="e-row">
+      <span class="e-name">🌌 反中微子（直接逃逸入太空）</span>
+      <span class="e-val">~12 MeV</span>
+      <span class="e-pct">6.0%</span>
+    </div>
+    <div class="e-footer">
+      合计约 207 MeV（工程标称 <b>200 MeV ≈ 3.2e-11 J</b>），其中 84% 转化为反应堆热能驱动汽轮机！
+    </div>
+  </div>
+</div>
+
+<!-- 💧 中子慢化与链式反应控制面板 -->
+<div id="moderatorPanel" class="hud-popover" hidden>
+  <div class="hud-popover__title">💧 为什么必须用“慢化剂”慢化中子？</div>
+  <div class="mod-grid">
+    <div class="mod-card">
+      <div class="mod-tag">💨 快中子 (刚裂变产生)</div>
+      <div class="mod-spec">动能 ≈ 2 MeV · 速度 ≈ 20,000 km/s</div>
+      <div class="mod-cross">铀-235 裂变截面: <b>仅 1 靶恩 (barn)</b></div>
+      <div class="mod-note">飞得太快，穿核而过，很难被铀-235 俘获！</div>
+    </div>
+    <div class="mod-arrow">撞击水/石墨碰撞 20~30 次减速 ➔</div>
+    <div class="mod-card highlight">
+      <div class="mod-tag">🐢 热中子 (慢化后)</div>
+      <div class="mod-spec">动能 ≈ 0.025 eV · 速度 ≈ 2,200 m/s</div>
+      <div class="mod-cross" style="color:#86efac">铀-235 裂变截面: <b>暴增至 585 靶恩！</b></div>
+      <div class="mod-note">俘获几率暴增近 600 倍，轻松触发下一次裂变！</div>
+    </div>
+  </div>
+  <div class="keff-section">
+    <div class="keff-title">控制棒深度与有效增殖系数 k<sub style="font-size:0.6rem">eff</sub></div>
+    <div class="keff-controls">
+      <button class="keff-btn" data-k="sub">次临界 k &lt; 1 (停堆)</button>
+      <button class="keff-btn active" data-k="crit">临界 k = 1 (平稳发电)</button>
+      <button class="keff-btn" data-k="super">超临界 k &gt; 1 (功率提升)</button>
+    </div>
+    <div class="keff-desc" id="keffDesc">当前状态：k=1 临界 · 反应堆输出恒定功率，约 0.65% 缓发中子提供宝贵的受控反应时间！</div>
+  </div>
+</div>
 
 <!-- SCENARIO-016 (AC-05): 相位字幕 + 解说 + 守恒验算面板 -->
 <section id="narration" aria-live="polite">
