@@ -242,7 +242,9 @@ APP.Tabs['t6-ao'] = {
 
   update(dt, active) {
     if (!this.st || !active) return;
-    const st = this.st; st.t += dt;
+    const st = this.st;
+    if (!st.laser || !st.wfs) return;   // 快速切页后的残影防护（见 build 异步重建）
+    st.t += dt;
     const beat = (window.APP && APP.app) ? APP.app.beat : 2;
     if (beat !== this.lastBeat) {
       this.lastBeat = beat;

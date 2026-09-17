@@ -206,7 +206,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const key = APP.DATA.TABS.find(t => t.id === app.tab).key;
     const mod = APP.Tabs[key];
-    if (mod) mod.update(dt, true);
+    if (mod) { try { mod.update(dt, true); } catch (e) { console.error('[tab update]', e); } }
     if (ctx.orbit) ctx.orbit.apply();
     APP.U.LabelSys.update(ctx);
 

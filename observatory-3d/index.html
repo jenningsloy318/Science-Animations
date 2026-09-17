@@ -23,7 +23,7 @@ canvas{outline:none}
 
 /* 顶部 */
 #topbar{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;gap:14px;
-  padding:10px 16px;background:linear-gradient(180deg,rgba(5,7,10,.92),rgba(5,7,10,.55) 70%,transparent);
+  padding:10px 16px 10px 104px;background:linear-gradient(180deg,rgba(5,7,10,.92),rgba(5,7,10,.55) 70%,transparent);
   pointer-events:none}
 #topbar>*{pointer-events:auto}
 #title{font-size:15px;font-weight:700;letter-spacing:.06em;white-space:nowrap}
@@ -179,9 +179,20 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 .dc-prog{font-size:.72rem;color:#8fa3bf}
 .dc-bias{margin-top:7px;font-size:.78rem;color:#f0c987;background:rgba(216,178,92,.08);
   border:1px dashed rgba(216,178,92,.4);border-radius:9px;padding:6px 9px;line-height:1.55}
+
+/* ── 🏠 返回首页 ── */
+#homeBtn{position:fixed;top:14px;left:14px;z-index:60;display:inline-flex;align-items:center;gap:6px;
+  padding:9px 14px;background:rgba(15,20,34,.82);backdrop-filter:blur(10px);
+  border:1px solid rgba(216,178,92,.4);border-radius:19px;color:#e8dcc0;
+  font-size:.85rem;font-weight:600;line-height:1;text-decoration:none;white-space:nowrap;
+  box-shadow:0 4px 16px rgba(0,0,0,.35);transition:background .25s,border-color .25s,transform .25s}
+#homeBtn:hover{background:rgba(30,36,54,.95);border-color:rgba(216,178,92,.7);color:#fff;transform:translateY(-1px)}
+#homeBtn:active{transform:translateY(0)}
 </style>
 </head>
 <body>
+
+<a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
 
 <canvas id="gl"></canvas>
 <div id="vignette"></div>

@@ -23,7 +23,7 @@ canvas{outline:none}
 
 /* 顶部 */
 #topbar{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;gap:14px;
-  padding:10px 16px;background:linear-gradient(180deg,rgba(5,7,10,.92),rgba(5,7,10,.55) 70%,transparent);
+  padding:10px 16px 10px 104px;background:linear-gradient(180deg,rgba(5,7,10,.92),rgba(5,7,10,.55) 70%,transparent);
   pointer-events:none}
 #topbar>*{pointer-events:auto}
 #title{font-size:15px;font-weight:700;letter-spacing:.06em;white-space:nowrap}
@@ -179,9 +179,20 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
 .dc-prog{font-size:.72rem;color:#8fa3bf}
 .dc-bias{margin-top:7px;font-size:.78rem;color:#f0c987;background:rgba(216,178,92,.08);
   border:1px dashed rgba(216,178,92,.4);border-radius:9px;padding:6px 9px;line-height:1.55}
+
+/* ── 🏠 返回首页 ── */
+#homeBtn{position:fixed;top:14px;left:14px;z-index:60;display:inline-flex;align-items:center;gap:6px;
+  padding:9px 14px;background:rgba(15,20,34,.82);backdrop-filter:blur(10px);
+  border:1px solid rgba(216,178,92,.4);border-radius:19px;color:#e8dcc0;
+  font-size:.85rem;font-weight:600;line-height:1;text-decoration:none;white-space:nowrap;
+  box-shadow:0 4px 16px rgba(0,0,0,.35);transition:background .25s,border-color .25s,transform .25s}
+#homeBtn:hover{background:rgba(30,36,54,.95);border-color:rgba(216,178,92,.7);color:#fff;transform:translateY(-1px)}
+#homeBtn:active{transform:translateY(0)}
 </style>
 </head>
 <body>
+
+<a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
 
 <canvas id="gl"></canvas>
 <div id="vignette"></div>
@@ -1432,9 +1443,9 @@ APP.Tabs['t2-telescope'] = {
       raw: '主镜有效直径 <b>D = ' + Dtxt + '</b>' +
            (p.note ? '<br>（' + p.note + '）' : '') +
            '<br>工作波长 λ = 550 nm（V 波段）',
-      eq: '① 聚光：面积比 = (D / d<sub>眼</sub>)²<br>' +
+      eq: '① 聚光：面积比 = (D / d<sub>眼</sub>)² ，其中 d<sub>眼</sub> = <b>人眼瞳孔直径 ≈ 7 mm</b>（夜间暗适应时完全放大的最大值）——即“望远镜主镜 vs 你的眼睛”的集光面积之比<br>' +
           '② 分辨：θ = <b>1.22 λ / D</b>（装满的单口径）<br>' +
-          '③ 极限星等：m ≈ 6.5 + 5·log₁₀(D / d<sub>眼</sub>)',
+          '③ 极限星等：m ≈ 6.5 + 5·log₁₀(D / d<sub>眼</sub>)（6.5 等 = 7 mm 瞳孔的目视极限）',
       calc: '聚光 = (' + Dtxt + ' / 7 mm)² = <b>' + F.sci(gr, 2) + '</b> 倍<br>' +
             'θ = 1.22 × 5.5×10⁻⁷ / ' + Dtxt + ' = ' +
             F.sci(th, 2) + ' rad = <b>' + F.fmtAngle(th) + '</b><br>' +
@@ -2894,7 +2905,9 @@ APP.Tabs['t6-ao'] = {
 
   update(dt, active) {
     if (!this.st || !active) return;
-    const st = this.st; st.t += dt;
+    const st = this.st;
+    if (!st.laser || !st.wfs) return;   // 快速切页后的残影防护（见 build 异步重建）
+    st.t += dt;
     const beat = (window.APP && APP.app) ? APP.app.beat : 2;
     if (beat !== this.lastBeat) {
       this.lastBeat = beat;
@@ -4090,7 +4103,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const key = APP.DATA.TABS.find(t => t.id === app.tab).key;
     const mod = APP.Tabs[key];
-    if (mod) mod.update(dt, true);
+    if (mod) { try { mod.update(dt, true); } catch (e) { console.error('[tab update]', e); } }
     if (ctx.orbit) ctx.orbit.apply();
     APP.U.LabelSys.update(ctx);
 
