@@ -291,7 +291,7 @@
       for (const sh of SHELLS) {
         const mat = new THREE.MeshStandardMaterial(Object.assign({
           metalness: 0.75, roughness: 0.5, side: THREE.DoubleSide, envMap: APP.MATS.env,
-          transparent: true, opacity: 0.55 }, sh.mat));
+          transparent: true, opacity: 0.16, depthWrite: false }, sh.mat));
         mats.push(mat);
         {  /* single 240-deg solid sector: one gap toward the default camera */
           const start = 60;   /* solid 60->300, gap centered on theta 0 (+z, default camera) */  /* solid sectors centered ±y; gaps face ±x (camera) */
@@ -302,7 +302,7 @@
           /* RingGeometry measures azimuth from +x — shift by −90° to match */
           const cap = new THREE.Mesh(
             new THREE.RingGeometry(sh.r - 0.12, sh.r, 40, 1, (start - 90) * Math.PI / 180, 240 * Math.PI / 180),
-            new THREE.MeshBasicMaterial({ color: sh.mat.emissive, transparent: true, opacity: 0.35, side: THREE.DoubleSide }));
+            new THREE.MeshBasicMaterial({ color: sh.mat.emissive, transparent: true, opacity: 0.14, depthWrite: false, side: THREE.DoubleSide }));
           cap.position.z = zHalf;
           cutGroup.add(cap);
           const cap2 = cap.clone(); cap2.position.z = -zHalf;
