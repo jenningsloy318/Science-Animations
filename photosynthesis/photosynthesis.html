@@ -23976,7 +23976,7 @@
     const scene = new Scene();
     scene.background = new Color("#060b12");
     const camera = new PerspectiveCamera(46, innerWidth / innerHeight, 0.1, 300);
-    camera.position.set(2, 3.5, 33);
+    camera.position.set(4, 4, 44);
     scene.add(new AmbientLight("#42506a", 1));
     const key = new DirectionalLight("#fff2d8", 1.4);
     key.position.set(6, 14, 16);
@@ -23984,7 +23984,7 @@
     const controls = new OrbitControls(camera, document.getElementById("gl"));
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-    controls.target.set(4, 0.5, 0);
+    controls.target.set(3, 1, 0);
     const lumenBg = new Mesh(
       new PlaneGeometry(46, 3.6),
       new MeshBasicMaterial({ color: "#0d1f38", transparent: true, opacity: 0.9 })
@@ -23997,9 +23997,27 @@
     );
     lumenFrame.position.set(-4, -1.7, -1.4);
     scene.add(lumenFrame);
-    const lumenLabel = makeLabel("\u7C7B\u56CA\u4F53\u8154 = H\u207A \u6C60\uFF08\u8D8A\u6EE1\u7535\u8D8A\u8DB3\uFF09", "#7db4d8");
-    lumenLabel.position.set(-13.5, -3.6, 0);
-    scene.add(lumenLabel);
+    const labels = [];
+    const leaderLines = [];
+    function partLabel(text, color, x, y, k = 1) {
+      const l = makeLabel(text, color);
+      l.scale.multiplyScalar(k);
+      l.position.set(x, y, 0);
+      scene.add(l);
+      labels.push(l);
+      return l;
+    }
+    function componentLabel(text, color, lx, ly, tx, ty) {
+      const l = partLabel(text, color, lx, ly, 1.35);
+      const line = new Line(
+        new BufferGeometry().setFromPoints([new Vector3(lx, ly - 1.05, 0), new Vector3(tx, ty, 0)]),
+        new LineBasicMaterial({ color: 16760952, transparent: true, opacity: 0.6 })
+      );
+      scene.add(line);
+      leaderLines.push(line);
+      return l;
+    }
+    const lumenLabel = partLabel("\u7C7B\u56CA\u4F53\u8154 = H\u207A \u6C60\uFF08\u8D8A\u6EE1\u7535\u8D8A\u8DB3\uFF09", "#7db4d8", -13.5, -3.6);
     const flowLine = new Mesh(
       new BoxGeometry(4.2, 0.06, 0.04),
       new MeshBasicMaterial({ color: 16739229, transparent: true, opacity: 0.65 })
@@ -24013,10 +24031,7 @@
     flowArrow.rotation.z = -Math.PI / 2;
     flowArrow.position.set(4.35, -1.35, 0.3);
     scene.add(flowArrow);
-    const flowLabel = makeLabel("H\u207A \u6D41 \u2192 \u63A8\u8F6C\u5B50", "#ff9ec4");
-    flowLabel.scale.multiplyScalar(0.55);
-    flowLabel.position.set(2.2, -2.6, 0.3);
-    scene.add(flowLabel);
+    const flowLabel = partLabel("H\u207A \u6D41 \u2192 \u63A8\u8F6C\u5B50", "#ff9ec4", 2.2, -2.6, 0.75);
     const membrane = new Group();
     scene.add(membrane);
     const headMat = new MeshStandardMaterial({ color: C2.membrane, roughness: 0.55, emissive: "#4a3a12", emissiveIntensity: 0.4 });
@@ -24099,13 +24114,13 @@
     const atpX = 4.6;
     const knob = new Mesh(
       new SphereGeometry(0.85, 22, 16),
-      new MeshStandardMaterial({ color: 14192447, roughness: 0.4, emissive: "#7a4a10", emissiveIntensity: 0.35 })
+      new MeshStandardMaterial({ color: 16748866, roughness: 0.35, emissive: "#a34e08", emissiveIntensity: 0.6 })
     );
     knob.position.set(atpX, 1.7, 0);
     scene.add(knob);
     const stalk = new Mesh(
       new CylinderGeometry(0.13, 0.13, 1.35, 10),
-      new MeshStandardMaterial({ color: 14192447 })
+      new MeshStandardMaterial({ color: 15769675 })
     );
     stalk.position.set(atpX, 0.75, 0);
     scene.add(stalk);
@@ -24123,23 +24138,13 @@
       rotor.add(seg);
     }
     const labelsOn = { v: true };
-    function partLabel(text, color, x, y) {
-      const l = makeLabel(text, color);
-      l.position.set(x, y, 0);
-      scene.add(l);
-      return l;
-    }
-    const lblTitle = partLabel("\u4E0A\u534A \xB7 \u5149\u53CD\u5E94\uFF1A\u628A\u5149\u88C5\u8FDB\u7535\u6C60\uFF0C\u987A\u4FBF\u653E\u51FA\u6C27\u6C14", "#9ff0b5", -8, 5.4);
-    const lblPsii = partLabel("PSII\uFF08\u5206\u89E3\u6C34\uFF09", "#8af0ae", -8.2, 3.4);
-    const lblB6f = partLabel("b6f\uFF08e\u207B \u8DEF\u8FC7 \u2192 \u6CF5 H\u207A\uFF09", "#d7b8a8", 0, 2.6);
-    const lblPsi = partLabel("PSI \xB7 \u5149\u7CFB\u7EDF I\uFF08\u7B2C 2 \u6B21\u5145\u7535\uFF09", "#8af0ae", 7.2, 3.4);
-    const lblFnr = partLabel("FNR\uFF08\u88C5\u7535\u6C60\uFF09\u2192 NADPH", "#cdb4ff", 12, 3.7);
-    const atpLabel = partLabel("ATP \u5408\u9176", "#ffc078", atpX - 2.6, 3.1);
-    const pipeLabel = makeLabel("\u7535\u5B50\u7BA1\u9053\uFF1Ae\u207B \u6CBF\u7BA1\u8D70", "#a5e3ff");
-    pipeLabel.scale.multiplyScalar(0.6);
-    pipeLabel.position.set(-4.8, 2.75, 0);
-    scene.add(pipeLabel);
-    const labels = [lumenLabel, flowLabel, lblTitle, lblPsii, lblB6f, lblPsi, lblFnr, atpLabel, pipeLabel];
+    const lblTitle = partLabel("\u4E0A\u534A \xB7 \u5149\u53CD\u5E94\uFF1A\u628A\u5149\u88C5\u8FDB\u7535\u6C60\uFF0C\u987A\u4FBF\u653E\u51FA\u6C27\u6C14", "#9ff0b5", -8, 6.6, 1.15);
+    const lblPsii = componentLabel("PSII \xB7 \u5206\u89E3\u6C34", "#8af0ae", -8.2, 4.6, -8.2, 1.5);
+    const lblB6f = componentLabel("b6f \xB7 \u6CF5 H\u207A", "#d7b8a8", -0.7, 4.6, 0, 1.6);
+    const atpLabel = componentLabel("ATP \u5408\u9176", "#ffc078", 3, 4.6, 4.6, 2.45);
+    const lblPsi = componentLabel("PSI \xB7 \u7B2C 2 \u6B21\u5145\u7535", "#8af0ae", 8, 4.6, 7.2, 1.5);
+    const lblFnr = componentLabel("FNR \xB7 \u88C5 NADPH", "#cdb4ff", 12.2, 4, 10.7, 2.95);
+    const pipeLabel = partLabel("\u7535\u5B50\u7BA1\u9053\uFF1Ae\u207B \u6CBF\u7BA1\u8D70", "#a5e3ff", -4.8, 2.75, 0.75);
     const ringGrp = new Group();
     ringGrp.position.copy(RING_C);
     ringGrp.scale.setScalar(0.62);
@@ -24427,6 +24432,7 @@
       labelsOn.v = !labelsOn.v;
       e.target.classList.toggle("on", labelsOn.v);
       labels.forEach((l) => l.visible = labelsOn.v);
+      leaderLines.forEach((l) => l.visible = labelsOn.v);
     });
     document.getElementById("rLight").addEventListener("input", (e) => {
       state.lightRate = +e.target.value;
@@ -24625,9 +24631,11 @@
       drawChart(state.zu);
       controls.update();
     }
+    labels.forEach((l) => l.scale.multiplyScalar(1.5));
     return {
       scene,
       camera,
+      controls,
       update,
       refreshHUD,
       getInfo() {

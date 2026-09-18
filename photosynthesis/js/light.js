@@ -27,7 +27,7 @@ export function buildLight() {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color('#060b12');
   const camera = new THREE.PerspectiveCamera(46, innerWidth / innerHeight, 0.1, 300);
-  camera.position.set(2, 3.5, 33);
+  camera.position.set(7, 4, 44);
 
   scene.add(new THREE.AmbientLight('#42506a', 1.0));
   const key = new THREE.DirectionalLight('#fff2d8', 1.4);
@@ -35,7 +35,7 @@ export function buildLight() {
 
   const controls = new OrbitControls(camera, document.getElementById('gl'));
   controls.enableDamping = true; controls.dampingFactor = 0.08;
-  controls.target.set(4, 0.5, 0);
+  controls.target.set(6, 1, 0);
 
   // ── 腔（封闭 H⁺ 池）──
   const lumenBg = new THREE.Mesh(new THREE.PlaneGeometry(46, 3.6),
@@ -44,8 +44,24 @@ export function buildLight() {
   const lumenFrame = new THREE.Mesh(new THREE.BoxGeometry(46, 3.6, 0.04),
     new THREE.MeshBasicMaterial({ color: '#1d3a5f', transparent: true, opacity: 0.7 }));
   lumenFrame.position.set(-4, -1.7, -1.4); scene.add(lumenFrame);
-  const lumenLabel = makeLabel('类囊体腔 = H⁺ 池（越满电越足）', '#7db4d8');
-  lumenLabel.position.set(-13.5, -3.6, 0); scene.add(lumenLabel);
+  // ── 标签工具：每个标签带引线，钉在它说的事务上 ──
+  const labels = [];        // sprite 标签（缩放 + 显隐）
+  const leaderLines = [];   // 引线（只参与显隐）
+  function partLabel(text, color, x, y, k = 1) {
+    const l = makeLabel(text, color);
+    l.scale.multiplyScalar(k);
+    l.position.set(x, y, 0); scene.add(l); labels.push(l);
+    return l;
+  }
+  function componentLabel(text, color, lx, ly, tx, ty) {
+    const l = partLabel(text, color, lx, ly, 1.35);
+    const line = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(lx, ly - 1.05, 0), new THREE.Vector3(tx, ty, 0)]),
+      new THREE.LineBasicMaterial({ color: 0xffc078, transparent: true, opacity: 0.6 }));
+    scene.add(line); leaderLines.push(line);
+    return l;
+  }
+  const lumenLabel = partLabel('类囊体腔 = H⁺ 池（越满电越足）', '#7db4d8', -13.5, -3.6);
 
   // H⁺ 池 → ATP 合酶的流向箭头
   const flowLine = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.06, 0.04),
@@ -55,9 +71,7 @@ export function buildLight() {
     new THREE.MeshBasicMaterial({ color: 0xff6b9d }));
   flowArrow.rotation.z = -Math.PI / 2;
   flowArrow.position.set(4.35, -1.35, 0.3); scene.add(flowArrow);
-  const flowLabel = makeLabel('H⁺ 流 → 推转子', '#ff9ec4');
-  flowLabel.scale.multiplyScalar(0.55);
-  flowLabel.position.set(2.2, -2.6, 0.3); scene.add(flowLabel);
+  const flowLabel = partLabel('H⁺ 流 → 推转子', '#ff9ec4', 2.2, -2.6, 0.75);
 
   // ── 类囊体膜 ──
   const membrane = new THREE.Group(); scene.add(membrane);
@@ -133,13 +147,13 @@ export function buildLight() {
   const U_B6F = uAtX(0);
   const U_PSI = uAtX(7.2);
 
-  // ── ATP 合酶 ──
+  // ── ATP 合酶（亮橙色蘑菇：腔内转子 + 穿膜柄 + 基质侧球头）──
   const atpX = 4.6;
   const knob = new THREE.Mesh(new THREE.SphereGeometry(0.85, 22, 16),
-    new THREE.MeshStandardMaterial({ color: 0xd88f3f, roughness: 0.4, emissive: '#7a4a10', emissiveIntensity: 0.35 }));
+    new THREE.MeshStandardMaterial({ color: 0xff9142, roughness: 0.35, emissive: '#a34e08', emissiveIntensity: 0.6 }));
   knob.position.set(atpX, 1.7, 0); scene.add(knob);
   const stalk = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.13, 1.35, 10),
-    new THREE.MeshStandardMaterial({ color: 0xd88f3f }));
+    new THREE.MeshStandardMaterial({ color: 0xf0a04b }));
   stalk.position.set(atpX, 0.75, 0); scene.add(stalk);
   const rotor = new THREE.Group(); rotor.position.set(atpX, -0.62, 0); scene.add(rotor);
   for (let i = 0; i < 8; i++) {
@@ -150,21 +164,15 @@ export function buildLight() {
     seg.rotation.y = -a; rotor.add(seg);
   }
 
-  // ── 标签 ──
+  // ── 标签：一行排列，每条都带引线钉到部件 ──
   const labelsOn = { v: true };
-  function partLabel(text, color, x, y) {
-    const l = makeLabel(text, color); l.position.set(x, y, 0); scene.add(l); return l;
-  }
-  const lblTitle = partLabel('上半 · 光反应：把光装进电池，顺便放出氧气', '#9ff0b5', -8, 5.4);
-  const lblPsii = partLabel('PSII（分解水）', '#8af0ae', -8.2, 3.4);
-  const lblB6f = partLabel('b6f（e⁻ 路过 → 泵 H⁺）', '#d7b8a8', 0, 2.6);
-  const lblPsi = partLabel('PSI · 光系统 I（第 2 次充电）', '#8af0ae', 7.2, 3.4);
-  const lblFnr = partLabel('FNR（装电池）→ NADPH', '#cdb4ff', 12.0, 3.7);
-  const atpLabel = partLabel('ATP 合酶', '#ffc078', atpX - 2.6, 3.1);
-  const pipeLabel = makeLabel('电子管道：e⁻ 沿管走', '#a5e3ff');
-  pipeLabel.scale.multiplyScalar(0.6);
-  pipeLabel.position.set(-4.8, 2.75, 0); scene.add(pipeLabel);
-  const labels = [lumenLabel, flowLabel, lblTitle, lblPsii, lblB6f, lblPsi, lblFnr, atpLabel, pipeLabel];
+  const lblTitle = partLabel('上半 · 光反应：把光装进电池，顺便放出氧气', '#9ff0b5', -8, 6.6, 1.15);
+  const lblPsii = componentLabel('PSII · 分解水', '#8af0ae', -8.2, 4.6, -8.2, 1.5);
+  const lblB6f = componentLabel('b6f · 泵 H⁺', '#d7b8a8', -0.7, 4.6, 0, 1.6);
+  const atpLabel = componentLabel('ATP 合酶', '#ffc078', 3.0, 4.6, 4.6, 2.45);
+  const lblPsi = componentLabel('PSI · 第 2 次充电', '#8af0ae', 8.0, 4.6, 7.2, 1.5);
+  const lblFnr = componentLabel('FNR · 装 NADPH', '#cdb4ff', 12.2, 4.0, 10.7, 2.95);
+  const pipeLabel = partLabel('电子管道：e⁻ 沿管走', '#a5e3ff', -4.8, 2.75, 0.75);
 
   // ── 卡尔文环 ──
   const ringGrp = new THREE.Group(); ringGrp.position.copy(RING_C); ringGrp.scale.setScalar(0.62); scene.add(ringGrp);
@@ -424,6 +432,7 @@ export function buildLight() {
     labelsOn.v = !labelsOn.v;
     e.target.classList.toggle('on', labelsOn.v);
     labels.forEach(l => l.visible = labelsOn.v);
+    leaderLines.forEach(l => l.visible = labelsOn.v);
   });
   document.getElementById('rLight').addEventListener('input', e => {
     state.lightRate = +e.target.value;
@@ -627,8 +636,11 @@ export function buildLight() {
     controls.update();
   }
 
+  // 相机拉远后统一放大标签，保证远距离可读
+  labels.forEach(l => l.scale.multiplyScalar(1.5));
+
   return {
-    scene, camera, update, refreshHUD,
+    scene, camera, controls, update, refreshHUD,
     getInfo() {
       return { ...state.counts, kok: KOK_STATES[state.kokIdx], bat: { ...state.bat }, turns: state.turns, g3p: state.g3p };
     },
