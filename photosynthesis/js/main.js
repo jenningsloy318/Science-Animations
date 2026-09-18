@@ -6,7 +6,6 @@ import * as THREE from 'three';
 import { buildStory } from './story.js';
 import { buildLeaf } from './chloroplast.js';
 import { buildLight } from './light.js';
-import { buildCalvin } from './calvin.js';
 import { buildFacts } from './spectrum.js';
 
 const canvas = document.getElementById('gl');
@@ -21,7 +20,6 @@ const views = {
   story: buildStory(),
   leaf: buildLeaf(),
   light: buildLight(),
-  calvin: buildCalvin(),
   facts: buildFacts(),
 };
 let current = 'story';

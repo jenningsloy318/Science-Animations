@@ -72,9 +72,8 @@
     <h1>光合作用</h1>
     <button class="tab active" data-view="story">① 一图看懂</button>
     <button class="tab" data-view="leaf">② 叶子里</button>
-    <button class="tab" data-view="light">③ 光反应</button>
-    <button class="tab" data-view="calvin">④ 拼糖循环</button>
-    <button class="tab" data-view="facts">⑤ 数字与真相</button>
+    <button class="tab" data-view="light">③ 光反应 + 拼糖</button>
+    <button class="tab" data-view="facts">④ 数字与真相</button>
   </div>
 
   <!-- ⓪ 一图看懂 -->
@@ -105,35 +104,21 @@
     </div>
   </div>
 
-  <!-- ② 光反应 -->
+  <!-- ③ 光反应 + 拼糖 -->
   <div class="viewpanel" data-panel="light">
-    <h2>光反应：把光变成"电池"<small>类囊体膜</small></h2>
-    <div class="formula">H₂O → O₂ + H⁺(腔内) + NADPH + ATP</div>
-    <p>看这张膜的横截面：<b>金色的光子</b>掉进两个光系统，把<b>电子</b>（青色）打上高能级。电子沿 Z 形链条下行，途中把 H⁺ 泵进下方的<b>类囊体腔</b>；腔里的 H⁺ 涌出 <b>ATP 合酶</b>时，转子旋转拼出 ATP。</p>
-    <div class="stat"><span>O₂ 放出</span><b id="hO2" style="color:#fff">0</b></div>
-    <div class="stat"><span>NADPH 合成</span><b id="hNadph" style="color:var(--violet)">0</b></div>
-    <div class="stat"><span>ATP 合成</span><b id="hAtp" style="color:var(--orange)">0</b></div>
-    <div class="stat"><span>放氧复合体状态</span><b id="hKok" style="color:var(--cyan)">S1</b></div>
-    <p style="font-size:11.5px">点击膜上的部件可看说明。放氧复合体走 <b>Kok 循环</b>：每积累 4 个电子（S0→S4）才放出一个 O₂。</p>
+    <h2>一台完整的机器<small>充电 + 拼糖，同屏看</small></h2>
+    <div class="formula">光 + 水 → 电池(ATP/NADPH) + O₂；电池 + CO₂ → 糖</div>
+    <p><b>上半</b>：光子打进膜上的两个光系统，电子流动把 H⁺ 泵进腔——H⁺ 涌出时转子转出 <b>ATP</b>，FNR 拼出 <b>NADPH</b>；水被拆开，<b>O₂</b> 由此放出。</p>
+    <p><b>下半</b>：满电池（黄/紫）会<b>掉进右下的拼糖环</b>，每轮花 3 ATP + 2 NADPH 抓住一个 CO₂ 拼糖；用完的<b>空电池</b>再飞回膜上充电——循环不停。</p>
+    <div class="stat"><span>😮‍💨 O₂ 放出</span><b id="hO2" style="color:#fff">0</b></div>
+    <div class="stat"><span>🔋 电池库存（ATP / NADPH）</span><b><span id="hBatAtp" style="color:var(--orange)">0</span> / <span id="hBatNadph" style="color:var(--violet)">0</span></b></div>
+    <div class="stat"><span>🍬 拼糖圈数</span><b id="hTurns" style="color:var(--cyan)">0</b></div>
+    <div class="stat"><span>✅ 净得糖块</span><b id="hG3p" style="color:var(--green)">0</b></div>
+    <div class="stat"><span>放氧复合体</span><b id="hKok" style="color:var(--cyan)">S1</b></div>
+    <p style="font-size:11.5px">看细节：库存不够时拼糖会<b>停下来等电池</b>——就像手机没电充不了电。点击膜上部件可看说明。</p>
     <div class="facts">
       <div class="fact gold"><b>量子需求</b> — 放 1 个 O₂ 理论最少 8 个光子，实测 8–10 个。</div>
       <div class="fact"><b>水是电子来源</b> — O₂ 里的氧来自水，不是 CO₂（¹⁸O 同位素证实，1941）。</div>
-    </div>
-  </div>
-
-  <!-- ③ 合成循环 -->
-  <div class="viewpanel" data-panel="calvin">
-    <h2>合成循环：用"电池"拼糖<small>卡尔文循环</small></h2>
-    <div class="formula">6 CO₂ + 18 ATP + 12 NADPH → 1 葡萄糖</div>
-    <p>光反应的 ATP / NADPH 是电池，这一步把它们花掉：RuBisCO 抓住 CO₂ 固定到 RuBP 上，还原成 G3P，再再生 RuBP 循环往复。</p>
-    <div class="stat"><span>已固定 CO₂</span><b id="hCo2" style="color:#cfd8e3">0</b></div>
-    <div class="stat"><span>循环圈数</span><b id="hTurns" style="color:var(--cyan)">0</b></div>
-    <div class="stat"><span>净得 G3P（出厂糖块）</span><b id="hG3p" style="color:var(--green)">0</b></div>
-    <div class="stat"><span>葡萄糖进度</span><b id="hGlucose" style="color:var(--gold)">0 / 6</b></div>
-    <p style="font-size:11.5px">每 3 圈净得 1 个 G3P（另外 5 个留在循环里再生 RuBP）；6 个 G3P 才拼出 1 个葡萄糖。图为示意单圈。</p>
-    <div class="facts">
-      <div class="fact green"><b>RuBisCO</b> — 地球上最多的酶（约占叶子蛋白一半），却每秒只工作约 3 次——慢工出细活。</div>
-      <div class="fact"><b>白天才开工</b> — 循环本身不用光，但必须花光反应攒下的电池，所以只在白天跑。</div>
     </div>
   </div>
 
@@ -169,11 +154,6 @@
       <button class="btn on" id="bLabels">🏷 标签</button>
       <div class="ctl"><label>光强</label><input type="range" id="rLight" min="0.3" max="2.5" step="0.1" value="1"><output id="oLight">1.0×</output></div>
       <div class="ctl"><label>速度</label><input type="range" id="rSpeed" min="0.4" max="2.5" step="0.1" value="1"><output id="oSpeed">1.0×</output></div>
-    </div>
-    <div class="viewbar" data-bar="calvin">
-      <button class="btn" id="bCalvinPause">⏸ 暂停</button>
-      <button class="btn" id="bCalvinReset">↺ 重置</button>
-      <div class="ctl"><label>速度</label><input type="range" id="rCalvin" min="0.5" max="3" step="0.1" value="1"><output id="oCalvin">1.0×</output></div>
     </div>
     <div class="viewbar" data-bar="facts">
       <div class="ctl"><label>视角</label><input type="range" id="rFacts" min="0" max="2" step="1" value="0"><output id="oFacts">吸收光谱</output></div>

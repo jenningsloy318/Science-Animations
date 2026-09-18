@@ -72,9 +72,8 @@
     <h1>光合作用</h1>
     <button class="tab active" data-view="story">① 一图看懂</button>
     <button class="tab" data-view="leaf">② 叶子里</button>
-    <button class="tab" data-view="light">③ 光反应</button>
-    <button class="tab" data-view="calvin">④ 拼糖循环</button>
-    <button class="tab" data-view="facts">⑤ 数字与真相</button>
+    <button class="tab" data-view="light">③ 光反应 + 拼糖</button>
+    <button class="tab" data-view="facts">④ 数字与真相</button>
   </div>
 
   <!-- ⓪ 一图看懂 -->
@@ -105,35 +104,21 @@
     </div>
   </div>
 
-  <!-- ② 光反应 -->
+  <!-- ③ 光反应 + 拼糖 -->
   <div class="viewpanel" data-panel="light">
-    <h2>光反应：把光变成"电池"<small>类囊体膜</small></h2>
-    <div class="formula">H₂O → O₂ + H⁺(腔内) + NADPH + ATP</div>
-    <p>看这张膜的横截面：<b>金色的光子</b>掉进两个光系统，把<b>电子</b>（青色）打上高能级。电子沿 Z 形链条下行，途中把 H⁺ 泵进下方的<b>类囊体腔</b>；腔里的 H⁺ 涌出 <b>ATP 合酶</b>时，转子旋转拼出 ATP。</p>
-    <div class="stat"><span>O₂ 放出</span><b id="hO2" style="color:#fff">0</b></div>
-    <div class="stat"><span>NADPH 合成</span><b id="hNadph" style="color:var(--violet)">0</b></div>
-    <div class="stat"><span>ATP 合成</span><b id="hAtp" style="color:var(--orange)">0</b></div>
-    <div class="stat"><span>放氧复合体状态</span><b id="hKok" style="color:var(--cyan)">S1</b></div>
-    <p style="font-size:11.5px">点击膜上的部件可看说明。放氧复合体走 <b>Kok 循环</b>：每积累 4 个电子（S0→S4）才放出一个 O₂。</p>
+    <h2>一台完整的机器<small>充电 + 拼糖，同屏看</small></h2>
+    <div class="formula">光 + 水 → 电池(ATP/NADPH) + O₂；电池 + CO₂ → 糖</div>
+    <p><b>上半</b>：光子打进膜上的两个光系统，电子流动把 H⁺ 泵进腔——H⁺ 涌出时转子转出 <b>ATP</b>，FNR 拼出 <b>NADPH</b>；水被拆开，<b>O₂</b> 由此放出。</p>
+    <p><b>下半</b>：满电池（黄/紫）会<b>掉进右下的拼糖环</b>，每轮花 3 ATP + 2 NADPH 抓住一个 CO₂ 拼糖；用完的<b>空电池</b>再飞回膜上充电——循环不停。</p>
+    <div class="stat"><span>😮‍💨 O₂ 放出</span><b id="hO2" style="color:#fff">0</b></div>
+    <div class="stat"><span>🔋 电池库存（ATP / NADPH）</span><b><span id="hBatAtp" style="color:var(--orange)">0</span> / <span id="hBatNadph" style="color:var(--violet)">0</span></b></div>
+    <div class="stat"><span>🍬 拼糖圈数</span><b id="hTurns" style="color:var(--cyan)">0</b></div>
+    <div class="stat"><span>✅ 净得糖块</span><b id="hG3p" style="color:var(--green)">0</b></div>
+    <div class="stat"><span>放氧复合体</span><b id="hKok" style="color:var(--cyan)">S1</b></div>
+    <p style="font-size:11.5px">看细节：库存不够时拼糖会<b>停下来等电池</b>——就像手机没电充不了电。点击膜上部件可看说明。</p>
     <div class="facts">
       <div class="fact gold"><b>量子需求</b> — 放 1 个 O₂ 理论最少 8 个光子，实测 8–10 个。</div>
       <div class="fact"><b>水是电子来源</b> — O₂ 里的氧来自水，不是 CO₂（¹⁸O 同位素证实，1941）。</div>
-    </div>
-  </div>
-
-  <!-- ③ 合成循环 -->
-  <div class="viewpanel" data-panel="calvin">
-    <h2>合成循环：用"电池"拼糖<small>卡尔文循环</small></h2>
-    <div class="formula">6 CO₂ + 18 ATP + 12 NADPH → 1 葡萄糖</div>
-    <p>光反应的 ATP / NADPH 是电池，这一步把它们花掉：RuBisCO 抓住 CO₂ 固定到 RuBP 上，还原成 G3P，再再生 RuBP 循环往复。</p>
-    <div class="stat"><span>已固定 CO₂</span><b id="hCo2" style="color:#cfd8e3">0</b></div>
-    <div class="stat"><span>循环圈数</span><b id="hTurns" style="color:var(--cyan)">0</b></div>
-    <div class="stat"><span>净得 G3P（出厂糖块）</span><b id="hG3p" style="color:var(--green)">0</b></div>
-    <div class="stat"><span>葡萄糖进度</span><b id="hGlucose" style="color:var(--gold)">0 / 6</b></div>
-    <p style="font-size:11.5px">每 3 圈净得 1 个 G3P（另外 5 个留在循环里再生 RuBP）；6 个 G3P 才拼出 1 个葡萄糖。图为示意单圈。</p>
-    <div class="facts">
-      <div class="fact green"><b>RuBisCO</b> — 地球上最多的酶（约占叶子蛋白一半），却每秒只工作约 3 次——慢工出细活。</div>
-      <div class="fact"><b>白天才开工</b> — 循环本身不用光，但必须花光反应攒下的电池，所以只在白天跑。</div>
     </div>
   </div>
 
@@ -169,11 +154,6 @@
       <button class="btn on" id="bLabels">🏷 标签</button>
       <div class="ctl"><label>光强</label><input type="range" id="rLight" min="0.3" max="2.5" step="0.1" value="1"><output id="oLight">1.0×</output></div>
       <div class="ctl"><label>速度</label><input type="range" id="rSpeed" min="0.4" max="2.5" step="0.1" value="1"><output id="oSpeed">1.0×</output></div>
-    </div>
-    <div class="viewbar" data-bar="calvin">
-      <button class="btn" id="bCalvinPause">⏸ 暂停</button>
-      <button class="btn" id="bCalvinReset">↺ 重置</button>
-      <div class="ctl"><label>速度</label><input type="range" id="rCalvin" min="0.5" max="3" step="0.1" value="1"><output id="oCalvin">1.0×</output></div>
     </div>
     <div class="viewbar" data-bar="facts">
       <div class="ctl"><label>视角</label><input type="range" id="rFacts" min="0" max="2" step="1" value="0"><output id="oFacts">吸收光谱</output></div>
@@ -23837,13 +23817,22 @@
     psii: 4173418,
     psi: 3116891,
     b6f: 9268835,
-    fnr: 7166928
+    fnr: 7166928,
+    co2: 11187394,
+    g3p: 4906624,
+    adp: 13208133,
+    nadpp: 9403088
   };
+  var RING_C = new Vector3(12, -7.2, 0);
+  var RING_R = 2.7;
+  var A_FIX = Math.PI / 2;
+  var A_RED = Math.PI / 2 - 2 * Math.PI / 3;
+  var A_REG = Math.PI / 2 + 2 * Math.PI / 3;
   function buildLight() {
     const scene = new Scene();
     scene.background = new Color("#060b12");
     const camera = new PerspectiveCamera(46, innerWidth / innerHeight, 0.1, 300);
-    camera.position.set(-1.5, 4.5, 26);
+    camera.position.set(2, 3.5, 33);
     scene.add(new AmbientLight("#42506a", 1));
     const key = new DirectionalLight("#fff2d8", 1.4);
     key.position.set(6, 14, 16);
@@ -23851,31 +23840,29 @@
     const controls = new OrbitControls(camera, document.getElementById("gl"));
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-    controls.target.set(-0.5, 0.5, 0);
+    controls.target.set(4, 0.5, 0);
     const lumenBg = new Mesh(
-      new PlaneGeometry(70, 18),
+      new PlaneGeometry(70, 16),
       new MeshBasicMaterial({ color: "#0a1626", transparent: true, opacity: 0.85 })
     );
-    lumenBg.position.set(0, -9.6, -1.5);
+    lumenBg.position.set(-8, -2.6, -1.5);
     scene.add(lumenBg);
-    const lumenLabel = makeLabel("\u7C7B\u56CA\u4F53\u8154\uFF08H\u207A \u5728\u8FD9\u91CC\u5806\u79EF = \u7535\u6C60\u5145\u7535\uFF09", "#7db4d8");
-    lumenLabel.position.set(-9.5, -6.2, 0);
+    const lumenLabel = makeLabel("\u7C7B\u56CA\u4F53\u8154\uFF08H\u207A \u5806\u79EF = \u5145\u7535\uFF09", "#7db4d8");
+    lumenLabel.position.set(-11.5, -2.8, 0);
     scene.add(lumenLabel);
-    const stromaLabel = makeLabel("\u57FA\u8D28\uFF08\u5408\u6210\u5FAA\u73AF\u5728\u8FD9\u91CC\u82B1 ATP/NADPH\uFF09", "#9fe0b0");
-    stromaLabel.position.set(-10.5, 7.4, 0);
-    scene.add(stromaLabel);
     const membrane = new Group();
     scene.add(membrane);
     const headMat = new MeshStandardMaterial({ color: C2.membrane, roughness: 0.55, emissive: "#4a3a12", emissiveIntensity: 0.4 });
     for (const y of [0.42, -0.42]) {
-      const layer = new Mesh(new BoxGeometry(64, 0.3, 1.6), headMat);
-      layer.position.y = y;
+      const layer = new Mesh(new BoxGeometry(56, 0.3, 1.6), headMat);
+      layer.position.set(-6, y, 0);
       membrane.add(layer);
     }
     const core = new Mesh(
-      new BoxGeometry(64, 0.5, 1.4),
+      new BoxGeometry(56, 0.5, 1.4),
       new MeshStandardMaterial({ color: "#6e5a28", roughness: 0.8 })
     );
+    core.position.x = -6;
     membrane.add(core);
     function blob(x, w, h, color, y = 0) {
       const m = new Mesh(
@@ -23929,9 +23916,6 @@
       seg.rotation.y = -a;
       rotor.add(seg);
     }
-    const atpLabel = makeLabel("ATP \u5408\u9176", "#ffc078");
-    atpLabel.position.set(atpX, 3.15, 0);
-    scene.add(atpLabel);
     const labelsOn = { v: true };
     function partLabel(text, color, x, y) {
       const l = makeLabel(text, color);
@@ -23939,23 +23923,62 @@
       scene.add(l);
       return l;
     }
-    const lblPsii = partLabel("PSII \xB7 P680\uFF08\u5206\u89E3\u6C34\uFF09", "#8af0ae", -8.2, 3.6);
-    const lblB6f = partLabel("\u7EC6\u80DE\u8272\u7D20 b6f\uFF08\u6CF5 H\u207A\uFF09", "#d7b8a8", 0, 2.5);
-    const lblPsi = partLabel("PSI \xB7 P700\uFF08\u518D\u5145\u80FD\uFF09", "#8af0ae", 7.2, 3.4);
-    const lblFnr = partLabel("FNR \u2192 NADPH", "#cdb4ff", 11.2, 4.15);
-    const labels = [lumenLabel, stromaLabel, atpLabel, lblPsii, lblB6f, lblPsi, lblFnr];
+    const lblTitle = partLabel("\u4E0A\u534A \xB7 \u5149\u53CD\u5E94\uFF1A\u628A\u5149\u88C5\u8FDB\u7535\u6C60\uFF0C\u987A\u4FBF\u653E\u51FA\u6C27\u6C14", "#9ff0b5", -8, 5.4);
+    const lblPsii = partLabel("PSII\uFF08\u5206\u89E3\u6C34\uFF09", "#8af0ae", -8.2, 3.4);
+    const lblB6f = partLabel("b6f\uFF08\u6CF5 H\u207A\uFF09", "#d7b8a8", 0, 2.5);
+    const lblPsi = partLabel("PSI\uFF08\u518D\u5145\u80FD\uFF09", "#8af0ae", 7.2, 3.4);
+    const lblFnr = partLabel("FNR \u2192 NADPH", "#cdb4ff", 11.4, 4.1);
+    const atpLabel = partLabel("ATP \u5408\u9176", "#ffc078", atpX - 2.6, 3.1);
+    const labels = [lumenLabel, lblTitle, lblPsii, lblB6f, lblPsi, lblFnr, atpLabel];
+    const ringGrp = new Group();
+    ringGrp.position.copy(RING_C);
+    ringGrp.scale.setScalar(0.62);
+    scene.add(ringGrp);
+    const ring = new Mesh(
+      new TorusGeometry(RING_R / 0.62, 0.16 / 0.62 * 0.62, 12, 80),
+      new MeshStandardMaterial({ color: "#2a4a38", roughness: 0.5, emissive: "#0c2417", emissiveIntensity: 0.7 })
+    );
+    ringGrp.add(ring);
+    const ringStations = [];
+    [[A_FIX, "\u2460 \u56FA\u5B9A \xB7 RuBisCO \u6293 CO\u2082", "#8af0ae"], [A_RED, "\u2461 \u8FD8\u539F \xB7 \u82B1 3ATP+2NADPH", "#cdb4ff"], [A_REG, "\u2462 \u518D\u751F \xB7 RuBP \u56DE\u4F4D", "#7dd3fc"]].forEach(([ang, txt, col]) => {
+      const pos = new Vector3(Math.cos(ang) * (RING_R / 0.62), Math.sin(ang) * (RING_R / 0.62), 0);
+      const pad = new Mesh(
+        new CylinderGeometry(1, 1, 0.3, 20),
+        new MeshStandardMaterial({ color: col, roughness: 0.4, transparent: true, opacity: 0.3, emissive: col, emissiveIntensity: 0.3 })
+      );
+      pad.position.copy(pos);
+      ringGrp.add(pad);
+      const l = makeLabel(txt, "#eaf4ec");
+      l.scale.multiplyScalar(0.62);
+      l.position.copy(pos).add(new Vector3(0, 1.5, 0));
+      ringGrp.add(l);
+      ringStations.push({ pad, l });
+    });
+    const lblRing = partLabel("\u4E0B\u534A \xB7 \u62FC\u7CD6\u5FAA\u73AF\uFF1A\u82B1\u7535\u6C60\uFF0C\u628A CO\u2082 \u62FC\u6210\u7CD6", "#9ff0b5", RING_C.x + 2.4, RING_C.y + 4.6);
+    const sugarLabel = partLabel("\u{1F36C} \u7CD6\u51FA\u5382\uFF08\u98DF\u7269\uFF09", "#dbe86a", RING_C.x + 0.4, RING_C.y - 4.4);
+    const lblShuttle = partLabel("\u6EE1\u7535\u6C60 \u2193 \u9001\u53BB\u62FC\u7CD6", "#ffc078", 7.6, -3.4);
+    const lblReturn = partLabel("\u2191 \u7A7A\u7535\u6C60\u56DE\u819C\u4E0A\u518D\u5145\u7535", "#c98a45", 7.8, -5.6);
+    labels.push(lblRing, sugarLabel, lblShuttle, lblReturn, ...ringStations.map((s) => s.l));
+    const atpStack = new Group();
+    atpStack.position.set(RING_C.x + 3.6, RING_C.y - 1.2, 0);
+    scene.add(atpStack);
+    const nadphStack = new Group();
+    nadphStack.position.set(RING_C.x - 3.6, RING_C.y - 1.2, 0);
+    scene.add(nadphStack);
+    const batLabel = partLabel("\u7535\u6C60\u5E93\u5B58\uFF08\u6EE1\uFF09", "#ffc078", RING_C.x, RING_C.y + 1.4);
+    labels.push(batLabel);
     const ray = new Raycaster();
     const clickable = [
       { mesh: psii, text: "PSII\uFF08P680\uFF09\uFF1A\u5438\u6536\u5149\u5B50\u540E\u4ECE\u6C34\u91CC\u593A\u7535\u5B50\u2014\u2014\u6C34\u88AB\u62C6\u6210 O\u2082 + H\u207A + e\u207B\u3002" },
-      { mesh: b6f, text: "\u7EC6\u80DE\u8272\u7D20 b6f\uFF1A\u7535\u5B50\u8DEF\u8FC7\u65F6\u628A H\u207A \u4ECE\u57FA\u8D28\u6CF5\u8FDB\u7C7B\u56CA\u4F53\u8154\uFF08Q \u5FAA\u73AF\uFF09\u3002" },
+      { mesh: b6f, text: "\u7EC6\u80DE\u8272\u7D20 b6f\uFF1A\u7535\u5B50\u8DEF\u8FC7\u65F6\u628A H\u207A \u6CF5\u8FDB\u7C7B\u56CA\u4F53\u8154\uFF08Q \u5FAA\u73AF\uFF09\u3002" },
       { mesh: psi, text: "PSI\uFF08P700\uFF09\uFF1A\u7B2C\u4E8C\u4E2A\u5149\u5B50\u628A\u7535\u5B50\u518D\u6B21\u63A8\u4E0A\u9AD8\u80FD\u7EA7\uFF0C\u7528\u4E8E\u9020 NADPH\u3002" },
-      { mesh: fnr, text: 'FNR\uFF1A2 \u4E2A\u7535\u5B50 + 1 \u4E2A H\u207A \u628A NADP\u207A \u8FD8\u539F\u6210 NADPH\u2014\u2014\u5149\u53CD\u5E94\u7684"\u6EE1\u683C\u7535\u6C60"\u3002' },
-      { mesh: knob, text: "ATP \u5408\u9176\uFF1A\u8154\u5185 H\u207A \u987A\u6D53\u5EA6\u68AF\u5EA6\u6D8C\u51FA\uFF0C\u8F6C\u5B50\u6BCF\u8F6C\u4E00\u5708\uFF0814 \u4E2A H\u207A\uFF09\u5408\u6210 3 \u4E2A ATP\u3002" }
+      { mesh: fnr, text: "FNR\uFF1A2 \u4E2A\u7535\u5B50 + 1 \u4E2A H\u207A \u628A NADP\u207A \u8FD8\u539F\u6210 NADPH\u2014\u2014\u6EE1\u683C\u7535\u6C60\u3002" },
+      { mesh: knob, text: "ATP \u5408\u9176\uFF1A\u8154\u5185 H\u207A \u6D8C\u51FA\uFF0C\u8F6C\u5B50\u6BCF\u8F6C\u4E00\u5708\uFF0814 \u4E2A H\u207A\uFF09\u5408\u6210 3 \u4E2A ATP\u3002" }
     ];
     const infoDiv = document.createElement("p");
     infoDiv.id = "lightInfo";
     infoDiv.style.cssText = "font-size:12px;color:#ffd54a;min-height:2.4em;border-top:1px dashed var(--line);padding-top:6px";
-    infoDiv.textContent = "\u70B9\u51FB\u819C\u4E0A\u7684\u90E8\u4EF6\u770B\u8BF4\u660E \u2197";
+    infoDiv.textContent = "\u70B9\u51FB\u819C\u4E0A\u90E8\u4EF6\u770B\u8BF4\u660E \u2197";
     document.querySelector('[data-panel="light"]').appendChild(infoDiv);
     const canvasEl = document.getElementById("gl");
     canvasEl.addEventListener("pointerdown", (e) => {
@@ -23966,10 +23989,7 @@
         -((e.clientY - r.top) / r.height) * 2 + 1
       ), camera);
       const hit = ray.intersectObjects(clickable.map((c) => c.mesh), false)[0];
-      if (hit) {
-        const c = clickable.find((c2) => c2.mesh === hit.object);
-        infoDiv.textContent = "\u{1F4A1} " + c.text;
-      }
+      if (hit) infoDiv.textContent = "\u{1F4A1} " + clickable.find((c) => c.mesh === hit.object).text;
     });
     const state = {
       paused: false,
@@ -23980,9 +24000,9 @@
       electrons: [],
       hplus: [],
       o2: [],
-      atps: [],
-      nadphs: [],
       waters: [],
+      fliers: [],
+      // 电池/糖/空电池等飞行片
       psiQueue: 0,
       pqCharge: 0,
       kokIdx: 1,
@@ -23991,16 +24011,21 @@
       rotorAngle: 0,
       atpFrac: 0,
       counts: { o2: 0, nadph: 0, atp: 0 },
+      bat: { atp: 0, nadph: 0 },
+      turn: null,
+      turnTimer: 2.5,
+      turns: 0,
+      g3p: 0,
       photonTimer: 0,
       waterTimer: 0
     };
     const PATH_PSII = [-8.2, -7.2, -6.1, -3.2, -0.6];
-    const PATH_PSI = [7.2, 9.3, 10.8, 12.3];
+    const PATH_PSI = [7.2, 9.3, 10.8, 11.2];
     function spawnPhoton(target) {
       const m = makeGlowDot(0.14, C2.photon);
       m.position.set(target.x + (Math.random() - 0.5) * 1.6, 9.5 + Math.random() * 2, 0);
       scene.add(m);
-      state.photons.push({ mesh: m, tx: target.x, ty: target.y, hit: false });
+      state.photons.push({ mesh: m, tx: target.x, ty: target.y });
     }
     function spawnElectron(x, y, path, onArrive) {
       const m = makeGlowDot(0.15, C2.electron);
@@ -24014,12 +24039,64 @@
       scene.add(m);
       state.hplus.push({ mesh: m, vy, toLumen });
     }
-    const els = ["hO2", "hNadph", "hAtp", "hKok"].map((id) => document.getElementById(id));
+    function flier(mesh, target, speed, onArrive) {
+      scene.add(mesh);
+      state.fliers.push({ mesh, target, speed, onArrive });
+    }
+    function restack(group, n, color) {
+      while (group.children.length) group.remove(group.children[0]);
+      for (let i = 0; i < Math.min(n, 6); i++) {
+        const chip = makeGlowDot(0.17, color);
+        chip.position.set(0, i * 0.4, 0);
+        group.add(chip);
+      }
+      if (n > 6) {
+        const more = makeLabel(`+${n - 6}`, "#dbe4ee");
+        more.scale.multiplyScalar(0.5);
+        more.position.set(0, 2.8, 0);
+        group.add(more);
+      }
+    }
+    function startTurn() {
+      if (state.bat.atp < CALVIN.atpPerCO2 || state.bat.nadph < CALVIN.nadphPerCO2) return;
+      state.bat.atp -= CALVIN.atpPerCO2;
+      state.bat.nadph -= CALVIN.nadphPerCO2;
+      restack(atpStack, state.bat.atp, C2.atp);
+      restack(nadphStack, state.bat.nadph, C2.nadph);
+      state.turns++;
+      state.turn = { phase: "co2", t: 0 };
+      const co2 = makeGlowDot(0.2, C2.co2);
+      flier(co2, RING_C.clone().add(new Vector3(0, RING_R * 0.62 + 0.3, 0)), 3.2, () => {
+        state.turn.phase = "work";
+        state.turn.t = 0;
+        for (const s of [-0.6, 0.6]) {
+          const pga = makeGlowDot(0.13, 10467529);
+          pga.position.copy(RING_C).add(new Vector3(s, 0.6, 0));
+          scene.add(pga);
+          flier(pga, RING_C.clone().add(new Vector3(s * 2.2, -0.6, 0)), 1.6, () => {
+            scene.remove(pga);
+          });
+        }
+        for (let i = 0; i < 3; i++) {
+          const a = makeGlowDot(0.13, C2.adp);
+          a.position.copy(RING_C).add(new Vector3(1.5, 0.5 + i * 0.3, 0));
+          flier(a, new Vector3(atpX + 0.9, 1.6, 0), 2.6, () => scene.remove(a));
+        }
+        for (let i = 0; i < 2; i++) {
+          const n = makeGlowDot(0.13, C2.nadpp);
+          n.position.copy(RING_C).add(new Vector3(-1.5, 0.5 + i * 0.3, 0));
+          flier(n, new Vector3(11.2, 2.4, 0), 2.6, () => scene.remove(n));
+        }
+      });
+    }
+    const els = ["hO2", "hBatAtp", "hBatNadph", "hKok", "hTurns", "hG3p"].map((id) => document.getElementById(id));
     function refreshHUD() {
       els[0].textContent = state.counts.o2;
-      els[1].textContent = state.counts.nadph;
-      els[2].textContent = state.counts.atp;
+      els[1].textContent = state.bat.atp;
+      els[2].textContent = state.bat.nadph;
       els[3].textContent = KOK_STATES[state.kokIdx] + (state.psiElectronCount % 4 ? `\uFF08+${state.psiElectronCount % 4} e\u207B\uFF09` : "");
+      els[4].textContent = state.turns;
+      els[5].textContent = state.g3p;
     }
     document.getElementById("bLightPause").addEventListener("click", (e) => {
       state.paused = !state.paused;
@@ -24045,8 +24122,7 @@
       while (state.photonTimer > 0.55) {
         state.photonTimer -= 0.55;
         state.alt ^= 1;
-        const toPSII = state.alt === 0;
-        spawnPhoton(toPSII ? { x: -8.2, y: 1.4 } : { x: 7.2, y: 1.3 });
+        spawnPhoton(state.alt === 0 ? { x: -8.2, y: 1.4 } : { x: 7.2, y: 1.3 });
       }
       for (let i = state.photons.length - 1; i >= 0; i--) {
         const p = state.photons[i];
@@ -24080,19 +24156,19 @@
               if (state.psiQueue >= 2) {
                 state.psiQueue = 0;
                 spawnH(11.2, 2.2, 1.5, false);
-                const chip = makeGlowDot(0.24, C2.nadph);
-                chip.position.set(12.2, 2.6, 0);
-                scene.add(chip);
-                state.nadphs.push({ mesh: chip, t: 0 });
+                const chip = makeGlowDot(0.2, C2.nadph);
+                flier(chip, nadphStack.position.clone().add(new Vector3(0, 0.5, 0)), 3, () => {
+                  state.bat.nadph++;
+                  restack(nadphStack, state.bat.nadph, C2.nadph);
+                });
                 state.counts.nadph++;
               }
             });
           }
           continue;
         }
-        const v = 7.5;
-        p.mesh.position.x += dx / d * v * dt;
-        p.mesh.position.y += dy / d * v * dt;
+        p.mesh.position.x += dx / d * 7.5 * dt;
+        p.mesh.position.y += dy / d * 7.5 * dt;
       }
       for (let i = state.electrons.length - 1; i >= 0; i--) {
         const e = state.electrons[i];
@@ -24120,14 +24196,14 @@
           state.lumenH++;
           continue;
         }
-        if (!h.toLumen && h.mesh.position.y > 2.4) {
+        if (!h.toLumen && h.mesh.position.y > 4.2) {
           scene.remove(h.mesh);
           state.hplus.splice(i, 1);
         }
       }
-      const atpFlow = state.lumenH > 4 ? 2.2 : 0.6;
+      const atpFlow = state.lumenH > 4 ? 2.2 : 1.2;
       state.atpFrac += dt * atpFlow / H_PER_ATP;
-      if (state.lumenH > 2 && Math.random() < dt * 3) {
+      if (state.lumenH > 2 && Math.random() < dt * 1.2) {
         state.lumenH--;
         const m = makeGlowDot(0.11, C2.hplus);
         m.position.set(atpX + (Math.random() - 0.5) * 0.3, -0.62, 0.42);
@@ -24138,10 +24214,11 @@
       rotor.rotation.y = state.rotorAngle;
       if (state.atpFrac >= 1) {
         state.atpFrac -= 1;
-        const chip = makeGlowDot(0.2, C2.atp);
-        chip.position.set(atpX + 1.3, 2.4, 0);
-        scene.add(chip);
-        state.atps.push({ mesh: chip, t: 0 });
+        const chip = makeGlowDot(0.19, C2.atp);
+        flier(chip, atpStack.position.clone().add(new Vector3(0, 0.5, 0)), 3, () => {
+          state.bat.atp++;
+          restack(atpStack, state.bat.atp, C2.atp);
+        });
         state.counts.atp++;
       }
       for (const h of state.hplus) if (h.out) h.mesh.position.y += h.vy * dt;
@@ -24153,16 +24230,6 @@
         if (o.t > 2.6) {
           scene.remove(o.mesh);
           state.o2.splice(i, 1);
-        }
-      }
-      for (const arr of [state.nadphs, state.atps]) {
-        for (let i = arr.length - 1; i >= 0; i--) {
-          arr[i].t += dt;
-          arr[i].mesh.position.y += dt * 0.7;
-          if (arr[i].t > 2) {
-            scene.remove(arr[i].mesh);
-            arr.splice(i, 1);
-          }
         }
       }
       state.waterTimer += dt;
@@ -24183,6 +24250,41 @@
           state.waters.splice(i, 1);
         }
       }
+      for (let i = state.fliers.length - 1; i >= 0; i--) {
+        const f = state.fliers[i];
+        const d = f.mesh.position.distanceTo(f.target);
+        if (d < 0.28) {
+          scene.remove(f.mesh);
+          state.fliers.splice(i, 1);
+          f.onArrive?.();
+          continue;
+        }
+        f.mesh.position.lerp(f.target, Math.min(1, f.speed * dt));
+      }
+      if (!state.turn) {
+        state.turnTimer -= dt;
+        if (state.turnTimer <= 0) {
+          state.turnTimer = 1.5;
+          startTurn();
+        }
+      } else {
+        state.turn.t += dt;
+        if (state.turn.phase === "work" && state.turn.t > 0.9) {
+          state.turn.phase = "g3p";
+          state.turn.t = 0;
+          const g = makeGlowDot(0.16, C2.g3p);
+          g.position.copy(RING_C).add(new Vector3(0, 0.5, 0));
+          flier(g, RING_C.clone().add(new Vector3(0, -RING_R * 0.62 - 0.4, 0)), 1.8, () => {
+            if (state.turns % CALVIN.g3pPerTurns === 0) {
+              state.g3p++;
+              const out = makeGlowDot(0.2, C2.sugar === void 0 ? 13166698 : 13166698);
+              out.position.copy(RING_C).add(new Vector3(0, -RING_R * 0.62 - 0.5, 0));
+              flier(out, new Vector3(RING_C.x + 0.4, RING_C.y - 3.6, 0), 2, () => scene.remove(out));
+            }
+          });
+        }
+        if (state.turn.phase === "g3p" && state.turn.t > 0.8) state.turn = null;
+      }
       controls.update();
     }
     return {
@@ -24191,271 +24293,7 @@
       update,
       refreshHUD,
       getInfo() {
-        return { ...state.counts, kok: KOK_STATES[state.kokIdx], lumenH: state.lumenH };
-      }
-    };
-  }
-
-  // js/calvin.js
-  var R = 5.2;
-  var STATIONS = [
-    { ang: Math.PI / 2, name: "\u2460 \u56FA\u5B9A", sub: "RuBisCO \u6293\u4F4F CO\u2082", color: 4906624 },
-    { ang: Math.PI / 2 - 2 * Math.PI / 3, name: "\u2461 \u8FD8\u539F", sub: "\u82B1 3 ATP + 2 NADPH", color: 11638780 },
-    { ang: Math.PI / 2 + 2 * Math.PI / 3, name: "\u2462 \u518D\u751F", sub: "RuBP \u56DE\u4F4D\uFF08\u82B1 1 ATP\uFF09", color: 8246268 }
-  ];
-  function buildCalvin() {
-    const scene = new Scene();
-    scene.background = new Color("#060b12");
-    scene.fog = new Fog("#060b12", 40, 90);
-    const camera = new PerspectiveCamera(46, innerWidth / innerHeight, 0.1, 200);
-    camera.position.set(-2, 7.5, 15.5);
-    scene.add(new AmbientLight("#42506a", 1));
-    const key = new DirectionalLight("#fff2d8", 1.4);
-    key.position.set(6, 12, 14);
-    scene.add(key);
-    const controls = new OrbitControls(camera, document.getElementById("gl"));
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.08;
-    controls.target.set(0, 0, 0);
-    const ring = new Mesh(
-      new TorusGeometry(R, 0.16, 12, 90),
-      new MeshStandardMaterial({ color: "#2a4a38", roughness: 0.5, emissive: "#0c2417", emissiveIntensity: 0.7 })
-    );
-    scene.add(ring);
-    STATIONS.forEach((s) => {
-      s.pos = new Vector3(Math.cos(s.ang) * R, Math.sin(s.ang) * R, 0);
-      const pad = new Mesh(
-        new CylinderGeometry(1.45, 1.45, 0.24, 26),
-        new MeshStandardMaterial({ color: s.color, roughness: 0.4, transparent: true, opacity: 0.28, emissive: s.color, emissiveIntensity: 0.25 })
-      );
-      pad.position.copy(s.pos);
-      scene.add(pad);
-      const l = makeLabel(`${s.name} \xB7 ${s.sub}`, "#eaf4ec");
-      l.position.copy(s.pos).add(new Vector3(0, 1.7, 0));
-      scene.add(l);
-    });
-    const rubisco = new Group();
-    for (let i = 0; i < 8; i++) {
-      const b = makeGlowDot(0.34, 9105582);
-      const a = i / 8 * Math.PI * 2;
-      b.position.set(Math.cos(a) * 0.45, Math.sin(a) * 0.45, 0);
-      rubisco.add(b);
-    }
-    rubisco.position.set(Math.cos(Math.PI / 2) * R, Math.sin(Math.PI / 2) * R, 0);
-    scene.add(rubisco);
-    const rubLabel = makeLabel("RuBisCO", "#8af0ae");
-    rubLabel.position.copy(rubisco.position).add(new Vector3(0, 0.85, 0));
-    scene.add(rubLabel);
-    const sugar = new Group();
-    scene.add(sugar);
-    const sugarLabel = makeLabel("\u8461\u8404\u7CD6\u88C5\u914D\u533A\uFF086 G3P = 1 \u7CD6\uFF09", "#ffd54a");
-    sugarLabel.position.set(0, 0.9, 0);
-    scene.add(sugarLabel);
-    const battery = new Group();
-    battery.position.set(-9.5, -3.2, 0);
-    scene.add(battery);
-    const batLabel = makeLabel("\u2190 \u5149\u53CD\u5E94\u9001\u6765\u7684 ATP / NADPH", "#b197fc");
-    batLabel.position.set(0, 1.4, 0);
-    battery.add(batLabel);
-    const state = {
-      paused: false,
-      speed: 1,
-      turns: 0,
-      co2: 0,
-      g3p: 0,
-      glucose: 0,
-      phase: "idle",
-      t: 0,
-      movers: []
-    };
-    const DUR = { arrive: 0.8, fix: 0.5, toReduce: 1, reduce: 0.7, g3p: 0.6, after: 1 };
-    function chipMesh(color, r = 0.26) {
-      return makeGlowDot(r, color);
-    }
-    function startTurn() {
-      state.phase = "arrive";
-      state.t = 0;
-      state.turns++;
-      const co2 = chipMesh(13621475, 0.24);
-      co2.position.set(8.5, 7.5, 0);
-      scene.add(co2);
-      state.movers.push({ mesh: co2, phase: "arrive", t: 0 });
-    }
-    function ringPoint(ang) {
-      return new Vector3(Math.cos(ang) * R, Math.sin(ang) * R, 0);
-    }
-    const A_FIX = STATIONS[0].ang, A_RED = STATIONS[1].ang, A_REG = STATIONS[2].ang;
-    function update(dt0) {
-      if (state.paused) {
-        controls.update();
-        return;
-      }
-      const dt = dt0 * state.speed;
-      state.t += dt;
-      if (state.phase !== "idle" && state.t > DUR[state.phase]) {
-        switch (state.phase) {
-          case "arrive":
-            state.phase = "fix";
-            break;
-          case "fix":
-            state.phase = "toReduce";
-            break;
-          case "toReduce":
-            state.phase = "reduce";
-            break;
-          case "reduce":
-            state.phase = "g3p";
-            break;
-          case "g3p":
-            state.phase = "after";
-            break;
-          case "after":
-            startTurn();
-            break;
-        }
-        state.t = 0;
-      }
-      if (state.phase === "fix" && state.t < dt * 1.5 && rubisco) {
-        rubisco.scale.setScalar(1.25);
-      } else if (rubisco) rubisco.scale.setScalar(MathUtils.lerp(rubisco.scale.x, 1, dt * 4));
-      if (state.phase === "reduce" && state.t < dt * 1.5) {
-        for (let i = 0; i < 2; i++) {
-          const b = chipMesh(11638780, 0.18);
-          b.position.set(-9, -2.6 + i * 0.5, 0);
-          scene.add(b);
-          state.movers.push({ mesh: b, phase: "battery", t: 0, target: STATIONS[1].pos.clone() });
-        }
-        for (let i = 0; i < 3; i++) {
-          const b = chipMesh(16755021, 0.18);
-          b.position.set(-9.6, -3.6 + i * 0.4, 0);
-          scene.add(b);
-          state.movers.push({ mesh: b, phase: "battery", t: 0, target: STATIONS[1].pos.clone().add(new Vector3(0.5, 0, 0)) });
-        }
-      }
-      for (let i = state.movers.length - 1; i >= 0; i--) {
-        const m = state.movers[i];
-        m.t += dt;
-        const k = Math.min(1, m.t / 0.9);
-        switch (m.phase) {
-          case "arrive":
-            m.mesh.position.lerp(new Vector3(Math.cos(A_FIX) * R, Math.sin(A_FIX) * R + 0.5, 0), dt * 3.2);
-            break;
-          case "fixPga": {
-            const ang = MathUtils.lerp(m.fromAng, A_RED, k);
-            m.mesh.position.copy(ringPoint(ang)).add(new Vector3(0, m.lane, 0));
-            break;
-          }
-          case "battery":
-            m.mesh.position.lerp(m.target, dt * 2.6);
-            break;
-          case "regen": {
-            const ang = MathUtils.lerp(A_RED, A_REG + Math.PI * 2 * k, k);
-            m.mesh.position.copy(ringPoint(A_RED + (A_REG + Math.PI * 2 - A_RED) * k)).add(new Vector3(0, 0.45, 0));
-            break;
-          }
-          case "exit":
-            m.mesh.position.lerp(new Vector3(0, 0, 0), dt * 2.4);
-            break;
-        }
-        if (m.phase === "battery" && m.mesh.position.distanceTo(m.target) < 0.3) {
-          scene.remove(m.mesh);
-          state.movers.splice(i, 1);
-          continue;
-        }
-        if (m.phase === "exit" && m.mesh.position.length() < 0.6) {
-          scene.remove(m.mesh);
-          state.movers.splice(i, 1);
-          const s = makeGlowDot(0.2, 16766282);
-          s.position.set((Math.random() - 0.5) * 0.9, (Math.random() - 0.5) * 0.6, 0);
-          sugar.add(s);
-          continue;
-        }
-        if (m.phase === "regen" && k >= 1) {
-          m.mesh.material.color.set(13621475);
-          scene.remove(m.mesh);
-          state.movers.splice(i, 1);
-          continue;
-        }
-      }
-      if (state.phase === "fix" && !state.fixed) {
-        state.fixed = true;
-        state.co2++;
-        const arr = state.movers.filter((m) => m.phase === "arrive");
-        arr.forEach((m, idx) => {
-          scene.remove(m.mesh);
-          state.movers.splice(state.movers.indexOf(m), 1);
-          const pga = chipMesh(10467529, 0.22);
-          pga.position.copy(ringPoint(A_FIX)).add(new Vector3(0, idx ? -0.4 : 0.4, 0));
-          scene.add(pga);
-          state.movers.push({ mesh: pga, phase: "fixPga", t: 0, fromAng: A_FIX, lane: idx ? -0.4 : 0.4 });
-        });
-      }
-      if (state.phase === "g3p" && !state.g3ped) {
-        state.g3ped = true;
-        state.movers.filter((m) => m.phase === "fixPga").forEach((m) => {
-          m.mesh.material.color.set(4906624);
-        });
-        if (state.turns % CALVIN.g3pPerTurns === 0) {
-          state.g3p++;
-          const ex = chipMesh(4906624, 0.26);
-          ex.position.copy(STATIONS[1].pos);
-          scene.add(ex);
-          state.movers.push({ mesh: ex, phase: "exit", t: 0 });
-          state.glucosePile = (state.glucosePile || 0) + 1;
-          if (state.glucosePile >= CALVIN.co2PerGlucose) {
-            state.glucosePile = 0;
-            state.glucose++;
-          }
-        } else {
-          state.movers.filter((m) => m.phase === "fixPga").forEach((m, idx) => {
-            state.movers.splice(state.movers.indexOf(m), 1);
-            const ru = chipMesh(8246268, 0.22);
-            ru.position.copy(ringPoint(A_RED)).add(new Vector3(0, m.lane, 0));
-            scene.add(ru);
-            state.movers.push({ mesh: ru, phase: "regen", t: 0 });
-          });
-        }
-      }
-      if (state.phase === "after" && !state.afterDone) {
-        state.afterDone = true;
-      }
-      if (state.phase !== "fix") state.fixed = false;
-      if (state.phase !== "g3p") state.g3ped = false;
-      if (state.phase !== "after") state.afterDone = false;
-      document.getElementById("hCo2").textContent = state.co2;
-      document.getElementById("hTurns").textContent = state.turns;
-      document.getElementById("hG3p").textContent = state.g3p;
-      document.getElementById("hGlucose").textContent = `${state.glucose} \u9897\uFF08\u672C\u9897 ${state.glucosePile || 0}/6\uFF09`;
-      controls.update();
-    }
-    document.getElementById("bCalvinPause").addEventListener("click", (e) => {
-      state.paused = !state.paused;
-      e.target.textContent = state.paused ? "\u25B6 \u7EE7\u7EED" : "\u23F8 \u6682\u505C";
-      e.target.classList.toggle("on", state.paused);
-    });
-    document.getElementById("bCalvinReset").addEventListener("click", () => {
-      state.turns = 0;
-      state.co2 = 0;
-      state.g3p = 0;
-      state.glucose = 0;
-      state.glucosePile = 0;
-      state.movers.forEach((m) => scene.remove(m.mesh));
-      state.movers = [];
-      while (sugar.children.length) sugar.remove(sugar.children[0]);
-      state.phase = "idle";
-      state.t = 0;
-    });
-    document.getElementById("rCalvin").addEventListener("input", (e) => {
-      state.speed = +e.target.value;
-      document.getElementById("oCalvin").textContent = state.speed.toFixed(1) + "\xD7";
-    });
-    startTurn();
-    return {
-      scene,
-      camera,
-      update,
-      getInfo() {
-        return { turns: state.turns, co2: state.co2, g3p: state.g3p, glucose: state.glucose };
+        return { ...state.counts, kok: KOK_STATES[state.kokIdx], bat: { ...state.bat }, turns: state.turns, g3p: state.g3p };
       }
     };
   }
@@ -24643,7 +24481,6 @@
     story: buildStory(),
     leaf: buildLeaf(),
     light: buildLight(),
-    calvin: buildCalvin(),
     facts: buildFacts()
   };
   var current = "story";
