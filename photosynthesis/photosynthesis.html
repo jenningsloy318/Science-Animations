@@ -126,8 +126,8 @@
       ② PSII 放出<b>e⁻ 电子</b>（水补上新的，顺便放出 O₂）<br>
       ③ e⁻ 沿链下行，途中把 <b>H⁺</b> 泵进腔<br>
       ④ H⁺ 涌出 → 转出 <b>ATP</b><br>
-      ⑤ 第二个光子在 PSI 把 e⁻ 再充能<br>
-      ⑥ FNR 用 <b>e⁻ + H⁺</b> 拼 <b>NADPH</b>
+      ⑤ 电子到 PSI 时累了：<b>第二个光子</b>再顶一把（第 2 次充电）<br>
+      ⑥ FNR 把充好电的 e⁻ 和 H⁺ 装袋 → <b>NADPH</b>（满格充电宝）
     </div>
     <p><b>上半</b>：光子打进膜上的两个光系统，电子流动把 H⁺ 泵进腔——H⁺ 涌出时转子转出 <b>ATP</b>，FNR 拼出 <b>NADPH</b>；水被拆开，<b>O₂</b> 由此放出。</p>
     <p><b>下半</b>：满电池（黄/紫）会<b>掉进右下的拼糖环</b>，每轮花 3 ATP + 2 NADPH 抓住一个 CO₂ 拼糖；用完的<b>空电池</b>再飞回膜上充电——循环不停。</p>
@@ -140,6 +140,8 @@
     <div class="facts">
       <div class="fact gold"><b>量子需求</b> — 放 1 个 O₂ 理论最少 8 个光子，实测 8–10 个。</div>
       <div class="fact"><b>水是电子来源</b> — O₂ 里的氧来自水，不是 CO₂（¹⁸O 同位素证实，1941）。</div>
+      <div class="fact green"><b>为什么要充两次电？</b> 一次阳光的能量不够用——电子要在两个“充电站”（光系统 II 和 I）各充一次，先充的电先用掉，这就是“Z 形”方案的由来。</div>
+      <div class="fact"><b>FNR 是谁</b> — 铁氧还蛋白-NADP⁺ 还原酶：装电池的酶，把电子和 H⁺ 装进 NADP⁺ 变成 NADPH。</div>
     </div>
   </div>
 
@@ -23898,7 +23900,10 @@
     const psii = blob(-8.2, 2.1, 2.6, C2.psii);
     const b6f = blob(0, 1.7, 2.2, C2.b6f);
     const psi = blob(7.2, 1.9, 2.4, C2.psi);
-    const fnr = blob(11.2, 1.15, 1.15, C2.fnr, 2.6);
+    const fnr = blob(10.7, 1.1, 1.1, C2.fnr, 2.35);
+    const fd = makeGlowDot(0.2, 10151608);
+    fd.position.set(9.3, 1.3, 0);
+    scene.add(fd);
     for (let i = 0; i < 7; i++) {
       const a = makeGlowDot(0.16, 6740367);
       const ang = Math.PI * (0.15 + 0.7 * i / 6);
@@ -23947,8 +23952,8 @@
     const lblTitle = partLabel("\u4E0A\u534A \xB7 \u5149\u53CD\u5E94\uFF1A\u628A\u5149\u88C5\u8FDB\u7535\u6C60\uFF0C\u987A\u4FBF\u653E\u51FA\u6C27\u6C14", "#9ff0b5", -8, 5.4);
     const lblPsii = partLabel("PSII\uFF08\u5206\u89E3\u6C34\uFF09", "#8af0ae", -8.2, 3.4);
     const lblB6f = partLabel("b6f\uFF08\u6CF5 H\u207A\uFF09", "#d7b8a8", 0, 2.5);
-    const lblPsi = partLabel("PSI\uFF08\u518D\u5145\u80FD\uFF09", "#8af0ae", 7.2, 3.4);
-    const lblFnr = partLabel("FNR \u2192 NADPH", "#cdb4ff", 11.4, 4.1);
+    const lblPsi = partLabel("PSI \xB7 \u5149\u7CFB\u7EDF I\uFF08\u7B2C 2 \u6B21\u5145\u7535\uFF09", "#8af0ae", 7.2, 3.4);
+    const lblFnr = partLabel("FNR\uFF08\u88C5\u7535\u6C60\uFF09\u2192 NADPH", "#cdb4ff", 12, 3.7);
     const atpLabel = partLabel("ATP \u5408\u9176", "#ffc078", atpX - 2.6, 3.1);
     const labels = [lumenLabel, lblTitle, lblPsii, lblB6f, lblPsi, lblFnr, atpLabel];
     const ringGrp = new Group();
@@ -23991,7 +23996,12 @@
     transferTag("\u5149\u5B50 = \u80FD\u91CF\u5305\u88F9", "#ffd54a", -6.4, 7.2);
     transferTag("e\u207B \u7535\u5B50", "#7dd3fc", -4.4, 1.9);
     transferTag("e\u207B \u7535\u5B50", "#7dd3fc", 3.5, 1.9);
-    transferTag("e\u207B \u7535\u5B50", "#7dd3fc", 9.3, 1.5);
+    const fdLabel = makeLabel("Fd\uFF08\u642C\u8FD0\u7535\u5B50\uFF09", "#9ae6b8");
+    fdLabel.scale.multiplyScalar(0.55);
+    fdLabel.position.set(9.3, 2.15, 0);
+    scene.add(fdLabel);
+    labels.push(fdLabel);
+    transferTag("e\u207B\uFF08Fd \u9012\u7ED9 FNR\uFF09", "#7dd3fc", 9.9, 0.7);
     transferTag("H\u207A \u8D28\u5B50 \u2193 \u843D\u5165\u8154", "#ff6b9d", -3.2, -1.95);
     transferTag("H\u207A \u6D8C\u51FA \u2192 \u8F6C\u8F6C\u5B50", "#ff6b9d", 6.6, -1.7);
     transferTag("\u6C34", "#69b7ff", -10.6, -1.6);
@@ -24008,7 +24018,7 @@
       { mesh: psii, text: "PSII\uFF08P680\uFF09\uFF1A\u5438\u6536\u5149\u5B50\u540E\u4ECE\u6C34\u91CC\u593A\u7535\u5B50\u2014\u2014\u6C34\u88AB\u62C6\u6210 O\u2082 + H\u207A + e\u207B\u3002" },
       { mesh: b6f, text: "\u7EC6\u80DE\u8272\u7D20 b6f\uFF1A\u7535\u5B50\u8DEF\u8FC7\u65F6\u628A H\u207A \u6CF5\u8FDB\u7C7B\u56CA\u4F53\u8154\uFF08Q \u5FAA\u73AF\uFF09\u3002" },
       { mesh: psi, text: "PSI\uFF08P700\uFF09\uFF1A\u7B2C\u4E8C\u4E2A\u5149\u5B50\u628A\u7535\u5B50\u518D\u6B21\u63A8\u4E0A\u9AD8\u80FD\u7EA7\uFF0C\u7528\u4E8E\u9020 NADPH\u3002" },
-      { mesh: fnr, text: "FNR\uFF1A2 \u4E2A\u7535\u5B50 + 1 \u4E2A H\u207A \u628A NADP\u207A \u8FD8\u539F\u6210 NADPH\u2014\u2014\u6EE1\u683C\u7535\u6C60\u3002" },
+      { mesh: fnr, text: "FNR\uFF1A\u88C5\u7535\u6C60\u7684\u9176\u2014\u2014\u628A 2 \u4E2A\u7535\u5B50\u548C H\u207A \u88C5\u8FDB NADP\u207A\uFF0C\u505A\u51FA\u6EE1\u683C\u5145\u7535\u5B9D NADPH\u3002" },
       { mesh: knob, text: "ATP \u5408\u9176\uFF1A\u8154\u5185 H\u207A \u6D8C\u51FA\uFF0C\u8F6C\u5B50\u6BCF\u8F6C\u4E00\u5708\uFF0814 \u4E2A H\u207A\uFF09\u5408\u6210 3 \u4E2A ATP\u3002" }
     ];
     const infoDiv = document.createElement("p");
@@ -24056,7 +24066,7 @@
       waterTimer: 0
     };
     const PATH_PSII = [-8.2, -7.2, -6.1, -3.2, -0.6];
-    const PATH_PSI = [7.2, 9.3, 10.8, 11.2];
+    const PATH_PSI = [[7.2, 0.4], [9.3, 1.3], [10.6, 2.2]];
     function spawnPhoton(target) {
       const m = makeGlowDot(0.14, C2.photon);
       m.position.set(target.x + (Math.random() - 0.5) * 1.6, 9.5 + Math.random() * 2, 0);
@@ -24208,8 +24218,8 @@
       }
       for (let i = state.electrons.length - 1; i >= 0; i--) {
         const e = state.electrons[i];
-        const target = new Vector3(e.path[e.seg], e.seg % 2 ? 0.55 : 0.15, 0);
-        if (e.seg === e.path.length - 1) target.y = 0.9;
+        const w = e.path[e.seg];
+        const target = Array.isArray(w) ? new Vector3(w[0], w[1], 0) : new Vector3(w, e.seg === e.path.length - 1 ? 0.9 : e.seg % 2 ? 0.55 : 0.15, 0);
         const d = e.mesh.position.distanceTo(target);
         if (d < 0.22) {
           e.seg++;

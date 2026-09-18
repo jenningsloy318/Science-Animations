@@ -66,7 +66,10 @@ export function buildLight() {
   const psii = blob(-8.2, 2.1, 2.6, C.psii);
   const b6f = blob(0, 1.7, 2.2, C.b6f);
   const psi = blob(7.2, 1.9, 2.4, C.psi);
-  const fnr = blob(11.2, 1.15, 1.15, C.fnr, 2.6);
+  const fnr = blob(10.7, 1.1, 1.1, C.fnr, 2.35);
+  // Fd 铁氧还蛋白：PSI 和 FNR 之间的搬运工
+  const fd = makeGlowDot(0.2, 0x9ae6b8);
+  fd.position.set(9.3, 1.3, 0); scene.add(fd);
 
   for (let i = 0; i < 7; i++) {
     const a = makeGlowDot(0.16, 0x66d98f);
@@ -106,8 +109,8 @@ export function buildLight() {
   const lblTitle = partLabel('上半 · 光反应：把光装进电池，顺便放出氧气', '#9ff0b5', -8, 5.4);
   const lblPsii = partLabel('PSII（分解水）', '#8af0ae', -8.2, 3.4);
   const lblB6f = partLabel('b6f（泵 H⁺）', '#d7b8a8', 0, 2.5);
-  const lblPsi = partLabel('PSI（再充能）', '#8af0ae', 7.2, 3.4);
-  const lblFnr = partLabel('FNR → NADPH', '#cdb4ff', 11.4, 4.1);
+  const lblPsi = partLabel('PSI · 光系统 I（第 2 次充电）', '#8af0ae', 7.2, 3.4);
+  const lblFnr = partLabel('FNR（装电池）→ NADPH', '#cdb4ff', 12.0, 3.7);
   const atpLabel = partLabel('ATP 合酶', '#ffc078', atpX - 2.6, 3.1);
   const labels = [lumenLabel, lblTitle, lblPsii, lblB6f, lblPsi, lblFnr, atpLabel];
 
@@ -144,7 +147,10 @@ export function buildLight() {
   transferTag('光子 = 能量包裹', '#ffd54a', -6.4, 7.2);
   transferTag('e⁻ 电子', '#7dd3fc', -4.4, 1.9);   // PSII → b6f 段
   transferTag('e⁻ 电子', '#7dd3fc', 3.5, 1.9);    // b6f → PSI 段
-  transferTag('e⁻ 电子', '#7dd3fc', 9.3, 1.5);    // PSI → FNR 段
+  const fdLabel = makeLabel('Fd（搬运电子）', '#9ae6b8');
+  fdLabel.scale.multiplyScalar(0.55);
+  fdLabel.position.set(9.3, 2.15, 0); scene.add(fdLabel); labels.push(fdLabel);
+  transferTag('e⁻（Fd 递给 FNR）', '#7dd3fc', 9.9, 0.7);
   transferTag('H⁺ 质子 ↓ 落入腔', '#ff6b9d', -3.2, -1.95);
   transferTag('H⁺ 涌出 → 转转子', '#ff6b9d', 6.6, -1.7);
   transferTag('水', '#69b7ff', -10.6, -1.6);
@@ -161,7 +167,7 @@ export function buildLight() {
     { mesh: psii, text: 'PSII（P680）：吸收光子后从水里夺电子——水被拆成 O₂ + H⁺ + e⁻。' },
     { mesh: b6f, text: '细胞色素 b6f：电子路过时把 H⁺ 泵进类囊体腔（Q 循环）。' },
     { mesh: psi, text: 'PSI（P700）：第二个光子把电子再次推上高能级，用于造 NADPH。' },
-    { mesh: fnr, text: 'FNR：2 个电子 + 1 个 H⁺ 把 NADP⁺ 还原成 NADPH——满格电池。' },
+    { mesh: fnr, text: 'FNR：装电池的酶——把 2 个电子和 H⁺ 装进 NADP⁺，做出满格充电宝 NADPH。' },
     { mesh: knob, text: 'ATP 合酶：腔内 H⁺ 涌出，转子每转一圈（14 个 H⁺）合成 3 个 ATP。' },
   ];
   const infoDiv = document.createElement('p');
@@ -194,7 +200,7 @@ export function buildLight() {
   };
 
   const PATH_PSII = [-8.2, -7.2, -6.1, -3.2, -0.6];
-  const PATH_PSI = [7.2, 9.3, 10.8, 11.2];
+  const PATH_PSI = [[7.2, 0.4], [9.3, 1.3], [10.6, 2.2]];   // PSI → Fd → FNR
 
   function spawnPhoton(target) {
     const m = makeGlowDot(0.14, C.photon);
@@ -359,8 +365,10 @@ export function buildLight() {
     // 电子沿路径
     for (let i = state.electrons.length - 1; i >= 0; i--) {
       const e = state.electrons[i];
-      const target = new THREE.Vector3(e.path[e.seg], e.seg % 2 ? 0.55 : 0.15, 0);
-      if (e.seg === e.path.length - 1) target.y = 0.9;
+      const w = e.path[e.seg];
+      const target = Array.isArray(w)
+        ? new THREE.Vector3(w[0], w[1], 0)
+        : new THREE.Vector3(w, e.seg === e.path.length - 1 ? 0.9 : (e.seg % 2 ? 0.55 : 0.15), 0);
       const d = e.mesh.position.distanceTo(target);
       if (d < 0.22) {
         e.seg++;
