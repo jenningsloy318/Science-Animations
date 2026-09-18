@@ -133,6 +133,22 @@ export function buildLight() {
   const lblReturn = partLabel('↑ 空电池回膜上再充电', '#c98a45', 7.8, -5.6);
   labels.push(lblRing, sugarLabel, lblShuttle, lblReturn, ...ringStations.map(s => s.l));
 
+  // ── 传递物标签：每段路径中点标出“传递的是什么”──
+  function transferTag(text, color, x, y) {
+    const l = makeLabel(text, color);
+    l.scale.multiplyScalar(0.62);
+    l.position.set(x, y, 0.4);
+    scene.add(l); labels.push(l);
+    return l;
+  }
+  transferTag('光子 = 能量包裹', '#ffd54a', -6.4, 7.2);
+  transferTag('e⁻ 电子', '#7dd3fc', -4.4, 1.9);   // PSII → b6f 段
+  transferTag('e⁻ 电子', '#7dd3fc', 3.5, 1.9);    // b6f → PSI 段
+  transferTag('e⁻ 电子', '#7dd3fc', 9.3, 1.5);    // PSI → FNR 段
+  transferTag('H⁺ 质子 ↓ 落入腔', '#ff6b9d', -3.2, -1.95);
+  transferTag('H⁺ 涌出 → 转转子', '#ff6b9d', 6.6, -1.7);
+  transferTag('水', '#69b7ff', -10.6, -1.6);
+
   // ── 电池库存（环旁边的两摞）──
   const atpStack = new THREE.Group(); atpStack.position.set(RING_C.x + 3.6, RING_C.y - 1.2, 0); scene.add(atpStack);
   const nadphStack = new THREE.Group(); nadphStack.position.set(RING_C.x - 3.6, RING_C.y - 1.2, 0); scene.add(nadphStack);
