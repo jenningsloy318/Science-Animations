@@ -3,6 +3,7 @@
 // ①叶子里 ②光反应 ③合成循环 ④数字与真相
 // ═══════════════════════════════════════════════════════
 import * as THREE from 'three';
+import { buildStory } from './story.js';
 import { buildLeaf } from './chloroplast.js';
 import { buildLight } from './light.js';
 import { buildCalvin } from './calvin.js';
@@ -17,12 +18,13 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.1;
 
 const views = {
+  story: buildStory(),
   leaf: buildLeaf(),
   light: buildLight(),
   calvin: buildCalvin(),
   facts: buildFacts(),
 };
-let current = 'leaf';
+let current = 'story';
 
 function setView(name) {
   current = name;

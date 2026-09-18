@@ -70,22 +70,37 @@
 
   <div id="topbar">
     <h1>光合作用</h1>
-    <button class="tab active" data-view="leaf">① 叶子里</button>
-    <button class="tab" data-view="light">② 光反应</button>
-    <button class="tab" data-view="calvin">③ 合成循环</button>
-    <button class="tab" data-view="facts">④ 数字与真相</button>
+    <button class="tab active" data-view="story">① 一图看懂</button>
+    <button class="tab" data-view="leaf">② 叶子里</button>
+    <button class="tab" data-view="light">③ 光反应</button>
+    <button class="tab" data-view="calvin">④ 拼糖循环</button>
+    <button class="tab" data-view="facts">⑤ 数字与真相</button>
+  </div>
+
+  <!-- ⓪ 一图看懂 -->
+  <div class="viewpanel active" data-panel="story">
+    <h2>光合作用，一句话<small>讲给小朋友</small></h2>
+    <div class="formula" style="font-size:15px">光 + 水 + 二氧化碳 → 糖 + 氧气</div>
+    <p><b>植物是一座“吃阳光的糖工厂”</b>：它从空气里抓住二氧化碳，从根里喝水，在阳光下把这两样拼成自己的食物——糖；顺便送给我们氧气。</p>
+    <div class="stat"><span>💧 喝掉的水</span><b id="hSwater" style="color:var(--cyan)">0</b></div>
+    <div class="stat"><span>💨 抓住的二氧化碳</span><b id="hSco2" style="color:#cfd8e3">0</b></div>
+    <div class="stat"><span>🍬 拼出的糖</span><b id="hSsugar" style="color:var(--green)">0</b></div>
+    <div class="stat"><span>😮‍💨 送出的氧气</span><b id="hSo2" style="color:#fff">0</b></div>
+    <p style="font-size:11.5px">点 <b>▶ 一分钟故事</b>，让相机带你逐句看。后面的标签是给想深入的小朋友准备的。</p>
+    <div class="facts">
+      <div class="fact green"><b>为什么重要</b> — 你吃的米饭、面包、肉，能量都能追回到这片“糖工厂”；你呼出的二氧化碳也会被它抓回去。</div>
+      <div class="fact gold"><b>氧气从哪来</b> — 空气里的氧，大半是这座工厂 24 亿年来放出的“副产品”。</div>
+    </div>
   </div>
 
   <!-- ① 叶子里 -->
-  <div class="viewpanel active" data-panel="leaf">
-    <h2>光合作用发生在哪？<small>三级放大</small></h2>
-    <div class="formula">6 CO₂ + 6 H₂O + 光 → C₆H₁₂O₆ + 6 O₂</div>
-    <p>光合作用不是一步完成的。它发生在<b>叶绿体</b>里，分成两个接力阶段：<b>光反应</b>（类囊体膜上，把光能变成"电池"）和<b>合成循环</b>（基质里，用电池把 CO₂ 拼成糖）。</p>
-    <div class="stat"><span>当前放大级别</span><b id="leafStage" style="color:var(--green)">叶片 → </b></div>
-    <p>拖动底部滑块或点击画面，三级放大：<b>叶片横切 → 叶肉细胞 → 叶绿体</b>。</p>
+  <div class="viewpanel" data-panel="leaf">
+    <h2>工厂在哪？<small>三级放大，一页看完</small></h2>
+    <p>这张图从左到右连着看：<b>① 叶片横切</b> → 金圈挑出一个细胞 → <b>② 放大它</b>：里面漂着绿色“豆豆”（叶绿体）→ 金圈挑出一个豆豆 → <b>③ 再放大</b>：一摞摞“硬币”叫<b>基粒</b>（光反应在它膜上），周围液体叫<b>基质</b>（拼糖循环在这）。</p>
+    <p>点 <b>🎬 自动导览</b>，相机会带你依次飞近三级；随时拖动画面自己看。</p>
     <div class="facts">
-      <div class="fact green"><b>叶绿体</b> — 一个叶肉细胞里约有 20–100 个，是细胞里的"太阳能工厂"。</div>
-      <div class="fact"><b>类囊体</b> — 叶绿体内堆叠成"基粒"的薄膜，光反应就在这层膜上进行。</div>
+      <div class="fact green"><b>叶绿体</b> — 一个细胞里约 20–100 个，是细胞里的“太阳能车间”。</div>
+      <div class="fact"><b>类囊体</b> — 基粒里一层层薄膜；阳光在这里被装进“电池”。</div>
       <div class="fact gold"><b>总账</b> — 每合成 1 mol 葡萄糖储存 2870 kJ 能量，全部来自光子。</div>
     </div>
   </div>
@@ -141,10 +156,13 @@
   </div>
 
   <div id="bottomBar">
-    <div class="viewbar active" data-bar="leaf">
-      <button class="btn" id="bLeafPrev">◀ 上一级</button>
-      <div class="ctl"><label>放大</label><input type="range" id="rLeaf" min="0" max="2" step="1" value="0"><output id="oLeaf">叶片</output></div>
-      <button class="btn" id="bLeafNext">下一级 ▶</button>
+    <div class="viewbar active" data-bar="story">
+      <button class="btn" id="bStory">▶ 一分钟故事</button>
+      <button class="btn" id="bStoryHome">⟲ 回到全景</button>
+    </div>
+    <div class="viewbar" data-bar="leaf">
+      <button class="btn" id="bLeafTour">🎬 自动导览</button>
+      <button class="btn" id="bLeafHome">⟲ 回到全景</button>
     </div>
     <div class="viewbar" data-bar="light">
       <button class="btn" id="bLightPause">⏸ 暂停</button>
@@ -161,6 +179,11 @@
       <div class="ctl"><label>视角</label><input type="range" id="rFacts" min="0" max="2" step="1" value="0"><output id="oFacts">吸收光谱</output></div>
     </div>
   </div>
+
+  <div id="storyCaption" style="position:fixed;left:50%;bottom:86px;transform:translateX(-50%);z-index:18;
+    display:none;max-width:min(86vw,760px);background:rgba(12,20,32,0.94);border:1px solid rgba(255,213,74,0.45);
+    border-radius:16px;padding:14px 26px;font-size:19px;line-height:1.7;color:#ffe9ae;text-align:center;
+    box-shadow:0 6px 30px rgba(0,0,0,0.45);"></div>
 
   <span class="badge">真实生化过程 · 示意几何 · 数据来源见 README</span>
 
@@ -3428,29 +3451,29 @@
       _edge2.subVectors(c, a);
       _normal$1.crossVectors(_edge1, _edge2);
       let DdN = this.direction.dot(_normal$1);
-      let sign;
+      let sign2;
       if (DdN > 0) {
         if (backfaceCulling) return null;
-        sign = 1;
+        sign2 = 1;
       } else if (DdN < 0) {
-        sign = -1;
+        sign2 = -1;
         DdN = -DdN;
       } else {
         return null;
       }
       _diff.subVectors(this.origin, a);
-      const DdQxE2 = sign * this.direction.dot(_edge2.crossVectors(_diff, _edge2));
+      const DdQxE2 = sign2 * this.direction.dot(_edge2.crossVectors(_diff, _edge2));
       if (DdQxE2 < 0) {
         return null;
       }
-      const DdE1xQ = sign * this.direction.dot(_edge1.cross(_diff));
+      const DdE1xQ = sign2 * this.direction.dot(_edge1.cross(_diff));
       if (DdE1xQ < 0) {
         return null;
       }
       if (DdQxE2 + DdE1xQ > DdN) {
         return null;
       }
-      const QdN = -sign * _diff.dot(_normal$1);
+      const QdN = -sign2 * _diff.dot(_normal$1);
       if (QdN < 0) {
         return null;
       }
@@ -6896,7 +6919,7 @@
       }
       return target;
     }
-    raycast(raycaster, intersects) {
+    raycast(raycaster, intersects2) {
       const geometry = this.geometry;
       const material = this.material;
       const matrixWorld = this.matrixWorld;
@@ -6914,9 +6937,9 @@
       if (geometry.boundingBox !== null) {
         if (_ray$3.intersectsBox(geometry.boundingBox) === false) return;
       }
-      this._computeIntersections(raycaster, intersects, _ray$3);
+      this._computeIntersections(raycaster, intersects2, _ray$3);
     }
-    _computeIntersections(raycaster, intersects, rayLocalSpace) {
+    _computeIntersections(raycaster, intersects2, rayLocalSpace) {
       let intersection;
       const geometry = this.geometry;
       const material = this.material;
@@ -6942,7 +6965,7 @@
               if (intersection) {
                 intersection.faceIndex = Math.floor(j / 3);
                 intersection.face.materialIndex = group.materialIndex;
-                intersects.push(intersection);
+                intersects2.push(intersection);
               }
             }
           }
@@ -6956,7 +6979,7 @@
             intersection = checkGeometryIntersection(this, material, raycaster, rayLocalSpace, uv, uv1, normal, a, b, c);
             if (intersection) {
               intersection.faceIndex = Math.floor(i / 3);
-              intersects.push(intersection);
+              intersects2.push(intersection);
             }
           }
         }
@@ -6975,7 +6998,7 @@
               if (intersection) {
                 intersection.faceIndex = Math.floor(j / 3);
                 intersection.face.materialIndex = group.materialIndex;
-                intersects.push(intersection);
+                intersects2.push(intersection);
               }
             }
           }
@@ -6989,7 +7012,7 @@
             intersection = checkGeometryIntersection(this, material, raycaster, rayLocalSpace, uv, uv1, normal, a, b, c);
             if (intersection) {
               intersection.faceIndex = Math.floor(i / 3);
-              intersects.push(intersection);
+              intersects2.push(intersection);
             }
           }
         }
@@ -16701,7 +16724,7 @@
       let _clippingEnabled = false;
       let _localClippingEnabled = false;
       let _transmissionRenderTarget = null;
-      const _projScreenMatrix = new Matrix4();
+      const _projScreenMatrix2 = new Matrix4();
       const _vector22 = new Vector2();
       const _vector3 = new Vector3();
       const _emptyScene = { background: null, fog: null, environment: null, overrideMaterial: null, isScene: true };
@@ -17204,8 +17227,8 @@
         currentRenderState = renderStates.get(scene, renderStateStack.length);
         currentRenderState.init();
         renderStateStack.push(currentRenderState);
-        _projScreenMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-        _frustum.setFromProjectionMatrix(_projScreenMatrix);
+        _projScreenMatrix2.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+        _frustum.setFromProjectionMatrix(_projScreenMatrix2);
         _localClippingEnabled = this.localClippingEnabled;
         _clippingEnabled = clipping.init(this.clippingPlanes, _localClippingEnabled);
         currentRenderList = renderLists.get(scene, renderListStack.length);
@@ -17270,7 +17293,7 @@
           } else if (object.isSprite) {
             if (!object.frustumCulled || _frustum.intersectsSprite(object)) {
               if (sortObjects) {
-                _vector3.setFromMatrixPosition(object.matrixWorld).applyMatrix4(_projScreenMatrix);
+                _vector3.setFromMatrixPosition(object.matrixWorld).applyMatrix4(_projScreenMatrix2);
               }
               const geometry = objects.update(object);
               const material = object.material;
@@ -17290,7 +17313,7 @@
                   if (geometry.boundingSphere === null) geometry.computeBoundingSphere();
                   _vector3.copy(geometry.boundingSphere.center);
                 }
-                _vector3.applyMatrix4(object.matrixWorld).applyMatrix4(_projScreenMatrix);
+                _vector3.applyMatrix4(object.matrixWorld).applyMatrix4(_projScreenMatrix2);
               }
               if (Array.isArray(material)) {
                 const groups = geometry.groups;
@@ -18352,7 +18375,7 @@
       this.material = material;
       this.center = new Vector2(0.5, 0.5);
     }
-    raycast(raycaster, intersects) {
+    raycast(raycaster, intersects2) {
       if (raycaster.camera === null) {
         console.error('THREE.Sprite: "Raycaster.camera" needs to be set in order to raycast against sprites.');
       }
@@ -18387,7 +18410,7 @@
       }
       const distance = raycaster.ray.origin.distanceTo(_intersectPoint);
       if (distance < raycaster.near || distance > raycaster.far) return;
-      intersects.push({
+      intersects2.push({
         distance,
         point: _intersectPoint.clone(),
         uv: Triangle.getInterpolation(_intersectPoint, _vA, _vB, _vC, _uvA, _uvB, _uvC, new Vector2()),
@@ -18415,6 +18438,155 @@
     vertexPosition.y += _rotatedPosition.y;
     vertexPosition.applyMatrix4(_viewWorldMatrix);
   }
+  var LineBasicMaterial = class extends Material {
+    constructor(parameters) {
+      super();
+      this.isLineBasicMaterial = true;
+      this.type = "LineBasicMaterial";
+      this.color = new Color(16777215);
+      this.map = null;
+      this.linewidth = 1;
+      this.linecap = "round";
+      this.linejoin = "round";
+      this.fog = true;
+      this.setValues(parameters);
+    }
+    copy(source) {
+      super.copy(source);
+      this.color.copy(source.color);
+      this.map = source.map;
+      this.linewidth = source.linewidth;
+      this.linecap = source.linecap;
+      this.linejoin = source.linejoin;
+      this.fog = source.fog;
+      return this;
+    }
+  };
+  var _start$1 = /* @__PURE__ */ new Vector3();
+  var _end$1 = /* @__PURE__ */ new Vector3();
+  var _inverseMatrix$1 = /* @__PURE__ */ new Matrix4();
+  var _ray$1 = /* @__PURE__ */ new Ray();
+  var _sphere$1 = /* @__PURE__ */ new Sphere();
+  var Line = class extends Object3D {
+    constructor(geometry = new BufferGeometry(), material = new LineBasicMaterial()) {
+      super();
+      this.isLine = true;
+      this.type = "Line";
+      this.geometry = geometry;
+      this.material = material;
+      this.updateMorphTargets();
+    }
+    copy(source, recursive) {
+      super.copy(source, recursive);
+      this.material = Array.isArray(source.material) ? source.material.slice() : source.material;
+      this.geometry = source.geometry;
+      return this;
+    }
+    computeLineDistances() {
+      const geometry = this.geometry;
+      if (geometry.index === null) {
+        const positionAttribute = geometry.attributes.position;
+        const lineDistances = [0];
+        for (let i = 1, l = positionAttribute.count; i < l; i++) {
+          _start$1.fromBufferAttribute(positionAttribute, i - 1);
+          _end$1.fromBufferAttribute(positionAttribute, i);
+          lineDistances[i] = lineDistances[i - 1];
+          lineDistances[i] += _start$1.distanceTo(_end$1);
+        }
+        geometry.setAttribute("lineDistance", new Float32BufferAttribute(lineDistances, 1));
+      } else {
+        console.warn("THREE.Line.computeLineDistances(): Computation only possible with non-indexed BufferGeometry.");
+      }
+      return this;
+    }
+    raycast(raycaster, intersects2) {
+      const geometry = this.geometry;
+      const matrixWorld = this.matrixWorld;
+      const threshold = raycaster.params.Line.threshold;
+      const drawRange = geometry.drawRange;
+      if (geometry.boundingSphere === null) geometry.computeBoundingSphere();
+      _sphere$1.copy(geometry.boundingSphere);
+      _sphere$1.applyMatrix4(matrixWorld);
+      _sphere$1.radius += threshold;
+      if (raycaster.ray.intersectsSphere(_sphere$1) === false) return;
+      _inverseMatrix$1.copy(matrixWorld).invert();
+      _ray$1.copy(raycaster.ray).applyMatrix4(_inverseMatrix$1);
+      const localThreshold = threshold / ((this.scale.x + this.scale.y + this.scale.z) / 3);
+      const localThresholdSq = localThreshold * localThreshold;
+      const vStart = new Vector3();
+      const vEnd = new Vector3();
+      const interSegment = new Vector3();
+      const interRay = new Vector3();
+      const step = this.isLineSegments ? 2 : 1;
+      const index = geometry.index;
+      const attributes = geometry.attributes;
+      const positionAttribute = attributes.position;
+      if (index !== null) {
+        const start = Math.max(0, drawRange.start);
+        const end = Math.min(index.count, drawRange.start + drawRange.count);
+        for (let i = start, l = end - 1; i < l; i += step) {
+          const a = index.getX(i);
+          const b = index.getX(i + 1);
+          vStart.fromBufferAttribute(positionAttribute, a);
+          vEnd.fromBufferAttribute(positionAttribute, b);
+          const distSq = _ray$1.distanceSqToSegment(vStart, vEnd, interRay, interSegment);
+          if (distSq > localThresholdSq) continue;
+          interRay.applyMatrix4(this.matrixWorld);
+          const distance = raycaster.ray.origin.distanceTo(interRay);
+          if (distance < raycaster.near || distance > raycaster.far) continue;
+          intersects2.push({
+            distance,
+            // What do we want? intersection point on the ray or on the segment??
+            // point: raycaster.ray.at( distance ),
+            point: interSegment.clone().applyMatrix4(this.matrixWorld),
+            index: i,
+            face: null,
+            faceIndex: null,
+            object: this
+          });
+        }
+      } else {
+        const start = Math.max(0, drawRange.start);
+        const end = Math.min(positionAttribute.count, drawRange.start + drawRange.count);
+        for (let i = start, l = end - 1; i < l; i += step) {
+          vStart.fromBufferAttribute(positionAttribute, i);
+          vEnd.fromBufferAttribute(positionAttribute, i + 1);
+          const distSq = _ray$1.distanceSqToSegment(vStart, vEnd, interRay, interSegment);
+          if (distSq > localThresholdSq) continue;
+          interRay.applyMatrix4(this.matrixWorld);
+          const distance = raycaster.ray.origin.distanceTo(interRay);
+          if (distance < raycaster.near || distance > raycaster.far) continue;
+          intersects2.push({
+            distance,
+            // What do we want? intersection point on the ray or on the segment??
+            // point: raycaster.ray.at( distance ),
+            point: interSegment.clone().applyMatrix4(this.matrixWorld),
+            index: i,
+            face: null,
+            faceIndex: null,
+            object: this
+          });
+        }
+      }
+    }
+    updateMorphTargets() {
+      const geometry = this.geometry;
+      const morphAttributes = geometry.morphAttributes;
+      const keys = Object.keys(morphAttributes);
+      if (keys.length > 0) {
+        const morphAttribute = morphAttributes[keys[0]];
+        if (morphAttribute !== void 0) {
+          this.morphTargetInfluences = [];
+          this.morphTargetDictionary = {};
+          for (let m = 0, ml = morphAttribute.length; m < ml; m++) {
+            const name = morphAttribute[m].name || String(m);
+            this.morphTargetInfluences.push(0);
+            this.morphTargetDictionary[name] = m;
+          }
+        }
+      }
+    }
+  };
   var CanvasTexture = class extends Texture {
     constructor(canvas2, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy) {
       super(canvas2, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy);
@@ -19637,10 +19809,10 @@
         const vertex2 = new Vector3();
         let groupCount = 0;
         const radius = top === true ? radiusTop : radiusBottom;
-        const sign = top === true ? 1 : -1;
+        const sign2 = top === true ? 1 : -1;
         for (let x = 1; x <= radialSegments; x++) {
-          vertices.push(0, halfHeight * sign, 0);
-          normals.push(0, sign, 0);
+          vertices.push(0, halfHeight * sign2, 0);
+          normals.push(0, sign2, 0);
           uvs.push(0.5, 0.5);
           index++;
         }
@@ -19651,12 +19823,12 @@
           const cosTheta = Math.cos(theta);
           const sinTheta = Math.sin(theta);
           vertex2.x = radius * sinTheta;
-          vertex2.y = halfHeight * sign;
+          vertex2.y = halfHeight * sign2;
           vertex2.z = radius * cosTheta;
           vertices.push(vertex2.x, vertex2.y, vertex2.z);
-          normals.push(0, sign, 0);
+          normals.push(0, sign2, 0);
           uv.x = cosTheta * 0.5 + 0.5;
-          uv.y = sinTheta * 0.5 * sign + 0.5;
+          uv.y = sinTheta * 0.5 * sign2 + 0.5;
           uvs.push(uv.x, uv.y);
           index++;
         }
@@ -19681,6 +19853,1097 @@
     }
     static fromJSON(data) {
       return new _CylinderGeometry(data.radiusTop, data.radiusBottom, data.height, data.radialSegments, data.heightSegments, data.openEnded, data.thetaStart, data.thetaLength);
+    }
+  };
+  var PolyhedronGeometry = class _PolyhedronGeometry extends BufferGeometry {
+    constructor(vertices = [], indices = [], radius = 1, detail = 0) {
+      super();
+      this.type = "PolyhedronGeometry";
+      this.parameters = {
+        vertices,
+        indices,
+        radius,
+        detail
+      };
+      const vertexBuffer = [];
+      const uvBuffer = [];
+      subdivide(detail);
+      applyRadius(radius);
+      generateUVs();
+      this.setAttribute("position", new Float32BufferAttribute(vertexBuffer, 3));
+      this.setAttribute("normal", new Float32BufferAttribute(vertexBuffer.slice(), 3));
+      this.setAttribute("uv", new Float32BufferAttribute(uvBuffer, 2));
+      if (detail === 0) {
+        this.computeVertexNormals();
+      } else {
+        this.normalizeNormals();
+      }
+      function subdivide(detail2) {
+        const a = new Vector3();
+        const b = new Vector3();
+        const c = new Vector3();
+        for (let i = 0; i < indices.length; i += 3) {
+          getVertexByIndex(indices[i + 0], a);
+          getVertexByIndex(indices[i + 1], b);
+          getVertexByIndex(indices[i + 2], c);
+          subdivideFace(a, b, c, detail2);
+        }
+      }
+      function subdivideFace(a, b, c, detail2) {
+        const cols = detail2 + 1;
+        const v = [];
+        for (let i = 0; i <= cols; i++) {
+          v[i] = [];
+          const aj = a.clone().lerp(c, i / cols);
+          const bj = b.clone().lerp(c, i / cols);
+          const rows = cols - i;
+          for (let j = 0; j <= rows; j++) {
+            if (j === 0 && i === cols) {
+              v[i][j] = aj;
+            } else {
+              v[i][j] = aj.clone().lerp(bj, j / rows);
+            }
+          }
+        }
+        for (let i = 0; i < cols; i++) {
+          for (let j = 0; j < 2 * (cols - i) - 1; j++) {
+            const k = Math.floor(j / 2);
+            if (j % 2 === 0) {
+              pushVertex(v[i][k + 1]);
+              pushVertex(v[i + 1][k]);
+              pushVertex(v[i][k]);
+            } else {
+              pushVertex(v[i][k + 1]);
+              pushVertex(v[i + 1][k + 1]);
+              pushVertex(v[i + 1][k]);
+            }
+          }
+        }
+      }
+      function applyRadius(radius2) {
+        const vertex2 = new Vector3();
+        for (let i = 0; i < vertexBuffer.length; i += 3) {
+          vertex2.x = vertexBuffer[i + 0];
+          vertex2.y = vertexBuffer[i + 1];
+          vertex2.z = vertexBuffer[i + 2];
+          vertex2.normalize().multiplyScalar(radius2);
+          vertexBuffer[i + 0] = vertex2.x;
+          vertexBuffer[i + 1] = vertex2.y;
+          vertexBuffer[i + 2] = vertex2.z;
+        }
+      }
+      function generateUVs() {
+        const vertex2 = new Vector3();
+        for (let i = 0; i < vertexBuffer.length; i += 3) {
+          vertex2.x = vertexBuffer[i + 0];
+          vertex2.y = vertexBuffer[i + 1];
+          vertex2.z = vertexBuffer[i + 2];
+          const u = azimuth(vertex2) / 2 / Math.PI + 0.5;
+          const v = inclination(vertex2) / Math.PI + 0.5;
+          uvBuffer.push(u, 1 - v);
+        }
+        correctUVs();
+        correctSeam();
+      }
+      function correctSeam() {
+        for (let i = 0; i < uvBuffer.length; i += 6) {
+          const x0 = uvBuffer[i + 0];
+          const x1 = uvBuffer[i + 2];
+          const x2 = uvBuffer[i + 4];
+          const max = Math.max(x0, x1, x2);
+          const min = Math.min(x0, x1, x2);
+          if (max > 0.9 && min < 0.1) {
+            if (x0 < 0.2) uvBuffer[i + 0] += 1;
+            if (x1 < 0.2) uvBuffer[i + 2] += 1;
+            if (x2 < 0.2) uvBuffer[i + 4] += 1;
+          }
+        }
+      }
+      function pushVertex(vertex2) {
+        vertexBuffer.push(vertex2.x, vertex2.y, vertex2.z);
+      }
+      function getVertexByIndex(index, vertex2) {
+        const stride = index * 3;
+        vertex2.x = vertices[stride + 0];
+        vertex2.y = vertices[stride + 1];
+        vertex2.z = vertices[stride + 2];
+      }
+      function correctUVs() {
+        const a = new Vector3();
+        const b = new Vector3();
+        const c = new Vector3();
+        const centroid = new Vector3();
+        const uvA = new Vector2();
+        const uvB = new Vector2();
+        const uvC = new Vector2();
+        for (let i = 0, j = 0; i < vertexBuffer.length; i += 9, j += 6) {
+          a.set(vertexBuffer[i + 0], vertexBuffer[i + 1], vertexBuffer[i + 2]);
+          b.set(vertexBuffer[i + 3], vertexBuffer[i + 4], vertexBuffer[i + 5]);
+          c.set(vertexBuffer[i + 6], vertexBuffer[i + 7], vertexBuffer[i + 8]);
+          uvA.set(uvBuffer[j + 0], uvBuffer[j + 1]);
+          uvB.set(uvBuffer[j + 2], uvBuffer[j + 3]);
+          uvC.set(uvBuffer[j + 4], uvBuffer[j + 5]);
+          centroid.copy(a).add(b).add(c).divideScalar(3);
+          const azi = azimuth(centroid);
+          correctUV(uvA, j + 0, a, azi);
+          correctUV(uvB, j + 2, b, azi);
+          correctUV(uvC, j + 4, c, azi);
+        }
+      }
+      function correctUV(uv, stride, vector, azimuth2) {
+        if (azimuth2 < 0 && uv.x === 1) {
+          uvBuffer[stride] = uv.x - 1;
+        }
+        if (vector.x === 0 && vector.z === 0) {
+          uvBuffer[stride] = azimuth2 / 2 / Math.PI + 0.5;
+        }
+      }
+      function azimuth(vector) {
+        return Math.atan2(vector.z, -vector.x);
+      }
+      function inclination(vector) {
+        return Math.atan2(-vector.y, Math.sqrt(vector.x * vector.x + vector.z * vector.z));
+      }
+    }
+    copy(source) {
+      super.copy(source);
+      this.parameters = Object.assign({}, source.parameters);
+      return this;
+    }
+    static fromJSON(data) {
+      return new _PolyhedronGeometry(data.vertices, data.indices, data.radius, data.details);
+    }
+  };
+  var Shape = class extends Path {
+    constructor(points) {
+      super(points);
+      this.uuid = generateUUID();
+      this.type = "Shape";
+      this.holes = [];
+    }
+    getPointsHoles(divisions) {
+      const holesPts = [];
+      for (let i = 0, l = this.holes.length; i < l; i++) {
+        holesPts[i] = this.holes[i].getPoints(divisions);
+      }
+      return holesPts;
+    }
+    // get points of shape and holes (keypoints based on segments parameter)
+    extractPoints(divisions) {
+      return {
+        shape: this.getPoints(divisions),
+        holes: this.getPointsHoles(divisions)
+      };
+    }
+    copy(source) {
+      super.copy(source);
+      this.holes = [];
+      for (let i = 0, l = source.holes.length; i < l; i++) {
+        const hole = source.holes[i];
+        this.holes.push(hole.clone());
+      }
+      return this;
+    }
+    toJSON() {
+      const data = super.toJSON();
+      data.uuid = this.uuid;
+      data.holes = [];
+      for (let i = 0, l = this.holes.length; i < l; i++) {
+        const hole = this.holes[i];
+        data.holes.push(hole.toJSON());
+      }
+      return data;
+    }
+    fromJSON(json) {
+      super.fromJSON(json);
+      this.uuid = json.uuid;
+      this.holes = [];
+      for (let i = 0, l = json.holes.length; i < l; i++) {
+        const hole = json.holes[i];
+        this.holes.push(new Path().fromJSON(hole));
+      }
+      return this;
+    }
+  };
+  var Earcut = {
+    triangulate: function(data, holeIndices, dim = 2) {
+      const hasHoles = holeIndices && holeIndices.length;
+      const outerLen = hasHoles ? holeIndices[0] * dim : data.length;
+      let outerNode = linkedList(data, 0, outerLen, dim, true);
+      const triangles = [];
+      if (!outerNode || outerNode.next === outerNode.prev) return triangles;
+      let minX, minY, maxX, maxY, x, y, invSize;
+      if (hasHoles) outerNode = eliminateHoles(data, holeIndices, outerNode, dim);
+      if (data.length > 80 * dim) {
+        minX = maxX = data[0];
+        minY = maxY = data[1];
+        for (let i = dim; i < outerLen; i += dim) {
+          x = data[i];
+          y = data[i + 1];
+          if (x < minX) minX = x;
+          if (y < minY) minY = y;
+          if (x > maxX) maxX = x;
+          if (y > maxY) maxY = y;
+        }
+        invSize = Math.max(maxX - minX, maxY - minY);
+        invSize = invSize !== 0 ? 32767 / invSize : 0;
+      }
+      earcutLinked(outerNode, triangles, dim, minX, minY, invSize, 0);
+      return triangles;
+    }
+  };
+  function linkedList(data, start, end, dim, clockwise) {
+    let i, last2;
+    if (clockwise === signedArea(data, start, end, dim) > 0) {
+      for (i = start; i < end; i += dim) last2 = insertNode(i, data[i], data[i + 1], last2);
+    } else {
+      for (i = end - dim; i >= start; i -= dim) last2 = insertNode(i, data[i], data[i + 1], last2);
+    }
+    if (last2 && equals(last2, last2.next)) {
+      removeNode(last2);
+      last2 = last2.next;
+    }
+    return last2;
+  }
+  function filterPoints(start, end) {
+    if (!start) return start;
+    if (!end) end = start;
+    let p = start, again;
+    do {
+      again = false;
+      if (!p.steiner && (equals(p, p.next) || area(p.prev, p, p.next) === 0)) {
+        removeNode(p);
+        p = end = p.prev;
+        if (p === p.next) break;
+        again = true;
+      } else {
+        p = p.next;
+      }
+    } while (again || p !== end);
+    return end;
+  }
+  function earcutLinked(ear, triangles, dim, minX, minY, invSize, pass) {
+    if (!ear) return;
+    if (!pass && invSize) indexCurve(ear, minX, minY, invSize);
+    let stop = ear, prev, next;
+    while (ear.prev !== ear.next) {
+      prev = ear.prev;
+      next = ear.next;
+      if (invSize ? isEarHashed(ear, minX, minY, invSize) : isEar(ear)) {
+        triangles.push(prev.i / dim | 0);
+        triangles.push(ear.i / dim | 0);
+        triangles.push(next.i / dim | 0);
+        removeNode(ear);
+        ear = next.next;
+        stop = next.next;
+        continue;
+      }
+      ear = next;
+      if (ear === stop) {
+        if (!pass) {
+          earcutLinked(filterPoints(ear), triangles, dim, minX, minY, invSize, 1);
+        } else if (pass === 1) {
+          ear = cureLocalIntersections(filterPoints(ear), triangles, dim);
+          earcutLinked(ear, triangles, dim, minX, minY, invSize, 2);
+        } else if (pass === 2) {
+          splitEarcut(ear, triangles, dim, minX, minY, invSize);
+        }
+        break;
+      }
+    }
+  }
+  function isEar(ear) {
+    const a = ear.prev, b = ear, c = ear.next;
+    if (area(a, b, c) >= 0) return false;
+    const ax = a.x, bx = b.x, cx = c.x, ay = a.y, by = b.y, cy = c.y;
+    const x0 = ax < bx ? ax < cx ? ax : cx : bx < cx ? bx : cx, y0 = ay < by ? ay < cy ? ay : cy : by < cy ? by : cy, x1 = ax > bx ? ax > cx ? ax : cx : bx > cx ? bx : cx, y1 = ay > by ? ay > cy ? ay : cy : by > cy ? by : cy;
+    let p = c.next;
+    while (p !== a) {
+      if (p.x >= x0 && p.x <= x1 && p.y >= y0 && p.y <= y1 && pointInTriangle(ax, ay, bx, by, cx, cy, p.x, p.y) && area(p.prev, p, p.next) >= 0) return false;
+      p = p.next;
+    }
+    return true;
+  }
+  function isEarHashed(ear, minX, minY, invSize) {
+    const a = ear.prev, b = ear, c = ear.next;
+    if (area(a, b, c) >= 0) return false;
+    const ax = a.x, bx = b.x, cx = c.x, ay = a.y, by = b.y, cy = c.y;
+    const x0 = ax < bx ? ax < cx ? ax : cx : bx < cx ? bx : cx, y0 = ay < by ? ay < cy ? ay : cy : by < cy ? by : cy, x1 = ax > bx ? ax > cx ? ax : cx : bx > cx ? bx : cx, y1 = ay > by ? ay > cy ? ay : cy : by > cy ? by : cy;
+    const minZ = zOrder(x0, y0, minX, minY, invSize), maxZ = zOrder(x1, y1, minX, minY, invSize);
+    let p = ear.prevZ, n = ear.nextZ;
+    while (p && p.z >= minZ && n && n.z <= maxZ) {
+      if (p.x >= x0 && p.x <= x1 && p.y >= y0 && p.y <= y1 && p !== a && p !== c && pointInTriangle(ax, ay, bx, by, cx, cy, p.x, p.y) && area(p.prev, p, p.next) >= 0) return false;
+      p = p.prevZ;
+      if (n.x >= x0 && n.x <= x1 && n.y >= y0 && n.y <= y1 && n !== a && n !== c && pointInTriangle(ax, ay, bx, by, cx, cy, n.x, n.y) && area(n.prev, n, n.next) >= 0) return false;
+      n = n.nextZ;
+    }
+    while (p && p.z >= minZ) {
+      if (p.x >= x0 && p.x <= x1 && p.y >= y0 && p.y <= y1 && p !== a && p !== c && pointInTriangle(ax, ay, bx, by, cx, cy, p.x, p.y) && area(p.prev, p, p.next) >= 0) return false;
+      p = p.prevZ;
+    }
+    while (n && n.z <= maxZ) {
+      if (n.x >= x0 && n.x <= x1 && n.y >= y0 && n.y <= y1 && n !== a && n !== c && pointInTriangle(ax, ay, bx, by, cx, cy, n.x, n.y) && area(n.prev, n, n.next) >= 0) return false;
+      n = n.nextZ;
+    }
+    return true;
+  }
+  function cureLocalIntersections(start, triangles, dim) {
+    let p = start;
+    do {
+      const a = p.prev, b = p.next.next;
+      if (!equals(a, b) && intersects(a, p, p.next, b) && locallyInside(a, b) && locallyInside(b, a)) {
+        triangles.push(a.i / dim | 0);
+        triangles.push(p.i / dim | 0);
+        triangles.push(b.i / dim | 0);
+        removeNode(p);
+        removeNode(p.next);
+        p = start = b;
+      }
+      p = p.next;
+    } while (p !== start);
+    return filterPoints(p);
+  }
+  function splitEarcut(start, triangles, dim, minX, minY, invSize) {
+    let a = start;
+    do {
+      let b = a.next.next;
+      while (b !== a.prev) {
+        if (a.i !== b.i && isValidDiagonal(a, b)) {
+          let c = splitPolygon(a, b);
+          a = filterPoints(a, a.next);
+          c = filterPoints(c, c.next);
+          earcutLinked(a, triangles, dim, minX, minY, invSize, 0);
+          earcutLinked(c, triangles, dim, minX, minY, invSize, 0);
+          return;
+        }
+        b = b.next;
+      }
+      a = a.next;
+    } while (a !== start);
+  }
+  function eliminateHoles(data, holeIndices, outerNode, dim) {
+    const queue = [];
+    let i, len, start, end, list;
+    for (i = 0, len = holeIndices.length; i < len; i++) {
+      start = holeIndices[i] * dim;
+      end = i < len - 1 ? holeIndices[i + 1] * dim : data.length;
+      list = linkedList(data, start, end, dim, false);
+      if (list === list.next) list.steiner = true;
+      queue.push(getLeftmost(list));
+    }
+    queue.sort(compareX);
+    for (i = 0; i < queue.length; i++) {
+      outerNode = eliminateHole(queue[i], outerNode);
+    }
+    return outerNode;
+  }
+  function compareX(a, b) {
+    return a.x - b.x;
+  }
+  function eliminateHole(hole, outerNode) {
+    const bridge = findHoleBridge(hole, outerNode);
+    if (!bridge) {
+      return outerNode;
+    }
+    const bridgeReverse = splitPolygon(bridge, hole);
+    filterPoints(bridgeReverse, bridgeReverse.next);
+    return filterPoints(bridge, bridge.next);
+  }
+  function findHoleBridge(hole, outerNode) {
+    let p = outerNode, qx = -Infinity, m;
+    const hx = hole.x, hy = hole.y;
+    do {
+      if (hy <= p.y && hy >= p.next.y && p.next.y !== p.y) {
+        const x = p.x + (hy - p.y) * (p.next.x - p.x) / (p.next.y - p.y);
+        if (x <= hx && x > qx) {
+          qx = x;
+          m = p.x < p.next.x ? p : p.next;
+          if (x === hx) return m;
+        }
+      }
+      p = p.next;
+    } while (p !== outerNode);
+    if (!m) return null;
+    const stop = m, mx = m.x, my = m.y;
+    let tanMin = Infinity, tan;
+    p = m;
+    do {
+      if (hx >= p.x && p.x >= mx && hx !== p.x && pointInTriangle(hy < my ? hx : qx, hy, mx, my, hy < my ? qx : hx, hy, p.x, p.y)) {
+        tan = Math.abs(hy - p.y) / (hx - p.x);
+        if (locallyInside(p, hole) && (tan < tanMin || tan === tanMin && (p.x > m.x || p.x === m.x && sectorContainsSector(m, p)))) {
+          m = p;
+          tanMin = tan;
+        }
+      }
+      p = p.next;
+    } while (p !== stop);
+    return m;
+  }
+  function sectorContainsSector(m, p) {
+    return area(m.prev, m, p.prev) < 0 && area(p.next, m, m.next) < 0;
+  }
+  function indexCurve(start, minX, minY, invSize) {
+    let p = start;
+    do {
+      if (p.z === 0) p.z = zOrder(p.x, p.y, minX, minY, invSize);
+      p.prevZ = p.prev;
+      p.nextZ = p.next;
+      p = p.next;
+    } while (p !== start);
+    p.prevZ.nextZ = null;
+    p.prevZ = null;
+    sortLinked(p);
+  }
+  function sortLinked(list) {
+    let i, p, q, e, tail, numMerges, pSize, qSize, inSize = 1;
+    do {
+      p = list;
+      list = null;
+      tail = null;
+      numMerges = 0;
+      while (p) {
+        numMerges++;
+        q = p;
+        pSize = 0;
+        for (i = 0; i < inSize; i++) {
+          pSize++;
+          q = q.nextZ;
+          if (!q) break;
+        }
+        qSize = inSize;
+        while (pSize > 0 || qSize > 0 && q) {
+          if (pSize !== 0 && (qSize === 0 || !q || p.z <= q.z)) {
+            e = p;
+            p = p.nextZ;
+            pSize--;
+          } else {
+            e = q;
+            q = q.nextZ;
+            qSize--;
+          }
+          if (tail) tail.nextZ = e;
+          else list = e;
+          e.prevZ = tail;
+          tail = e;
+        }
+        p = q;
+      }
+      tail.nextZ = null;
+      inSize *= 2;
+    } while (numMerges > 1);
+    return list;
+  }
+  function zOrder(x, y, minX, minY, invSize) {
+    x = (x - minX) * invSize | 0;
+    y = (y - minY) * invSize | 0;
+    x = (x | x << 8) & 16711935;
+    x = (x | x << 4) & 252645135;
+    x = (x | x << 2) & 858993459;
+    x = (x | x << 1) & 1431655765;
+    y = (y | y << 8) & 16711935;
+    y = (y | y << 4) & 252645135;
+    y = (y | y << 2) & 858993459;
+    y = (y | y << 1) & 1431655765;
+    return x | y << 1;
+  }
+  function getLeftmost(start) {
+    let p = start, leftmost = start;
+    do {
+      if (p.x < leftmost.x || p.x === leftmost.x && p.y < leftmost.y) leftmost = p;
+      p = p.next;
+    } while (p !== start);
+    return leftmost;
+  }
+  function pointInTriangle(ax, ay, bx, by, cx, cy, px2, py2) {
+    return (cx - px2) * (ay - py2) >= (ax - px2) * (cy - py2) && (ax - px2) * (by - py2) >= (bx - px2) * (ay - py2) && (bx - px2) * (cy - py2) >= (cx - px2) * (by - py2);
+  }
+  function isValidDiagonal(a, b) {
+    return a.next.i !== b.i && a.prev.i !== b.i && !intersectsPolygon(a, b) && // dones't intersect other edges
+    (locallyInside(a, b) && locallyInside(b, a) && middleInside(a, b) && // locally visible
+    (area(a.prev, a, b.prev) || area(a, b.prev, b)) || // does not create opposite-facing sectors
+    equals(a, b) && area(a.prev, a, a.next) > 0 && area(b.prev, b, b.next) > 0);
+  }
+  function area(p, q, r) {
+    return (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
+  }
+  function equals(p1, p2) {
+    return p1.x === p2.x && p1.y === p2.y;
+  }
+  function intersects(p1, q1, p2, q2) {
+    const o1 = sign(area(p1, q1, p2));
+    const o2 = sign(area(p1, q1, q2));
+    const o3 = sign(area(p2, q2, p1));
+    const o4 = sign(area(p2, q2, q1));
+    if (o1 !== o2 && o3 !== o4) return true;
+    if (o1 === 0 && onSegment(p1, p2, q1)) return true;
+    if (o2 === 0 && onSegment(p1, q2, q1)) return true;
+    if (o3 === 0 && onSegment(p2, p1, q2)) return true;
+    if (o4 === 0 && onSegment(p2, q1, q2)) return true;
+    return false;
+  }
+  function onSegment(p, q, r) {
+    return q.x <= Math.max(p.x, r.x) && q.x >= Math.min(p.x, r.x) && q.y <= Math.max(p.y, r.y) && q.y >= Math.min(p.y, r.y);
+  }
+  function sign(num) {
+    return num > 0 ? 1 : num < 0 ? -1 : 0;
+  }
+  function intersectsPolygon(a, b) {
+    let p = a;
+    do {
+      if (p.i !== a.i && p.next.i !== a.i && p.i !== b.i && p.next.i !== b.i && intersects(p, p.next, a, b)) return true;
+      p = p.next;
+    } while (p !== a);
+    return false;
+  }
+  function locallyInside(a, b) {
+    return area(a.prev, a, a.next) < 0 ? area(a, b, a.next) >= 0 && area(a, a.prev, b) >= 0 : area(a, b, a.prev) < 0 || area(a, a.next, b) < 0;
+  }
+  function middleInside(a, b) {
+    let p = a, inside = false;
+    const px2 = (a.x + b.x) / 2, py2 = (a.y + b.y) / 2;
+    do {
+      if (p.y > py2 !== p.next.y > py2 && p.next.y !== p.y && px2 < (p.next.x - p.x) * (py2 - p.y) / (p.next.y - p.y) + p.x)
+        inside = !inside;
+      p = p.next;
+    } while (p !== a);
+    return inside;
+  }
+  function splitPolygon(a, b) {
+    const a2 = new Node(a.i, a.x, a.y), b2 = new Node(b.i, b.x, b.y), an = a.next, bp = b.prev;
+    a.next = b;
+    b.prev = a;
+    a2.next = an;
+    an.prev = a2;
+    b2.next = a2;
+    a2.prev = b2;
+    bp.next = b2;
+    b2.prev = bp;
+    return b2;
+  }
+  function insertNode(i, x, y, last2) {
+    const p = new Node(i, x, y);
+    if (!last2) {
+      p.prev = p;
+      p.next = p;
+    } else {
+      p.next = last2.next;
+      p.prev = last2;
+      last2.next.prev = p;
+      last2.next = p;
+    }
+    return p;
+  }
+  function removeNode(p) {
+    p.next.prev = p.prev;
+    p.prev.next = p.next;
+    if (p.prevZ) p.prevZ.nextZ = p.nextZ;
+    if (p.nextZ) p.nextZ.prevZ = p.prevZ;
+  }
+  function Node(i, x, y) {
+    this.i = i;
+    this.x = x;
+    this.y = y;
+    this.prev = null;
+    this.next = null;
+    this.z = 0;
+    this.prevZ = null;
+    this.nextZ = null;
+    this.steiner = false;
+  }
+  function signedArea(data, start, end, dim) {
+    let sum = 0;
+    for (let i = start, j = end - dim; i < end; i += dim) {
+      sum += (data[j] - data[i]) * (data[i + 1] + data[j + 1]);
+      j = i;
+    }
+    return sum;
+  }
+  var ShapeUtils = class _ShapeUtils {
+    // calculate area of the contour polygon
+    static area(contour) {
+      const n = contour.length;
+      let a = 0;
+      for (let p = n - 1, q = 0; q < n; p = q++) {
+        a += contour[p].x * contour[q].y - contour[q].x * contour[p].y;
+      }
+      return a * 0.5;
+    }
+    static isClockWise(pts) {
+      return _ShapeUtils.area(pts) < 0;
+    }
+    static triangulateShape(contour, holes) {
+      const vertices = [];
+      const holeIndices = [];
+      const faces = [];
+      removeDupEndPts(contour);
+      addContour(vertices, contour);
+      let holeIndex = contour.length;
+      holes.forEach(removeDupEndPts);
+      for (let i = 0; i < holes.length; i++) {
+        holeIndices.push(holeIndex);
+        holeIndex += holes[i].length;
+        addContour(vertices, holes[i]);
+      }
+      const triangles = Earcut.triangulate(vertices, holeIndices);
+      for (let i = 0; i < triangles.length; i += 3) {
+        faces.push(triangles.slice(i, i + 3));
+      }
+      return faces;
+    }
+  };
+  function removeDupEndPts(points) {
+    const l = points.length;
+    if (l > 2 && points[l - 1].equals(points[0])) {
+      points.pop();
+    }
+  }
+  function addContour(vertices, contour) {
+    for (let i = 0; i < contour.length; i++) {
+      vertices.push(contour[i].x);
+      vertices.push(contour[i].y);
+    }
+  }
+  var ExtrudeGeometry = class _ExtrudeGeometry extends BufferGeometry {
+    constructor(shapes = new Shape([new Vector2(0.5, 0.5), new Vector2(-0.5, 0.5), new Vector2(-0.5, -0.5), new Vector2(0.5, -0.5)]), options = {}) {
+      super();
+      this.type = "ExtrudeGeometry";
+      this.parameters = {
+        shapes,
+        options
+      };
+      shapes = Array.isArray(shapes) ? shapes : [shapes];
+      const scope = this;
+      const verticesArray = [];
+      const uvArray = [];
+      for (let i = 0, l = shapes.length; i < l; i++) {
+        const shape = shapes[i];
+        addShape(shape);
+      }
+      this.setAttribute("position", new Float32BufferAttribute(verticesArray, 3));
+      this.setAttribute("uv", new Float32BufferAttribute(uvArray, 2));
+      this.computeVertexNormals();
+      function addShape(shape) {
+        const placeholder = [];
+        const curveSegments = options.curveSegments !== void 0 ? options.curveSegments : 12;
+        const steps = options.steps !== void 0 ? options.steps : 1;
+        const depth = options.depth !== void 0 ? options.depth : 1;
+        let bevelEnabled = options.bevelEnabled !== void 0 ? options.bevelEnabled : true;
+        let bevelThickness = options.bevelThickness !== void 0 ? options.bevelThickness : 0.2;
+        let bevelSize = options.bevelSize !== void 0 ? options.bevelSize : bevelThickness - 0.1;
+        let bevelOffset = options.bevelOffset !== void 0 ? options.bevelOffset : 0;
+        let bevelSegments = options.bevelSegments !== void 0 ? options.bevelSegments : 3;
+        const extrudePath = options.extrudePath;
+        const uvgen = options.UVGenerator !== void 0 ? options.UVGenerator : WorldUVGenerator;
+        let extrudePts, extrudeByPath = false;
+        let splineTube, binormal, normal, position2;
+        if (extrudePath) {
+          extrudePts = extrudePath.getSpacedPoints(steps);
+          extrudeByPath = true;
+          bevelEnabled = false;
+          splineTube = extrudePath.computeFrenetFrames(steps, false);
+          binormal = new Vector3();
+          normal = new Vector3();
+          position2 = new Vector3();
+        }
+        if (!bevelEnabled) {
+          bevelSegments = 0;
+          bevelThickness = 0;
+          bevelSize = 0;
+          bevelOffset = 0;
+        }
+        const shapePoints = shape.extractPoints(curveSegments);
+        let vertices = shapePoints.shape;
+        const holes = shapePoints.holes;
+        const reverse = !ShapeUtils.isClockWise(vertices);
+        if (reverse) {
+          vertices = vertices.reverse();
+          for (let h = 0, hl = holes.length; h < hl; h++) {
+            const ahole = holes[h];
+            if (ShapeUtils.isClockWise(ahole)) {
+              holes[h] = ahole.reverse();
+            }
+          }
+        }
+        const faces = ShapeUtils.triangulateShape(vertices, holes);
+        const contour = vertices;
+        for (let h = 0, hl = holes.length; h < hl; h++) {
+          const ahole = holes[h];
+          vertices = vertices.concat(ahole);
+        }
+        function scalePt2(pt, vec, size) {
+          if (!vec) console.error("THREE.ExtrudeGeometry: vec does not exist");
+          return pt.clone().addScaledVector(vec, size);
+        }
+        const vlen = vertices.length, flen = faces.length;
+        function getBevelVec(inPt, inPrev, inNext) {
+          let v_trans_x, v_trans_y, shrink_by;
+          const v_prev_x = inPt.x - inPrev.x, v_prev_y = inPt.y - inPrev.y;
+          const v_next_x = inNext.x - inPt.x, v_next_y = inNext.y - inPt.y;
+          const v_prev_lensq = v_prev_x * v_prev_x + v_prev_y * v_prev_y;
+          const collinear0 = v_prev_x * v_next_y - v_prev_y * v_next_x;
+          if (Math.abs(collinear0) > Number.EPSILON) {
+            const v_prev_len = Math.sqrt(v_prev_lensq);
+            const v_next_len = Math.sqrt(v_next_x * v_next_x + v_next_y * v_next_y);
+            const ptPrevShift_x = inPrev.x - v_prev_y / v_prev_len;
+            const ptPrevShift_y = inPrev.y + v_prev_x / v_prev_len;
+            const ptNextShift_x = inNext.x - v_next_y / v_next_len;
+            const ptNextShift_y = inNext.y + v_next_x / v_next_len;
+            const sf = ((ptNextShift_x - ptPrevShift_x) * v_next_y - (ptNextShift_y - ptPrevShift_y) * v_next_x) / (v_prev_x * v_next_y - v_prev_y * v_next_x);
+            v_trans_x = ptPrevShift_x + v_prev_x * sf - inPt.x;
+            v_trans_y = ptPrevShift_y + v_prev_y * sf - inPt.y;
+            const v_trans_lensq = v_trans_x * v_trans_x + v_trans_y * v_trans_y;
+            if (v_trans_lensq <= 2) {
+              return new Vector2(v_trans_x, v_trans_y);
+            } else {
+              shrink_by = Math.sqrt(v_trans_lensq / 2);
+            }
+          } else {
+            let direction_eq = false;
+            if (v_prev_x > Number.EPSILON) {
+              if (v_next_x > Number.EPSILON) {
+                direction_eq = true;
+              }
+            } else {
+              if (v_prev_x < -Number.EPSILON) {
+                if (v_next_x < -Number.EPSILON) {
+                  direction_eq = true;
+                }
+              } else {
+                if (Math.sign(v_prev_y) === Math.sign(v_next_y)) {
+                  direction_eq = true;
+                }
+              }
+            }
+            if (direction_eq) {
+              v_trans_x = -v_prev_y;
+              v_trans_y = v_prev_x;
+              shrink_by = Math.sqrt(v_prev_lensq);
+            } else {
+              v_trans_x = v_prev_x;
+              v_trans_y = v_prev_y;
+              shrink_by = Math.sqrt(v_prev_lensq / 2);
+            }
+          }
+          return new Vector2(v_trans_x / shrink_by, v_trans_y / shrink_by);
+        }
+        const contourMovements = [];
+        for (let i = 0, il = contour.length, j = il - 1, k = i + 1; i < il; i++, j++, k++) {
+          if (j === il) j = 0;
+          if (k === il) k = 0;
+          contourMovements[i] = getBevelVec(contour[i], contour[j], contour[k]);
+        }
+        const holesMovements = [];
+        let oneHoleMovements, verticesMovements = contourMovements.concat();
+        for (let h = 0, hl = holes.length; h < hl; h++) {
+          const ahole = holes[h];
+          oneHoleMovements = [];
+          for (let i = 0, il = ahole.length, j = il - 1, k = i + 1; i < il; i++, j++, k++) {
+            if (j === il) j = 0;
+            if (k === il) k = 0;
+            oneHoleMovements[i] = getBevelVec(ahole[i], ahole[j], ahole[k]);
+          }
+          holesMovements.push(oneHoleMovements);
+          verticesMovements = verticesMovements.concat(oneHoleMovements);
+        }
+        for (let b = 0; b < bevelSegments; b++) {
+          const t = b / bevelSegments;
+          const z = bevelThickness * Math.cos(t * Math.PI / 2);
+          const bs2 = bevelSize * Math.sin(t * Math.PI / 2) + bevelOffset;
+          for (let i = 0, il = contour.length; i < il; i++) {
+            const vert = scalePt2(contour[i], contourMovements[i], bs2);
+            v(vert.x, vert.y, -z);
+          }
+          for (let h = 0, hl = holes.length; h < hl; h++) {
+            const ahole = holes[h];
+            oneHoleMovements = holesMovements[h];
+            for (let i = 0, il = ahole.length; i < il; i++) {
+              const vert = scalePt2(ahole[i], oneHoleMovements[i], bs2);
+              v(vert.x, vert.y, -z);
+            }
+          }
+        }
+        const bs = bevelSize + bevelOffset;
+        for (let i = 0; i < vlen; i++) {
+          const vert = bevelEnabled ? scalePt2(vertices[i], verticesMovements[i], bs) : vertices[i];
+          if (!extrudeByPath) {
+            v(vert.x, vert.y, 0);
+          } else {
+            normal.copy(splineTube.normals[0]).multiplyScalar(vert.x);
+            binormal.copy(splineTube.binormals[0]).multiplyScalar(vert.y);
+            position2.copy(extrudePts[0]).add(normal).add(binormal);
+            v(position2.x, position2.y, position2.z);
+          }
+        }
+        for (let s = 1; s <= steps; s++) {
+          for (let i = 0; i < vlen; i++) {
+            const vert = bevelEnabled ? scalePt2(vertices[i], verticesMovements[i], bs) : vertices[i];
+            if (!extrudeByPath) {
+              v(vert.x, vert.y, depth / steps * s);
+            } else {
+              normal.copy(splineTube.normals[s]).multiplyScalar(vert.x);
+              binormal.copy(splineTube.binormals[s]).multiplyScalar(vert.y);
+              position2.copy(extrudePts[s]).add(normal).add(binormal);
+              v(position2.x, position2.y, position2.z);
+            }
+          }
+        }
+        for (let b = bevelSegments - 1; b >= 0; b--) {
+          const t = b / bevelSegments;
+          const z = bevelThickness * Math.cos(t * Math.PI / 2);
+          const bs2 = bevelSize * Math.sin(t * Math.PI / 2) + bevelOffset;
+          for (let i = 0, il = contour.length; i < il; i++) {
+            const vert = scalePt2(contour[i], contourMovements[i], bs2);
+            v(vert.x, vert.y, depth + z);
+          }
+          for (let h = 0, hl = holes.length; h < hl; h++) {
+            const ahole = holes[h];
+            oneHoleMovements = holesMovements[h];
+            for (let i = 0, il = ahole.length; i < il; i++) {
+              const vert = scalePt2(ahole[i], oneHoleMovements[i], bs2);
+              if (!extrudeByPath) {
+                v(vert.x, vert.y, depth + z);
+              } else {
+                v(vert.x, vert.y + extrudePts[steps - 1].y, extrudePts[steps - 1].x + z);
+              }
+            }
+          }
+        }
+        buildLidFaces();
+        buildSideFaces();
+        function buildLidFaces() {
+          const start = verticesArray.length / 3;
+          if (bevelEnabled) {
+            let layer = 0;
+            let offset = vlen * layer;
+            for (let i = 0; i < flen; i++) {
+              const face = faces[i];
+              f3(face[2] + offset, face[1] + offset, face[0] + offset);
+            }
+            layer = steps + bevelSegments * 2;
+            offset = vlen * layer;
+            for (let i = 0; i < flen; i++) {
+              const face = faces[i];
+              f3(face[0] + offset, face[1] + offset, face[2] + offset);
+            }
+          } else {
+            for (let i = 0; i < flen; i++) {
+              const face = faces[i];
+              f3(face[2], face[1], face[0]);
+            }
+            for (let i = 0; i < flen; i++) {
+              const face = faces[i];
+              f3(face[0] + vlen * steps, face[1] + vlen * steps, face[2] + vlen * steps);
+            }
+          }
+          scope.addGroup(start, verticesArray.length / 3 - start, 0);
+        }
+        function buildSideFaces() {
+          const start = verticesArray.length / 3;
+          let layeroffset = 0;
+          sidewalls(contour, layeroffset);
+          layeroffset += contour.length;
+          for (let h = 0, hl = holes.length; h < hl; h++) {
+            const ahole = holes[h];
+            sidewalls(ahole, layeroffset);
+            layeroffset += ahole.length;
+          }
+          scope.addGroup(start, verticesArray.length / 3 - start, 1);
+        }
+        function sidewalls(contour2, layeroffset) {
+          let i = contour2.length;
+          while (--i >= 0) {
+            const j = i;
+            let k = i - 1;
+            if (k < 0) k = contour2.length - 1;
+            for (let s = 0, sl = steps + bevelSegments * 2; s < sl; s++) {
+              const slen1 = vlen * s;
+              const slen2 = vlen * (s + 1);
+              const a = layeroffset + j + slen1, b = layeroffset + k + slen1, c = layeroffset + k + slen2, d = layeroffset + j + slen2;
+              f4(a, b, c, d);
+            }
+          }
+        }
+        function v(x, y, z) {
+          placeholder.push(x);
+          placeholder.push(y);
+          placeholder.push(z);
+        }
+        function f3(a, b, c) {
+          addVertex(a);
+          addVertex(b);
+          addVertex(c);
+          const nextIndex = verticesArray.length / 3;
+          const uvs = uvgen.generateTopUV(scope, verticesArray, nextIndex - 3, nextIndex - 2, nextIndex - 1);
+          addUV(uvs[0]);
+          addUV(uvs[1]);
+          addUV(uvs[2]);
+        }
+        function f4(a, b, c, d) {
+          addVertex(a);
+          addVertex(b);
+          addVertex(d);
+          addVertex(b);
+          addVertex(c);
+          addVertex(d);
+          const nextIndex = verticesArray.length / 3;
+          const uvs = uvgen.generateSideWallUV(scope, verticesArray, nextIndex - 6, nextIndex - 3, nextIndex - 2, nextIndex - 1);
+          addUV(uvs[0]);
+          addUV(uvs[1]);
+          addUV(uvs[3]);
+          addUV(uvs[1]);
+          addUV(uvs[2]);
+          addUV(uvs[3]);
+        }
+        function addVertex(index) {
+          verticesArray.push(placeholder[index * 3 + 0]);
+          verticesArray.push(placeholder[index * 3 + 1]);
+          verticesArray.push(placeholder[index * 3 + 2]);
+        }
+        function addUV(vector2) {
+          uvArray.push(vector2.x);
+          uvArray.push(vector2.y);
+        }
+      }
+    }
+    copy(source) {
+      super.copy(source);
+      this.parameters = Object.assign({}, source.parameters);
+      return this;
+    }
+    toJSON() {
+      const data = super.toJSON();
+      const shapes = this.parameters.shapes;
+      const options = this.parameters.options;
+      return toJSON$1(shapes, options, data);
+    }
+    static fromJSON(data, shapes) {
+      const geometryShapes = [];
+      for (let j = 0, jl = data.shapes.length; j < jl; j++) {
+        const shape = shapes[data.shapes[j]];
+        geometryShapes.push(shape);
+      }
+      const extrudePath = data.options.extrudePath;
+      if (extrudePath !== void 0) {
+        data.options.extrudePath = new Curves[extrudePath.type]().fromJSON(extrudePath);
+      }
+      return new _ExtrudeGeometry(geometryShapes, data.options);
+    }
+  };
+  var WorldUVGenerator = {
+    generateTopUV: function(geometry, vertices, indexA, indexB, indexC) {
+      const a_x = vertices[indexA * 3];
+      const a_y = vertices[indexA * 3 + 1];
+      const b_x = vertices[indexB * 3];
+      const b_y = vertices[indexB * 3 + 1];
+      const c_x = vertices[indexC * 3];
+      const c_y = vertices[indexC * 3 + 1];
+      return [
+        new Vector2(a_x, a_y),
+        new Vector2(b_x, b_y),
+        new Vector2(c_x, c_y)
+      ];
+    },
+    generateSideWallUV: function(geometry, vertices, indexA, indexB, indexC, indexD) {
+      const a_x = vertices[indexA * 3];
+      const a_y = vertices[indexA * 3 + 1];
+      const a_z = vertices[indexA * 3 + 2];
+      const b_x = vertices[indexB * 3];
+      const b_y = vertices[indexB * 3 + 1];
+      const b_z = vertices[indexB * 3 + 2];
+      const c_x = vertices[indexC * 3];
+      const c_y = vertices[indexC * 3 + 1];
+      const c_z = vertices[indexC * 3 + 2];
+      const d_x = vertices[indexD * 3];
+      const d_y = vertices[indexD * 3 + 1];
+      const d_z = vertices[indexD * 3 + 2];
+      if (Math.abs(a_y - b_y) < Math.abs(a_x - b_x)) {
+        return [
+          new Vector2(a_x, 1 - a_z),
+          new Vector2(b_x, 1 - b_z),
+          new Vector2(c_x, 1 - c_z),
+          new Vector2(d_x, 1 - d_z)
+        ];
+      } else {
+        return [
+          new Vector2(a_y, 1 - a_z),
+          new Vector2(b_y, 1 - b_z),
+          new Vector2(c_y, 1 - c_z),
+          new Vector2(d_y, 1 - d_z)
+        ];
+      }
+    }
+  };
+  function toJSON$1(shapes, options, data) {
+    data.shapes = [];
+    if (Array.isArray(shapes)) {
+      for (let i = 0, l = shapes.length; i < l; i++) {
+        const shape = shapes[i];
+        data.shapes.push(shape.uuid);
+      }
+    } else {
+      data.shapes.push(shapes.uuid);
+    }
+    data.options = Object.assign({}, options);
+    if (options.extrudePath !== void 0) data.options.extrudePath = options.extrudePath.toJSON();
+    return data;
+  }
+  var OctahedronGeometry = class _OctahedronGeometry extends PolyhedronGeometry {
+    constructor(radius = 1, detail = 0) {
+      const vertices = [
+        1,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        -1
+      ];
+      const indices = [
+        0,
+        2,
+        4,
+        0,
+        4,
+        3,
+        0,
+        3,
+        5,
+        0,
+        5,
+        2,
+        1,
+        2,
+        5,
+        1,
+        5,
+        3,
+        1,
+        3,
+        4,
+        1,
+        4,
+        2
+      ];
+      super(vertices, indices, radius, detail);
+      this.type = "OctahedronGeometry";
+      this.parameters = {
+        radius,
+        detail
+      };
+    }
+    static fromJSON(data) {
+      return new _OctahedronGeometry(data.radius, data.detail);
     }
   };
   var SphereGeometry = class _SphereGeometry extends BufferGeometry {
@@ -20590,6 +21853,104 @@
       return object;
     }
   };
+  var _projScreenMatrix = /* @__PURE__ */ new Matrix4();
+  var _lightPositionWorld = /* @__PURE__ */ new Vector3();
+  var _lookTarget = /* @__PURE__ */ new Vector3();
+  var PointLightShadow = class extends LightShadow {
+    constructor() {
+      super(new PerspectiveCamera(90, 1, 0.5, 500));
+      this.isPointLightShadow = true;
+      this._frameExtents = new Vector2(4, 2);
+      this._viewportCount = 6;
+      this._viewports = [
+        // These viewports map a cube-map onto a 2D texture with the
+        // following orientation:
+        //
+        //  xzXZ
+        //   y Y
+        //
+        // X - Positive x direction
+        // x - Negative x direction
+        // Y - Positive y direction
+        // y - Negative y direction
+        // Z - Positive z direction
+        // z - Negative z direction
+        // positive X
+        new Vector4(2, 1, 1, 1),
+        // negative X
+        new Vector4(0, 1, 1, 1),
+        // positive Z
+        new Vector4(3, 1, 1, 1),
+        // negative Z
+        new Vector4(1, 1, 1, 1),
+        // positive Y
+        new Vector4(3, 0, 1, 1),
+        // negative Y
+        new Vector4(1, 0, 1, 1)
+      ];
+      this._cubeDirections = [
+        new Vector3(1, 0, 0),
+        new Vector3(-1, 0, 0),
+        new Vector3(0, 0, 1),
+        new Vector3(0, 0, -1),
+        new Vector3(0, 1, 0),
+        new Vector3(0, -1, 0)
+      ];
+      this._cubeUps = [
+        new Vector3(0, 1, 0),
+        new Vector3(0, 1, 0),
+        new Vector3(0, 1, 0),
+        new Vector3(0, 1, 0),
+        new Vector3(0, 0, 1),
+        new Vector3(0, 0, -1)
+      ];
+    }
+    updateMatrices(light, viewportIndex = 0) {
+      const camera = this.camera;
+      const shadowMatrix = this.matrix;
+      const far = light.distance || camera.far;
+      if (far !== camera.far) {
+        camera.far = far;
+        camera.updateProjectionMatrix();
+      }
+      _lightPositionWorld.setFromMatrixPosition(light.matrixWorld);
+      camera.position.copy(_lightPositionWorld);
+      _lookTarget.copy(camera.position);
+      _lookTarget.add(this._cubeDirections[viewportIndex]);
+      camera.up.copy(this._cubeUps[viewportIndex]);
+      camera.lookAt(_lookTarget);
+      camera.updateMatrixWorld();
+      shadowMatrix.makeTranslation(-_lightPositionWorld.x, -_lightPositionWorld.y, -_lightPositionWorld.z);
+      _projScreenMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+      this._frustum.setFromProjectionMatrix(_projScreenMatrix);
+    }
+  };
+  var PointLight = class extends Light {
+    constructor(color, intensity, distance = 0, decay = 2) {
+      super(color, intensity);
+      this.isPointLight = true;
+      this.type = "PointLight";
+      this.distance = distance;
+      this.decay = decay;
+      this.shadow = new PointLightShadow();
+    }
+    get power() {
+      return this.intensity * 4 * Math.PI;
+    }
+    set power(power) {
+      this.intensity = power / (4 * Math.PI);
+    }
+    dispose() {
+      this.shadow.dispose();
+    }
+    copy(source, recursive) {
+      super.copy(source, recursive);
+      this.distance = source.distance;
+      this.decay = source.decay;
+      this.shadow = source.shadow.clone();
+      return this;
+    }
+  };
   var DirectionalLightShadow = class extends LightShadow {
     constructor() {
       super(new OrthographicCamera(-5, 5, 5, -5, 0.5, 500));
@@ -21032,30 +22393,30 @@
         console.error("THREE.Raycaster: Unsupported camera type: " + camera.type);
       }
     }
-    intersectObject(object, recursive = true, intersects = []) {
-      intersectObject(object, this, intersects, recursive);
-      intersects.sort(ascSort);
-      return intersects;
+    intersectObject(object, recursive = true, intersects2 = []) {
+      intersectObject(object, this, intersects2, recursive);
+      intersects2.sort(ascSort);
+      return intersects2;
     }
-    intersectObjects(objects, recursive = true, intersects = []) {
+    intersectObjects(objects, recursive = true, intersects2 = []) {
       for (let i = 0, l = objects.length; i < l; i++) {
-        intersectObject(objects[i], this, intersects, recursive);
+        intersectObject(objects[i], this, intersects2, recursive);
       }
-      intersects.sort(ascSort);
-      return intersects;
+      intersects2.sort(ascSort);
+      return intersects2;
     }
   };
   function ascSort(a, b) {
     return a.distance - b.distance;
   }
-  function intersectObject(object, raycaster, intersects, recursive) {
+  function intersectObject(object, raycaster, intersects2, recursive) {
     if (object.layers.test(raycaster.layers)) {
-      object.raycast(raycaster, intersects);
+      object.raycast(raycaster, intersects2);
     }
     if (recursive === true) {
       const children = object.children;
       for (let i = 0, l = children.length; i < l; i++) {
-        intersectObject(children[i], raycaster, intersects, true);
+        intersectObject(children[i], raycaster, intersects2, true);
       }
     }
   }
@@ -21877,25 +23238,319 @@
     );
   }
 
+  // js/story.js
+  var C = { photon: 16766282, water: 6928383, co2: 11187394, o2: 15398655, sugar: 13166698 };
+  function buildStory() {
+    const scene = new Scene();
+    scene.background = new Color("#060b12");
+    scene.fog = new Fog("#060b12", 46, 110);
+    const camera = new PerspectiveCamera(46, innerWidth / innerHeight, 0.1, 300);
+    camera.position.set(0, 2.5, 30);
+    scene.add(new AmbientLight("#46536a", 1));
+    const key = new DirectionalLight("#fff2d8", 1.4);
+    key.position.set(-8, 14, 12);
+    scene.add(key);
+    const controls = new OrbitControls(camera, document.getElementById("gl"));
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.08;
+    controls.target.set(0, 2, 0);
+    const leafShape = new Shape();
+    leafShape.moveTo(0, -5);
+    leafShape.quadraticCurveTo(-6.8, -2.5, -6.2, 1.5);
+    leafShape.quadraticCurveTo(-5.6, 5.2, 0, 6.6);
+    leafShape.quadraticCurveTo(5.6, 5.2, 6.2, 1.5);
+    leafShape.quadraticCurveTo(6.8, -2.5, 0, -5);
+    const leafGeo = new ExtrudeGeometry(leafShape, { depth: 0.4, bevelEnabled: true, bevelThickness: 0.12, bevelSize: 0.12, bevelSegments: 2 });
+    const leafMat = new MeshStandardMaterial({
+      color: "#3fae6a",
+      roughness: 0.5,
+      emissive: "#0d3018",
+      emissiveIntensity: 0.55,
+      transparent: true,
+      opacity: 0.88
+    });
+    const leaf = new Mesh(leafGeo, leafMat);
+    leaf.position.set(0, 2.6, 0);
+    scene.add(leaf);
+    const leafLabel = makeLabel("\u53F6\u5B50 = \u7CD6\u5DE5\u5382", "#9ff0b5");
+    leafLabel.position.set(0, -3.4, 0);
+    scene.add(leafLabel);
+    const stem = new Mesh(
+      new CylinderGeometry(0.42, 0.6, 6.5, 12),
+      new MeshStandardMaterial({ color: "#3c7a4a", roughness: 0.6 })
+    );
+    stem.position.set(0, -6.2, 0);
+    scene.add(stem);
+    const sun = new Mesh(
+      new SphereGeometry(1.7, 24, 18),
+      new MeshBasicMaterial({ color: 16766282 })
+    );
+    sun.position.set(-11.5, 9.5, -3);
+    scene.add(sun);
+    const sunLabel = makeLabel("\u2600 \u9633\u5149\uFF08\u80FD\u91CF\uFF09", "#ffd54a");
+    sunLabel.position.set(-11.5, 12.2, -3);
+    scene.add(sunLabel);
+    const sunGlow = new PointLight("#ffd54a", 60, 50, 2);
+    sunGlow.position.copy(sun.position);
+    scene.add(sunGlow);
+    const waterLabel = makeLabel("\u{1F4A7} \u6C34\uFF08\u6839\u9001\u4E0A\u6765\uFF09", "#7dd3fc");
+    waterLabel.position.set(-6.8, -7.6, 0);
+    scene.add(waterLabel);
+    const co2Label = makeLabel("\u{1F4A8} \u4E8C\u6C27\u5316\u78B3\uFF08\u4ECE\u7A7A\u6C14\uFF09", "#cfd8e3");
+    co2Label.position.set(9.2, 7.8, 0);
+    scene.add(co2Label);
+    const o2Label = makeLabel("\u{1F62E}\u200D\u{1F4A8} \u6C27\u6C14\uFF08\u6211\u4EEC\u547C\u5438\uFF01\uFF09", "#ffffff");
+    o2Label.position.set(6.8, 12.6, 0);
+    scene.add(o2Label);
+    const sugarLabel = makeLabel("\u{1F36C} \u7CD6\uFF08\u690D\u7269\u7684\u98DF\u7269\uFF09", "#dbe86a");
+    sugarLabel.position.set(-7.6, 5.6, 0);
+    scene.add(sugarLabel);
+    const allLabels = [leafLabel, sunLabel, waterLabel, co2Label, o2Label, sugarLabel];
+    const photons = [], waters = [], co2s = [], o2s = [], sugars = [];
+    const sugarPile = new Group();
+    scene.add(sugarPile);
+    const state = {
+      timers: { p: 0, w: 0, c: 0 },
+      counts: { water: 0, co2: 0, sugar: 0, o2: 0 },
+      co2ToSugar: 0,
+      // 每 6 个 CO₂ → 1 块糖（真实配比）
+      co2ToO2: 0,
+      // 每个 CO₂ ↔ 1 个 O₂
+      story: -1,
+      storyT: 0,
+      // -1 关闭; 0..3 四句
+      captionEl: null
+    };
+    const CAPTIONS = [
+      '\u770B\uFF01\u9633\u5149\u7167\u5728\u53F6\u5B50\u4E0A \u2014\u2014 \u53F6\u5B50\u91CC\u6709\u4F1A"\u5403\u5149"\u7684\u5C0F\u5DE5\u5382\u3002',
+      "\u5DE5\u5382\u9700\u8981\u4E24\u6837\u539F\u6599\uFF1A\u6839\u91CC\u9001\u4E0A\u6765\u7684\u3010\u6C34\u3011\uFF0C\u548C\u7A7A\u6C14\u91CC\u6293\u6765\u7684\u3010\u4E8C\u6C27\u5316\u78B3\u3011\u3002",
+      "\u5149\u5148\u5E72\u4E00\u4EF6\u4E8B\uFF1A\u628A\u6C34\u62C6\u5F00\uFF0C\u653E\u51FA\u3010\u6C27\u6C14\u3011\u2014\u2014 \u4F60\u547C\u5438\u7684\u6C27\uFF0C\u5C31\u662F\u690D\u7269\u653E\u51FA\u6765\u7684\uFF01",
+      '\u518D\u7528\u9633\u5149\u5145\u7684"\u7535\u6C60"\u628A\u4E8C\u6C27\u5316\u78B3\u62FC\u6210\u3010\u7CD6\u3011\u2014\u2014 \u690D\u7269\u81EA\u5DF1\u7684\u98DF\u7269\u3002\u8FD9\u4EF6\u4E8B\u5C31\u53EB\uFF1A\u5149\u5408\u4F5C\u7528\uFF01'
+    ];
+    const STEP_FOCUS = [
+      [sunLabel, leafLabel],
+      [waterLabel, co2Label],
+      [o2Label, leafLabel],
+      [sugarLabel, leafLabel]
+    ];
+    const STEP_CAM = [
+      { cam: new Vector3(-4, 5, 26), target: new Vector3(-2, 3, 0) },
+      { cam: new Vector3(0, 0, 27), target: new Vector3(0, 0, 0) },
+      { cam: new Vector3(3, 6, 22), target: new Vector3(2, 5, 0) },
+      { cam: new Vector3(-2, 2.5, 19), target: new Vector3(0, 2.5, 0) }
+    ];
+    const HOME = { cam: new Vector3(0, 2.5, 30), target: new Vector3(0, 2, 0) };
+    function setDim(focus) {
+      allLabels.forEach((l) => {
+        l.material.opacity = focus && !focus.includes(l) ? 0.18 : 1;
+      });
+    }
+    function stopStory() {
+      state.story = -1;
+      state.captionEl.style.display = "none";
+      setDim(null);
+      const b = document.getElementById("bStory");
+      b.textContent = "\u25B6 \u4E00\u5206\u949F\u6545\u4E8B";
+      b.classList.remove("on");
+    }
+    const els = ["hSwater", "hSco2", "hSsugar", "hSo2"].map((id) => document.getElementById(id));
+    function refreshHUD() {
+      els[0].textContent = state.counts.water;
+      els[1].textContent = state.counts.co2;
+      els[2].textContent = state.counts.sugar;
+      els[3].textContent = state.counts.o2;
+    }
+    document.getElementById("bStory").addEventListener("click", (e) => {
+      if (state.story >= 0) {
+        stopStory();
+      } else {
+        state.story = 0;
+        state.storyT = 0;
+        e.target.textContent = "\u23F9 \u505C\u6B62\u6545\u4E8B";
+        e.target.classList.add("on");
+      }
+    });
+    document.getElementById("bStoryHome").addEventListener("click", () => {
+      stopStory();
+      camera.position.copy(HOME.cam);
+      controls.target.copy(HOME.target);
+    });
+    state.captionEl = document.getElementById("storyCaption");
+    function spawnPhoton() {
+      const m = makeGlowDot(0.13, C.photon);
+      m.position.copy(sun.position).add(new Vector3((Math.random() - 0.5) * 1.4, (Math.random() - 0.5) * 1, 0));
+      scene.add(m);
+      photons.push({ mesh: m, tx: -3.8 + Math.random() * 7.6, ty: 1.5 + Math.random() * 4.5 });
+    }
+    function spawnWater() {
+      const m = makeGlowDot(0.17, C.water);
+      m.position.set(0.3 + (Math.random() - 0.5) * 0.5, -8.8, 0);
+      scene.add(m);
+      waters.push({ mesh: m });
+    }
+    function spawnCO2() {
+      const m = makeGlowDot(0.16, C.co2);
+      m.position.set(11 + Math.random() * 1.5, 1 + Math.random() * 4.5, 0);
+      scene.add(m);
+      co2s.push({ mesh: m });
+    }
+    function spawnO2() {
+      const m = makeGlowDot(0.19, C.o2);
+      m.position.set(-1.5 + Math.random() * 3, 8.6, 0);
+      scene.add(m);
+      o2s.push({ mesh: m, t: 0 });
+      state.counts.o2++;
+    }
+    function spawnSugar() {
+      const m = new Mesh(
+        new OctahedronGeometry(0.42),
+        new MeshStandardMaterial({ color: C.sugar, roughness: 0.3, emissive: "#4a5a10", emissiveIntensity: 0.5 })
+      );
+      const i = sugarPile.children.length;
+      m.position.set((i % 4 - 1.5) * 1.15 + (Math.random() - 0.5) * 0.2, Math.floor(i / 4) * 1.05, 0.9);
+      scene.add(m);
+      sugars.push(m);
+      state.counts.sugar++;
+      if (sugars.length > 8) {
+        const old = sugars.shift();
+        scene.remove(old);
+        sugarPile.children.slice().forEach((c) => {
+          if (c !== old && !sugars.includes(c)) sugarPile.remove(c);
+        });
+      }
+    }
+    function update(dt0) {
+      const dt = dt0;
+      state.timers.p += dt;
+      if (state.timers.p > 0.4) {
+        state.timers.p = 0;
+        spawnPhoton();
+      }
+      state.timers.w += dt;
+      if (state.timers.w > 1.15) {
+        state.timers.w = 0;
+        spawnWater();
+      }
+      state.timers.c += dt;
+      if (state.timers.c > 1.35) {
+        state.timers.c = 0;
+        spawnCO2();
+      }
+      for (let i = photons.length - 1; i >= 0; i--) {
+        const p = photons[i];
+        const dx = p.tx - p.mesh.position.x, dy = p.ty - p.mesh.position.y;
+        const d = Math.hypot(dx, dy);
+        if (d < 0.3) {
+          scene.remove(p.mesh);
+          photons.splice(i, 1);
+          leafMat.emissiveIntensity = Math.min(1.1, leafMat.emissiveIntensity + 0.15);
+          continue;
+        }
+        p.mesh.position.x += dx / d * 6.5 * dt;
+        p.mesh.position.y += dy / d * 6.5 * dt;
+      }
+      leafMat.emissiveIntensity = Math.max(0.55, leafMat.emissiveIntensity - dt * 0.5);
+      for (let i = waters.length - 1; i >= 0; i--) {
+        const w = waters[i];
+        w.mesh.position.y += 2.6 * dt;
+        if (w.mesh.position.y >= -0.6) {
+          scene.remove(w.mesh);
+          waters.splice(i, 1);
+          state.counts.water++;
+          continue;
+        }
+      }
+      for (let i = co2s.length - 1; i >= 0; i--) {
+        const c = co2s[i];
+        const dx = 0.5 - c.mesh.position.x, dy = 3 - c.mesh.position.y;
+        const d = Math.hypot(dx, dy);
+        if (d < 0.5) {
+          scene.remove(c.mesh);
+          co2s.splice(i, 1);
+          state.counts.co2++;
+          state.co2ToO2++;
+          state.co2ToSugar++;
+          if (state.co2ToO2 >= 1) {
+            state.co2ToO2 = 0;
+            spawnO2();
+          }
+          if (state.co2ToSugar >= 6) {
+            state.co2ToSugar = 0;
+            spawnSugar();
+          }
+          continue;
+        }
+        c.mesh.position.x += dx / d * 1.9 * dt;
+        c.mesh.position.y += dy / d * 1.9 * dt;
+      }
+      for (let i = o2s.length - 1; i >= 0; i--) {
+        const o = o2s[i];
+        o.t += dt;
+        o.mesh.position.y += 2.1 * dt;
+        o.mesh.position.x += 0.9 * dt;
+        o.mesh.material.opacity = 1;
+        if (o.mesh.position.y > 11.5) {
+          scene.remove(o.mesh);
+          o2s.splice(i, 1);
+        }
+      }
+      if (state.story >= 0) {
+        state.storyT += dt;
+        const w = STEP_CAM[state.story];
+        camera.position.lerp(w.cam, Math.min(1, dt * 2));
+        controls.target.lerp(w.target, Math.min(1, dt * 2));
+        state.captionEl.style.display = "block";
+        state.captionEl.textContent = CAPTIONS[state.story];
+        setDim(STEP_FOCUS[state.story]);
+        if (state.storyT > 6.5) {
+          state.storyT = 0;
+          state.story = (state.story + 1) % 4;
+        }
+      } else {
+        camera.position.lerp(HOME.cam, Math.min(1, dt * 1.2));
+        controls.target.lerp(HOME.target, Math.min(1, dt * 1.2));
+      }
+      controls.update();
+    }
+    return {
+      scene,
+      camera,
+      update,
+      refreshHUD,
+      getInfo() {
+        return { ...state.counts, story: state.story };
+      }
+    };
+  }
+
   // js/chloroplast.js
-  var STAGE_NAMES = ["\u53F6\u7247\u6A2A\u5207", "\u53F6\u8089\u7EC6\u80DE", "\u53F6\u7EFF\u4F53"];
   function buildLeaf() {
     const scene = new Scene();
     scene.background = new Color("#060b12");
-    scene.fog = new Fog("#060b12", 60, 260);
-    const camera = new PerspectiveCamera(46, innerWidth / innerHeight, 0.1, 600);
-    scene.add(new AmbientLight("#3d4a5c", 0.9));
+    scene.fog = new Fog("#060b12", 90, 320);
+    const camera = new PerspectiveCamera(46, innerWidth / innerHeight, 0.1, 700);
+    scene.add(new AmbientLight("#46536a", 1.05));
     const key = new DirectionalLight("#fff6e0", 1.5);
-    key.position.set(20, 30, 18);
+    key.position.set(20, 34, 24);
     scene.add(key);
     const rim = new DirectionalLight("#7dd3fc", 0.5);
-    rim.position.set(-16, 8, -14);
+    rim.position.set(-18, 8, -16);
     scene.add(rim);
     const controls = new OrbitControls(camera, document.getElementById("gl"));
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
+    const allLabels = [];
+    const bigLabel = (l) => {
+      l.scale.multiplyScalar(4.2);
+      l.userData.base = l.scale.clone();
+      allLabels.push(l);
+      return l;
+    };
     const leaf = new Group();
+    leaf.position.set(-34, 0, 0);
+    leaf.scale.setScalar(0.45);
     scene.add(leaf);
+    let highlightCellLocal = new Vector3(0, 0.15, 0);
     {
       const skin = new MeshStandardMaterial({ color: "#3f7a4f", roughness: 0.7 });
       const top = new Mesh(new BoxGeometry(34, 1.1, 18), skin);
@@ -21910,10 +23565,10 @@
         cell2.position.set(-14 + i * 3.5, 0.15, 0);
         leaf.add(cell2);
       }
-      const spongy = new MeshStandardMaterial({ color: "#7cc98a", roughness: 0.6, transparent: true, opacity: 0.92 });
+      const spongyMat = new MeshStandardMaterial({ color: 8178058, roughness: 0.7, transparent: true, opacity: 0.92 });
       for (let i = 0; i < 26; i++) {
         const s = makeSphere(1.15 + Math.random() * 0.5, 8178058, { rough: 0.7 });
-        s.material = spongy;
+        s.material = spongyMat;
         s.position.set(-15 + Math.random() * 30, -1.35 + (Math.random() - 0.5) * 1.4, -7 + Math.random() * 14);
         leaf.add(s);
       }
@@ -21925,16 +23580,25 @@
         st.position.set(-12 + i * 6, -3.3, 0);
         leaf.add(st);
       }
-      const l1 = makeLabel("\u53F6\u7247\u6A2A\u5207 \xB7 \u9633\u5149\u4ECE\u8FD9\u91CC\u8FDB\u5165", "#9ff0b5");
-      l1.position.set(0, 7.5, 0);
-      leaf.add(l1);
-      const l2 = makeLabel("\u6805\u680F\u7EC6\u80DE = \u592A\u9633\u80FD\u8F66\u95F4", "#d6ffe2");
-      l2.position.set(-10.5, 0.2, 9.5);
-      leaf.add(l2);
+      const l = bigLabel(makeLabel("\u2460 \u8FD9\u662F\u4E00\u7247\u53F6\u5B50\uFF08\u6A2A\u5207\u9762\uFF09", "#9ff0b5"));
+      l.position.set(0, 8.4, 0);
+      leaf.add(l);
+      const sun = bigLabel(makeLabel("\u2600 \u9633\u5149\u4ECE\u8FD9\u91CC\u8FDB\u6765", "#ffd54a"));
+      sun.position.set(6, 6.2, 0);
+      leaf.add(sun);
     }
+    const HL_A = new Vector3(0, 0.15, 0);
+    const ringA = new Mesh(
+      new TorusGeometry(2.1, 0.14, 10, 40),
+      new MeshBasicMaterial({ color: 16766282 })
+    );
+    ringA.position.copy(HL_A);
+    leaf.add(ringA);
     const cell = new Group();
-    cell.position.x = 400;
+    cell.position.x = -6;
+    cell.scale.setScalar(0.9);
     scene.add(cell);
+    const HL_B = new Vector3(-4.6, 0.2, -1.5);
     {
       const wall = new Mesh(
         new SphereGeometry(11, 40, 28),
@@ -21944,31 +23608,39 @@
       const nucleus = makeSphere(2.6, 13213916, { rough: 0.4 });
       nucleus.position.set(-5.2, 2.4, 2.5);
       cell.add(nucleus);
-      const vac = makeSphere(3.6, 10410482, { rough: 0.3, opacity: 0.5 });
-      vac.material = new MeshStandardMaterial({ color: 10410482, transparent: true, opacity: 0.45, roughness: 0.25 });
+      const vac = new Mesh(
+        new SphereGeometry(3.6, 26, 18),
+        new MeshStandardMaterial({ color: 10410482, transparent: true, opacity: 0.45, roughness: 0.25 })
+      );
       vac.position.set(4.6, 3.4, -2);
       cell.add(vac);
       const chlMat = new MeshStandardMaterial({ color: "#3fae6a", roughness: 0.45, emissive: "#0d3018", emissiveIntensity: 0.6 });
       const chlGeo = new SphereGeometry(1.55, 26, 18);
       const spots = [[-3, -2, 3], [0, -3.4, -2], [3.4, -1.6, 2.6], [-4.6, 0.2, -1.5], [1.6, 1.2, 3.8], [5.2, -2.4, 1.8], [-1, -1, 4.2], [2.8, 2.6, -3.4], [-5.8, -2.8, -0.5], [0.4, -0.4, -4.6], [4, -0.2, -3.8], [-2.6, 3.2, 1.2]];
-      const chloroplasts = [];
       spots.forEach((p, i) => {
         const ch = new Mesh(chlGeo, chlMat);
         ch.scale.set(1.35, 0.62, 1);
         ch.position.set(...p);
         ch.rotation.y = i * 0.7;
         cell.add(ch);
-        chloroplasts.push(ch);
       });
-      const l1 = makeLabel("\u4E00\u4E2A\u53F6\u8089\u7EC6\u80DE", "#9ff0b5");
-      l1.position.set(0, 13.6, 0);
-      cell.add(l1);
-      const l2 = makeLabel("\u7EFF\u8272\u9897\u7C92 = \u53F6\u7EFF\u4F53\uFF08\u6BCF\u7EC6\u80DE 20\u2013100 \u4E2A\uFF09", "#d6ffe2");
-      l2.position.set(0, -7.6, 6);
+      const l = bigLabel(makeLabel("\u2461 \u653E\u5927\u5176\u4E2D\u4E00\u4E2A\u7EC6\u80DE", "#9ff0b5"));
+      l.position.set(0, 13.8, 0);
+      cell.add(l);
+      const l2 = bigLabel(makeLabel("\u7EFF\u8272\u8C46\u8C46 = \u53F6\u7EFF\u4F53", "#d6ffe2"));
+      l2.position.set(0, -8, 6);
       cell.add(l2);
     }
+    const ringB = new Mesh(
+      new TorusGeometry(1.9, 0.13, 10, 40),
+      new MeshBasicMaterial({ color: 16766282 })
+    );
+    ringB.position.copy(HL_B);
+    ringB.rotation.y = 0.7 * 3;
+    cell.add(ringB);
     const big = new Group();
-    big.position.x = 800;
+    big.position.set(19.5, 0, 0);
+    big.scale.setScalar(0.52);
     scene.add(big);
     {
       const shell = new Mesh(
@@ -22006,58 +23678,117 @@
       lam2.position.set(-3.6, -0.4, 0);
       lam2.rotation.z = -0.1;
       big.add(lam2);
-      const l1 = makeLabel("\u53F6\u7EFF\u4F53\uFF08\u5256\u5F00\uFF09", "#9ff0b5");
-      l1.position.set(0, 11.4, 0);
-      big.add(l1);
-      const l2 = makeLabel("\u57FA\u7C92 = \u4E00\u645E\u645E\u7C7B\u56CA\u4F53\uFF08\u5149\u53CD\u5E94\u2461\u5728\u8FD9\u5C42\u819C\u4E0A\uFF09", "#ffd54a");
-      l2.position.set(0, -8.4, 5);
+      const l = bigLabel(makeLabel("\u2462 \u518D\u653E\u5927\uFF1A\u53F6\u7EFF\u4F53\uFF08\u5256\u5F00\uFF09", "#9ff0b5"));
+      l.position.set(0, 12.2, 0);
+      big.add(l);
+      const l2 = bigLabel(makeLabel("\u786C\u5E01\u5806 = \u57FA\u7C92\uFF08\u5149\u53CD\u5E94\u2461\u5728\u8FD9\u5C42\u819C\u4E0A\uFF09", "#ffd54a"));
+      l2.position.set(0, -9.2, 5);
       big.add(l2);
-      const l3 = makeLabel("\u5468\u56F4\u6DB2\u4F53 = \u57FA\u8D28\uFF08\u5408\u6210\u5FAA\u73AF\u2462\u5728\u8FD9\uFF09", "#7dd3fc");
-      l3.position.set(0, -11, 5);
+      const l3 = bigLabel(makeLabel("\u5468\u56F4\u6DB2\u4F53 = \u57FA\u8D28\uFF08\u5408\u6210\u5FAA\u73AF\u2462\u5728\u8FD9\uFF09", "#7dd3fc"));
+      l3.position.set(0, -12, 5);
       big.add(l3);
     }
-    const STAGES = [
-      { cam: new Vector3(10, 8, 30), target: new Vector3(0, 0, 0) },
-      { cam: new Vector3(400 + 8, 6, 26), target: new Vector3(400, 0, 0) },
-      { cam: new Vector3(800 + 10, 6.5, 33), target: new Vector3(800, 0.5, 0) }
+    function zoomWedge(fromWorld, ringR, toPanelX, halfH, label) {
+      const a1 = new Vector2(fromWorld.x - ringR * 0.75, fromWorld.y + ringR * 0.9);
+      const a2 = new Vector2(fromWorld.x - ringR * 0.75, fromWorld.y - ringR * 0.9);
+      const b1 = new Vector2(toPanelX, fromWorld.y + halfH);
+      const b2 = new Vector2(toPanelX, fromWorld.y - halfH);
+      const g = new BufferGeometry();
+      g.setAttribute("position", new Float32BufferAttribute(
+        [a1.x, a1.y, 0, a2.x, a2.y, 0, b1.x, b1.y, 0, a2.x, a2.y, 0, b2.x, b2.y, 0, b1.x, b1.y, 0],
+        3
+      ));
+      g.computeVertexNormals();
+      const cone = new Mesh(g, new MeshBasicMaterial({
+        color: 16766282,
+        transparent: true,
+        opacity: 0.07,
+        side: DoubleSide,
+        depthWrite: false
+      }));
+      cone.renderOrder = 1;
+      scene.add(cone);
+      const lineMat = new LineBasicMaterial({ color: 16766282, transparent: true, opacity: 0.55 });
+      [[a1, b1], [a2, b2]].forEach(([p, q]) => {
+        const line = new Line(new BufferGeometry().setFromPoints(
+          [new Vector3(p.x, p.y, 0), new Vector3(q.x, q.y, 0)]
+        ), lineMat);
+        scene.add(line);
+      });
+      const l = bigLabel(makeLabel(label, "#ffd54a"));
+      l.scale.multiplyScalar(0.8);
+      l.position.set((fromWorld.x + toPanelX) / 2, fromWorld.y + halfH + 1.4, 0);
+      scene.add(l);
+    }
+    const hlAWorld = HL_A.clone().multiplyScalar(0.45).add(leaf.position);
+    const hlBWorld = HL_B.clone().multiplyScalar(0.9).add(new Vector3(cell.position.x, 0, 0));
+    zoomWedge(hlAWorld, 2.1 * 0.45, cell.position.x - 11.5, 10.4, "\u653E\u5927 \u2192");
+    zoomWedge(hlBWorld, 1.9 * 0.9, big.position.x - 10.6, 7.6, "\u518D\u653E\u5927 \u2192");
+    const HOME = { cam: new Vector3(6.7, 3, 70), target: new Vector3(6.7, 0, 0) };
+    const TOUR = [
+      { cam: new Vector3(-34, 1.5, 16), target: new Vector3(-34, 0, 0), name: "\u2460 \u53F6\u7247\u6A2A\u5207" },
+      { cam: new Vector3(-6, 1.5, 16), target: new Vector3(-6, 0, 0), name: "\u2461 \u53F6\u8089\u7EC6\u80DE" },
+      { cam: new Vector3(19.5, 2, 15), target: new Vector3(19.5, 0.5, 0), name: "\u2462 \u53F6\u7EFF\u4F53" }
     ];
-    const state = { stage: 0, t: 1, from: 0 };
-    function applyStage(s) {
-      state.stage = s;
-      document.getElementById("oLeaf").textContent = STAGE_NAMES[s];
-      document.getElementById("leafStage").textContent = `\u7B2C ${s + 1} / 3 \u7EA7 \xB7 ${STAGE_NAMES[s]}`;
+    camera.position.copy(HOME.cam);
+    controls.target.copy(HOME.target);
+    const state = { tour: -1, t: 0 };
+    function flyTo(cam, target, dt, speed = 1.1) {
+      camera.position.lerp(cam, Math.min(1, dt * 2.2 * speed));
+      controls.target.lerp(target, Math.min(1, dt * 2.2 * speed));
     }
-    function gotoStage(s) {
-      s = Math.max(0, Math.min(2, s));
-      if (s === state.stage && state.t >= 1) return;
-      state.from = state.stage;
-      state.stage = s;
-      state.t = 0;
-      applyStage(s);
+    document.getElementById("bLeafTour").addEventListener("click", (e) => {
+      if (state.tour >= 0) {
+        state.tour = -1;
+        e.target.textContent = "\u{1F3AC} \u81EA\u52A8\u5BFC\u89C8";
+        e.target.classList.remove("on");
+        controls.enabled = true;
+        flyTo(HOME.cam, HOME.target, 0.999);
+      } else {
+        state.tour = 0;
+        state.t = 0;
+        e.target.textContent = "\u23F9 \u505C\u6B62\u5BFC\u89C8";
+        e.target.classList.add("on");
+        controls.enabled = false;
+      }
+    });
+    document.getElementById("bLeafHome").addEventListener("click", () => {
+      state.tour = -1;
+      const b = document.getElementById("bLeafTour");
+      b.textContent = "\u{1F3AC} \u81EA\u52A8\u5BFC\u89C8";
+      b.classList.remove("on");
+      controls.enabled = true;
+    });
+    const tourHold = 1.6;
+    const _wp = new Vector3();
+    function update(dt) {
+      for (const l of allLabels) {
+        l.getWorldPosition(_wp);
+        const d = camera.position.distanceTo(_wp);
+        l.scale.copy(l.userData.base).multiplyScalar(MathUtils.clamp(d / 70, 0.16, 1.25));
+      }
+      const pulse = 1 + Math.sin(performance.now() / 420) * 0.06;
+      ringA.scale.setScalar(pulse);
+      ringB.scale.setScalar(pulse);
+      if (state.tour >= 0) {
+        const w = TOUR[state.tour];
+        flyTo(w.cam, w.target, dt, 1.6);
+        state.t += dt;
+        if (state.t > tourHold) {
+          state.t = 0;
+          state.tour = (state.tour + 1) % 3;
+        }
+      } else {
+        flyTo(HOME.cam, HOME.target, dt, 0.7);
+      }
+      controls.update();
     }
-    document.getElementById("bLeafPrev").addEventListener("click", () => gotoStage(state.stage - 1));
-    document.getElementById("bLeafNext").addEventListener("click", () => gotoStage(state.stage + 1));
-    document.getElementById("rLeaf").addEventListener("input", (e) => gotoStage(+e.target.value));
-    camera.position.copy(STAGES[0].cam);
-    controls.target.copy(STAGES[0].target);
-    applyStage(0);
     return {
       scene,
       camera,
-      update(dt) {
-        if (state.t < 1) {
-          state.t = Math.min(1, state.t + dt * 0.9);
-          const k = state.t < 0.5 ? 2 * state.t * state.t : 1 - Math.pow(-2 * state.t + 2, 2) / 2;
-          camera.position.lerpVectors(STAGES[state.from].cam, STAGES[state.stage].cam, k);
-          controls.target.lerpVectors(STAGES[state.from].target, STAGES[state.stage].target, k);
-        }
-        big.children.forEach((o, i) => {
-          if (o.geometry?.type === "CylinderGeometry") o.rotation.z += Math.sin(performance.now() / 2400 + i) * 2e-4;
-        });
-        controls.update();
-      },
+      update,
       getInfo() {
-        return { stage: state.stage, name: STAGE_NAMES[state.stage] };
+        return { tour: state.tour, name: state.tour >= 0 ? TOUR[state.tour].name : "\u5168\u666F" };
       }
     };
   }
@@ -22094,7 +23825,7 @@
   ];
 
   // js/light.js
-  var C = {
+  var C2 = {
     photon: 16766282,
     electron: 8246268,
     hplus: 16739229,
@@ -22135,7 +23866,7 @@
     scene.add(stromaLabel);
     const membrane = new Group();
     scene.add(membrane);
-    const headMat = new MeshStandardMaterial({ color: C.membrane, roughness: 0.55, emissive: "#4a3a12", emissiveIntensity: 0.4 });
+    const headMat = new MeshStandardMaterial({ color: C2.membrane, roughness: 0.55, emissive: "#4a3a12", emissiveIntensity: 0.4 });
     for (const y of [0.42, -0.42]) {
       const layer = new Mesh(new BoxGeometry(64, 0.3, 1.6), headMat);
       layer.position.y = y;
@@ -22156,10 +23887,10 @@
       scene.add(m);
       return m;
     }
-    const psii = blob(-8.2, 2.1, 2.6, C.psii);
-    const b6f = blob(0, 1.7, 2.2, C.b6f);
-    const psi = blob(7.2, 1.9, 2.4, C.psi);
-    const fnr = blob(11.2, 1.15, 1.15, C.fnr, 2.6);
+    const psii = blob(-8.2, 2.1, 2.6, C2.psii);
+    const b6f = blob(0, 1.7, 2.2, C2.b6f);
+    const psi = blob(7.2, 1.9, 2.4, C2.psi);
+    const fnr = blob(11.2, 1.15, 1.15, C2.fnr, 2.6);
     for (let i = 0; i < 7; i++) {
       const a = makeGlowDot(0.16, 6740367);
       const ang = Math.PI * (0.15 + 0.7 * i / 6);
@@ -22266,19 +23997,19 @@
     const PATH_PSII = [-8.2, -7.2, -6.1, -3.2, -0.6];
     const PATH_PSI = [7.2, 9.3, 10.8, 12.3];
     function spawnPhoton(target) {
-      const m = makeGlowDot(0.14, C.photon);
+      const m = makeGlowDot(0.14, C2.photon);
       m.position.set(target.x + (Math.random() - 0.5) * 1.6, 9.5 + Math.random() * 2, 0);
       scene.add(m);
       state.photons.push({ mesh: m, tx: target.x, ty: target.y, hit: false });
     }
     function spawnElectron(x, y, path, onArrive) {
-      const m = makeGlowDot(0.15, C.electron);
+      const m = makeGlowDot(0.15, C2.electron);
       m.position.set(x, y, 0);
       scene.add(m);
       state.electrons.push({ mesh: m, path, seg: 0, onArrive });
     }
     function spawnH(x, y, vy, toLumen) {
-      const m = makeGlowDot(0.11, C.hplus);
+      const m = makeGlowDot(0.11, C2.hplus);
       m.position.set(x, y, 0);
       scene.add(m);
       state.hplus.push({ mesh: m, vy, toLumen });
@@ -22336,7 +24067,7 @@
             state.kokIdx = 1 + state.psiElectronCount % 4;
             if (state.psiElectronCount % 4 === 0) {
               state.kokIdx = 0;
-              const bub = makeGlowDot(0.22, C.o2);
+              const bub = makeGlowDot(0.22, C2.o2);
               bub.position.set(-8.2, -1.2, 0);
               scene.add(bub);
               state.o2.push({ mesh: bub, t: 0 });
@@ -22349,7 +24080,7 @@
               if (state.psiQueue >= 2) {
                 state.psiQueue = 0;
                 spawnH(11.2, 2.2, 1.5, false);
-                const chip = makeGlowDot(0.24, C.nadph);
+                const chip = makeGlowDot(0.24, C2.nadph);
                 chip.position.set(12.2, 2.6, 0);
                 scene.add(chip);
                 state.nadphs.push({ mesh: chip, t: 0 });
@@ -22398,7 +24129,7 @@
       state.atpFrac += dt * atpFlow / H_PER_ATP;
       if (state.lumenH > 2 && Math.random() < dt * 3) {
         state.lumenH--;
-        const m = makeGlowDot(0.11, C.hplus);
+        const m = makeGlowDot(0.11, C2.hplus);
         m.position.set(atpX + (Math.random() - 0.5) * 0.3, -0.62, 0.42);
         scene.add(m);
         state.hplus.push({ mesh: m, vy: 1.8, toLumen: false, out: true });
@@ -22407,7 +24138,7 @@
       rotor.rotation.y = state.rotorAngle;
       if (state.atpFrac >= 1) {
         state.atpFrac -= 1;
-        const chip = makeGlowDot(0.2, C.atp);
+        const chip = makeGlowDot(0.2, C2.atp);
         chip.position.set(atpX + 1.3, 2.4, 0);
         scene.add(chip);
         state.atps.push({ mesh: chip, t: 0 });
@@ -22437,7 +24168,7 @@
       state.waterTimer += dt;
       if (state.waterTimer > 1.1) {
         state.waterTimer = 0;
-        const w = makeGlowDot(0.12, C.water);
+        const w = makeGlowDot(0.12, C2.water);
         w.position.set(-9.3 + Math.random() * 1.2, -2.4, 0);
         scene.add(w);
         state.waters.push({ mesh: w, t: 0 });
@@ -22909,12 +24640,13 @@
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.1;
   var views = {
+    story: buildStory(),
     leaf: buildLeaf(),
     light: buildLight(),
     calvin: buildCalvin(),
     facts: buildFacts()
   };
-  var current = "leaf";
+  var current = "story";
   function setView(name) {
     current = name;
     document.body.dataset.view = name;

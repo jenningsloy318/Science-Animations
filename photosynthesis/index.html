@@ -70,22 +70,37 @@
 
   <div id="topbar">
     <h1>光合作用</h1>
-    <button class="tab active" data-view="leaf">① 叶子里</button>
-    <button class="tab" data-view="light">② 光反应</button>
-    <button class="tab" data-view="calvin">③ 合成循环</button>
-    <button class="tab" data-view="facts">④ 数字与真相</button>
+    <button class="tab active" data-view="story">① 一图看懂</button>
+    <button class="tab" data-view="leaf">② 叶子里</button>
+    <button class="tab" data-view="light">③ 光反应</button>
+    <button class="tab" data-view="calvin">④ 拼糖循环</button>
+    <button class="tab" data-view="facts">⑤ 数字与真相</button>
+  </div>
+
+  <!-- ⓪ 一图看懂 -->
+  <div class="viewpanel active" data-panel="story">
+    <h2>光合作用，一句话<small>讲给小朋友</small></h2>
+    <div class="formula" style="font-size:15px">光 + 水 + 二氧化碳 → 糖 + 氧气</div>
+    <p><b>植物是一座“吃阳光的糖工厂”</b>：它从空气里抓住二氧化碳，从根里喝水，在阳光下把这两样拼成自己的食物——糖；顺便送给我们氧气。</p>
+    <div class="stat"><span>💧 喝掉的水</span><b id="hSwater" style="color:var(--cyan)">0</b></div>
+    <div class="stat"><span>💨 抓住的二氧化碳</span><b id="hSco2" style="color:#cfd8e3">0</b></div>
+    <div class="stat"><span>🍬 拼出的糖</span><b id="hSsugar" style="color:var(--green)">0</b></div>
+    <div class="stat"><span>😮‍💨 送出的氧气</span><b id="hSo2" style="color:#fff">0</b></div>
+    <p style="font-size:11.5px">点 <b>▶ 一分钟故事</b>，让相机带你逐句看。后面的标签是给想深入的小朋友准备的。</p>
+    <div class="facts">
+      <div class="fact green"><b>为什么重要</b> — 你吃的米饭、面包、肉，能量都能追回到这片“糖工厂”；你呼出的二氧化碳也会被它抓回去。</div>
+      <div class="fact gold"><b>氧气从哪来</b> — 空气里的氧，大半是这座工厂 24 亿年来放出的“副产品”。</div>
+    </div>
   </div>
 
   <!-- ① 叶子里 -->
-  <div class="viewpanel active" data-panel="leaf">
-    <h2>光合作用发生在哪？<small>三级放大</small></h2>
-    <div class="formula">6 CO₂ + 6 H₂O + 光 → C₆H₁₂O₆ + 6 O₂</div>
-    <p>光合作用不是一步完成的。它发生在<b>叶绿体</b>里，分成两个接力阶段：<b>光反应</b>（类囊体膜上，把光能变成"电池"）和<b>合成循环</b>（基质里，用电池把 CO₂ 拼成糖）。</p>
-    <div class="stat"><span>当前放大级别</span><b id="leafStage" style="color:var(--green)">叶片 → </b></div>
-    <p>拖动底部滑块或点击画面，三级放大：<b>叶片横切 → 叶肉细胞 → 叶绿体</b>。</p>
+  <div class="viewpanel" data-panel="leaf">
+    <h2>工厂在哪？<small>三级放大，一页看完</small></h2>
+    <p>这张图从左到右连着看：<b>① 叶片横切</b> → 金圈挑出一个细胞 → <b>② 放大它</b>：里面漂着绿色“豆豆”（叶绿体）→ 金圈挑出一个豆豆 → <b>③ 再放大</b>：一摞摞“硬币”叫<b>基粒</b>（光反应在它膜上），周围液体叫<b>基质</b>（拼糖循环在这）。</p>
+    <p>点 <b>🎬 自动导览</b>，相机会带你依次飞近三级；随时拖动画面自己看。</p>
     <div class="facts">
-      <div class="fact green"><b>叶绿体</b> — 一个叶肉细胞里约有 20–100 个，是细胞里的"太阳能工厂"。</div>
-      <div class="fact"><b>类囊体</b> — 叶绿体内堆叠成"基粒"的薄膜，光反应就在这层膜上进行。</div>
+      <div class="fact green"><b>叶绿体</b> — 一个细胞里约 20–100 个，是细胞里的“太阳能车间”。</div>
+      <div class="fact"><b>类囊体</b> — 基粒里一层层薄膜；阳光在这里被装进“电池”。</div>
       <div class="fact gold"><b>总账</b> — 每合成 1 mol 葡萄糖储存 2870 kJ 能量，全部来自光子。</div>
     </div>
   </div>
@@ -141,10 +156,13 @@
   </div>
 
   <div id="bottomBar">
-    <div class="viewbar active" data-bar="leaf">
-      <button class="btn" id="bLeafPrev">◀ 上一级</button>
-      <div class="ctl"><label>放大</label><input type="range" id="rLeaf" min="0" max="2" step="1" value="0"><output id="oLeaf">叶片</output></div>
-      <button class="btn" id="bLeafNext">下一级 ▶</button>
+    <div class="viewbar active" data-bar="story">
+      <button class="btn" id="bStory">▶ 一分钟故事</button>
+      <button class="btn" id="bStoryHome">⟲ 回到全景</button>
+    </div>
+    <div class="viewbar" data-bar="leaf">
+      <button class="btn" id="bLeafTour">🎬 自动导览</button>
+      <button class="btn" id="bLeafHome">⟲ 回到全景</button>
     </div>
     <div class="viewbar" data-bar="light">
       <button class="btn" id="bLightPause">⏸ 暂停</button>
@@ -161,6 +179,11 @@
       <div class="ctl"><label>视角</label><input type="range" id="rFacts" min="0" max="2" step="1" value="0"><output id="oFacts">吸收光谱</output></div>
     </div>
   </div>
+
+  <div id="storyCaption" style="position:fixed;left:50%;bottom:86px;transform:translateX(-50%);z-index:18;
+    display:none;max-width:min(86vw,760px);background:rgba(12,20,32,0.94);border:1px solid rgba(255,213,74,0.45);
+    border-radius:16px;padding:14px 26px;font-size:19px;line-height:1.7;color:#ffe9ae;text-align:center;
+    box-shadow:0 6px 30px rgba(0,0,0,0.45);"></div>
 
   <span class="badge">真实生化过程 · 示意几何 · 数据来源见 README</span>
 
