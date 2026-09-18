@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>光合作用 · 一片叶子里的能量工厂</title>
+<style>
+  :root {
+    --bg: #060b12; --panel: rgba(12, 20, 32, 0.92); --line: rgba(255,255,255,0.10);
+    --txt: #dbe4ee; --mut: #93a1b6; --green: #4ade80; --leaf: #2e8b57;
+    --gold: #ffd54a; --cyan: #7dd3fc; --orange: #ffa94d; --violet: #b197fc; --red: #ff7a7a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--txt);
+    font: 14px/1.6 "PingFang SC", "Microsoft YaHei", "Helvetica Neue", sans-serif; }
+  #gl { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+
+  #topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 20; display: flex; align-items: center;
+    gap: 10px; padding: 12px 18px; pointer-events: none; }
+  #topbar h1 { font-size: 18px; margin: 0 14px 0 0; letter-spacing: .5px; pointer-events: auto; }
+  .tab { pointer-events: auto; background: var(--panel); border: 1px solid var(--line); color: var(--mut);
+    border-radius: 999px; padding: 7px 16px; font-size: 13px; cursor: pointer; }
+  .tab:hover { color: var(--txt); }
+  .tab.active { background: rgba(74,222,128,0.14); border-color: rgba(74,222,128,0.55); color: var(--green); font-weight: 700; }
+
+  .viewpanel { position: fixed; top: 62px; right: 14px; width: 336px; max-height: calc(100vh - 140px);
+    z-index: 15; background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    padding: 15px 16px 10px; overflow: auto; backdrop-filter: blur(6px); display: none; }
+  .viewpanel.active { display: block; }
+  .viewpanel h2 { font-size: 15px; margin: 0 0 6px; }
+  .viewpanel h2 small { color: var(--mut); font-weight: 400; margin-left: 8px; font-size: 12px; }
+  .viewpanel p { margin: 6px 0; color: var(--mut); font-size: 12.5px; }
+  .viewpanel p b, .viewpanel li b { color: var(--txt); }
+  .formula { background: rgba(74,222,128,0.07); border: 1px solid rgba(74,222,128,0.28); color: var(--green);
+    border-radius: 8px; text-align: center; padding: 7px 6px; margin: 8px 0; font-size: 14.5px; }
+  .stat { display: flex; justify-content: space-between; padding: 4px 2px; border-top: 1px dashed var(--line); font-size: 13px; }
+  .stat b { font-weight: 600; }
+  .facts { margin-top: 9px; display: flex; flex-direction: column; gap: 6px; }
+  .fact { background: rgba(125,211,252,0.05); border-left: 3px solid var(--cyan);
+    padding: 6px 10px; font-size: 11.5px; border-radius: 0 8px 8px 0; color: var(--txt); }
+  .fact b { color: var(--cyan); }
+  .fact.gold { border-left-color: var(--gold); } .fact.gold b { color: var(--gold); }
+  .fact.green { border-left-color: var(--green); } .fact.green b { color: var(--green); }
+  .tl { list-style: none; margin: 8px 0; padding: 0; font-size: 12px; color: var(--mut); }
+  .tl li { padding: 4px 0 4px 12px; border-left: 2px solid rgba(74,222,128,0.35); margin-left: 4px; }
+  .tl li b { color: var(--green); font-family: Georgia, serif; margin-right: 6px; }
+
+  #bottomBar { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 20;
+    display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 14px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+    padding: 9px 16px; backdrop-filter: blur(6px); max-width: min(94vw, 900px); }
+  .viewbar { display: none; align-items: center; gap: 14px; }
+  .viewbar.active { display: flex; }
+  .ctl { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--mut); white-space: nowrap; }
+  .ctl input[type="range"] { width: 100px; accent-color: var(--green); }
+  .ctl output { color: var(--txt); min-width: 46px; }
+  .btn { background: rgba(74,222,128,0.10); border: 1px solid rgba(74,222,128,0.4); color: var(--green);
+    border-radius: 9px; padding: 6px 13px; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
+  .btn:hover { background: rgba(74,222,128,0.22); }
+  .btn.on { color: #06240f; background: var(--green); }
+  .sep { width: 1px; height: 22px; background: var(--line); }
+
+  .badge { position: fixed; left: 14px; bottom: 14px; z-index: 15; background: var(--panel);
+    border: 1px solid var(--line); border-radius: 999px; padding: 5px 13px; font-size: 11.5px; color: var(--mut); }
+  @media (max-width: 820px) { .viewpanel { width: 260px; } }
+</style>
+</head>
+<body>
+  <canvas id="gl"></canvas>
+
+  <div id="topbar">
+    <h1>光合作用</h1>
+    <button class="tab active" data-view="leaf">① 叶子里</button>
+    <button class="tab" data-view="light">② 光反应</button>
+    <button class="tab" data-view="calvin">③ 合成循环</button>
+    <button class="tab" data-view="facts">④ 数字与真相</button>
+  </div>
+
+  <!-- ① 叶子里 -->
+  <div class="viewpanel active" data-panel="leaf">
+    <h2>光合作用发生在哪？<small>三级放大</small></h2>
+    <div class="formula">6 CO₂ + 6 H₂O + 光 → C₆H₁₂O₆ + 6 O₂</div>
+    <p>光合作用不是一步完成的。它发生在<b>叶绿体</b>里，分成两个接力阶段：<b>光反应</b>（类囊体膜上，把光能变成"电池"）和<b>合成循环</b>（基质里，用电池把 CO₂ 拼成糖）。</p>
+    <div class="stat"><span>当前放大级别</span><b id="leafStage" style="color:var(--green)">叶片 → </b></div>
+    <p>拖动底部滑块或点击画面，三级放大：<b>叶片横切 → 叶肉细胞 → 叶绿体</b>。</p>
+    <div class="facts">
+      <div class="fact green"><b>叶绿体</b> — 一个叶肉细胞里约有 20–100 个，是细胞里的"太阳能工厂"。</div>
+      <div class="fact"><b>类囊体</b> — 叶绿体内堆叠成"基粒"的薄膜，光反应就在这层膜上进行。</div>
+      <div class="fact gold"><b>总账</b> — 每合成 1 mol 葡萄糖储存 2870 kJ 能量，全部来自光子。</div>
+    </div>
+  </div>
+
+  <!-- ② 光反应 -->
+  <div class="viewpanel" data-panel="light">
+    <h2>光反应：把光变成"电池"<small>类囊体膜</small></h2>
+    <div class="formula">H₂O → O₂ + H⁺(腔内) + NADPH + ATP</div>
+    <p>看这张膜的横截面：<b>金色的光子</b>掉进两个光系统，把<b>电子</b>（青色）打上高能级。电子沿 Z 形链条下行，途中把 H⁺ 泵进下方的<b>类囊体腔</b>；腔里的 H⁺ 涌出 <b>ATP 合酶</b>时，转子旋转拼出 ATP。</p>
+    <div class="stat"><span>O₂ 放出</span><b id="hO2" style="color:#fff">0</b></div>
+    <div class="stat"><span>NADPH 合成</span><b id="hNadph" style="color:var(--violet)">0</b></div>
+    <div class="stat"><span>ATP 合成</span><b id="hAtp" style="color:var(--orange)">0</b></div>
+    <div class="stat"><span>放氧复合体状态</span><b id="hKok" style="color:var(--cyan)">S1</b></div>
+    <p style="font-size:11.5px">点击膜上的部件可看说明。放氧复合体走 <b>Kok 循环</b>：每积累 4 个电子（S0→S4）才放出一个 O₂。</p>
+    <div class="facts">
+      <div class="fact gold"><b>量子需求</b> — 放 1 个 O₂ 理论最少 8 个光子，实测 8–10 个。</div>
+      <div class="fact"><b>水是电子来源</b> — O₂ 里的氧来自水，不是 CO₂（¹⁸O 同位素证实，1941）。</div>
+    </div>
+  </div>
+
+  <!-- ③ 合成循环 -->
+  <div class="viewpanel" data-panel="calvin">
+    <h2>合成循环：用"电池"拼糖<small>卡尔文循环</small></h2>
+    <div class="formula">6 CO₂ + 18 ATP + 12 NADPH → 1 葡萄糖</div>
+    <p>光反应的 ATP / NADPH 是电池，这一步把它们花掉：RuBisCO 抓住 CO₂ 固定到 RuBP 上，还原成 G3P，再再生 RuBP 循环往复。</p>
+    <div class="stat"><span>已固定 CO₂</span><b id="hCo2" style="color:#cfd8e3">0</b></div>
+    <div class="stat"><span>循环圈数</span><b id="hTurns" style="color:var(--cyan)">0</b></div>
+    <div class="stat"><span>净得 G3P（出厂糖块）</span><b id="hG3p" style="color:var(--green)">0</b></div>
+    <div class="stat"><span>葡萄糖进度</span><b id="hGlucose" style="color:var(--gold)">0 / 6</b></div>
+    <p style="font-size:11.5px">每 3 圈净得 1 个 G3P（另外 5 个留在循环里再生 RuBP）；6 个 G3P 才拼出 1 个葡萄糖。图为示意单圈。</p>
+    <div class="facts">
+      <div class="fact green"><b>RuBisCO</b> — 地球上最多的酶（约占叶子蛋白一半），却每秒只工作约 3 次——慢工出细活。</div>
+      <div class="fact"><b>白天才开工</b> — 循环本身不用光，但必须花光反应攒下的电池，所以只在白天跑。</div>
+    </div>
+  </div>
+
+  <!-- ④ 数字与真相 -->
+  <div class="viewpanel" data-panel="facts">
+    <h2>数字与真相<small>全部来自已核实来源</small></h2>
+    <p><b>为什么叶子是绿色的？</b> 叶绿素强吸收蓝光（约 430 nm）和红光（约 662 nm），把绿光（约 550 nm）反射回你的眼睛。1882 年 Engelmann 用好氧菌找出"哪种颜色的光最管用"——红光和蓝光。</p>
+    <div class="stat"><span>放 1 个 O₂ 的光子账单</span><b style="color:var(--gold)">8–10 个</b></div>
+    <div class="stat"><span>植物理论效率上限</span><b style="color:var(--green)">C3 4.6% · C4 6%</b></div>
+    <div class="stat"><span>实际田间作物</span><b style="color:var(--txt)">约 1–2%</b></div>
+    <div class="stat"><span>商品太阳能板（对比）</span><b style="color:var(--orange)">约 24%</b></div>
+    <p style="font-size:12px;margin-top:8px"><b>规模</b>：陆地光合作用每年固碳约 120 Gt；大气里的 O₂ 至少一半来自海洋浮游植物。约 24 亿年前，光合细菌引发的"大氧化事件"永远改写了大气。</p>
+    <ul class="tl">
+      <li><b>1771</b>Priestley：薄荷"净化"蜡烛烧坏的空气</li>
+      <li><b>1779</b>Ingenhousz：只有绿色植物在光下才这么做</li>
+      <li><b>1882</b>Engelmann：细菌找红光——作用光谱</li>
+      <li><b>1941</b>Ruben & Kamen：¹⁸O 证实 O₂ 来自水</li>
+      <li><b>1961</b>Calvin：¹⁴C 解出固碳循环（诺贝尔奖）</li>
+    </ul>
+  </div>
+
+  <div id="bottomBar">
+    <div class="viewbar active" data-bar="leaf">
+      <button class="btn" id="bLeafPrev">◀ 上一级</button>
+      <div class="ctl"><label>放大</label><input type="range" id="rLeaf" min="0" max="2" step="1" value="0"><output id="oLeaf">叶片</output></div>
+      <button class="btn" id="bLeafNext">下一级 ▶</button>
+    </div>
+    <div class="viewbar" data-bar="light">
+      <button class="btn" id="bLightPause">⏸ 暂停</button>
+      <button class="btn on" id="bLabels">🏷 标签</button>
+      <div class="ctl"><label>光强</label><input type="range" id="rLight" min="0.3" max="2.5" step="0.1" value="1"><output id="oLight">1.0×</output></div>
+      <div class="ctl"><label>速度</label><input type="range" id="rSpeed" min="0.4" max="2.5" step="0.1" value="1"><output id="oSpeed">1.0×</output></div>
+    </div>
+    <div class="viewbar" data-bar="calvin">
+      <button class="btn" id="bCalvinPause">⏸ 暂停</button>
+      <button class="btn" id="bCalvinReset">↺ 重置</button>
+      <div class="ctl"><label>速度</label><input type="range" id="rCalvin" min="0.5" max="3" step="0.1" value="1"><output id="oCalvin">1.0×</output></div>
+    </div>
+    <div class="viewbar" data-bar="facts">
+      <div class="ctl"><label>视角</label><input type="range" id="rFacts" min="0" max="2" step="1" value="0"><output id="oFacts">吸收光谱</output></div>
+    </div>
+  </div>
+
+  <span class="badge">真实生化过程 · 示意几何 · 数据来源见 README</span>
+
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/addons/" } }
+  </script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
