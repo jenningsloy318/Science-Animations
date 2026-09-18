@@ -20971,11 +20971,50 @@ body[data-view="topo"] #topoWrap { display: flex; }
     hood.position.set(1.2, 0.96, 0);
     car.add(hood);
     const frameMat = new MeshLambertMaterial({ color: 2830396 });
+    const pillarMat = new MeshLambertMaterial({ color: 4542048 });
     [[0.45, 1.42, 1], [0.45, 1.42, -1]].forEach((p) => {
       const m = new Mesh(new BoxGeometry(0.3, 0.18, 0.12), frameMat);
       m.position.set(...p);
       car.add(m);
     });
+    const wsBase = new Vector3(0.58, 1.02, 0.84);
+    const wsTop = new Vector3(0.2, 1.75, 0.78);
+    const slant = wsTop.clone().sub(wsBase);
+    const gGeo = new BufferGeometry();
+    const bl = [0.58, 1.03, 0.825], br = [0.58, 1.03, -0.825];
+    const tl = [0.2, 1.745, 0.775], tr = [0.2, 1.745, -0.775];
+    gGeo.setAttribute("position", new Float32BufferAttribute(
+      [...bl, ...br, ...tl, ...br, ...tr, ...tl],
+      3
+    ));
+    gGeo.computeVertexNormals();
+    const glass = new Mesh(gGeo, new MeshBasicMaterial({
+      color: 11065599,
+      transparent: true,
+      opacity: 0.15,
+      side: DoubleSide,
+      depthWrite: false
+    }));
+    glass.renderOrder = 2;
+    car.add(glass);
+    [1, -1].forEach((s) => {
+      const p1 = new Vector3(0.58, 1.02, 0.84 * s);
+      const p2 = new Vector3(0.2, 1.75, 0.78 * s);
+      const dir = p2.clone().sub(p1);
+      const pillar = new Mesh(
+        new CylinderGeometry(0.026, 0.04, dir.length(), 10),
+        pillarMat
+      );
+      pillar.position.copy(p1).addScaledVector(dir, 0.5);
+      pillar.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), dir.normalize());
+      car.add(pillar);
+    });
+    const header = new Mesh(new BoxGeometry(0.08, 0.05, 1.6), pillarMat);
+    header.position.set(0.2, 1.755, 0);
+    car.add(header);
+    const cowl = new Mesh(new BoxGeometry(0.16, 0.06, 1.66), pillarMat);
+    cowl.position.set(0.6, 1, 0);
+    car.add(cowl);
     const wheels = [];
     [[1.25, 0.86], [1.25, -0.86], [-1.25, 0.86], [-1.25, -0.86]].forEach(([x, z]) => {
       const w = new Mesh(

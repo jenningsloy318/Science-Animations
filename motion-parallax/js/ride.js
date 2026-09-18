@@ -189,10 +189,41 @@ export function buildRide(renderer) {
     new THREE.MeshLambertMaterial({ color: 0xb8432f }));
   hood.position.set(1.2, 0.96, 0); car.add(hood);
   const frameMat = new THREE.MeshLambertMaterial({ color: 0x2b303c });
+  const pillarMat = new THREE.MeshLambertMaterial({ color: 0x454e60 });  // 石墨色：不硬剪影
   [[0.45, 1.42, 1.0], [0.45, 1.42, -1.0]].forEach(p => {
     const m = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.18, 0.12), frameMat);
     m.position.set(...p); car.add(m);
   });
+  // ── 前挡风玻璃（后掠式；A 柱贴座舱边缘，避免霸屏）──
+  const wsBase = new THREE.Vector3(0.58, 1.02, 0.84);   // 底（座舱前缘）
+  const wsTop = new THREE.Vector3(0.20, 1.75, 0.78);    // 顶（后掠）
+  const slant = wsTop.clone().sub(wsBase);
+  // 梯形玻璃：四角精确贴合开口，不超出横梁/立柱
+  const gGeo = new THREE.BufferGeometry();
+  const bl = [0.58, 1.03, 0.825], br = [0.58, 1.03, -0.825];
+  const tl = [0.20, 1.745, 0.775], tr = [0.20, 1.745, -0.775];
+  gGeo.setAttribute('position', new THREE.Float32BufferAttribute(
+    [...bl, ...br, ...tl, ...br, ...tr, ...tl], 3));
+  gGeo.computeVertexNormals();
+  const glass = new THREE.Mesh(gGeo, new THREE.MeshBasicMaterial({
+    color: 0xa8d8ff, transparent: true, opacity: 0.15,
+    side: THREE.DoubleSide, depthWrite: false,
+  }));
+  glass.renderOrder = 2; car.add(glass);
+  [1, -1].forEach(s => {
+    const p1 = new THREE.Vector3(0.58, 1.02, 0.84 * s);
+    const p2 = new THREE.Vector3(0.20, 1.75, 0.78 * s);
+    const dir = p2.clone().sub(p1);
+    const pillar = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.026, 0.04, dir.length(), 10), pillarMat);
+    pillar.position.copy(p1).addScaledVector(dir, 0.5);
+    pillar.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir.normalize());
+    car.add(pillar);
+  });
+  const header = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.05, 1.60), pillarMat);
+  header.position.set(0.20, 1.755, 0); car.add(header);
+  const cowl = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.06, 1.66), pillarMat);
+  cowl.position.set(0.60, 1.0, 0); car.add(cowl);
   const wheels = [];
   [[1.25, 0.86], [1.25, -0.86], [-1.25, 0.86], [-1.25, -0.86]].forEach(([x, z]) => {
     const w = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 0.3, 12),
