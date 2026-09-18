@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>锥体上滚 · 双锥体在 V 型轨道上的视觉错觉</title>
+<style>
+  :root {
+    --bg: #070b16; --panel: rgba(13, 20, 38, 0.92); --line: rgba(255,255,255,0.10);
+    --txt: #d6dde8; --mut: #97a3b8; --gold: #e8b84b; --steel: #7dd3fc; --green: #6ee7b7;
+    --bad: #ff7a7a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; overflow: hidden; background: var(--bg); color: var(--txt);
+    font: 14px/1.55 "Helvetica Neue", "PingFang SC", "Microsoft YaHei", sans-serif; }
+  #gl { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; }
+
+  /* 顶栏 */
+  #topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 10; display: flex; align-items: center;
+    gap: 14px; padding: 14px 22px; pointer-events: none; }
+  #topbar h1 { font-size: 19px; margin: 0; letter-spacing: .5px; pointer-events: auto; }
+  #topbar h1 small { color: var(--mut); font-weight: 400; font-size: 13px; margin-left: 10px; }
+  #topbar .badge { margin-left: auto; pointer-events: auto; background: var(--panel);
+    border: 1px solid var(--line); border-radius: 999px; padding: 5px 14px; font-size: 12px; color: var(--mut); }
+
+  /* 右侧面板 */
+  .viewpanel { position: fixed; top: 64px; right: 14px; width: 330px; max-height: calc(100vh - 150px);
+    z-index: 10; background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    padding: 16px 16px 12px; overflow: auto; backdrop-filter: blur(6px); }
+  .viewpanel h2 { font-size: 15px; margin: 0 0 4px; display: flex; justify-content: space-between; }
+  .viewpanel h2 small { color: var(--mut); font-weight: 400; }
+  .viewpanel .formula { background: rgba(232,184,75,0.08); border: 1px solid rgba(232,184,75,0.25);
+    border-radius: 8px; text-align: center; font: 16px/2 "Cambria Math", serif; color: var(--gold);
+    padding: 8px; margin: 10px 0; }
+  .viewpanel p { margin: 7px 0; color: var(--mut); font-size: 12.5px; }
+  .viewpanel p b { color: var(--txt); }
+  #hValid { display: inline-block; margin: 4px 0 10px; font-weight: 700; }
+  #hValid.ok { color: var(--green); } #hValid.bad { color: var(--bad); }
+  .stat { display: flex; justify-content: space-between; padding: 5px 2px; border-top: 1px dashed var(--line); font-size: 13px; }
+  .stat b { color: var(--gold); font-weight: 600; }
+  .facts { margin-top: 10px; display: flex; flex-direction: column; gap: 7px; }
+  .fact { background: rgba(125,211,252,0.05); border-left: 3px solid var(--steel);
+    padding: 7px 10px; font-size: 11.5px; color: var(--txt); border-radius: 0 8px 8px 0; }
+  .fact b { color: var(--steel); }
+
+  /* 底栏 */
+  #bottomBar { position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); z-index: 10;
+    display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px 14px;
+    background: var(--panel); border: 1px solid var(--line);
+    border-radius: 16px; padding: 10px 18px; backdrop-filter: blur(6px); max-width: min(94vw, 980px); }
+  .ctl { display: flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--mut); white-space: nowrap; }
+  .ctl input[type="range"] { width: 96px; accent-color: var(--gold); }
+  .ctl output { color: var(--txt); min-width: 44px; }
+  .btn { background: rgba(232,184,75,0.10); border: 1px solid rgba(232,184,75,0.4); color: var(--gold);
+    border-radius: 9px; padding: 6px 14px; font-size: 12.5px; cursor: pointer; white-space: nowrap; }
+  .btn:hover { background: rgba(232,184,75,0.22); }
+  .btn.on { color: var(--bg); background: var(--gold); }
+  .sep { width: 1px; height: 22px; background: var(--line); }
+
+  @media (max-width: 800px) {
+    .viewpanel { width: 250px; } #topbar h1 small { display: none; }
+    .ctl input { width: 70px; }
+  }
+</style>
+</head>
+<body>
+  <canvas id="gl"></canvas>
+
+  <div id="topbar">
+    <h1>锥体上滚<small>双锥体在 V 型轨道上的视觉错觉 · 重心下降是驱动力</small></h1>
+    <span class="badge">物理演示 · 3D · 纯几何</span>
+  </div>
+
+  <div class="viewpanel">
+    <h2>为什么它会“上坡”<small>真实几何</small></h2>
+    <div class="formula">y(x) = r + x·(tanα − tanβ·tanγ)</div>
+    <p id="hValid" class="ok">✓ 条件成立</p>
+    <p><b>接触点</b>沿轨道爬升（视觉“上坡”），<b>重心</b>却沿金色曲线实际下降。
+    运动条件：<b>tanα &lt; tanβ·tanγ</b> —— 轨道倾角 α 越小、张口 β 越大、锥体越钝 γ 越大，越容易上坡。</p>
+    <div class="stat"><span>重心高度</span><b id="hCoM">—</b></div>
+    <div class="stat"><span>已下降</span><b id="hDrop">—</b></div>
+    <div class="stat"><span>沿轨道行程</span><b id="hX">—</b></div>
+    <div class="facts">
+      <div class="fact"><b>1694 年配方</b> — William Leybourn《Pleasure with Profit》原推导：
+      tanα = 1/√143, tanβ = 3/√134, tanγ = 1/3 → 条件等价于 <b>143 &gt; 134</b>。</div>
+      <div class="fact"><b>玻璃珠同理</b> — 球在张开的 V 槽中也会沿槽“上坡”，机制相同（arXiv:2608.19541）。</div>
+      <div class="fact"><b>驱动力 = 重力</b> — 静摩擦只保证“纯滚动”，滚动摩擦只是阻力。</div>
+    </div>
+  </div>
+
+  <div id="bottomBar">
+    <button class="btn" id="bPlay">⏸ 暂停</button>
+    <button class="btn" id="bReset">↺ 重播</button>
+    <div class="sep"></div>
+    <div class="ctl"><label>α 倾角</label><input type="range" id="aAlpha" min="0" max="12" step="0.1" value="4.6"><output id="aOut">4.6°</output></div>
+    <div class="ctl"><label>β 张口</label><input type="range" id="aBeta" min="5" max="25" step="0.1" value="15.3"><output id="bOut">15.3°</output></div>
+    <div class="ctl"><label>γ 锥角</label><input type="range" id="aGamma" min="10" max="40" step="0.1" value="25.4"><output id="gOut">25.4°</output></div>
+    <div class="sep"></div>
+    <button class="btn" id="bLeybourn">Leybourn 配方</button>
+    <div class="sep"></div>
+    <div class="ctl"><label>速度</label><input type="range" id="hSpeed" min="0.3" max="2" step="0.1" value="1"><output id="hSpeedOut">1×</output></div>
+  </div>
+
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three.module.js", "three/addons/": "./vendor/addons/" } }
+  </script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
