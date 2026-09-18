@@ -44,6 +44,11 @@
   .steps { font-size: 12px; color: var(--mut); line-height: 1.9; background: rgba(255,255,255,0.03);
     border-radius: 8px; padding: 8px 10px; margin: 8px 0; }
   .steps b { color: var(--gold); }
+  .steps div[data-step] { padding: 1px 6px; border-radius: 6px; }
+  .steps div[data-step].cur { background: rgba(255,213,74,0.16); color: var(--txt); }
+  #zscheme { position: fixed; left: 14px; bottom: 52px; z-index: 14; display: none;
+    background: rgba(10,16,28,0.9); border: 1px solid var(--line); border-radius: 12px; }
+  body[data-view="light"] #zscheme { display: block; }
   .fact.gold { border-left-color: var(--gold); } .fact.gold b { color: var(--gold); }
   .fact.green { border-left-color: var(--green); } .fact.green b { color: var(--green); }
   .tl { list-style: none; margin: 8px 0; padding: 0; font-size: 12px; color: var(--mut); }
@@ -72,6 +77,7 @@
 </head>
 <body>
   <canvas id="gl"></canvas>
+  <canvas id="zscheme" width="360" height="205"></canvas>
 
   <div id="topbar">
     <h1>光合作用</h1>
@@ -121,13 +127,13 @@
       <span><i class="dot" style="background:#ffa94d"></i>ATP</span>
       <span><i class="dot" style="background:#b197fc"></i>NADPH</span>
     </div>
-    <div class="steps">
-      ① 光子把<b>能量</b>交给叶绿素<br>
-      ② PSII 放出<b>e⁻ 电子</b>（水补上新的，顺便放出 O₂）<br>
-      ③ e⁻ 沿链下行，途中把 <b>H⁺</b> 泵进腔<br>
-      ④ H⁺ 涌出 → 转出 <b>ATP</b><br>
-      ⑤ 电子到 PSI 时累了：<b>第二个光子</b>再顶一把（第 2 次充电）<br>
-      ⑥ FNR 把充好电的 e⁻ 和 H⁺ 装袋 → <b>NADPH</b>（满格充电宝）
+    <div class="steps" id="stepList">
+      <div data-step="1">① 光子把<b>能量</b>交给 PSII / PSI</div>
+      <div data-step="2">② PSII 放出<b>e⁻ 电子</b>（水补位，顺带放 O₂）</div>
+      <div data-step="3">③ e⁻ 路过 b6f：泵 <b>H⁺</b> 入腔（H⁺ 池充电）</div>
+      <div data-step="4">④ H⁺ 池流出 → 转出 <b>ATP</b></div>
+      <div data-step="5">⑤ 到 PSI 时 e⁻ 没劲了：<b>第二个光子</b>再充能</div>
+      <div data-step="6">⑥ FNR 把 e⁻+H⁺ 装袋 → <b>NADPH</b></div>
     </div>
     <p><b>上半</b>：光子打进膜上的两个光系统，电子流动把 H⁺ 泵进腔——H⁺ 涌出时转子转出 <b>ATP</b>，FNR 拼出 <b>NADPH</b>；水被拆开，<b>O₂</b> 由此放出。</p>
     <p><b>下半</b>：满电池（黄/紫）会<b>掉进右下的拼糖环</b>，每轮花 3 ATP + 2 NADPH 抓住一个 CO₂ 拼糖；用完的<b>空电池</b>再飞回膜上充电——循环不停。</p>
@@ -19858,6 +19864,24 @@
       return new _CylinderGeometry(data.radiusTop, data.radiusBottom, data.height, data.radialSegments, data.heightSegments, data.openEnded, data.thetaStart, data.thetaLength);
     }
   };
+  var ConeGeometry = class _ConeGeometry extends CylinderGeometry {
+    constructor(radius = 1, height = 1, radialSegments = 32, heightSegments = 1, openEnded = false, thetaStart = 0, thetaLength = Math.PI * 2) {
+      super(0, radius, height, radialSegments, heightSegments, openEnded, thetaStart, thetaLength);
+      this.type = "ConeGeometry";
+      this.parameters = {
+        radius,
+        height,
+        radialSegments,
+        heightSegments,
+        openEnded,
+        thetaStart,
+        thetaLength
+      };
+    }
+    static fromJSON(data) {
+      return new _ConeGeometry(data.radius, data.height, data.radialSegments, data.heightSegments, data.openEnded, data.thetaStart, data.thetaLength);
+    }
+  };
   var PolyhedronGeometry = class _PolyhedronGeometry extends BufferGeometry {
     constructor(vertices = [], indices = [], radius = 1, detail = 0) {
       super();
@@ -21077,6 +21101,103 @@
     }
     static fromJSON(data) {
       return new _TorusGeometry(data.radius, data.tube, data.radialSegments, data.tubularSegments, data.arc);
+    }
+  };
+  var TubeGeometry = class _TubeGeometry extends BufferGeometry {
+    constructor(path = new QuadraticBezierCurve3(new Vector3(-1, -1, 0), new Vector3(-1, 1, 0), new Vector3(1, 1, 0)), tubularSegments = 64, radius = 1, radialSegments = 8, closed = false) {
+      super();
+      this.type = "TubeGeometry";
+      this.parameters = {
+        path,
+        tubularSegments,
+        radius,
+        radialSegments,
+        closed
+      };
+      const frames = path.computeFrenetFrames(tubularSegments, closed);
+      this.tangents = frames.tangents;
+      this.normals = frames.normals;
+      this.binormals = frames.binormals;
+      const vertex2 = new Vector3();
+      const normal = new Vector3();
+      const uv = new Vector2();
+      let P = new Vector3();
+      const vertices = [];
+      const normals = [];
+      const uvs = [];
+      const indices = [];
+      generateBufferData();
+      this.setIndex(indices);
+      this.setAttribute("position", new Float32BufferAttribute(vertices, 3));
+      this.setAttribute("normal", new Float32BufferAttribute(normals, 3));
+      this.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
+      function generateBufferData() {
+        for (let i = 0; i < tubularSegments; i++) {
+          generateSegment(i);
+        }
+        generateSegment(closed === false ? tubularSegments : 0);
+        generateUVs();
+        generateIndices();
+      }
+      function generateSegment(i) {
+        P = path.getPointAt(i / tubularSegments, P);
+        const N = frames.normals[i];
+        const B = frames.binormals[i];
+        for (let j = 0; j <= radialSegments; j++) {
+          const v = j / radialSegments * Math.PI * 2;
+          const sin = Math.sin(v);
+          const cos = -Math.cos(v);
+          normal.x = cos * N.x + sin * B.x;
+          normal.y = cos * N.y + sin * B.y;
+          normal.z = cos * N.z + sin * B.z;
+          normal.normalize();
+          normals.push(normal.x, normal.y, normal.z);
+          vertex2.x = P.x + radius * normal.x;
+          vertex2.y = P.y + radius * normal.y;
+          vertex2.z = P.z + radius * normal.z;
+          vertices.push(vertex2.x, vertex2.y, vertex2.z);
+        }
+      }
+      function generateIndices() {
+        for (let j = 1; j <= tubularSegments; j++) {
+          for (let i = 1; i <= radialSegments; i++) {
+            const a = (radialSegments + 1) * (j - 1) + (i - 1);
+            const b = (radialSegments + 1) * j + (i - 1);
+            const c = (radialSegments + 1) * j + i;
+            const d = (radialSegments + 1) * (j - 1) + i;
+            indices.push(a, b, d);
+            indices.push(b, c, d);
+          }
+        }
+      }
+      function generateUVs() {
+        for (let i = 0; i <= tubularSegments; i++) {
+          for (let j = 0; j <= radialSegments; j++) {
+            uv.x = i / tubularSegments;
+            uv.y = j / radialSegments;
+            uvs.push(uv.x, uv.y);
+          }
+        }
+      }
+    }
+    copy(source) {
+      super.copy(source);
+      this.parameters = Object.assign({}, source.parameters);
+      return this;
+    }
+    toJSON() {
+      const data = super.toJSON();
+      data.path = this.parameters.path.toJSON();
+      return data;
+    }
+    static fromJSON(data) {
+      return new _TubeGeometry(
+        new Curves[data.path.type]().fromJSON(data.path),
+        data.tubularSegments,
+        data.radius,
+        data.radialSegments,
+        data.closed
+      );
     }
   };
   var MeshStandardMaterial = class extends Material {
@@ -23842,9 +23963,9 @@
     b6f: 9268835,
     fnr: 7166928,
     co2: 11187394,
-    g3p: 4906624,
     adp: 13208133,
-    nadpp: 9403088
+    nadpp: 9403088,
+    g3p: 4906624
   };
   var RING_C = new Vector3(12, -7.2, 0);
   var RING_R = 2.7;
@@ -23865,14 +23986,37 @@
     controls.dampingFactor = 0.08;
     controls.target.set(4, 0.5, 0);
     const lumenBg = new Mesh(
-      new PlaneGeometry(70, 16),
-      new MeshBasicMaterial({ color: "#0a1626", transparent: true, opacity: 0.85 })
+      new PlaneGeometry(46, 3.6),
+      new MeshBasicMaterial({ color: "#0d1f38", transparent: true, opacity: 0.9 })
     );
-    lumenBg.position.set(-8, -2.6, -1.5);
+    lumenBg.position.set(-4, -1.7, -1.5);
     scene.add(lumenBg);
-    const lumenLabel = makeLabel("\u7C7B\u56CA\u4F53\u8154\uFF08H\u207A \u5806\u79EF = \u5145\u7535\uFF09", "#7db4d8");
-    lumenLabel.position.set(-11.5, -2.8, 0);
+    const lumenFrame = new Mesh(
+      new BoxGeometry(46, 3.6, 0.04),
+      new MeshBasicMaterial({ color: "#1d3a5f", transparent: true, opacity: 0.7 })
+    );
+    lumenFrame.position.set(-4, -1.7, -1.4);
+    scene.add(lumenFrame);
+    const lumenLabel = makeLabel("\u7C7B\u56CA\u4F53\u8154 = H\u207A \u6C60\uFF08\u8D8A\u6EE1\u7535\u8D8A\u8DB3\uFF09", "#7db4d8");
+    lumenLabel.position.set(-13.5, -3.6, 0);
     scene.add(lumenLabel);
+    const flowLine = new Mesh(
+      new BoxGeometry(4.2, 0.06, 0.04),
+      new MeshBasicMaterial({ color: 16739229, transparent: true, opacity: 0.65 })
+    );
+    flowLine.position.set(2.4, -1.35, 0.3);
+    scene.add(flowLine);
+    const flowArrow = new Mesh(
+      new ConeGeometry(0.14, 0.36, 8),
+      new MeshBasicMaterial({ color: 16739229 })
+    );
+    flowArrow.rotation.z = -Math.PI / 2;
+    flowArrow.position.set(4.35, -1.35, 0.3);
+    scene.add(flowArrow);
+    const flowLabel = makeLabel("H\u207A \u6D41 \u2192 \u63A8\u8F6C\u5B50", "#ff9ec4");
+    flowLabel.scale.multiplyScalar(0.55);
+    flowLabel.position.set(2.2, -2.6, 0.3);
+    scene.add(flowLabel);
     const membrane = new Group();
     scene.add(membrane);
     const headMat = new MeshStandardMaterial({ color: C2.membrane, roughness: 0.55, emissive: "#4a3a12", emissiveIntensity: 0.4 });
@@ -23901,9 +24045,6 @@
     const b6f = blob(0, 1.7, 2.2, C2.b6f);
     const psi = blob(7.2, 1.9, 2.4, C2.psi);
     const fnr = blob(10.7, 1.1, 1.1, C2.fnr, 2.35);
-    const fd = makeGlowDot(0.2, 10151608);
-    fd.position.set(9.3, 1.3, 0);
-    scene.add(fd);
     for (let i = 0; i < 7; i++) {
       const a = makeGlowDot(0.16, 6740367);
       const ang = Math.PI * (0.15 + 0.7 * i / 6);
@@ -23916,6 +24057,45 @@
       a.position.set(7.2 + Math.cos(ang) * 2.1, Math.sin(ang) * 2.7, 0);
       scene.add(a);
     }
+    const pipeCurve = new CatmullRomCurve3([
+      new Vector3(-8.2, 1.35, 0),
+      new Vector3(-4.5, 1.95, 0),
+      new Vector3(0, 1.45, 0),
+      new Vector3(3.6, 1.95, 0),
+      new Vector3(7.2, 1.35, 0),
+      new Vector3(9.3, 1.95, 0),
+      new Vector3(10.6, 2.3, 0)
+    ]);
+    const pipe = new Mesh(
+      new TubeGeometry(pipeCurve, 72, 0.085, 8),
+      new MeshBasicMaterial({ color: 8246268, transparent: true, opacity: 0.3 })
+    );
+    scene.add(pipe);
+    [0.14, 0.5, 0.86].forEach((u) => {
+      const p = pipeCurve.getPointAt(u);
+      const t = pipeCurve.getTangentAt(u);
+      const cone = new Mesh(
+        new ConeGeometry(0.12, 0.32, 8),
+        new MeshBasicMaterial({ color: 8246268, transparent: true, opacity: 0.85 })
+      );
+      cone.position.copy(p);
+      cone.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), t.clone().normalize());
+      scene.add(cone);
+    });
+    function uAtX(xTarget) {
+      let best = 0, bd = 1e9;
+      for (let i = 0; i <= 100; i++) {
+        const p = pipeCurve.getPointAt(i / 100);
+        const d = Math.abs(p.x - xTarget);
+        if (d < bd) {
+          bd = d;
+          best = i / 100;
+        }
+      }
+      return best;
+    }
+    const U_B6F = uAtX(0);
+    const U_PSI = uAtX(7.2);
     const atpX = 4.6;
     const knob = new Mesh(
       new SphereGeometry(0.85, 22, 16),
@@ -23951,17 +24131,21 @@
     }
     const lblTitle = partLabel("\u4E0A\u534A \xB7 \u5149\u53CD\u5E94\uFF1A\u628A\u5149\u88C5\u8FDB\u7535\u6C60\uFF0C\u987A\u4FBF\u653E\u51FA\u6C27\u6C14", "#9ff0b5", -8, 5.4);
     const lblPsii = partLabel("PSII\uFF08\u5206\u89E3\u6C34\uFF09", "#8af0ae", -8.2, 3.4);
-    const lblB6f = partLabel("b6f\uFF08\u6CF5 H\u207A\uFF09", "#d7b8a8", 0, 2.5);
+    const lblB6f = partLabel("b6f\uFF08e\u207B \u8DEF\u8FC7 \u2192 \u6CF5 H\u207A\uFF09", "#d7b8a8", 0, 2.6);
     const lblPsi = partLabel("PSI \xB7 \u5149\u7CFB\u7EDF I\uFF08\u7B2C 2 \u6B21\u5145\u7535\uFF09", "#8af0ae", 7.2, 3.4);
     const lblFnr = partLabel("FNR\uFF08\u88C5\u7535\u6C60\uFF09\u2192 NADPH", "#cdb4ff", 12, 3.7);
     const atpLabel = partLabel("ATP \u5408\u9176", "#ffc078", atpX - 2.6, 3.1);
-    const labels = [lumenLabel, lblTitle, lblPsii, lblB6f, lblPsi, lblFnr, atpLabel];
+    const pipeLabel = makeLabel("\u7535\u5B50\u7BA1\u9053\uFF1Ae\u207B \u6CBF\u7BA1\u8D70", "#a5e3ff");
+    pipeLabel.scale.multiplyScalar(0.6);
+    pipeLabel.position.set(-4.8, 2.75, 0);
+    scene.add(pipeLabel);
+    const labels = [lumenLabel, flowLabel, lblTitle, lblPsii, lblB6f, lblPsi, lblFnr, atpLabel, pipeLabel];
     const ringGrp = new Group();
     ringGrp.position.copy(RING_C);
     ringGrp.scale.setScalar(0.62);
     scene.add(ringGrp);
     const ring = new Mesh(
-      new TorusGeometry(RING_R / 0.62, 0.16 / 0.62 * 0.62, 12, 80),
+      new TorusGeometry(RING_R / 0.62, 0.16, 12, 80),
       new MeshStandardMaterial({ color: "#2a4a38", roughness: 0.5, emissive: "#0c2417", emissiveIntensity: 0.7 })
     );
     ringGrp.add(ring);
@@ -23982,9 +24166,17 @@
     });
     const lblRing = partLabel("\u4E0B\u534A \xB7 \u62FC\u7CD6\u5FAA\u73AF\uFF1A\u82B1\u7535\u6C60\uFF0C\u628A CO\u2082 \u62FC\u6210\u7CD6", "#9ff0b5", RING_C.x + 2.4, RING_C.y + 4.6);
     const sugarLabel = partLabel("\u{1F36C} \u7CD6\u51FA\u5382\uFF08\u98DF\u7269\uFF09", "#dbe86a", RING_C.x + 0.4, RING_C.y - 4.4);
-    const lblShuttle = partLabel("\u6EE1\u7535\u6C60 \u2193 \u9001\u53BB\u62FC\u7CD6", "#ffc078", 7.6, -3.4);
-    const lblReturn = partLabel("\u2191 \u7A7A\u7535\u6C60\u56DE\u819C\u4E0A\u518D\u5145\u7535", "#c98a45", 7.8, -5.6);
+    const lblShuttle = partLabel("\u6EE1\u7535\u6C60 \u2193 \u9001\u53BB\u62FC\u7CD6", "#ffc078", 7.6, -4.6);
+    const lblReturn = partLabel("\u2191 \u7A7A\u7535\u6C60\u56DE\u819C\u4E0A\u518D\u5145\u7535", "#c98a45", 7.8, -6.2);
     labels.push(lblRing, sugarLabel, lblShuttle, lblReturn, ...ringStations.map((s) => s.l));
+    const atpStack = new Group();
+    atpStack.position.set(RING_C.x + 3.6, RING_C.y - 1.2, 0);
+    scene.add(atpStack);
+    const nadphStack = new Group();
+    nadphStack.position.set(RING_C.x - 3.6, RING_C.y - 1.2, 0);
+    scene.add(nadphStack);
+    const batLabel = partLabel("\u7535\u6C60\u5E93\u5B58\uFF08\u6EE1\uFF09", "#ffc078", RING_C.x, RING_C.y + 1.4);
+    labels.push(batLabel);
     function transferTag(text, color, x, y) {
       const l = makeLabel(text, color);
       l.scale.multiplyScalar(0.62);
@@ -23994,32 +24186,16 @@
       return l;
     }
     transferTag("\u5149\u5B50 = \u80FD\u91CF\u5305\u88F9", "#ffd54a", -6.4, 7.2);
-    transferTag("e\u207B \u7535\u5B50", "#7dd3fc", -4.4, 1.9);
-    transferTag("e\u207B \u7535\u5B50", "#7dd3fc", 3.5, 1.9);
-    const fdLabel = makeLabel("Fd\uFF08\u642C\u8FD0\u7535\u5B50\uFF09", "#9ae6b8");
-    fdLabel.scale.multiplyScalar(0.55);
-    fdLabel.position.set(9.3, 2.15, 0);
-    scene.add(fdLabel);
-    labels.push(fdLabel);
-    transferTag("e\u207B\uFF08Fd \u9012\u7ED9 FNR\uFF09", "#7dd3fc", 9.9, 0.7);
-    transferTag("H\u207A \u8D28\u5B50 \u2193 \u843D\u5165\u8154", "#ff6b9d", -3.2, -1.95);
-    transferTag("H\u207A \u6D8C\u51FA \u2192 \u8F6C\u8F6C\u5B50", "#ff6b9d", 6.6, -1.7);
-    transferTag("\u6C34", "#69b7ff", -10.6, -1.6);
-    const atpStack = new Group();
-    atpStack.position.set(RING_C.x + 3.6, RING_C.y - 1.2, 0);
-    scene.add(atpStack);
-    const nadphStack = new Group();
-    nadphStack.position.set(RING_C.x - 3.6, RING_C.y - 1.2, 0);
-    scene.add(nadphStack);
-    const batLabel = partLabel("\u7535\u6C60\u5E93\u5B58\uFF08\u6EE1\uFF09", "#ffc078", RING_C.x, RING_C.y + 1.4);
-    labels.push(batLabel);
+    transferTag("H\u207A \u6CF5\u5165\u8154", "#ff6b9d", 0.2, -0.75);
+    transferTag("H\u207A \u5206\u89E3\u6C34\u653E\u51FA", "#ff6b9d", -9.6, -1.9);
+    transferTag("\u6C34", "#69b7ff", -10.6, -1);
     const ray = new Raycaster();
     const clickable = [
       { mesh: psii, text: "PSII\uFF08P680\uFF09\uFF1A\u5438\u6536\u5149\u5B50\u540E\u4ECE\u6C34\u91CC\u593A\u7535\u5B50\u2014\u2014\u6C34\u88AB\u62C6\u6210 O\u2082 + H\u207A + e\u207B\u3002" },
-      { mesh: b6f, text: "\u7EC6\u80DE\u8272\u7D20 b6f\uFF1A\u7535\u5B50\u8DEF\u8FC7\u65F6\u628A H\u207A \u6CF5\u8FDB\u7C7B\u56CA\u4F53\u8154\uFF08Q \u5FAA\u73AF\uFF09\u3002" },
-      { mesh: psi, text: "PSI\uFF08P700\uFF09\uFF1A\u7B2C\u4E8C\u4E2A\u5149\u5B50\u628A\u7535\u5B50\u518D\u6B21\u63A8\u4E0A\u9AD8\u80FD\u7EA7\uFF0C\u7528\u4E8E\u9020 NADPH\u3002" },
+      { mesh: b6f, text: 'b6f\uFF1Ae\u207B \u8DEF\u8FC7\u5B83\u65F6\uFF0C\u5B83\u628A H\u207A \u4ECE\u57FA\u8D28\u6CF5\u8FDB\u8154\u2014\u2014\u5B83\u4E0D\u4EA7\u7535\u6C60\uFF0C\u5B83\u9020"\u6C34\u4F4D\u5DEE"\u3002' },
+      { mesh: psi, text: "PSI\uFF08P700\uFF09\uFF1A\u7535\u5B50\u5230\u8FD9\u91CC\u5DF2\u7ECF\u6CA1\u52B2\u4E86\uFF0C\u7B2C\u4E8C\u4E2A\u5149\u5B50\u628A\u5B83\u518D\u9876\u4E0A\u53BB\uFF08\u7B2C 2 \u6B21\u5145\u7535\uFF09\u3002" },
       { mesh: fnr, text: "FNR\uFF1A\u88C5\u7535\u6C60\u7684\u9176\u2014\u2014\u628A 2 \u4E2A\u7535\u5B50\u548C H\u207A \u88C5\u8FDB NADP\u207A\uFF0C\u505A\u51FA\u6EE1\u683C\u5145\u7535\u5B9D NADPH\u3002" },
-      { mesh: knob, text: "ATP \u5408\u9176\uFF1A\u8154\u5185 H\u207A \u6D8C\u51FA\uFF0C\u8F6C\u5B50\u6BCF\u8F6C\u4E00\u5708\uFF0814 \u4E2A H\u207A\uFF09\u5408\u6210 3 \u4E2A ATP\u3002" }
+      { mesh: knob, text: "ATP \u5408\u9176\uFF1AH\u207A \u6C60\u91CC\u7684 H\u207A \u987A\u6C34\u4F4D\u5DEE\u6D8C\u51FA\uFF0C\u8F6C\u5B50\u6BCF\u8F6C\u4E00\u5708\uFF0814 H\u207A\uFF09\u5408\u6210 3 \u4E2A ATP\u3002" }
     ];
     const infoDiv = document.createElement("p");
     infoDiv.id = "lightInfo";
@@ -24037,6 +24213,96 @@
       const hit = ray.intersectObjects(clickable.map((c) => c.mesh), false)[0];
       if (hit) infoDiv.textContent = "\u{1F4A1} " + clickable.find((c) => c.mesh === hit.object).text;
     });
+    const stepEls = [...document.querySelectorAll("#stepList [data-step]")];
+    function step(n) {
+      stepEls.forEach((el) => el.classList.toggle("cur", +el.dataset.step === n));
+    }
+    const zc = document.getElementById("zscheme");
+    const zctx = zc.getContext("2d");
+    const Z_PTS = [
+      [0.04, 0.78],
+      [0.09, 0.1],
+      [0.36, 0.62],
+      [0.43, 0.72],
+      [0.6, 0.12],
+      [0.78, 0.64],
+      [0.95, 0.82]
+    ];
+    const Z_LABELS = [
+      [0.09, 0.1, "P680* \u7B2C\u4E00\u6B21\u5145\u7535", "#ffd54a"],
+      [0.36, 0.62, "\u6CBF\u94FE\u4E0B\u884C \xB7 \u6CF5 H\u207A", "#7dd3fc"],
+      [0.43, 0.72, "b6f", "#d7b8a8"],
+      [0.6, 0.12, "P700* \u7B2C\u4E8C\u6B21\u5145\u7535", "#ffd54a"],
+      [0.8, 0.64, "Fd", "#9ae6b8"],
+      [0.95, 0.82, "NADPH", "#b197fc"]
+    ];
+    function drawChart(markerS) {
+      const W = zc.width, H = zc.height;
+      zctx.clearRect(0, 0, W, H);
+      zctx.fillStyle = "rgba(10,16,28,0.0)";
+      zctx.fillRect(0, 0, W, H);
+      zctx.strokeStyle = "rgba(255,255,255,0.25)";
+      zctx.strokeRect(6.5, 6.5, W - 13, H - 13);
+      zctx.font = 'bold 13px "PingFang SC", sans-serif';
+      zctx.fillStyle = "#9ff0b5";
+      zctx.fillText("Z \u65B9\u6848\uFF1A\u7535\u5B50\u7684\u4E24\u6B21\u5145\u7535\u4E4B\u65C5", 16, 24);
+      zctx.strokeStyle = "#e8b84b";
+      zctx.lineWidth = 2.5;
+      zctx.beginPath();
+      Z_PTS.forEach(([x, y], i) => {
+        const px2 = 14 + x * (W - 28), py2 = 30 + y * (H - 62);
+        i ? zctx.lineTo(px2, py2) : zctx.moveTo(px2, py2);
+      });
+      zctx.stroke();
+      [[0.09, 0.1], [0.6, 0.12]].forEach(([x, y]) => {
+        const px2 = 14 + x * (W - 28), py2 = 30 + y * (H - 62);
+        zctx.strokeStyle = "#ffd54a";
+        zctx.lineWidth = 1.5;
+        zctx.beginPath();
+        zctx.moveTo(px2, py2 - 20);
+        zctx.lineTo(px2 - 3, py2 - 10);
+        zctx.lineTo(px2 + 3, py2 - 10);
+        zctx.lineTo(px2, py2);
+        zctx.stroke();
+      });
+      zctx.lineWidth = 1;
+      zctx.font = '11px "PingFang SC", sans-serif';
+      Z_LABELS.forEach(([x, y, txt, col]) => {
+        zctx.fillStyle = col;
+        zctx.fillText(txt, 14 + x * (W - 28) - 20, 30 + y * (H - 62) + (y > 0.5 ? 16 : -10));
+      });
+      if (markerS != null) {
+        const s = Math.max(0, Math.min(1, markerS));
+        let total = 0;
+        const segs = [];
+        for (let i = 1; i < Z_PTS.length; i++) {
+          const dx = (Z_PTS[i][0] - Z_PTS[i - 1][0]) * (W - 28);
+          const dy = (Z_PTS[i][1] - Z_PTS[i - 1][1]) * (H - 62);
+          const L = Math.hypot(dx, dy);
+          segs.push(L);
+          total += L;
+        }
+        let dist = s * total;
+        for (let i = 0; i < segs.length; i++) {
+          if (dist <= segs[i]) {
+            const k = dist / segs[i];
+            const x = Z_PTS[i][0] + (Z_PTS[i + 1][0] - Z_PTS[i][0]) * k;
+            const y = Z_PTS[i][1] + (Z_PTS[i + 1][1] - Z_PTS[i][1]) * k;
+            const px2 = 14 + x * (W - 28), py2 = 30 + y * (H - 62);
+            zctx.fillStyle = "#7dd3fc";
+            zctx.beginPath();
+            zctx.arc(px2, py2, 5, 0, Math.PI * 2);
+            zctx.fill();
+            zctx.strokeStyle = "rgba(125,211,252,0.5)";
+            zctx.beginPath();
+            zctx.arc(px2, py2, 9, 0, Math.PI * 2);
+            zctx.stroke();
+            break;
+          }
+          dist -= segs[i];
+        }
+      }
+    }
     const state = {
       paused: false,
       speed: 1,
@@ -24045,12 +24311,11 @@
       photons: [],
       electrons: [],
       hplus: [],
+      hpool: [],
       o2: [],
       waters: [],
       fliers: [],
-      // 电池/糖/空电池等飞行片
       psiQueue: 0,
-      pqCharge: 0,
       kokIdx: 1,
       psiElectronCount: 0,
       lumenH: 8,
@@ -24063,31 +24328,25 @@
       turns: 0,
       g3p: 0,
       photonTimer: 0,
-      waterTimer: 0
+      waterTimer: 0,
+      zu: null
     };
-    const PATH_PSII = [-8.2, -7.2, -6.1, -3.2, -0.6];
-    const PATH_PSI = [[7.2, 0.4], [9.3, 1.3], [10.6, 2.2]];
-    function spawnPhoton(target) {
+    function spawnPhoton(target, kind) {
       const m = makeGlowDot(0.14, C2.photon);
       m.position.set(target.x + (Math.random() - 0.5) * 1.6, 9.5 + Math.random() * 2, 0);
       scene.add(m);
-      state.photons.push({ mesh: m, tx: target.x, ty: target.y });
+      state.photons.push({ mesh: m, tx: target.x, ty: target.y, kind });
+      step(1);
     }
-    function spawnElectron(x, y, path, onArrive) {
-      const m = makeGlowDot(0.15, C2.electron);
-      m.position.set(x, y, 0);
-      scene.add(m);
-      state.electrons.push({ mesh: m, path, seg: 0, onArrive });
+    function flier(mesh, target, speed, onArrive) {
+      scene.add(mesh);
+      state.fliers.push({ mesh, target, speed, onArrive });
     }
     function spawnH(x, y, vy, toLumen) {
       const m = makeGlowDot(0.11, C2.hplus);
       m.position.set(x, y, 0);
       scene.add(m);
       state.hplus.push({ mesh: m, vy, toLumen });
-    }
-    function flier(mesh, target, speed, onArrive) {
-      scene.add(mesh);
-      state.fliers.push({ mesh, target, speed, onArrive });
     }
     function restack(group, n, color) {
       while (group.children.length) group.remove(group.children[0]);
@@ -24102,6 +24361,24 @@
         more.position.set(0, 2.8, 0);
         group.add(more);
       }
+    }
+    function addHToPool(x) {
+      state.lumenH++;
+      if (state.hpool.length < 14) {
+        const d = makeGlowDot(0.12, C2.hplus);
+        d.position.set(x + (Math.random() - 0.5) * 1.2, -1.15 - Math.random() * 1.6, 0);
+        d.userData.baseY = d.position.y;
+        scene.add(d);
+        state.hpool.push(d);
+      }
+    }
+    function takeHFromPool() {
+      const d = state.hpool.pop();
+      if (d) {
+        d.userData.baseY = null;
+        scene.remove(d);
+      }
+      state.lumenH = Math.max(0, state.lumenH - 1);
     }
     function startTurn() {
       if (state.bat.atp < CALVIN.atpPerCO2 || state.bat.nadph < CALVIN.nadphPerCO2) return;
@@ -24118,10 +24395,7 @@
         for (const s of [-0.6, 0.6]) {
           const pga = makeGlowDot(0.13, 10467529);
           pga.position.copy(RING_C).add(new Vector3(s, 0.6, 0));
-          scene.add(pga);
-          flier(pga, RING_C.clone().add(new Vector3(s * 2.2, -0.6, 0)), 1.6, () => {
-            scene.remove(pga);
-          });
+          flier(pga, RING_C.clone().add(new Vector3(s * 2.2, -0.6, 0)), 1.6, () => scene.remove(pga));
         }
         for (let i = 0; i < 3; i++) {
           const a = makeGlowDot(0.13, C2.adp);
@@ -24131,7 +24405,7 @@
         for (let i = 0; i < 2; i++) {
           const n = makeGlowDot(0.13, C2.nadpp);
           n.position.copy(RING_C).add(new Vector3(-1.5, 0.5 + i * 0.3, 0));
-          flier(n, new Vector3(11.2, 2.4, 0), 2.6, () => scene.remove(n));
+          flier(n, new Vector3(11, 2.4, 0), 2.6, () => scene.remove(n));
         }
       });
     }
@@ -24168,7 +24442,32 @@
       while (state.photonTimer > 0.55) {
         state.photonTimer -= 0.55;
         state.alt ^= 1;
-        spawnPhoton(state.alt === 0 ? { x: -8.2, y: 1.4 } : { x: 7.2, y: 1.3 });
+        if (state.alt === 0) {
+          spawnPhoton({ x: -8.2, y: 1.3 }, "A");
+          const m = makeGlowDot(0.15, C2.electron);
+          m.position.copy(pipeCurve.getPointAt(0));
+          scene.add(m);
+          state.electrons.push({ mesh: m, u: 0, end: U_PSI, seg: "A" });
+          step(2);
+          state.psiElectronCount++;
+          state.kokIdx = 1 + state.psiElectronCount % 4;
+          if (state.psiElectronCount % 4 === 0) {
+            state.kokIdx = 0;
+            const bub = makeGlowDot(0.22, C2.o2);
+            bub.position.set(-8.2, -1.2, 0);
+            scene.add(bub);
+            state.o2.push({ mesh: bub, t: 0 });
+            for (let k = 0; k < 4; k++) addHToPool(-8.2);
+            state.counts.o2++;
+          }
+        } else {
+          spawnPhoton({ x: 7.2, y: 1.2 }, "B");
+          const m = makeGlowDot(0.15, C2.electron);
+          m.position.copy(pipeCurve.getPointAt(U_PSI));
+          scene.add(m);
+          state.electrons.push({ mesh: m, u: U_PSI, end: 1, seg: "B" });
+          step(5);
+        }
       }
       for (let i = state.photons.length - 1; i >= 0; i--) {
         const p = state.photons[i];
@@ -24177,80 +24476,58 @@
         if (d < 0.25) {
           scene.remove(p.mesh);
           state.photons.splice(i, 1);
-          if (p.tx < 0) {
-            spawnElectron(PATH_PSII[0], 1.2, PATH_PSII, (x) => {
-              state.pqCharge++;
-              spawnH(x + 0.4, 0.8, -2, true);
-              spawnH(0, 0.7, -2.4, true);
-              spawnH(-0.4, 0.6, -2.6, true);
-              if (state.pqCharge >= 2) state.pqCharge = 0;
-            });
-            state.psiElectronCount++;
-            state.kokIdx = 1 + state.psiElectronCount % 4;
-            if (state.psiElectronCount % 4 === 0) {
-              state.kokIdx = 0;
-              const bub = makeGlowDot(0.22, C2.o2);
-              bub.position.set(-8.2, -1.2, 0);
-              scene.add(bub);
-              state.o2.push({ mesh: bub, t: 0 });
-              for (let k = 0; k < 4; k++) spawnH(-8.2 + (Math.random() - 0.5) * 1.2, -0.8, -2.2, true);
-              state.counts.o2++;
-            }
-          } else {
-            spawnElectron(PATH_PSI[0], 1.1, PATH_PSI, () => {
-              state.psiQueue++;
-              if (state.psiQueue >= 2) {
-                state.psiQueue = 0;
-                spawnH(11.2, 2.2, 1.5, false);
-                const chip = makeGlowDot(0.2, C2.nadph);
-                flier(chip, nadphStack.position.clone().add(new Vector3(0, 0.5, 0)), 3, () => {
-                  state.bat.nadph++;
-                  restack(nadphStack, state.bat.nadph, C2.nadph);
-                });
-                state.counts.nadph++;
-              }
-            });
-          }
           continue;
         }
         p.mesh.position.x += dx / d * 7.5 * dt;
         p.mesh.position.y += dy / d * 7.5 * dt;
       }
+      let zu = null;
       for (let i = state.electrons.length - 1; i >= 0; i--) {
         const e = state.electrons[i];
-        const w = e.path[e.seg];
-        const target = Array.isArray(w) ? new Vector3(w[0], w[1], 0) : new Vector3(w, e.seg === e.path.length - 1 ? 0.9 : e.seg % 2 ? 0.55 : 0.15, 0);
-        const d = e.mesh.position.distanceTo(target);
-        if (d < 0.22) {
-          e.seg++;
-          if (e.seg >= e.path.length) {
-            scene.remove(e.mesh);
-            state.electrons.splice(i, 1);
-            e.onArrive?.(e.mesh.position.x);
-            continue;
+        const u0 = e.u;
+        e.u += 0.22 * dt;
+        if (e.u >= e.end) {
+          scene.remove(e.mesh);
+          state.electrons.splice(i, 1);
+          if (e.seg === "B") {
+            state.psiQueue++;
+            if (state.psiQueue >= 2) {
+              state.psiQueue = 0;
+              spawnH(11, 2, 1.5, false);
+              const chip = makeGlowDot(0.2, C2.nadph);
+              flier(chip, nadphStack.position.clone().add(new Vector3(0, 0.5, 0)), 3, () => {
+                state.bat.nadph++;
+                restack(nadphStack, state.bat.nadph, C2.nadph);
+              });
+              state.counts.nadph++;
+              step(6);
+            }
+          } else {
+            psi.material.emissiveIntensity = 0.7;
           }
           continue;
         }
-        e.mesh.position.lerp(target, Math.min(1, 3.2 * dt));
-      }
-      for (let i = state.hplus.length - 1; i >= 0; i--) {
-        const h = state.hplus[i];
-        h.mesh.position.y += h.vy * dt;
-        if (h.toLumen && h.mesh.position.y <= -1.15) {
-          scene.remove(h.mesh);
-          state.hplus.splice(i, 1);
-          state.lumenH++;
-          continue;
+        if (e.seg === "A" && u0 < U_B6F && e.u >= U_B6F) {
+          b6f.material.emissiveIntensity = 0.8;
+          spawnH(0.2, 0.7, -2.4, true);
+          spawnH(-0.3, 0.6, -2.6, true);
+          step(3);
         }
-        if (!h.toLumen && h.mesh.position.y > 4.2) {
-          scene.remove(h.mesh);
-          state.hplus.splice(i, 1);
-        }
+        e.mesh.position.copy(pipeCurve.getPointAt(Math.min(e.u, 1)));
+        if (e.seg === "B") zu = Math.max(zu ?? 0, U_PSI + (e.u - U_PSI) / (1 - U_PSI) * 0.28);
+        else zu = Math.max(zu ?? 0, e.u / U_PSI * 0.72);
       }
+      b6f.material.emissiveIntensity = Math.max(0.18, b6f.material.emissiveIntensity - dt * 1.4);
+      psi.material.emissiveIntensity = Math.max(0.18, psi.material.emissiveIntensity - dt * 1.2);
+      state.zu = zu;
+      const now = performance.now() / 1e3;
+      state.hpool.forEach((d, i) => {
+        d.position.y = d.userData.baseY + Math.sin(now * 2 + i) * 0.07;
+      });
       const atpFlow = state.lumenH > 4 ? 2.2 : 1.2;
       state.atpFrac += dt * atpFlow / H_PER_ATP;
       if (state.lumenH > 2 && Math.random() < dt * 1.2) {
-        state.lumenH--;
+        takeHFromPool();
         const m = makeGlowDot(0.11, C2.hplus);
         m.position.set(atpX + (Math.random() - 0.5) * 0.3, -0.62, 0.42);
         scene.add(m);
@@ -24266,8 +24543,22 @@
           restack(atpStack, state.bat.atp, C2.atp);
         });
         state.counts.atp++;
+        step(4);
       }
-      for (const h of state.hplus) if (h.out) h.mesh.position.y += h.vy * dt;
+      for (let i = state.hplus.length - 1; i >= 0; i--) {
+        const h = state.hplus[i];
+        h.mesh.position.y += h.vy * dt;
+        if (h.toLumen) {
+          if (h.mesh.position.y <= -1.15) {
+            addHToPool(h.mesh.position.x);
+            scene.remove(h.mesh);
+            state.hplus.splice(i, 1);
+          }
+        } else if (h.mesh.position.y > 4.2) {
+          scene.remove(h.mesh);
+          state.hplus.splice(i, 1);
+        }
+      }
       for (let i = state.o2.length - 1; i >= 0; i--) {
         const o = state.o2[i];
         o.t += dt;
@@ -24323,7 +24614,7 @@
           flier(g, RING_C.clone().add(new Vector3(0, -RING_R * 0.62 - 0.4, 0)), 1.8, () => {
             if (state.turns % CALVIN.g3pPerTurns === 0) {
               state.g3p++;
-              const out = makeGlowDot(0.2, C2.sugar === void 0 ? 13166698 : 13166698);
+              const out = makeGlowDot(0.2, 13166698);
               out.position.copy(RING_C).add(new Vector3(0, -RING_R * 0.62 - 0.5, 0));
               flier(out, new Vector3(RING_C.x + 0.4, RING_C.y - 3.6, 0), 2, () => scene.remove(out));
             }
@@ -24331,6 +24622,7 @@
         }
         if (state.turn.phase === "g3p" && state.turn.t > 0.8) state.turn = null;
       }
+      drawChart(state.zu);
       controls.update();
     }
     return {

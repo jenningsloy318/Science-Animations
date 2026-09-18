@@ -44,6 +44,11 @@
   .steps { font-size: 12px; color: var(--mut); line-height: 1.9; background: rgba(255,255,255,0.03);
     border-radius: 8px; padding: 8px 10px; margin: 8px 0; }
   .steps b { color: var(--gold); }
+  .steps div[data-step] { padding: 1px 6px; border-radius: 6px; }
+  .steps div[data-step].cur { background: rgba(255,213,74,0.16); color: var(--txt); }
+  #zscheme { position: fixed; left: 14px; bottom: 52px; z-index: 14; display: none;
+    background: rgba(10,16,28,0.9); border: 1px solid var(--line); border-radius: 12px; }
+  body[data-view="light"] #zscheme { display: block; }
   .fact.gold { border-left-color: var(--gold); } .fact.gold b { color: var(--gold); }
   .fact.green { border-left-color: var(--green); } .fact.green b { color: var(--green); }
   .tl { list-style: none; margin: 8px 0; padding: 0; font-size: 12px; color: var(--mut); }
@@ -72,6 +77,7 @@
 </head>
 <body>
   <canvas id="gl"></canvas>
+  <canvas id="zscheme" width="360" height="205"></canvas>
 
   <div id="topbar">
     <h1>光合作用</h1>
@@ -121,13 +127,13 @@
       <span><i class="dot" style="background:#ffa94d"></i>ATP</span>
       <span><i class="dot" style="background:#b197fc"></i>NADPH</span>
     </div>
-    <div class="steps">
-      ① 光子把<b>能量</b>交给叶绿素<br>
-      ② PSII 放出<b>e⁻ 电子</b>（水补上新的，顺便放出 O₂）<br>
-      ③ e⁻ 沿链下行，途中把 <b>H⁺</b> 泵进腔<br>
-      ④ H⁺ 涌出 → 转出 <b>ATP</b><br>
-      ⑤ 电子到 PSI 时累了：<b>第二个光子</b>再顶一把（第 2 次充电）<br>
-      ⑥ FNR 把充好电的 e⁻ 和 H⁺ 装袋 → <b>NADPH</b>（满格充电宝）
+    <div class="steps" id="stepList">
+      <div data-step="1">① 光子把<b>能量</b>交给 PSII / PSI</div>
+      <div data-step="2">② PSII 放出<b>e⁻ 电子</b>（水补位，顺带放 O₂）</div>
+      <div data-step="3">③ e⁻ 路过 b6f：泵 <b>H⁺</b> 入腔（H⁺ 池充电）</div>
+      <div data-step="4">④ H⁺ 池流出 → 转出 <b>ATP</b></div>
+      <div data-step="5">⑤ 到 PSI 时 e⁻ 没劲了：<b>第二个光子</b>再充能</div>
+      <div data-step="6">⑥ FNR 把 e⁻+H⁺ 装袋 → <b>NADPH</b></div>
     </div>
     <p><b>上半</b>：光子打进膜上的两个光系统，电子流动把 H⁺ 泵进腔——H⁺ 涌出时转子转出 <b>ATP</b>，FNR 拼出 <b>NADPH</b>；水被拆开，<b>O₂</b> 由此放出。</p>
     <p><b>下半</b>：满电池（黄/紫）会<b>掉进右下的拼糖环</b>，每轮花 3 ATP + 2 NADPH 抓住一个 CO₂ 拼糖；用完的<b>空电池</b>再飞回膜上充电——循环不停。</p>
