@@ -72,6 +72,7 @@ export function buildStory() {
   const photons = [], waters = [], co2s = [], o2s = [], sugars = [];
   const sugarPile = new THREE.Group(); scene.add(sugarPile);
   const state = {
+    paused: false,
     timers: { p: 0, w: 0, c: 0 },
     counts: { water: 0, co2: 0, sugar: 0, o2: 0 },
     co2ToSugar: 0,            // 每 6 个 CO₂ → 1 块糖（真实配比）
@@ -113,6 +114,14 @@ export function buildStory() {
     b.textContent = '▶ 一分钟故事'; b.classList.remove('on');
   }
 
+  function setPaused(v) {
+    state.paused = v;
+    const b = document.getElementById('bStoryPause');
+    b.textContent = v ? '▶ 继续' : '⏸ 暂停';
+    b.classList.toggle('on', v);
+  }
+  document.getElementById('bStoryPause').addEventListener('click', () => setPaused(!state.paused));
+
   // ── HUD ──
   const els = ['hSwater', 'hSco2', 'hSsugar', 'hSo2'].map(id => document.getElementById(id));
   function refreshHUD() {
@@ -125,11 +134,13 @@ export function buildStory() {
   document.getElementById('bStory').addEventListener('click', e => {
     if (state.story >= 0) { stopStory(); }
     else {
+      setPaused(false);
       state.story = 0; state.storyT = 0;
       e.target.textContent = '⏹ 停止故事'; e.target.classList.add('on');
     }
   });
   document.getElementById('bStoryHome').addEventListener('click', () => {
+    setPaused(false);
     stopStory();
     camera.position.copy(HOME.cam); controls.target.copy(HOME.target);
   });
@@ -178,7 +189,7 @@ export function buildStory() {
 
   // ── 更新 ──
   function update(dt0) {
-    const dt = dt0;
+    const dt = state.paused ? 0 : dt0;
 
     // 生成节奏
     state.timers.p += dt; if (state.timers.p > 0.4) { state.timers.p = 0; spawnPhoton(); }

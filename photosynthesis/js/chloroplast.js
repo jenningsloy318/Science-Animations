@@ -180,16 +180,25 @@ export function buildLeaf() {
   camera.position.copy(HOME.cam);
   controls.target.copy(HOME.target);
 
-  const state = { tour: -1, t: 0 };   // -1=全景; 0..2=飞往/停留在第 N 站
+  const state = { tour: -1, t: 0, paused: false };   // -1=全景; 0..2=飞往/停留在第 N 站
   function flyTo(cam, target, dt, speed = 1.1) {
     camera.position.lerp(cam, Math.min(1, dt * 2.2 * speed));
     controls.target.lerp(target, Math.min(1, dt * 2.2 * speed));
   }
   document.getElementById('bLeafTour').addEventListener('click', e => {
-    if (state.tour >= 0) { state.tour = -1; e.target.textContent = '🎬 自动导览'; e.target.classList.remove('on'); controls.enabled = true; flyTo(HOME.cam, HOME.target, 0.999); }
-    else { state.tour = 0; state.t = 0; e.target.textContent = '⏹ 停止导览'; e.target.classList.add('on'); controls.enabled = false; }
+    if (state.tour >= 0) { state.tour = -1; setPaused(false); e.target.textContent = '🎬 自动导览'; e.target.classList.remove('on'); controls.enabled = true; flyTo(HOME.cam, HOME.target, 0.999); }
+    else { setPaused(false); state.tour = 0; state.t = 0; e.target.textContent = '⏹ 停止导览'; e.target.classList.add('on'); controls.enabled = false; }
   });
+  function setPaused(v) {
+    state.paused = v;
+    const b = document.getElementById('bLeafPause');
+    b.textContent = v ? '▶ 继续' : '⏸ 暂停';
+    b.classList.toggle('on', v);
+  }
+  document.getElementById('bLeafPause').addEventListener('click', () => setPaused(!state.paused));
+
   document.getElementById('bLeafHome').addEventListener('click', () => {
+    setPaused(false);
     state.tour = -1;
     const b = document.getElementById('bLeafTour');
     b.textContent = '🎬 自动导览'; b.classList.remove('on'); controls.enabled = true;
@@ -198,6 +207,7 @@ export function buildLeaf() {
   const tourHold = 1.6;
   const _wp = new THREE.Vector3();
   function update(dt) {
+    if (state.paused) { controls.update(); return; }
     // 标签尺寸随相机距离补偿：d≈70（全景）时为基准尺寸
     for (const l of allLabels) {
       l.getWorldPosition(_wp);

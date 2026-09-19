@@ -131,7 +131,7 @@ export function buildFacts() {
     { cam: new THREE.Vector3(-3, 5, 18), target: new THREE.Vector3(-3, 0, 0) },
   ];
   const NAMES = ['吸收光谱', '效率阶梯', '全球尺度'];
-  const state = { stage: 0 };
+  const state = { stage: 0, paused: false };
   function applyStage(s) {
     state.stage = s;
     Object.entries(groups).forEach(([k, g], i) => g.visible = i === s);
@@ -140,11 +140,19 @@ export function buildFacts() {
     controls.target.copy(CAMS[s].target);
   }
   document.getElementById('rFacts').addEventListener('input', e => applyStage(+e.target.value));
+  document.getElementById('bFactsPause').addEventListener('click', e => {
+    state.paused = !state.paused;
+    e.target.textContent = state.paused ? '▶ 继续' : '⏸ 暂停';
+    e.target.classList.toggle('on', state.paused);
+  });
   applyStage(0);
 
   return {
     scene, camera,
-    update(dt) { groups.globe.rotation.y += dt * 0.12; controls.update(); },
+    update(dt) {
+      if (!state.paused) groups.globe.rotation.y += dt * 0.12;
+      controls.update();
+    },
     getInfo() { return { stage: state.stage, name: NAMES[state.stage] }; },
   };
 }

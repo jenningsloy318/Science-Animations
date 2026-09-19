@@ -18,6 +18,11 @@
   #topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 20; display: flex; align-items: center;
     gap: 10px; padding: 12px 18px; pointer-events: none; }
   #topbar h1 { font-size: 18px; margin: 0 14px 0 0; letter-spacing: .5px; pointer-events: auto; }
+  .homeBtn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px 5px 11px;
+    background: rgba(15,23,42,0.82); border: 1px solid var(--line); border-radius: 999px;
+    color: var(--txt); font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap;
+    pointer-events: auto; transition: background .25s ease, border-color .25s ease; }
+  .homeBtn:hover { background: rgba(30,41,59,0.95); border-color: rgba(148,163,184,0.45); color: #fff; }
   .tab { pointer-events: auto; background: var(--panel); border: 1px solid var(--line); color: var(--mut);
     border-radius: 999px; padding: 7px 16px; font-size: 13px; cursor: pointer; }
   .tab:hover { color: var(--txt); }
@@ -80,6 +85,7 @@
   <canvas id="zscheme" width="360" height="205"></canvas>
 
   <div id="topbar">
+    <a class="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
     <h1>光合作用</h1>
     <button class="tab active" data-view="story">① 一图看懂</button>
     <button class="tab" data-view="leaf">② 叶子里</button>
@@ -172,10 +178,12 @@
   <div id="bottomBar">
     <div class="viewbar active" data-bar="story">
       <button class="btn" id="bStory">▶ 一分钟故事</button>
+      <button class="btn" id="bStoryPause">⏸ 暂停</button>
       <button class="btn" id="bStoryHome">⟲ 回到全景</button>
     </div>
     <div class="viewbar" data-bar="leaf">
       <button class="btn" id="bLeafTour">🎬 自动导览</button>
+      <button class="btn" id="bLeafPause">⏸ 暂停</button>
       <button class="btn" id="bLeafHome">⟲ 回到全景</button>
     </div>
     <div class="viewbar" data-bar="light">
@@ -185,6 +193,7 @@
       <div class="ctl"><label>速度</label><input type="range" id="rSpeed" min="0.4" max="2.5" step="0.1" value="1"><output id="oSpeed">1.0×</output></div>
     </div>
     <div class="viewbar" data-bar="facts">
+      <button class="btn" id="bFactsPause">⏸ 暂停</button>
       <div class="ctl"><label>视角</label><input type="range" id="rFacts" min="0" max="2" step="1" value="0"><output id="oFacts">吸收光谱</output></div>
     </div>
   </div>

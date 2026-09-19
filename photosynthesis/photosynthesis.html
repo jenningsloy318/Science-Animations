@@ -18,6 +18,11 @@
   #topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 20; display: flex; align-items: center;
     gap: 10px; padding: 12px 18px; pointer-events: none; }
   #topbar h1 { font-size: 18px; margin: 0 14px 0 0; letter-spacing: .5px; pointer-events: auto; }
+  .homeBtn { display: inline-flex; align-items: center; gap: 6px; padding: 5px 14px 5px 11px;
+    background: rgba(15,23,42,0.82); border: 1px solid var(--line); border-radius: 999px;
+    color: var(--txt); font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap;
+    pointer-events: auto; transition: background .25s ease, border-color .25s ease; }
+  .homeBtn:hover { background: rgba(30,41,59,0.95); border-color: rgba(148,163,184,0.45); color: #fff; }
   .tab { pointer-events: auto; background: var(--panel); border: 1px solid var(--line); color: var(--mut);
     border-radius: 999px; padding: 7px 16px; font-size: 13px; cursor: pointer; }
   .tab:hover { color: var(--txt); }
@@ -80,6 +85,7 @@
   <canvas id="zscheme" width="360" height="205"></canvas>
 
   <div id="topbar">
+    <a class="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
     <h1>光合作用</h1>
     <button class="tab active" data-view="story">① 一图看懂</button>
     <button class="tab" data-view="leaf">② 叶子里</button>
@@ -172,10 +178,12 @@
   <div id="bottomBar">
     <div class="viewbar active" data-bar="story">
       <button class="btn" id="bStory">▶ 一分钟故事</button>
+      <button class="btn" id="bStoryPause">⏸ 暂停</button>
       <button class="btn" id="bStoryHome">⟲ 回到全景</button>
     </div>
     <div class="viewbar" data-bar="leaf">
       <button class="btn" id="bLeafTour">🎬 自动导览</button>
+      <button class="btn" id="bLeafPause">⏸ 暂停</button>
       <button class="btn" id="bLeafHome">⟲ 回到全景</button>
     </div>
     <div class="viewbar" data-bar="light">
@@ -185,6 +193,7 @@
       <div class="ctl"><label>速度</label><input type="range" id="rSpeed" min="0.4" max="2.5" step="0.1" value="1"><output id="oSpeed">1.0×</output></div>
     </div>
     <div class="viewbar" data-bar="facts">
+      <button class="btn" id="bFactsPause">⏸ 暂停</button>
       <div class="ctl"><label>视角</label><input type="range" id="rFacts" min="0" max="2" step="1" value="0"><output id="oFacts">吸收光谱</output></div>
     </div>
   </div>
@@ -23434,6 +23443,7 @@
     const sugarPile = new Group();
     scene.add(sugarPile);
     const state = {
+      paused: false,
       timers: { p: 0, w: 0, c: 0 },
       counts: { water: 0, co2: 0, sugar: 0, o2: 0 },
       co2ToSugar: 0,
@@ -23477,6 +23487,13 @@
       b.textContent = "\u25B6 \u4E00\u5206\u949F\u6545\u4E8B";
       b.classList.remove("on");
     }
+    function setPaused(v) {
+      state.paused = v;
+      const b = document.getElementById("bStoryPause");
+      b.textContent = v ? "\u25B6 \u7EE7\u7EED" : "\u23F8 \u6682\u505C";
+      b.classList.toggle("on", v);
+    }
+    document.getElementById("bStoryPause").addEventListener("click", () => setPaused(!state.paused));
     const els = ["hSwater", "hSco2", "hSsugar", "hSo2"].map((id) => document.getElementById(id));
     function refreshHUD() {
       els[0].textContent = state.counts.water;
@@ -23488,6 +23505,7 @@
       if (state.story >= 0) {
         stopStory();
       } else {
+        setPaused(false);
         state.story = 0;
         state.storyT = 0;
         e.target.textContent = "\u23F9 \u505C\u6B62\u6545\u4E8B";
@@ -23495,6 +23513,7 @@
       }
     });
     document.getElementById("bStoryHome").addEventListener("click", () => {
+      setPaused(false);
       stopStory();
       camera.position.copy(HOME.cam);
       controls.target.copy(HOME.target);
@@ -23544,7 +23563,7 @@
       }
     }
     function update(dt0) {
-      const dt = dt0;
+      const dt = state.paused ? 0 : dt0;
       state.timers.p += dt;
       if (state.timers.p > 0.4) {
         state.timers.p = 0;
@@ -23856,7 +23875,7 @@
     ];
     camera.position.copy(HOME.cam);
     controls.target.copy(HOME.target);
-    const state = { tour: -1, t: 0 };
+    const state = { tour: -1, t: 0, paused: false };
     function flyTo(cam, target, dt, speed = 1.1) {
       camera.position.lerp(cam, Math.min(1, dt * 2.2 * speed));
       controls.target.lerp(target, Math.min(1, dt * 2.2 * speed));
@@ -23864,11 +23883,13 @@
     document.getElementById("bLeafTour").addEventListener("click", (e) => {
       if (state.tour >= 0) {
         state.tour = -1;
+        setPaused(false);
         e.target.textContent = "\u{1F3AC} \u81EA\u52A8\u5BFC\u89C8";
         e.target.classList.remove("on");
         controls.enabled = true;
         flyTo(HOME.cam, HOME.target, 0.999);
       } else {
+        setPaused(false);
         state.tour = 0;
         state.t = 0;
         e.target.textContent = "\u23F9 \u505C\u6B62\u5BFC\u89C8";
@@ -23876,7 +23897,15 @@
         controls.enabled = false;
       }
     });
+    function setPaused(v) {
+      state.paused = v;
+      const b = document.getElementById("bLeafPause");
+      b.textContent = v ? "\u25B6 \u7EE7\u7EED" : "\u23F8 \u6682\u505C";
+      b.classList.toggle("on", v);
+    }
+    document.getElementById("bLeafPause").addEventListener("click", () => setPaused(!state.paused));
     document.getElementById("bLeafHome").addEventListener("click", () => {
+      setPaused(false);
       state.tour = -1;
       const b = document.getElementById("bLeafTour");
       b.textContent = "\u{1F3AC} \u81EA\u52A8\u5BFC\u89C8";
@@ -23886,6 +23915,10 @@
     const tourHold = 1.6;
     const _wp = new Vector3();
     function update(dt) {
+      if (state.paused) {
+        controls.update();
+        return;
+      }
       for (const l of allLabels) {
         l.getWorldPosition(_wp);
         const d = camera.position.distanceTo(_wp);
@@ -23976,7 +24009,7 @@
     const scene = new Scene();
     scene.background = new Color("#060b12");
     const camera = new PerspectiveCamera(46, innerWidth / innerHeight, 0.1, 300);
-    camera.position.set(4, 4, 44);
+    camera.position.set(7, 4, 44);
     scene.add(new AmbientLight("#42506a", 1));
     const key = new DirectionalLight("#fff2d8", 1.4);
     key.position.set(6, 14, 16);
@@ -23984,7 +24017,7 @@
     const controls = new OrbitControls(camera, document.getElementById("gl"));
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-    controls.target.set(3, 1, 0);
+    controls.target.set(6, 1, 0);
     const lumenBg = new Mesh(
       new PlaneGeometry(46, 3.6),
       new MeshBasicMaterial({ color: "#0d1f38", transparent: true, opacity: 0.9 })
@@ -24792,7 +24825,7 @@
       { cam: new Vector3(-3, 5, 18), target: new Vector3(-3, 0, 0) }
     ];
     const NAMES = ["\u5438\u6536\u5149\u8C31", "\u6548\u7387\u9636\u68AF", "\u5168\u7403\u5C3A\u5EA6"];
-    const state = { stage: 0 };
+    const state = { stage: 0, paused: false };
     function applyStage(s) {
       state.stage = s;
       Object.entries(groups).forEach(([k, g], i) => g.visible = i === s);
@@ -24801,12 +24834,17 @@
       controls.target.copy(CAMS[s].target);
     }
     document.getElementById("rFacts").addEventListener("input", (e) => applyStage(+e.target.value));
+    document.getElementById("bFactsPause").addEventListener("click", (e) => {
+      state.paused = !state.paused;
+      e.target.textContent = state.paused ? "\u25B6 \u7EE7\u7EED" : "\u23F8 \u6682\u505C";
+      e.target.classList.toggle("on", state.paused);
+    });
     applyStage(0);
     return {
       scene,
       camera,
       update(dt) {
-        groups.globe.rotation.y += dt * 0.12;
+        if (!state.paused) groups.globe.rotation.y += dt * 0.12;
         controls.update();
       },
       getInfo() {
