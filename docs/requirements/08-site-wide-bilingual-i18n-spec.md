@@ -1039,5 +1039,122 @@ gantt
     构筑从应用层到硬件驱动层的绝对鲁棒容灾防线。
 
 ---
+
+## 十四、 第六轮深度质询：导航链路劫持排查、地理地名双语图层与构建断言矩阵 (Round 6 Grilling: Navigation Interceptors, Geographic Layer & Build Matrix)
+
+在第六轮质询中，我们针对真实代码库开展了全量代码静态扫描与链路审计，深挖出关于**子项目 `#homeBtn` 点击拦截器主动丢弃参数、地球地理图层硬编码中文、多视图动态挂载内存泄漏、黑洞 GLSL 全屏视口 HUD、西文断词连字符、无痕隐私沙箱存储降级以及 CI 死键/漏键自动拦截**等 7 项极具欺骗性的深水隐患，完成终审技术定标：
+
+### 质询 14.1：`#homeBtn` 异构遗留拦截器主动截断 URL 语言参数 (Active Click Interceptors Stripping Query Params)
+- **深渊挖掘**：
+  - 核心困惑：“我们在前几轮质询中要求给子项目的 `<a id="homeBtn">` 动态注入 `?lang=` 参数，但为什么在 `particle-collider` 和 `solar-system` 中测试时，点击返回首页依然会丢失英文设置？”
+  - **物理真实与代码剖析**：
+    - 检查 `particle-collider/index.html` 第 440-446 行 与 `solar-system/index.html` 第 204-210 行代码：
+      ```javascript
+      document.getElementById('homeBtn')?.addEventListener('click', (e) => {
+        if (window.location.pathname.includes('/solar-system')) {
+          e.preventDefault();
+          const basePath = window.location.pathname.substring(0, window.location.pathname.indexOf('/solar-system'));
+          window.location.href = (basePath || '') + '/index.html';
+        }
+      });
+      ```
+    - 这段为了防止深层路径跳转错误的保护脚本，监听了点击事件，执行了 `e.preventDefault()`；
+    - 随后直接把 `location.href` 重写为 `.../index.html`，**将我们在 `<a>` 标签上绑定的 `?lang=` 参数粗暴抹杀丢弃！**
+    - 此外，`uphill-roller` 和 `motion-parallax` 甚至根本没有 `#homeBtn`；`black-hole` 和 `rotating-earth` 用的是普通的 `.btn` 标签；`photosynthesis` 用的是 `.homeBtn` 类名。
+- **终审裁决**：
+  - **全面收编与统一规范 `#homeBtn` 导航守护器**：
+    1. **参数保活重定向**：重构拦截脚本，强制拼接当前活跃语种：
+       `window.location.href = (basePath || '') + '/index.html?lang=' + i18n.currentLang;`
+    2. **全站 DOM 规范化**：补齐 `uphill-roller` 与 `motion-parallax` 缺失的返回首页按钮；全站统一使用标准 ID `<a id="homeBtn" class="home-btn" ...>`，确保全局框架可靠绑定。
+
+---
+
+### 质询 14.2：全球地名与地理大国图层的数据结构中英完全隔离 (Geographic Places & Country Meta Data Decoupling)
+- **深渊挖掘**：
+  - 核心困惑：“在 `rotating-earth`（三维旋转地球）中，点击国家或者缩放到近景时会浮现海洋、海峡与世界奇观地标。国家数据其实早就有英文，为什么界面上却全被写成了死中文？那些海峡和地标又该如何双语化？”
+  - **物理真实与代码剖析**：
+    - 在 `rotating-earth/js/countries-data.js` 中，其实早已具备全球两百多个国家和地区的完整双语字段（`USA: { zh: "美国", en: "United States" }`）；
+    - 但在 `main.js` 第 276 行中，代码直接写死了 `name: m.zh`，把现成的 `m.en` 弃置不用；
+    - 在 `places-data.js` 中，各大洋（太平洋、大西洋）、海峡（马六甲、直布罗陀）、运河（苏伊士、巴拿马）与世界地标（长城、珠峰、埃菲尔铁塔、金字塔、斗兽场）全都是纯中文硬编码字符串。
+- **终审裁决**：
+  - **地理数据双语规范化与动态图层重绘**：
+    1. 重构 `places-data.js`，将所有海洋、海峡、湖泊与地标扩展为 `{ zh, en, lat, lon, tier, kind }` 双语数据对象；
+    2. `main.js` 依据当前语言动态绑定 3D 浮动标签的 `textContent`，并在语言翻转时通知地球图层执行原地刷新：
+       `name: (i18n.currentLang === 'zh' ? m.zh : m.en)`，
+       使旋转地球在英文模式下瞬间呈现标准的国际地理版图与世界地标。
+
+---
+
+### 质询 14.3：多视图子系统 (`motion-parallax`) 动态注入 DOM 的无序销毁与订阅泄漏 (Dynamic View Lifecycle & Subscriber Hygiene)
+- **深渊挖掘**：
+  - 核心困惑：“在 `motion-parallax`（运动视差）中，它的 3 个视图（① 乘车体验 `ride.js`、② 扫角几何 `topview.js`、③ 从树木到星空 `space.js`）并不是静态写在 HTML 里的，而是每个 JS 模块在运行时动态执行：
+    `panel = document.createElement('div'); sidePanel.appendChild(panel); panel.innerHTML = ...;`
+    `bar = document.createElement('div'); bottomBar.appendChild(bar); bar.innerHTML = ...;`
+    如果全局 `i18n` 仅在页面加载时扫描一次静态 DOM，它根本扫描不到这 3 个视图未来动态注入的面板与滑块！更可怕的是，在视图 ① 中注册的事件，切换到视图 ② 后仍在后台持续耗费 CPU，怎么治理？”
+- **终审裁决**：
+  - **动态视图挂载握手与生命周期闭环 (Dynamic View Mount Protocol)**：
+    1. **动态注入握手契约**：视图创建出 DOM 容器并追加到页面后，必须显式调用 `i18n.bind(panel)` 与 `i18n.bind(bar)`，立即完成属性插槽绑定与当前语种初始化；
+    2. **局部作用域注销机制**：各视图必须持有独立的订阅解绑句柄，在视图切换（`leave`）或卸载时主动注销当前视图的事件监听器，杜绝幽灵视图在后台空转。
+
+---
+
+### 质询 14.4：黑洞引力透镜全屏 GLSL 仿真下的 Canvas 离屏 HUD 与快捷键帮助弹窗本地化 (Shader Viewport & Keyboard Help Modal)
+- **深渊挖掘**：
+  - 核心困惑：“在 `black-hole`（黑洞 Gargantua 实时广义相对论测地线光线追踪）中，99% 的画面由 WebGL 片元着色器实时积分绘制，但外围悬浮着复杂的数据流水线盒（`#pipelineBox`）、机位功能按钮（`FEATURES`）、物理开关按钮（`#physBar`）、阴影环标注（`#ringOverlay`）以及全屏快捷键帮助弹窗（`#help`）。这些文字全部硬编码在 HTML 和 JS 模板字面量中，英文模式下依然全是中文，如何彻底翻转？”
+- **终审裁决**：
+  - **广义相对论交互全量词条字典化**：
+    1. 建立专用的 `blackHole` 国际化命名空间，将 Kip Thorne 理论涉及的测地线、吸积盘、多普勒集束（Doppler Beaming）、引力透镜、光子环等专业物理学词汇进行标准严谨的 IUPAP/ISO 翻译；
+    2. 快捷键帮助表 `#help` 与数据流水线 `#pipelineBox` 声明式接入 `data-i18n`，确保全屏测地线仿真下的交互面板实现完美的双语同轨。
+
+---
+
+### 质询 14.5：跨语种断词、排印连字符与西文音节截断破坏 (Hyphenation, Word-Break & Typography Polish)
+- **深渊挖掘**：
+  - 核心困惑：“中文是方块字，几乎可以在任何字符间断行；而英文是由单词构成的拼音文字。若 CSS 中不慎声明了 `word-break: break-all;`，英文单词将在任意字母处被野蛮斩断（例如 `photosynthesis` 会被斩断成 `phot-` 换行 `osynt-` 换行 `hesis`），这在母语者眼中属于极其低级、不可接受的排印事故；此外，英文中专有名词与缩写（如 $E=mc^2$、1.12 eV、GW150914、42 μas）绝对不能在数值与单位之间发生换行断开。”
+- **终审裁决**：
+  - **西文排版安全准则 (Typography Safety Rules)**：
+    1. 全站 CSS 严禁在自然语言文本容器上使用 `word-break: break-all;`，统一使用现代标准：
+       `overflow-wrap: break-word; word-break: normal; hyphens: auto;`；
+    2. 数值与科学单位之间（如 `1.12 eV`、`1000 W/m²`）必须在字典与代码输出中强制使用不换行空格（Non-Breaking Space, `&nbsp;` 或 `\u00A0`），杜绝数值在行尾、单位掉到下一行的荒谬视觉破碎。
+
+---
+
+### 质询 14.6：双语持久化配置与隐私沙箱限制下的安全多级降级矩阵 (Graceful Degradation Matrix)
+- **深渊挖掘**：
+  - 核心困惑：“在学校机房、公共图书馆电子阅览室或严格隐私模式（如 Safari 无痕浏览、Tor Browser、禁用第三方 Cookie 及 LocalStorage 的极端安全组策略）下，任何对 `localStorage` 的读写都会直接抛出 `SecurityError`。如果代码中出现一次未捕获的错误，整段 JS 执行链将彻底崩溃猝死。”
+- **终审裁决**：
+  - **无痕降级内存保险箱 (In-Memory Safe Fallback)**：
+    在 `ScienceI18n` 核心内部封装纯内存安全代理：
+    ```javascript
+    const MemoryStorage = {
+      _d: {},
+      getItem(k) { return this._d[k] || null; },
+      setItem(k, v) { this._d[k] = String(v); }
+    };
+    function getSafeStorage() {
+      try {
+        const s = window.localStorage;
+        s.setItem('__test', '1'); s.removeItem('__test');
+        return s;
+      } catch(e) {
+        return MemoryStorage;
+      }
+    }
+    ```
+    确保即使在最严苛的无痕沙箱与权限剥夺环境下，系统依然 100% 运行平稳，永不抛出任何未捕获异常。
+
+---
+
+### 质询 14.7：CI/CD 自动化构建断言矩阵：全项目编译零字节漂移与死键拦截 (Zero-Deadkey CI Assertion)
+- **深渊挖掘**：
+  - 核心困惑：“全站涉及 15 个子项目、上千个国际化键名。未来随着持续维护或新增物理实验（如正在规划的《都江堰 3D》、《宇宙时钟》），如果某位开发者在中文字典添加了键，但在英文中漏掉了该键，或者在 HTML 模板中写错了键名，页面在英文模式下会直接暴露难看的占位字符串，怎么在流水线中直接拦截？”
+- **终审裁决**：
+  - **固化全量死键/漏键 CI 静态拦截网**：
+    在 `tests/i18n.test.mjs` 中固化执行三大静态断言：
+    1. **双向对称全反射断言 (Bi-directional Key Symmetry)**：对全站每一个项目的字典，断言 `Object.keys(zh).sort() === Object.keys(en).sort()`，任何一方遗漏字段立即构建报错中断；
+    2. **HTML 静态占位符一致性断言 (DOM Ref Integrity)**：正则扫描全站所有 HTML 文件与 JS 模板中的 `data-i18n` 声明，断言每一个声明的键名必须严格存在于对应字典中；
+    3. **构建产物零网络外链断言**：运行所有 15 个项目的 `build.py`，自动校验产出的 `*.html` 单文件完全符合零 CDN、零外部请求的离线标准。
+
+---
 *本规范为全站双语国际化改造的唯一法定技术蓝图与实施基准。*
 
