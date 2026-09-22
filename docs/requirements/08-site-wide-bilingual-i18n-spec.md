@@ -910,5 +910,134 @@ gantt
     当语种翻转或物理关键里程碑达成时，向该区域写入当前语言的简明通知（如“Language changed to English” / “已切换为中文”），实现真正国际一流的普惠无障碍科学探索体验。
 
 ---
+
+## 十三、 第五轮深度质询：时序物理安全、首屏防跳闪与极端容灾机制 (Round 5 Grilling: Physics Delta Clamping, FOUT Elimination & Disaster Recovery)
+
+在第五轮质询中，我们针对物理引擎在跨语言重排下的**时间膨胀穿隧爆炸、首屏未翻译文本闪烁 (FOUT)、浏览器历史栈死循环、2D 图表坐标轴文字碰撞、Emoji 垂直基线失衡、触控靶区安全尺寸与 WebGL 显存崩溃自愈**等 7 项极深层工程物理细节，进行了全面的在线文献检索与代码沙盒验证，完成终审架构裁决：
+
+### 质询 13.1：首屏未翻译文本闪烁 (FOUT: Flash of Untranslated Text) 与首屏冷启动白屏/跳变防御
+- **深渊挖掘**：
+  - 核心困惑：“在 `subproject/index.html` 中，静态 HTML 源码全为中文（如 `<h1 id="chapterTitle">☀️ 太阳能电池：光子 → 电能</h1>`）。若用户通过 `index.html?lang=en` 访问，或者用户曾经在 `localStorage` 保存了 `'en'`：由于 ES 模块（`<script type="module" src="js/main.js">`）默认是异步延迟执行（Deferred Execution）的，浏览器会在 HTML 解析完毕后立即绘制出第一帧（First Contentful Paint）；此时用户会先看到 100~300ms 的纯中文界面，随后 JS 模块加载执行，文字突然‘啪’地跳变成英文！这种严重的 FOUT（Flash of Untranslated Text）不仅在视觉上极其廉价，而且会导致布局跳变（CLS: Cumulative Layout Shift 恶化），怎么根除？”
+  - **物理真实与浏览器解析机制**：
+    - 根据 HTML 规范，带 `type="module"` 的脚本无论放在页眉还是页脚，其下载与执行都是非阻塞异步的，其生命周期落后于 DOM 初始解析；
+    - 浏览器在没有阻塞型同步脚本干预时，会按照 HTML 初始静态文本执行光栅化绘制，随后 JS 执行 `element.textContent = ...` 触发二次重绘，产生人眼清晰可辨的“语种闪烁”。
+- **终审裁决**：
+  - **极速同步前置自举脚本 (Zero-FOUT Synchronous Bootstrap)**：
+    在 `<head>` 底部、`<body>` 渲染之前，植入不到 10 行的超轻量微型同步自举脚本：
+    ```html
+    <script>
+      (function() {
+        var l = new URLSearchParams(location.search).get('lang') ||
+                (function() { try { return localStorage.getItem('science_lang'); } catch(e){} })() || 'zh';
+        document.documentElement.lang = (l === 'en' ? 'en' : 'zh-CN');
+        document.documentElement.classList.add('i18n-loading');
+      })();
+    </script>
+    ```
+    配合核心 CSS 规则：`.i18n-loading [data-i18n] { visibility: hidden; }`，在 JS 模块完成首轮字典注入后无缝移除 `.i18n-loading`，彻底抹除任何语种跳跃式闪烁，实现零 FOUT 的电影级丝滑加载。
+
+---
+
+### 质询 13.2：语言切换引发的物理引擎“时间膨胀穿隧爆炸” (Physics Delta Time Explosion & Quantum Tunneling)
+- **深渊挖掘**：
+  - 核心困惑：“在 `solar-system`（409 行：`const delta = this.clock.getDelta();`）、`gravity-slingshot`、`how-cars-work` 等物理仿真项目中：当用户在仿真运行中点击中/英切换时，浏览器主线程需要同步执行全局 DOM 遍历、属性重绘、样式重排（Reflow/Repaint）以及可能的 Canvas 纹理更新；这可能导致主线程阻塞 80ms~150ms。在下一帧恢复渲染时，`clock.getDelta()` 会瞬间返回一个巨大的 `delta ≈ 0.15s`！在 `solar-system` 开启 5000 倍时间加速时，`0.15s × 5000 = 750 天`！水星、金星将在单帧内直接暴转数圈，航天器霍曼转移飞行轨道由于数值积分步长过大而直接‘穿透’目标行星引力井（飞出太阳系）；在原子物理中，电子将直接‘瞬移穿墙’飞出晶格！”
+  - **物理真实与数值积分学事实**：
+    - 欧拉法（Euler Integration）或 Verlet 积分对时间步长 $\Delta t$ 极其敏感。当 $\Delta t$ 超过系统的固有振荡周期的 $1/\pi$ 时，数值计算将发生非线性发散（Numerical Divergence）；
+    - 界面语言切换导致的瞬间重排主线程冻结，会向物理时钟注入一个病态的超大步长（Delta Time Spike），诱发致命的“时间膨胀穿隧爆炸”。
+- **终审裁决**：
+  - **物理时钟绝对安全钳位契约 (Hard Physics Delta Clamping Contract)**：
+    1. 全站所有物理仿真主循环严禁直接裸用 `clock.getDelta()`，必须强制执行上限钳位：
+       `const dt = Math.min(this.clock.getDelta(), 0.05);`（最大允许 50ms / 20 FPS 当量步长）；
+    2. 在 `i18n.setLanguage()` 触发切换时，必须同步触发一次时钟计时器归零重置：
+       `this.clock.getDelta(); // 消费掉重排耗费的阻塞时间，归零基准点`
+       确保语言切换无论多么复杂，物理世界中的行星轨道与微观粒子始终保持严密的数值稳定性。
+
+---
+
+### 质询 13.3：URL 历史记录栈污染与“返回键地狱” (Browser History Pollution & Back Button Trap)
+- **深渊挖掘**：
+  - 核心困惑：“为了让 URL 成为跨页面最稳固的语言载体，切换语言时必须同步更新当前地址栏 URL。如果开发者使用 `history.pushState(null, '', newUrl)`：当一个好奇的学生在页面上来回切换了 5 次中英文进行双语对照学习后，浏览器的历史记录栈就会被塞入 5 条完全相同的页面记录！此时学生点击浏览器的‘后退（Back）’按钮，页面根本退不出当前实验，而是在反复倒退语言切换历史，陷入痛苦的‘后退死循环（Back Button Trap）’；反之，如果用户确实通过浏览器前进/后退在不同页面间穿梭，代码如果未监听 `window.onpopstate`，页面语言又不会跟随 URL 变化自动同步，如何彻底解决？”
+- **终审裁决**：
+  - **无污染原地状态替换与 PopState 闭环 (Clean History Replace & PopState Loop)**：
+    1. **页面内切换强行使用 Replace**：
+       在当前页面内手动翻转语言时，**严格且必须使用** `history.replaceState(null, '', newUrl)`，绝对禁止调用 `pushState`，确保浏览器历史栈深度不增加一丝一毫；
+    2. **PopState 动态感知监听**：
+       全局 `ScienceI18n` 单例统一挂载 `popstate` 监听器：
+       ```javascript
+       window.addEventListener('popstate', () => {
+         const newLang = resolveLangFromUrl();
+         if (newLang !== i18n.currentLang) {
+           i18n.setLanguage(newLang, { fromPopState: true });
+         }
+       });
+       ```
+       当从其他页面通过浏览器“后退”或“前进”进入本页时，界面瞬间跟随 URL 参数自动无感同步。
+
+---
+
+### 质询 13.4：2D 科学图表坐标轴标签 (Axis Labels & Ticks) 在英文化后的重叠与边界碰撞
+- **深渊挖掘**：
+  - 核心困惑：“在 `observatory-3d`（多普勒吸收线 `tab-t4-doppler.js` 第 139-144 行）、`solar-cell`（IV 曲线与能带图）、`nuclear-fission-3d`（质量数双峰图）中，图表均在 2D Canvas 上以硬编码像素坐标绘制：
+    例如 `tab-t4-doppler.js`：
+    `ctx2.fillText(lbl, Math.min(xs + 12, W - 130), H - 14);`
+    `ctx2.fillText('← 蓝移', 8, H - 12);`
+    在中文下，`← 蓝移` 宽度仅约 35px，右侧留有足够空隙；切换为英文后，`← Blueshift` 宽度暴增至 75px 以上！当谱线处于左端极限时，`lbl`（如 `λ=656.300 nm`）与 `← Blueshift` 在同一垂直高度 `H - 12` 处发生极其严重的文字相互刺穿与重叠！”
+- **终审裁决**：
+  - **图表动态边距与感知排斥算法 (Dynamic Margin & Label Collision Avoidance)**：
+    1. 坐标轴图例文字的边距（Padding）严禁用固定魔法数字（如 `W - 130`），必须依据当前语种实际度量值动态计算：
+       `const leftPad = ctx.measureText(i18n.t('doppler.blueshift')).width + 16;`
+    2. 动态浮动标签（如谱线波长 `lbl`）的水平绘制坐标执行动态范围约束：
+       `const drawX = Math.max(leftPad, Math.min(xs + 12, W - rightPad - lblWidth));`
+       使数据可视化图表在任何语言下，标注与图例之间始终保持安全的缓冲带（Buffer Zone）。
+
+---
+
+### 质询 13.5：Emoji 图标与 CJK 方块字 / 西文基线高度对齐失衡 (Emoji vs CJK vs Latin Baseline Misalignment)
+- **深渊挖掘**：
+  - 核心困惑：“在全站按钮与标签中大量使用 Emoji 作为视觉导引（如 `⚙️ 玻尔轨道`、`☀️ 吸收光子`、`🚀 引力弹弓`）：汉字是正方形全角字符，基线和垂直重心天生偏中；英文（拉丁字母）有清晰的基线（Baseline）、上延部（Ascender，如 d/h/k）和下延部（Descender，如 g/p/y），整体视觉重心偏低；如果 CSS 中仅声明常规 `display: inline;` 或没有精确的垂直对齐，英文模式下的 Emoji 图标会明显‘高悬浮空’，与后面的英文单词显得格格不入。”
+- **终审裁决**：
+  - **跨语种图标垂直弹性对齐规范 (Vertical Baseline Neutralization)**：
+    所有带 Emoji 图标的按钮、标签容器统一声明：
+    ```css
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    line-height: 1;
+    ```
+    对于独立包裹的图标元素，声明 `vertical-align: middle; line-height: 1;`，从排版几何学上消除由于西文字形基线倾斜引起的 Emoji 悬浮感，达到中英文下统一的像素级美学对齐。
+
+---
+
+### 质询 13.6：移动端触控目标合规 (WCAG 2.5.5 / 2.5.8 Target Size) 与语言翻转后的误触防御
+- **深渊挖掘**：
+  - 核心困惑：“根据万维网无障碍 WCAG 2.5.8 规范（Target Size Minimum, Level AA），交互控件的触控热区必须至少达到 $24\times24\text{ px}$（移动端最佳推荐 $44\times44\text{ px}$）：中文词汇短，部分辅助小按钮（如 `observatory-3d` 的波段切换芯片 `.lang-chip`、`ion-thruster-3d` 的导览圆点 `#tourDots i`）若未设最小触控尺寸；在英文模式下，由于文字宽度变化引发按钮换行，若多个按钮在多行排列时行间距（Row Gap）过小（例如只设了 `gap: 4px`）；学生的手机屏幕上相邻按钮在折行后会紧贴甚至上下交叠，导致极高的手指误触概率。”
+- **终审裁决**：
+  - **触控靶区最小安全边界规范 (Touch Target Minimum Standard)**：
+    1. 所有交互控件（按钮、微型芯片、导览锚点）强制设定：
+       `min-height: 38px; min-width: 38px;`；对于视觉上必须保持细小尺寸的导览圆点（如 8px 点），强制使用 `::before` 伪元素扩大透明触控热区至 40px；
+    2. 弹性换行容器必须显式定义独立安全的行列双向间距：`gap: 8px 12px;`（行间距 8px，列间距 12px），确保英文模式即便因文本变长发生折行，按钮之间依然拥有绝对安全的防误触安全距离。
+
+---
+
+### 质询 13.7：WebGL 上下文丢失 (`webglcontextlost`) 在极端纹理批量刷新下的自愈保障
+- **深渊挖掘**：
+  - 核心困惑：“在配置较低的教学平板（如低配 iPad 或 Chromebook）上，WebGL 共享显存极小（常限制在 128MB~256MB）：切换语言时，如果整个页面瞬间对全场景中的几十个 TextSprite 逐一调用 `ctx.getImageData()` / `gl.texImage2D()` 进行高精位图上传；瞬间骤增的 GPU 显存吞吐可能直接触发浏览器的显存保护机制，强制抛出 `webglcontextlost` 事件，导致整个 3D 舞台彻底黑屏崩溃，如何防范？”
+- **终审裁决**：
+  - **纹理分帧批量上传与上下文自愈契约 (Context Loss Resilience & Texture Throttling)**：
+    1. **分帧平摊更新**：当页面包含 10 个以上 TextSprite 时，框架通过微任务队列（`requestAnimationFrame` 分帧调度）分批平摊 `texture.needsUpdate = true` 的上传动作，消除显存瞬时尖峰；
+    2. **上下文自愈监听**：
+       ```javascript
+       renderer.domElement.addEventListener('webglcontextlost', (event) => {
+         event.preventDefault(); // 阻止浏览器永久销毁上下文
+         console.warn('WebGL Context Lost during language toggle. Awaiting restore...');
+       }, false);
+       renderer.domElement.addEventListener('webglcontextrestored', () => {
+         rebuildSceneAfterContextRestore(); // 优雅自愈重建
+       }, false);
+       ```
+    构筑从应用层到硬件驱动层的绝对鲁棒容灾防线。
+
+---
 *本规范为全站双语国际化改造的唯一法定技术蓝图与实施基准。*
 
