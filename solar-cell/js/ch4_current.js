@@ -205,55 +205,126 @@ function exciteAt(bondPos, ph, heat) {
   }
 }
 
+// ── MPPT & Temperature State ──
+let loadResistance = 5.0; // Ω (sweet spot ≈ 5 Ω)
+let cellTemperature = 25; // °C
+let carrierLifetimeMs = 1.0; // ms (1.0 = high purity, 0.001 = contaminated)
+
+function computeOperatingPoint() {
+  const T = cellTemperature + 273.15;
+  const Vt = (1.380649e-23 * T) / 1.602176634e-19; // ~0.0259 V at 300K
+  const Voc0 = 0.72 - 0.0021 * (cellTemperature - 25);
+  const Isc = 6.0 * (carrierLifetimeMs >= 0.5 ? 1.0 : 0.35); // 少子寿命决定收集率
+  const I0 = Isc / (Math.exp(Voc0 / Vt) - 1);
+
+  if (loadResistance <= 0.05) {
+    return { V: 0, I: Isc, P: 0 };
+  }
+  if (loadResistance >= 95) {
+    return { V: Voc0, I: 0, P: 0 };
+  }
+
+  // 二分法求解二极管工作点 V / RL = Isc - I0*(exp(V/Vt) - 1)
+  let low = 0, high = Voc0;
+  for (let k = 0; k < 24; k++) {
+    const mid = (low + high) / 2;
+    const iDiode = Isc - I0 * (Math.exp(mid / Vt) - 1);
+    const iLoad = mid / loadResistance;
+    if (iLoad < iDiode) {
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+  const V = (low + high) / 2;
+  const I = Math.max(0, V / loadResistance);
+  return { V, I, P: V * I };
+}
+
 /* ── circuit ── */
 function buildCircuit() {
   const g = new THREE.Group();
   const off = root.position;
   const pts = [
-    new THREE.Vector3(-2.5 + off.x, 1.9 + off.y, off.z),
+    new THREE.Vector3(-2.8 + off.x, 1.9 + off.y, off.z),
     new THREE.Vector3(-4.4 + off.x, 5.6 + off.y, off.z),
     new THREE.Vector3(-1.2 + off.x, 7.3 + off.y, off.z),
-    new THREE.Vector3(3.0 + off.x, 6.6 + off.y, off.z),
-    new THREE.Vector3(2.5 + off.x, 2.4 + off.y, off.z),
+    new THREE.Vector3(3.2 + off.x, 6.6 + off.y, off.z),
+    new THREE.Vector3(2.8 + off.x, 2.4 + off.y, off.z),
   ];
   const curve = new THREE.CatmullRomCurve3(pts);
   const tube = new THREE.Mesh(
-    new THREE.TubeGeometry(curve, 64, 0.07, 8),
-    new THREE.MeshStandardMaterial({ color: 0x9aa3ad, metalness: 0.8, roughness: 0.35 })
+    new THREE.TubeGeometry(curve, 64, 0.075, 8),
+    new THREE.MeshStandardMaterial({ color: 0xb45309, metalness: 0.88, roughness: 0.25 }) // 纯紫铜导线
   );
   g.add(tube);
 
-  // contacts
-  const cGeo = new THREE.BoxGeometry(1.7, 0.12, dims.NZ * dims.SP * 0.8);
-  const cMat = new THREE.MeshStandardMaterial({ color: 0xb8c0cc, metalness: 0.85, roughness: 0.3 });
-  const cn = new THREE.Mesh(cGeo, cMat); cn.position.set(-2.5 + off.x, 1.86 + off.y, off.z);
-  const cp = new THREE.Mesh(cGeo, cMat); cp.position.set(2.5 + off.x, 1.86 + off.y, off.z);
+  // contacts (欧姆接触电极)
+  const cGeo = new THREE.BoxGeometry(1.8, 0.12, (dims.depth || dims.NZ * dims.SP) * 0.85);
+  const cMat = new THREE.MeshStandardMaterial({ color: 0xb8c0cc, metalness: 0.9, roughness: 0.25 });
+  const cn = new THREE.Mesh(cGeo, cMat); cn.position.set(-2.6 + off.x, 1.86 + off.y, off.z);
+  const cp = new THREE.Mesh(cGeo, cMat); cp.position.set(2.6 + off.x, 1.86 + off.y, off.z);
   g.add(cn, cp);
 
-  // lamp at the curve's apex
-  const lampPos = curve.getPointAt(0.78);
+  // 1. 爱迪生复古玻璃钨丝灯泡 (位于回路右上方 0.75 处)
+  const lampPos = curve.getPointAt(0.72);
   const bulb = new THREE.Mesh(
-    new THREE.SphereGeometry(0.55, 20, 20),
-    new THREE.MeshStandardMaterial({ color: 0x374151, emissive: 0x000000, roughness: 0.4 })
+    new THREE.SphereGeometry(0.52, 20, 20),
+    new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.3, roughness: 0.1 })
   );
   bulb.position.copy(lampPos);
   g.add(bulb);
   const base = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.18, 0.24, 0.4, 10),
-    new THREE.MeshStandardMaterial({ color: 0x6b7280, metalness: 0.7, roughness: 0.4 })
+    new THREE.CylinderGeometry(0.16, 0.22, 0.35, 10),
+    new THREE.MeshStandardMaterial({ color: 0x64748b, metalness: 0.8, roughness: 0.3 })
   );
-  base.position.copy(lampPos).add(new THREE.Vector3(0, -0.72, 0));
+  base.position.copy(lampPos).add(new THREE.Vector3(0, -0.62, 0));
   g.add(base);
-  const light = new THREE.PointLight(0xfde68a, 0, 18, 2);
+
+  // 双螺旋钨丝
+  const filament = new THREE.Mesh(
+    new THREE.TorusGeometry(0.18, 0.035, 8, 16),
+    new THREE.MeshStandardMaterial({ color: 0x7f1d1d, emissive: 0xef4444, emissiveIntensity: 0.3 })
+  );
+  filament.rotation.x = Math.PI / 2;
+  filament.position.copy(lampPos);
+  g.add(filament);
+
+  const light = new THREE.PointLight(0xfde68a, 0, 16, 2);
   light.position.copy(lampPos);
   g.add(light);
 
-  // flowing electrons
+  // 2. 微型机械电风扇 (位于回路左上方 0.35 处)
+  const fanPos = curve.getPointAt(0.35);
+  const fanGroup = new THREE.Group();
+  fanGroup.position.copy(fanPos);
+  const motor = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.24, 0.24, 0.45, 12),
+    new THREE.MeshStandardMaterial({ color: 0x475569, metalness: 0.8, roughness: 0.3 })
+  );
+  motor.rotation.x = Math.PI / 2;
+  fanGroup.add(motor);
+
+  const rotor = new THREE.Group();
+  const bladeGeo = new THREE.BoxGeometry(0.04, 0.72, 0.2);
+  const bladeMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.8, roughness: 0.2 });
+  for (let k = 0; k < 3; k++) {
+    const blade = new THREE.Mesh(bladeGeo, bladeMat);
+    blade.position.y = 0.42;
+    const bArm = new THREE.Group();
+    bArm.rotation.z = (k * 2 * Math.PI) / 3;
+    bArm.add(blade);
+    rotor.add(bArm);
+  }
+  fanGroup.add(rotor);
+  g.add(fanGroup);
+
+  // 3. 流动导电电子
   const electrons = [];
-  for (let i = 0; i < 14; i++) {
+  for (let i = 0; i < 16; i++) {
     const el = new THREE.Mesh(
-      new THREE.SphereGeometry(0.11, 8, 8),
-      new THREE.MeshStandardMaterial({ color: COL.electron, emissive: COL.electron, emissiveIntensity: 1.2 })
+      new THREE.SphereGeometry(0.12, 8, 8),
+      new THREE.MeshStandardMaterial({ color: COL.electron, emissive: COL.electron, emissiveIntensity: 1.3 })
     );
     el.visible = false;
     g.add(el);
@@ -261,13 +332,20 @@ function buildCircuit() {
   }
 
   env.root.add(g);
-  circuit = { group: g, curve, tube, bulb, light, electrons, closed: true, flowT: 0 };
+  circuit = {
+    group: g, curve, tube, bulb, filament, light, fanGroup, rotor,
+    electrons, closed: true, flowT: 0
+  };
   stage = 4;
+
+  const op = computeOperatingPoint();
+  METERS.volt = op.V;
+  METERS.amp = op.I;
 
   flyCamera(env.camera, env.controls, [10, 7.5, 15], [0, 3.2, 0], 1.6);
   showNarr(
-    '<b>电流来了！</b>电子沿导线从 n 侧出发 → 经过灯泡（做功·发光）→ 回到 p 侧与空穴<b>复合</b>。电子没有被消耗——它走一圈又回来了。阳光不停制造新的电子-空穴对，电流就永不停歇：光子 ➜ 电！',
-    'Electrons loop through the lamp and back — that loop IS the current',
+    '<b>电流来了！双负载联动做功！</b>电子沿纯铜导线从 n 侧流出，驱动<b>微型风扇呼啸旋转</b>并点亮<b>爱迪生钨丝灯泡</b>！调节下方 <b>MPPT 阻抗滑块</b>，探索让风扇狂转、灯泡爆亮的黄金甜点！',
+    'Current loops through both the fan and the lamp — adjust MPPT impedance to hit peak power!',
     'green'
   );
 }
@@ -355,26 +433,47 @@ export function update(dt, t) {
 
   // circuit flow
   if (circuit && circuit.closed) {
-    circuit.flowT += dt * (0.1 + 0.25 * (METERS.volt / 0.72));
+    const op = computeOperatingPoint();
+    METERS.volt = op.V;
+    METERS.amp = op.I;
+    const power = op.P;
+
+    // 导线内部电子流动速度随电流线性调整
+    circuit.flowT += dt * (0.05 + 0.35 * (op.I / 6.0));
     circuit.electrons.forEach((el, i) => {
       el.visible = true;
       const u = (circuit.flowT + i / circuit.electrons.length) % 1;
       el.position.copy(circuit.curve.getPointAt(u));
     });
-    const glow = 0.3 + 0.7 * Math.min(1, METERS.amp / 3.2);
-    circuit.bulb.material.emissive.setHex(0xfde68a).multiplyScalar(glow);
-    circuit.light.intensity = 2.4 * glow;
-    METERS.amp = 3.2 * (METERS.volt / 0.72);
+
+    // 1. 微型机械风扇转速直接与输出电功率联动
+    if (circuit.rotor) {
+      circuit.rotor.rotation.z += power * 7.5 * dt;
+    }
+
+    // 2. 爱迪生钨丝灯泡发光与环境点光源随功率联动
+    const normP = Math.min(1.0, power / 3.4);
+    if (circuit.filament) {
+      circuit.filament.material.emissiveIntensity = 0.2 + normP * 3.5;
+      circuit.filament.material.emissive.setHex(normP > 0.6 ? 0xfde047 : (normP > 0.2 ? 0xf97316 : 0xef4444));
+    }
+    if (circuit.bulb) {
+      circuit.bulb.material.emissiveIntensity = normP * 0.8;
+      circuit.bulb.material.emissive.setHex(0xfde68a);
+    }
+    if (circuit.light) {
+      circuit.light.intensity = normP * 2.8;
+    }
   } else if (METERS.amp > 0) {
     METERS.amp = Math.max(0, METERS.amp - dt * 2);
   }
 
   // gentle volt decay when open
-  if (stage >= 3 && stage < 4) METERS.volt = Math.max(0.4, METERS.volt - dt * 0.006);
+  if (stage >= 3 && stage < 4 && !circuit) METERS.volt = Math.max(0.4, METERS.volt - dt * 0.006);
 
   // auto-enable the circuit button once enough voltage has accumulated
   const cb = document.getElementById('btnCircuit');
-  if (cb) cb.disabled = !(stage >= 3 && METERS.volt >= 0.4 && !circuit);
+  if (cb) cb.disabled = !(stage >= 3 && METERS.volt >= 0.35 && !circuit);
 
   drawBand(t);
 }
@@ -386,47 +485,34 @@ function drawBand(t) {
   const { w, h } = bandSize();
   ctx.clearRect(0, 0, w, h);
 
-  // panel bg
-  ctx.fillStyle = 'rgba(8,12,24,0.88)';
-  roundRect(ctx, 4, 4, w - 8, h - 8, 12); ctx.fill();
+  // bg grid
+  ctx.fillStyle = '#080d1a';
+  ctx.fillRect(0, 0, w, h);
 
-  ctx.textAlign = 'center';
-  ctx.fillStyle = '#94a3b8'; ctx.font = 'bold 12px Outfit, sans-serif';
-  ctx.fillText('能带 = 晶体版的电子座位表', w / 2, 24);
-  ctx.font = '9px Outfit, sans-serif'; ctx.fillStyle = '#475569';
-  ctx.fillText('(原子模型里的壳层，在晶体里合并成带)', w / 2, 38);
+  // Conduction band (CB) & Valence band (VB) blocks
+  const L = 36, R = w - 68;
+  const cbY = 46, bh = 42;
+  const vbY = h - 96;
 
-  const L = 34, R = w - 34;
-  const cbY = 66, vbY = 210, bh = 40;
-
-  // conduction band (empty seats, free)
-  ctx.fillStyle = 'rgba(251,191,36,0.10)';
-  ctx.strokeStyle = 'rgba(251,191,36,0.55)';
-  roundRect(ctx, L, cbY, R - L, bh, 8); ctx.fill(); ctx.stroke();
+  // CB
+  roundRect(ctx, L, cbY, R - L, bh, 6);
+  ctx.fillStyle = 'rgba(251, 191, 36, 0.15)'; ctx.fill();
+  ctx.strokeStyle = '#fbbf24'; ctx.lineWidth = 1.6; ctx.stroke();
   ctx.fillStyle = '#fbbf24'; ctx.font = 'bold 11px Outfit, sans-serif';
-  ctx.fillText('导带 Conduction', w / 2, cbY - 8);
-  ctx.fillStyle = '#a16207'; ctx.font = '9px Outfit, sans-serif';
-  ctx.fillText('自由座位 · 能自由跑', w / 2, cbY + bh + 14);
+  ctx.fillText('二楼天台跑道：导带 (Conduction Band) — 平时全空', L + 10, cbY + 26);
 
-  // valence band (locked seats)
-  ctx.fillStyle = 'rgba(56,189,248,0.08)';
-  ctx.strokeStyle = 'rgba(56,189,248,0.5)';
-  roundRect(ctx, L, vbY, R - L, bh, 8); ctx.fill(); ctx.stroke();
+  // VB
+  roundRect(ctx, L, vbY, R - L, bh, 6);
+  ctx.fillStyle = 'rgba(56, 189, 248, 0.15)'; ctx.fill();
+  ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 1.6; ctx.stroke();
   ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 11px Outfit, sans-serif';
-  ctx.fillText('价带 Valence', w / 2, vbY + bh + 16);
-  ctx.fillStyle = '#0369a1'; ctx.font = '9px Outfit, sans-serif';
-  ctx.fillText('锁死的座位 · 共价键', w / 2, vbY - 8);
+  ctx.fillText('一楼硬卧看台：价带 (Valence Band) — 坐满锁死', L + 10, vbY + 26);
 
-  // valence electrons (dots) + hole when excited
-  for (let i = 0; i < 8; i++) {
-    const x = L + 14 + i * ((R - L - 28) / 7);
-    const isHole = absorbAnim !== null && i === 4;
-    if (isHole) {
-      ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.arc(x, vbY + bh / 2, 6, 0, Math.PI * 2); ctx.stroke();
-      ctx.fillStyle = '#38bdf8'; ctx.font = 'bold 9px Outfit';
-      ctx.fillText('+', x, vbY + bh / 2 + 3);
-    } else {
+  // electrons in VB
+  const es = 8;
+  for (let i = 0; i < es; i++) {
+    const x = L + 18 + i * ((R - L - 36) / (es - 1));
+    if (!(absorbAnim !== null && i === 4)) {
       ctx.fillStyle = '#7dd3fc';
       ctx.beginPath(); ctx.arc(x, vbY + bh / 2, 4.5, 0, Math.PI * 2); ctx.fill();
     }
@@ -502,9 +588,30 @@ export function actions() {
       },
       {
         label: '🔌 接通电路', cls: 'green', id: 'btnCircuit',
-        disabled: true,
+        disabled: !((stage >= 3 && METERS.volt >= 0.35) || circuit),
         onClick: el => {
-          if (stage >= 3 && !circuit) { buildCircuit(); el.disabled = true; }
+          if (!circuit) { buildCircuit(); el.disabled = true; }
+        },
+      },
+      {
+        label: carrierLifetimeMs >= 0.5 ? '🛡️ 少子寿命: 1 ms (高纯晶硅)' : '⚠️ 少子寿命: 1 μs (杂质污染)',
+        cls: carrierLifetimeMs >= 0.5 ? 'blue' : 'red',
+        onClick: () => {
+          carrierLifetimeMs = carrierLifetimeMs >= 0.5 ? 0.001 : 1.0;
+          if (carrierLifetimeMs < 0.5) {
+            showNarr(
+              '⚠️ <b>少子寿命跌至 1 μs</b>！扩散长度 $L_n = \\sqrt{D\\tau} = 60\\ \\mu\\text{m} < 150\\ \\mu\\text{m}$，电子还没走到耗尽区就在半路与杂质复合猝死，短路电流与功率腰斩！',
+              'Short lifetime: diffusion length < wafer thickness, carriers recombine before the junction!',
+              'red'
+            );
+          } else {
+            showNarr(
+              '🛡️ <b>少子寿命恢复至 1 ms</b>！扩散长度 $L_n = 1900\\ \\mu\\text{m} \\gg 150\\ \\mu\\text{m}$，超越硅片厚度 10 倍以上，全部光生电子都能存活滑入 n 极！',
+              'Long lifetime: diffusion length > 10x wafer thickness, 100% carriers collected!',
+              'blue'
+            );
+          }
+          refreshAllBtns();
         },
       },
       { label: '🔁 重玩本章', cls: '', onClick: () => { if (env) { leave(); enter(env); refreshAllBtns(); } } },
@@ -512,8 +619,40 @@ export function actions() {
     sliders: [
       {
         id: 'slLambda', label: '光子波长', min: 400, max: 1300, step: 10, value: lambda,
-        display: v => `${v}nm · ${(1240 / v).toFixed(2)}eV`,
+        display: v => `${v}nm · ${(1239.84 / v).toFixed(2)}eV`,
         onInput: v => { lambda = v; },
+      },
+      {
+        id: 'slRL', label: '🎯 MPPT 负载阻抗', min: 0, max: 100, step: 1, value: loadResistance,
+        display: v => {
+          if (v <= 0) return '0 Ω · 短路 (P=0)';
+          if (v >= 95) return '∞ Ω · 开路 (P=0)';
+          const p = computeOperatingPoint().P;
+          return `${v} Ω · 输出功率 ${p.toFixed(2)}W ${Math.abs(v - 5) <= 1 ? '🔥最大功率点!' : ''}`;
+        },
+        onInput: v => {
+          loadResistance = v;
+          if (circuit && circuit.closed) {
+            const p = computeOperatingPoint().P;
+            if (v <= 0) {
+              showNarr('<b>短路状态 (0 Ω)</b>：电荷飞奔没有阻碍，电流最大但两端电压为 0！输出电功率 $P = 0 \\times I = 0$ 瓦！风扇不转，灯泡不亮。', 'Short circuit: V=0, Power=0', 'red');
+            } else if (v >= 95) {
+              showNarr('<b>开路状态 (∞ Ω)</b>：外部断开，两端电荷堆积到极限电压 0.72V，但没有回路形成电流！输出电功率 $P = V \\times 0 = 0$ 瓦！风扇不转，灯泡不亮。', 'Open circuit: I=0, Power=0', 'red');
+            } else if (Math.abs(v - 5) <= 1) {
+              showNarr(`<b>🔥 命中黄金最大功率点 (MPPT ≈ 5 Ω)</b>！输出功率峰值达到 <b>${p.toFixed(2)} W</b>！风扇高速呼啸飞转，钨丝灯泡金光璀璨！`, 'Maximum Power Point Tracked! Peak power output!', 'gold');
+            }
+          }
+        },
+      },
+      {
+        id: 'slTemp', label: '☀️ 硅片温度', min: -20, max: 75, step: 5, value: cellTemperature,
+        display: v => `${v}°C · ΔVoc ${( -0.0021 * (v - 25) * 1000 ).toFixed(0)}mV`,
+        onInput: v => {
+          cellTemperature = v;
+          if (v >= 65) {
+            showNarr(`<b>高温暴晒 ${v}°C 负温度效应</b>：开路电压较常温跌落超过 <b>100 mV</b>！热平衡漏电流暴涨导致端电压与功率大幅衰减。`, 'High temperature negative coefficient: Voc drops by >100mV', 'red');
+          }
+        },
       },
     ],
   };

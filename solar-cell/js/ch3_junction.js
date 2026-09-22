@@ -56,10 +56,10 @@ function spawnHole(hostAtom) {
 }
 
 function setAtomDopant(a, type) {
-  a.mesh.material.color.set(type === 'P' ? 0xf59e0b : 0x3b82f6);
+  a.mesh.material.color.set(type === 'P' ? 0xf59e0b : 0x2563eb);
   a.mesh.material.emissive.set(type === 'P' ? 0x7c4a00 : 0x1e3a8a);
   a.mesh.material.emissiveIntensity = 0.8;
-  const tag = makeTextSprite(type, 0.6, type === 'P' ? '#fbbf24' : '#60a5fa');
+  const tag = makeTextSprite(type === 'P' ? '[P⁺]' : '[B⁻]', 0.65, type === 'P' ? '#fbbf24' : '#60a5fa');
   tag.position.set(0, 0.75, 0);
   a.mesh.add(tag);
 }
@@ -85,13 +85,14 @@ export function actions() {
         onClick: el => {
           if (stage !== 0) return;
           stage = 1;
-          chosenP = idx(Math.floor(dims.NX / 2) - 1, 0, 1);
-          const a = atoms[chosenP];
+          const pCandidates = atoms.filter(a => a.x < (dims.width || dims.NX * dims.SP) * 0.45);
+          const a = pCandidates[Math.floor(pCandidates.length / 2)] || atoms[0];
+          chosenP = a.index ?? 0;
           setAtomDopant(a, 'P');
           spawnFreeElectron(a);
           showNarr(
-            '把一个硅原子换成<b>磷 P</b>（2, 8, <b>5</b>）：4 个电子用来成键，<b>多出 1 个自由电子</b>游荡 → <b>n 型</b>硅（negative）',
-            'Phosphorus has 5 outer electrons → 1 leftover free electron → n-type',
+            '把一个硅原子换成<b>磷 P</b>（2, 8, <b>5</b>）：4 个电子用来成键，<b>多出 1 个自由电子</b>游荡！电子离开后，原地暴露出不可移动的<b>带正电固定离子核心徽章 [P⁺]</b> → <b>n 型</b>硅',
+            'Phosphorus donates 1 free electron and leaves behind a fixed positive ion core [P⁺] → n-type',
             'gold'
           );
           el.disabled = true;
@@ -102,13 +103,14 @@ export function actions() {
         onClick: el => {
           if (stage !== 1) return;
           stage = 2;
-          chosenB = idx(Math.floor(dims.NX / 2) + 1, 0, 3);
-          const a = atoms[chosenB];
+          const bCandidates = atoms.filter(a => a.x > (dims.width || dims.NX * dims.SP) * 0.55);
+          const a = bCandidates[Math.floor(bCandidates.length / 2)] || atoms[atoms.length - 1];
+          chosenB = a.index ?? (atoms.length - 1);
           setAtomDopant(a, 'B');
           spawnHole(a);
           showNarr(
-            '再换一个成<b>硼 B</b>（2, 8, <b>3</b>）：只有 3 个电子成键，缺一个位置 = <b>空穴</b>（蓝色笼子，等效正电荷）→ <b>p 型</b>硅（positive）',
-            'Boron has only 3 → a missing bond = a "hole" (acts positive) → p-type',
+            '再换一个成<b>硼 B</b>（2, 8, <b>3</b>）：只有 3 个价电子，缺一个位置形成<b>空穴准粒子</b>！当它捕获邻居电子后，原地暴露出不可移动的<b>带负电固定离子核心徽章 [B⁻]</b> → <b>p 型</b>硅',
+            'Boron accepts 1 electron into hole, exposing a fixed negative ion core [B⁻] → p-type',
             'blue'
           );
           el.disabled = true;
@@ -142,24 +144,25 @@ export function bindEnv(env, refresh) { currentEnv = env; refreshActions = refre
 
 function formJunction(el) {
   el.disabled = true;
-  const mid = dims.NX / 2;
-  const jx = mid * dims.SP - dims.SP / 2;
+  const width = dims.width || dims.NX * dims.SP;
+  const midX = width / 2;
+  const jx = midX;
 
   atoms.forEach((a, i) => {
     if (i === chosenP || i === chosenB) return;
-    const nSide = a.x < mid;
+    const nSide = a.x < midX;
     a.mesh.material.color.set(nSide ? COL.nTint : COL.pTint);
   });
 
   for (let k = 0; k < 5; k++) {
-    const ea = atoms.find(o => o.x === 0 + (k % 2) && o.z === (k * 2) % dims.NZ && o.y === 0);
+    const ea = atoms.find(o => o.x < midX * 0.7 && o.index % 2 === 0);
     if (ea) spawnFreeElectron(ea);
-    const ha = atoms.find(o => o.x === dims.NX - 1 - (k % 2) && o.z === (k * 2 + 1) % dims.NZ && o.y === 0);
+    const ha = atoms.find(o => o.x > midX * 1.3 && o.index % 2 === 1);
     if (ha) spawnHole(ha);
   }
 
   showNarr(
-    '把 n 型和 p 型拼在一起：<b>电子</b>向 p 侧扩散，<b>空穴</b>向 n 侧扩散…',
+    '把 n 型和 p 型拼在一起：<b>电子</b>向 p 侧扩散，<b>空穴</b>向 n 侧扩散相互中和…',
     'Electrons diffuse into p, holes diffuse into n…',
     'red'
   );
@@ -167,24 +170,35 @@ function formJunction(el) {
   addAnim({
     duration: 0.01, elapsed: -2.2, update() {},
     onComplete() {
-      for (let k = 0; k < 6; k++) {
-        const plus = makeTextSprite('+', 0.7, '#f87171');
-        plus.position.set(jx - 1.1, 0.6, (k - 2.5) * dims.SP * 0.8);
+      for (let k = 0; k < 5; k++) {
+        const plus = makeTextSprite('[P⁺]', 0.55, '#f59e0b');
+        plus.position.set(jx - 1.2, 0.6, (k - 2) * 1.4 + 1.8);
         root.add(plus); junctionBits.push(plus);
-        const minus = makeTextSprite('−', 0.7, '#60a5fa');
-        minus.position.set(jx + 1.1, 0.6, (k - 2.5) * dims.SP * 0.8);
+        const minus = makeTextSprite('[B⁻]', 0.55, '#38bdf8');
+        minus.position.set(jx + 1.2, 0.6, (k - 2) * 1.4 + 1.8);
         root.add(minus); junctionBits.push(minus);
       }
+
+      // 金色单向安检滑梯板 (具象化能带弯曲与势垒落差)
+      const slideGeo = new THREE.BoxGeometry(2.4, 0.08, (dims.depth || dims.NZ * dims.SP) * 0.95);
+      const slideMat = new THREE.MeshStandardMaterial({
+        color: 0xfbbf24, transparent: true, opacity: 0.45, roughness: 0.2, metalness: 0.5
+      });
+      const slide = new THREE.Mesh(slideGeo, slideMat);
+      slide.position.set(jx, 0.6, (dims.depth || dims.NZ * dims.SP) / 2);
+      slide.rotation.z = 0.26; // 倾斜滑梯，n 侧低、p 侧高 (对电子势能)
+      root.add(slide); junctionBits.push(slide);
+
       const plate = new THREE.Mesh(
-        new THREE.BoxGeometry(dims.SP * 1.6, dims.NY * dims.SP, dims.NZ * dims.SP * 0.96),
-        new THREE.MeshBasicMaterial({ color: 0x0b1220, transparent: true, opacity: 0.55 })
+        new THREE.BoxGeometry(2.2, dims.height || 3.2, dims.depth || 5.5),
+        new THREE.MeshBasicMaterial({ color: 0x0b1220, transparent: true, opacity: 0.4 })
       );
-      plate.position.set(jx, dims.SP / 2, dims.NZ * dims.SP / 2);
+      plate.position.set(jx, 0.6, (dims.depth || dims.NZ * dims.SP) / 2);
       root.add(plate); junctionBits.push(plate);
 
       showNarr(
-        '扩散走后留下<b>不能动的离子</b>（红+ = 失去电子的施主，蓝− = 得到电子的受主）→ 中间形成<b>耗尽层</b>',
-        'Fixed ionized dopants remain → depletion region forms',
+        '扩散复合后留下<b>不能移动的固定离子徽章</b>（金[P⁺]正离子与蓝[B⁻]负离子）→ 中间形成<b>耗尽层</b>与<b>倾斜金色单向滑梯</b>！',
+        'Fixed ionized dopants [P⁺] and [B⁻] remain → depletion region and one-way slide form',
         'red'
       );
     },
@@ -196,18 +210,18 @@ function formJunction(el) {
       for (let k = 0; k < 3; k++) {
         const arrow = new THREE.Group();
         const shaft = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.05, 0.05, 1.6, 8),
+          new THREE.CylinderGeometry(0.06, 0.06, 1.8, 8),
           new THREE.MeshBasicMaterial({ color: 0xfbbf24 })
         );
         shaft.rotation.z = Math.PI / 2;
         const head = new THREE.Mesh(
-          new THREE.ConeGeometry(0.16, 0.4, 10),
+          new THREE.ConeGeometry(0.18, 0.45, 10),
           new THREE.MeshBasicMaterial({ color: 0xfbbf24 })
         );
         head.rotation.z = -Math.PI / 2;
-        head.position.x = 1.0;
+        head.position.x = 1.1;
         arrow.add(shaft, head);
-        arrow.position.set(jx, dims.SP / 2, (k - 1) * dims.SP * 1.8 + dims.SP);
+        arrow.position.set(jx, 1.2, (k - 1) * 2.0 + 2.0);
         root.add(arrow); junctionBits.push(arrow);
 
         addAnim({
@@ -215,13 +229,13 @@ function formJunction(el) {
           update(p) { arrow.children[1].scale.setScalar(0.6 + 0.8 * Math.abs(Math.sin(p * Math.PI * 3))); },
         });
       }
-      const fieldTag = makeTextSprite('内建电场 E (n → p)', 0.72, '#fbbf24');
-      fieldTag.position.set(jx, 3.3, dims.NZ * dims.SP / 2);
+      const fieldTag = makeTextSprite('⚡ 内建电场 E (n 侧 [P⁺] → p 侧 [B⁻])', 0.72, '#fbbf24');
+      fieldTag.position.set(jx, 3.4, (dims.depth || dims.NZ * dims.SP) / 2);
       root.add(fieldTag); junctionBits.push(fieldTag);
 
       showNarr(
-        '正负离子之间产生<b>内建电场</b>（金色箭头，n → p）：它是"电子滑梯"，把跑到这里的电子推回 n 侧、空穴推回 p 侧 → <b>电荷分离器</b>造好了！',
-        'Built-in field (n→p) = the one-way slide that separates charges!',
+        '正负离子之间建立<b>内建电场</b>（金色箭头由正指向负：n → p）！它筑起一道<b>单向电荷安检滑梯</b>：把电子狠狠甩入 n 侧、空穴甩入 p 侧 → <b>天然电荷分离器</b>大功告成！',
+        'Built-in field (n→p) sweeps electrons to n and holes to p — the charge separator is complete!',
         'gold'
       );
     },

@@ -20134,6 +20134,66 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
       return new _SphereGeometry(data.radius, data.widthSegments, data.heightSegments, data.phiStart, data.phiLength, data.thetaStart, data.thetaLength);
     }
   };
+  var TorusGeometry = class _TorusGeometry extends BufferGeometry {
+    constructor(radius = 1, tube = 0.4, radialSegments = 12, tubularSegments = 48, arc = Math.PI * 2) {
+      super();
+      this.type = "TorusGeometry";
+      this.parameters = {
+        radius,
+        tube,
+        radialSegments,
+        tubularSegments,
+        arc
+      };
+      radialSegments = Math.floor(radialSegments);
+      tubularSegments = Math.floor(tubularSegments);
+      const indices = [];
+      const vertices = [];
+      const normals = [];
+      const uvs = [];
+      const center = new Vector3();
+      const vertex2 = new Vector3();
+      const normal = new Vector3();
+      for (let j = 0; j <= radialSegments; j++) {
+        for (let i = 0; i <= tubularSegments; i++) {
+          const u = i / tubularSegments * arc;
+          const v = j / radialSegments * Math.PI * 2;
+          vertex2.x = (radius + tube * Math.cos(v)) * Math.cos(u);
+          vertex2.y = (radius + tube * Math.cos(v)) * Math.sin(u);
+          vertex2.z = tube * Math.sin(v);
+          vertices.push(vertex2.x, vertex2.y, vertex2.z);
+          center.x = radius * Math.cos(u);
+          center.y = radius * Math.sin(u);
+          normal.subVectors(vertex2, center).normalize();
+          normals.push(normal.x, normal.y, normal.z);
+          uvs.push(i / tubularSegments);
+          uvs.push(j / radialSegments);
+        }
+      }
+      for (let j = 1; j <= radialSegments; j++) {
+        for (let i = 1; i <= tubularSegments; i++) {
+          const a = (tubularSegments + 1) * j + i - 1;
+          const b = (tubularSegments + 1) * (j - 1) + i - 1;
+          const c = (tubularSegments + 1) * (j - 1) + i;
+          const d = (tubularSegments + 1) * j + i;
+          indices.push(a, b, d);
+          indices.push(b, c, d);
+        }
+      }
+      this.setIndex(indices);
+      this.setAttribute("position", new Float32BufferAttribute(vertices, 3));
+      this.setAttribute("normal", new Float32BufferAttribute(normals, 3));
+      this.setAttribute("uv", new Float32BufferAttribute(uvs, 2));
+    }
+    copy(source) {
+      super.copy(source);
+      this.parameters = Object.assign({}, source.parameters);
+      return this;
+    }
+    static fromJSON(data) {
+      return new _TorusGeometry(data.radius, data.tube, data.radialSegments, data.tubularSegments, data.arc);
+    }
+  };
   var TubeGeometry = class _TubeGeometry extends BufferGeometry {
     constructor(path = new QuadraticBezierCurve3(new Vector3(-1, -1, 0), new Vector3(-1, 1, 0), new Vector3(1, 1, 0)), tubularSegments = 64, radius = 1, radialSegments = 8, closed = false) {
       super();
@@ -22536,41 +22596,124 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
     return new Color(r, g, b);
   }
   function photonEnergy(nm) {
-    return 1240 / nm;
+    return 1239.84 / nm;
   }
-  function buildLattice(group, { NX: NX2 = 6, NY: NY2 = 2, NZ: NZ2 = 5, SP: SP2 = 1.55 } = {}) {
-    const atomGeo = new SphereGeometry(0.46, 18, 18);
-    const bondGeo = new CylinderGeometry(0.07, 0.07, SP2, 8);
-    const atoms4 = [], bonds2 = [];
+  function buildDiamondLattice(group, { NX: NX2 = 2, NY: NY2 = 1, NZ: NZ2 = 2, a = 3.6 } = {}) {
+    const d0 = Math.sqrt(3) / 4 * a;
+    const base = [
+      [0, 0, 0],
+      [0.5, 0.5, 0],
+      [0.5, 0, 0.5],
+      [0, 0.5, 0.5],
+      [0.25, 0.25, 0.25],
+      [0.75, 0.75, 0.25],
+      [0.75, 0.25, 0.75],
+      [0.25, 0.75, 0.75]
+    ];
+    const rawPts = [];
+    for (let cx = 0; cx <= NX2; cx++) {
+      for (let cy = 0; cy <= NY2; cy++) {
+        for (let cz = 0; cz <= NZ2; cz++) {
+          for (const b of base) {
+            const x = (cx + b[0]) * a;
+            const y = (cy + b[1]) * a;
+            const z = (cz + b[2]) * a;
+            if (x <= NX2 * a + 1e-4 && y <= NY2 * a + 1e-4 && z <= NZ2 * a + 1e-4) {
+              const exists = rawPts.some((p) => Math.hypot(p.x - x, p.y - y, p.z - z) < 0.1);
+              if (!exists) rawPts.push({ x, y, z });
+            }
+          }
+        }
+      }
+    }
+    const rawBonds = [];
+    rawPts.forEach((p1, i) => {
+      rawPts.forEach((p2, j) => {
+        if (i < j) {
+          const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y, p1.z - p2.z);
+          if (Math.abs(dist - d0) < 0.06 * d0) {
+            rawBonds.push([i, j, dist]);
+          }
+        }
+      });
+    });
+    const atomIndices = /* @__PURE__ */ new Set();
+    rawBonds.forEach(([i, j]) => {
+      atomIndices.add(i);
+      atomIndices.add(j);
+    });
+    const indexMap = /* @__PURE__ */ new Map();
+    const validPts = [];
+    Array.from(atomIndices).sort((a2, b) => a2 - b).forEach((oldIdx, newIdx) => {
+      indexMap.set(oldIdx, newIdx);
+      validPts.push(rawPts[oldIdx]);
+    });
+    const atomGeo = new SphereGeometry(0.38, 16, 16);
+    const bondGeo = new CylinderGeometry(0.065, 0.065, 1, 8);
     const siMat = () => new MeshStandardMaterial({
       color: COL.silicon,
-      roughness: 0.4,
+      roughness: 0.35,
       metalness: 0.3,
       emissive: 1712947,
       emissiveIntensity: 0.4
     });
-    for (let z = 0; z < NZ2; z++) for (let y = 0; y < NY2; y++) for (let x = 0; x < NX2; x++) {
-      const m = new Mesh(atomGeo, siMat());
-      m.position.set(x * SP2, y * SP2, z * SP2);
-      group.add(m);
-      atoms4.push({ mesh: m, x, y, z });
-    }
-    const bondMat = new MeshStandardMaterial({ color: 4674921, roughness: 0.5 });
-    for (const a of atoms4) {
-      for (const [dx, dy, dz] of [[1, 0, 0], [0, 1, 0], [0, 0, 1]]) {
-        const n = atoms4.find((o) => o.x === a.x + dx && o.y === a.y + dy && o.z === a.z + dz);
-        if (!n) continue;
-        const b = new Mesh(bondGeo, bondMat);
-        b.position.copy(a.mesh.position).lerp(n.mesh.position, 0.5);
-        b.lookAt(n.mesh.position);
-        b.rotateX(Math.PI / 2);
-        group.add(b);
-        bonds2.push(b);
-      }
-    }
-    group.position.set(-NX2 * SP2 / 2, -1.2, -NZ2 * SP2 / 2);
-    return { atoms: atoms4, bonds: bonds2, dims: { NX: NX2, NY: NY2, NZ: NZ2, SP: SP2 } };
+    const bondMat = new MeshStandardMaterial({
+      color: 4674921,
+      roughness: 0.5,
+      metalness: 0.2
+    });
+    const atoms4 = [];
+    validPts.forEach((pt, i) => {
+      const mesh = new Mesh(atomGeo, siMat());
+      mesh.position.set(pt.x, pt.y, pt.z);
+      group.add(mesh);
+      atoms4.push({
+        mesh,
+        x: pt.x,
+        y: pt.y,
+        z: pt.z,
+        target: mesh.position.clone(),
+        index: i
+      });
+    });
+    const bonds2 = [];
+    rawBonds.forEach(([oldI, oldJ, dist]) => {
+      const i = indexMap.get(oldI);
+      const j = indexMap.get(oldJ);
+      if (i === void 0 || j === void 0) return;
+      const a1 = atoms4[i];
+      const a2 = atoms4[j];
+      const bMesh = new Mesh(bondGeo, bondMat);
+      bMesh.scale.set(1, dist, 1);
+      bMesh.position.copy(a1.mesh.position).lerp(a2.mesh.position, 0.5);
+      bMesh.quaternion.setFromUnitVectors(
+        new Vector3(0, 1, 0),
+        a2.mesh.position.clone().sub(a1.mesh.position).normalize()
+      );
+      group.add(bMesh);
+      bonds2.push({ mesh: bMesh, a: a1, b: a2 });
+    });
+    const midX = NX2 * a / 2;
+    const midY = NY2 * a / 2;
+    const midZ = NZ2 * a / 2;
+    group.position.set(-midX, 0.6 - midY, -midZ);
+    return {
+      atoms: atoms4,
+      bonds: bonds2,
+      dims: {
+        NX: NX2 * 3,
+        NY: NY2 * 2,
+        NZ: NZ2 * 2.5,
+        SP: a / 2,
+        width: NX2 * a,
+        height: NY2 * a,
+        depth: NZ2 * a
+      },
+      midX,
+      diamond: true
+    };
   }
+  var buildLattice = buildDiamondLattice;
   function makeCarrierMesh(kind) {
     return kind === "e" ? new Mesh(
       new SphereGeometry(0.17, 12, 12),
@@ -23661,7 +23804,6 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
   var chosenB = -1;
   var currentEnv = null;
   var refreshActions = null;
-  var idx = (x, y, z) => x + y * dims.NX + z * dims.NX * dims.NY;
   var dims = { NX: 6, NY: 2, NZ: 5, SP: 1.55 };
   function enter3(env5) {
     currentEnv = env5;
@@ -23696,10 +23838,10 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
     freeCarriers.push({ mesh: h, kind: "h", t: Math.random() * 10, anchor: hostAtom.mesh.position.clone(), wander: dims.SP * 2.4 });
   }
   function setAtomDopant(a, type) {
-    a.mesh.material.color.set(type === "P" ? 16096779 : 3900150);
+    a.mesh.material.color.set(type === "P" ? 16096779 : 2450411);
     a.mesh.material.emissive.set(type === "P" ? 8145408 : 1981066);
     a.mesh.material.emissiveIntensity = 0.8;
-    const tag = makeTextSprite(type, 0.6, type === "P" ? "#fbbf24" : "#60a5fa");
+    const tag = makeTextSprite(type === "P" ? "[P\u207A]" : "[B\u207B]", 0.65, type === "P" ? "#fbbf24" : "#60a5fa");
     tag.position.set(0, 0.75, 0);
     a.mesh.add(tag);
   }
@@ -23725,13 +23867,14 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
           onClick: (el) => {
             if (stage2 !== 0) return;
             stage2 = 1;
-            chosenP = idx(Math.floor(dims.NX / 2) - 1, 0, 1);
-            const a = atoms2[chosenP];
+            const pCandidates = atoms2.filter((a2) => a2.x < (dims.width || dims.NX * dims.SP) * 0.45);
+            const a = pCandidates[Math.floor(pCandidates.length / 2)] || atoms2[0];
+            chosenP = a.index ?? 0;
             setAtomDopant(a, "P");
             spawnFreeElectron(a);
             showNarr(
-              "\u628A\u4E00\u4E2A\u7845\u539F\u5B50\u6362\u6210<b>\u78F7 P</b>\uFF082, 8, <b>5</b>\uFF09\uFF1A4 \u4E2A\u7535\u5B50\u7528\u6765\u6210\u952E\uFF0C<b>\u591A\u51FA 1 \u4E2A\u81EA\u7531\u7535\u5B50</b>\u6E38\u8361 \u2192 <b>n \u578B</b>\u7845\uFF08negative\uFF09",
-              "Phosphorus has 5 outer electrons \u2192 1 leftover free electron \u2192 n-type",
+              "\u628A\u4E00\u4E2A\u7845\u539F\u5B50\u6362\u6210<b>\u78F7 P</b>\uFF082, 8, <b>5</b>\uFF09\uFF1A4 \u4E2A\u7535\u5B50\u7528\u6765\u6210\u952E\uFF0C<b>\u591A\u51FA 1 \u4E2A\u81EA\u7531\u7535\u5B50</b>\u6E38\u8361\uFF01\u7535\u5B50\u79BB\u5F00\u540E\uFF0C\u539F\u5730\u66B4\u9732\u51FA\u4E0D\u53EF\u79FB\u52A8\u7684<b>\u5E26\u6B63\u7535\u56FA\u5B9A\u79BB\u5B50\u6838\u5FC3\u5FBD\u7AE0 [P\u207A]</b> \u2192 <b>n \u578B</b>\u7845",
+              "Phosphorus donates 1 free electron and leaves behind a fixed positive ion core [P\u207A] \u2192 n-type",
               "gold"
             );
             el.disabled = true;
@@ -23744,13 +23887,14 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
           onClick: (el) => {
             if (stage2 !== 1) return;
             stage2 = 2;
-            chosenB = idx(Math.floor(dims.NX / 2) + 1, 0, 3);
-            const a = atoms2[chosenB];
+            const bCandidates = atoms2.filter((a2) => a2.x > (dims.width || dims.NX * dims.SP) * 0.55);
+            const a = bCandidates[Math.floor(bCandidates.length / 2)] || atoms2[atoms2.length - 1];
+            chosenB = a.index ?? atoms2.length - 1;
             setAtomDopant(a, "B");
             spawnHole(a);
             showNarr(
-              "\u518D\u6362\u4E00\u4E2A\u6210<b>\u787C B</b>\uFF082, 8, <b>3</b>\uFF09\uFF1A\u53EA\u6709 3 \u4E2A\u7535\u5B50\u6210\u952E\uFF0C\u7F3A\u4E00\u4E2A\u4F4D\u7F6E = <b>\u7A7A\u7A74</b>\uFF08\u84DD\u8272\u7B3C\u5B50\uFF0C\u7B49\u6548\u6B63\u7535\u8377\uFF09\u2192 <b>p \u578B</b>\u7845\uFF08positive\uFF09",
-              'Boron has only 3 \u2192 a missing bond = a "hole" (acts positive) \u2192 p-type',
+              "\u518D\u6362\u4E00\u4E2A\u6210<b>\u787C B</b>\uFF082, 8, <b>3</b>\uFF09\uFF1A\u53EA\u6709 3 \u4E2A\u4EF7\u7535\u5B50\uFF0C\u7F3A\u4E00\u4E2A\u4F4D\u7F6E\u5F62\u6210<b>\u7A7A\u7A74\u51C6\u7C92\u5B50</b>\uFF01\u5F53\u5B83\u6355\u83B7\u90BB\u5C45\u7535\u5B50\u540E\uFF0C\u539F\u5730\u66B4\u9732\u51FA\u4E0D\u53EF\u79FB\u52A8\u7684<b>\u5E26\u8D1F\u7535\u56FA\u5B9A\u79BB\u5B50\u6838\u5FC3\u5FBD\u7AE0 [B\u207B]</b> \u2192 <b>p \u578B</b>\u7845",
+              "Boron accepts 1 electron into hole, exposing a fixed negative ion core [B\u207B] \u2192 p-type",
               "blue"
             );
             el.disabled = true;
@@ -23789,21 +23933,22 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
   }
   function formJunction(el) {
     el.disabled = true;
-    const mid = dims.NX / 2;
-    const jx2 = mid * dims.SP - dims.SP / 2;
+    const width = dims.width || dims.NX * dims.SP;
+    const midX = width / 2;
+    const jx2 = midX;
     atoms2.forEach((a, i) => {
       if (i === chosenP || i === chosenB) return;
-      const nSide = a.x < mid;
+      const nSide = a.x < midX;
       a.mesh.material.color.set(nSide ? COL.nTint : COL.pTint);
     });
     for (let k = 0; k < 5; k++) {
-      const ea = atoms2.find((o) => o.x === 0 + k % 2 && o.z === k * 2 % dims.NZ && o.y === 0);
+      const ea = atoms2.find((o) => o.x < midX * 0.7 && o.index % 2 === 0);
       if (ea) spawnFreeElectron(ea);
-      const ha = atoms2.find((o) => o.x === dims.NX - 1 - k % 2 && o.z === (k * 2 + 1) % dims.NZ && o.y === 0);
+      const ha = atoms2.find((o) => o.x > midX * 1.3 && o.index % 2 === 1);
       if (ha) spawnHole(ha);
     }
     showNarr(
-      "\u628A n \u578B\u548C p \u578B\u62FC\u5728\u4E00\u8D77\uFF1A<b>\u7535\u5B50</b>\u5411 p \u4FA7\u6269\u6563\uFF0C<b>\u7A7A\u7A74</b>\u5411 n \u4FA7\u6269\u6563\u2026",
+      "\u628A n \u578B\u548C p \u578B\u62FC\u5728\u4E00\u8D77\uFF1A<b>\u7535\u5B50</b>\u5411 p \u4FA7\u6269\u6563\uFF0C<b>\u7A7A\u7A74</b>\u5411 n \u4FA7\u6269\u6563\u76F8\u4E92\u4E2D\u548C\u2026",
       "Electrons diffuse into p, holes diffuse into n\u2026",
       "red"
     );
@@ -23813,26 +23958,39 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
       update() {
       },
       onComplete() {
-        for (let k = 0; k < 6; k++) {
-          const plus = makeTextSprite("+", 0.7, "#f87171");
-          plus.position.set(jx2 - 1.1, 0.6, (k - 2.5) * dims.SP * 0.8);
+        for (let k = 0; k < 5; k++) {
+          const plus = makeTextSprite("[P\u207A]", 0.55, "#f59e0b");
+          plus.position.set(jx2 - 1.2, 0.6, (k - 2) * 1.4 + 1.8);
           root3.add(plus);
           junctionBits.push(plus);
-          const minus = makeTextSprite("\u2212", 0.7, "#60a5fa");
-          minus.position.set(jx2 + 1.1, 0.6, (k - 2.5) * dims.SP * 0.8);
+          const minus = makeTextSprite("[B\u207B]", 0.55, "#38bdf8");
+          minus.position.set(jx2 + 1.2, 0.6, (k - 2) * 1.4 + 1.8);
           root3.add(minus);
           junctionBits.push(minus);
         }
+        const slideGeo = new BoxGeometry(2.4, 0.08, (dims.depth || dims.NZ * dims.SP) * 0.95);
+        const slideMat = new MeshStandardMaterial({
+          color: 16498468,
+          transparent: true,
+          opacity: 0.45,
+          roughness: 0.2,
+          metalness: 0.5
+        });
+        const slide = new Mesh(slideGeo, slideMat);
+        slide.position.set(jx2, 0.6, (dims.depth || dims.NZ * dims.SP) / 2);
+        slide.rotation.z = 0.26;
+        root3.add(slide);
+        junctionBits.push(slide);
         const plate = new Mesh(
-          new BoxGeometry(dims.SP * 1.6, dims.NY * dims.SP, dims.NZ * dims.SP * 0.96),
-          new MeshBasicMaterial({ color: 725536, transparent: true, opacity: 0.55 })
+          new BoxGeometry(2.2, dims.height || 3.2, dims.depth || 5.5),
+          new MeshBasicMaterial({ color: 725536, transparent: true, opacity: 0.4 })
         );
-        plate.position.set(jx2, dims.SP / 2, dims.NZ * dims.SP / 2);
+        plate.position.set(jx2, 0.6, (dims.depth || dims.NZ * dims.SP) / 2);
         root3.add(plate);
         junctionBits.push(plate);
         showNarr(
-          "\u6269\u6563\u8D70\u540E\u7559\u4E0B<b>\u4E0D\u80FD\u52A8\u7684\u79BB\u5B50</b>\uFF08\u7EA2+ = \u5931\u53BB\u7535\u5B50\u7684\u65BD\u4E3B\uFF0C\u84DD\u2212 = \u5F97\u5230\u7535\u5B50\u7684\u53D7\u4E3B\uFF09\u2192 \u4E2D\u95F4\u5F62\u6210<b>\u8017\u5C3D\u5C42</b>",
-          "Fixed ionized dopants remain \u2192 depletion region forms",
+          "\u6269\u6563\u590D\u5408\u540E\u7559\u4E0B<b>\u4E0D\u80FD\u79FB\u52A8\u7684\u56FA\u5B9A\u79BB\u5B50\u5FBD\u7AE0</b>\uFF08\u91D1[P\u207A]\u6B63\u79BB\u5B50\u4E0E\u84DD[B\u207B]\u8D1F\u79BB\u5B50\uFF09\u2192 \u4E2D\u95F4\u5F62\u6210<b>\u8017\u5C3D\u5C42</b>\u4E0E<b>\u503E\u659C\u91D1\u8272\u5355\u5411\u6ED1\u68AF</b>\uFF01",
+          "Fixed ionized dopants [P\u207A] and [B\u207B] remain \u2192 depletion region and one-way slide form",
           "red"
         );
       }
@@ -23846,18 +24004,18 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
         for (let k = 0; k < 3; k++) {
           const arrow = new Group();
           const shaft = new Mesh(
-            new CylinderGeometry(0.05, 0.05, 1.6, 8),
+            new CylinderGeometry(0.06, 0.06, 1.8, 8),
             new MeshBasicMaterial({ color: 16498468 })
           );
           shaft.rotation.z = Math.PI / 2;
           const head = new Mesh(
-            new ConeGeometry(0.16, 0.4, 10),
+            new ConeGeometry(0.18, 0.45, 10),
             new MeshBasicMaterial({ color: 16498468 })
           );
           head.rotation.z = -Math.PI / 2;
-          head.position.x = 1;
+          head.position.x = 1.1;
           arrow.add(shaft, head);
-          arrow.position.set(jx2, dims.SP / 2, (k - 1) * dims.SP * 1.8 + dims.SP);
+          arrow.position.set(jx2, 1.2, (k - 1) * 2 + 2);
           root3.add(arrow);
           junctionBits.push(arrow);
           addAnim({
@@ -23867,13 +24025,13 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
             }
           });
         }
-        const fieldTag = makeTextSprite("\u5185\u5EFA\u7535\u573A E (n \u2192 p)", 0.72, "#fbbf24");
-        fieldTag.position.set(jx2, 3.3, dims.NZ * dims.SP / 2);
+        const fieldTag = makeTextSprite("\u26A1 \u5185\u5EFA\u7535\u573A E (n \u4FA7 [P\u207A] \u2192 p \u4FA7 [B\u207B])", 0.72, "#fbbf24");
+        fieldTag.position.set(jx2, 3.4, (dims.depth || dims.NZ * dims.SP) / 2);
         root3.add(fieldTag);
         junctionBits.push(fieldTag);
         showNarr(
-          '\u6B63\u8D1F\u79BB\u5B50\u4E4B\u95F4\u4EA7\u751F<b>\u5185\u5EFA\u7535\u573A</b>\uFF08\u91D1\u8272\u7BAD\u5934\uFF0Cn \u2192 p\uFF09\uFF1A\u5B83\u662F"\u7535\u5B50\u6ED1\u68AF"\uFF0C\u628A\u8DD1\u5230\u8FD9\u91CC\u7684\u7535\u5B50\u63A8\u56DE n \u4FA7\u3001\u7A7A\u7A74\u63A8\u56DE p \u4FA7 \u2192 <b>\u7535\u8377\u5206\u79BB\u5668</b>\u9020\u597D\u4E86\uFF01',
-          "Built-in field (n\u2192p) = the one-way slide that separates charges!",
+          "\u6B63\u8D1F\u79BB\u5B50\u4E4B\u95F4\u5EFA\u7ACB<b>\u5185\u5EFA\u7535\u573A</b>\uFF08\u91D1\u8272\u7BAD\u5934\u7531\u6B63\u6307\u5411\u8D1F\uFF1An \u2192 p\uFF09\uFF01\u5B83\u7B51\u8D77\u4E00\u9053<b>\u5355\u5411\u7535\u8377\u5B89\u68C0\u6ED1\u68AF</b>\uFF1A\u628A\u7535\u5B50\u72E0\u72E0\u7529\u5165 n \u4FA7\u3001\u7A7A\u7A74\u7529\u5165 p \u4FA7 \u2192 <b>\u5929\u7136\u7535\u8377\u5206\u79BB\u5668</b>\u5927\u529F\u544A\u6210\uFF01",
+          "Built-in field (n\u2192p) sweeps electrons to n and holes to p \u2014 the charge separator is complete!",
           "gold"
         );
       }
@@ -24097,62 +24255,137 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
       );
     }
   }
+  var loadResistance = 5;
+  var cellTemperature = 25;
+  var carrierLifetimeMs = 1;
+  function computeOperatingPoint() {
+    const T = cellTemperature + 273.15;
+    const Vt = 1380649e-29 * T / 1602176634e-28;
+    const Voc0 = 0.72 - 21e-4 * (cellTemperature - 25);
+    const Isc = 6 * (carrierLifetimeMs >= 0.5 ? 1 : 0.35);
+    const I0 = Isc / (Math.exp(Voc0 / Vt) - 1);
+    if (loadResistance <= 0.05) {
+      return { V: 0, I: Isc, P: 0 };
+    }
+    if (loadResistance >= 95) {
+      return { V: Voc0, I: 0, P: 0 };
+    }
+    let low = 0, high = Voc0;
+    for (let k = 0; k < 24; k++) {
+      const mid = (low + high) / 2;
+      const iDiode = Isc - I0 * (Math.exp(mid / Vt) - 1);
+      const iLoad = mid / loadResistance;
+      if (iLoad < iDiode) {
+        low = mid;
+      } else {
+        high = mid;
+      }
+    }
+    const V = (low + high) / 2;
+    const I = Math.max(0, V / loadResistance);
+    return { V, I, P: V * I };
+  }
   function buildCircuit() {
     const g = new Group();
     const off = root4.position;
     const pts = [
-      new Vector3(-2.5 + off.x, 1.9 + off.y, off.z),
+      new Vector3(-2.8 + off.x, 1.9 + off.y, off.z),
       new Vector3(-4.4 + off.x, 5.6 + off.y, off.z),
       new Vector3(-1.2 + off.x, 7.3 + off.y, off.z),
-      new Vector3(3 + off.x, 6.6 + off.y, off.z),
-      new Vector3(2.5 + off.x, 2.4 + off.y, off.z)
+      new Vector3(3.2 + off.x, 6.6 + off.y, off.z),
+      new Vector3(2.8 + off.x, 2.4 + off.y, off.z)
     ];
     const curve = new CatmullRomCurve3(pts);
     const tube = new Mesh(
-      new TubeGeometry(curve, 64, 0.07, 8),
-      new MeshStandardMaterial({ color: 10134445, metalness: 0.8, roughness: 0.35 })
+      new TubeGeometry(curve, 64, 0.075, 8),
+      new MeshStandardMaterial({ color: 11817737, metalness: 0.88, roughness: 0.25 })
+      // 纯紫铜导线
     );
     g.add(tube);
-    const cGeo = new BoxGeometry(1.7, 0.12, dims2.NZ * dims2.SP * 0.8);
-    const cMat = new MeshStandardMaterial({ color: 12107980, metalness: 0.85, roughness: 0.3 });
+    const cGeo = new BoxGeometry(1.8, 0.12, (dims2.depth || dims2.NZ * dims2.SP) * 0.85);
+    const cMat = new MeshStandardMaterial({ color: 12107980, metalness: 0.9, roughness: 0.25 });
     const cn = new Mesh(cGeo, cMat);
-    cn.position.set(-2.5 + off.x, 1.86 + off.y, off.z);
+    cn.position.set(-2.6 + off.x, 1.86 + off.y, off.z);
     const cp2 = new Mesh(cGeo, cMat);
-    cp2.position.set(2.5 + off.x, 1.86 + off.y, off.z);
+    cp2.position.set(2.6 + off.x, 1.86 + off.y, off.z);
     g.add(cn, cp2);
-    const lampPos = curve.getPointAt(0.78);
+    const lampPos = curve.getPointAt(0.72);
     const bulb = new Mesh(
-      new SphereGeometry(0.55, 20, 20),
-      new MeshStandardMaterial({ color: 3621201, emissive: 0, roughness: 0.4 })
+      new SphereGeometry(0.52, 20, 20),
+      new MeshStandardMaterial({ color: 16777215, transparent: true, opacity: 0.3, roughness: 0.1 })
     );
     bulb.position.copy(lampPos);
     g.add(bulb);
     const base = new Mesh(
-      new CylinderGeometry(0.18, 0.24, 0.4, 10),
-      new MeshStandardMaterial({ color: 7041664, metalness: 0.7, roughness: 0.4 })
+      new CylinderGeometry(0.16, 0.22, 0.35, 10),
+      new MeshStandardMaterial({ color: 6583435, metalness: 0.8, roughness: 0.3 })
     );
-    base.position.copy(lampPos).add(new Vector3(0, -0.72, 0));
+    base.position.copy(lampPos).add(new Vector3(0, -0.62, 0));
     g.add(base);
-    const light = new PointLight(16639626, 0, 18, 2);
+    const filament = new Mesh(
+      new TorusGeometry(0.18, 0.035, 8, 16),
+      new MeshStandardMaterial({ color: 8330525, emissive: 15680580, emissiveIntensity: 0.3 })
+    );
+    filament.rotation.x = Math.PI / 2;
+    filament.position.copy(lampPos);
+    g.add(filament);
+    const light = new PointLight(16639626, 0, 16, 2);
     light.position.copy(lampPos);
     g.add(light);
+    const fanPos = curve.getPointAt(0.35);
+    const fanGroup = new Group();
+    fanGroup.position.copy(fanPos);
+    const motor = new Mesh(
+      new CylinderGeometry(0.24, 0.24, 0.45, 12),
+      new MeshStandardMaterial({ color: 4674921, metalness: 0.8, roughness: 0.3 })
+    );
+    motor.rotation.x = Math.PI / 2;
+    fanGroup.add(motor);
+    const rotor = new Group();
+    const bladeGeo = new BoxGeometry(0.04, 0.72, 0.2);
+    const bladeMat = new MeshStandardMaterial({ color: 9741240, transparent: true, opacity: 0.8, roughness: 0.2 });
+    for (let k = 0; k < 3; k++) {
+      const blade = new Mesh(bladeGeo, bladeMat);
+      blade.position.y = 0.42;
+      const bArm = new Group();
+      bArm.rotation.z = k * 2 * Math.PI / 3;
+      bArm.add(blade);
+      rotor.add(bArm);
+    }
+    fanGroup.add(rotor);
+    g.add(fanGroup);
     const electrons = [];
-    for (let i = 0; i < 14; i++) {
+    for (let i = 0; i < 16; i++) {
       const el = new Mesh(
-        new SphereGeometry(0.11, 8, 8),
-        new MeshStandardMaterial({ color: COL.electron, emissive: COL.electron, emissiveIntensity: 1.2 })
+        new SphereGeometry(0.12, 8, 8),
+        new MeshStandardMaterial({ color: COL.electron, emissive: COL.electron, emissiveIntensity: 1.3 })
       );
       el.visible = false;
       g.add(el);
       electrons.push(el);
     }
     env3.root.add(g);
-    circuit = { group: g, curve, tube, bulb, light, electrons, closed: true, flowT: 0 };
+    circuit = {
+      group: g,
+      curve,
+      tube,
+      bulb,
+      filament,
+      light,
+      fanGroup,
+      rotor,
+      electrons,
+      closed: true,
+      flowT: 0
+    };
     stage3 = 4;
+    const op = computeOperatingPoint();
+    METERS.volt = op.V;
+    METERS.amp = op.I;
     flyCamera(env3.camera, env3.controls, [10, 7.5, 15], [0, 3.2, 0], 1.6);
     showNarr(
-      "<b>\u7535\u6D41\u6765\u4E86\uFF01</b>\u7535\u5B50\u6CBF\u5BFC\u7EBF\u4ECE n \u4FA7\u51FA\u53D1 \u2192 \u7ECF\u8FC7\u706F\u6CE1\uFF08\u505A\u529F\xB7\u53D1\u5149\uFF09\u2192 \u56DE\u5230 p \u4FA7\u4E0E\u7A7A\u7A74<b>\u590D\u5408</b>\u3002\u7535\u5B50\u6CA1\u6709\u88AB\u6D88\u8017\u2014\u2014\u5B83\u8D70\u4E00\u5708\u53C8\u56DE\u6765\u4E86\u3002\u9633\u5149\u4E0D\u505C\u5236\u9020\u65B0\u7684\u7535\u5B50-\u7A7A\u7A74\u5BF9\uFF0C\u7535\u6D41\u5C31\u6C38\u4E0D\u505C\u6B47\uFF1A\u5149\u5B50 \u279C \u7535\uFF01",
-      "Electrons loop through the lamp and back \u2014 that loop IS the current",
+      "<b>\u7535\u6D41\u6765\u4E86\uFF01\u53CC\u8D1F\u8F7D\u8054\u52A8\u505A\u529F\uFF01</b>\u7535\u5B50\u6CBF\u7EAF\u94DC\u5BFC\u7EBF\u4ECE n \u4FA7\u6D41\u51FA\uFF0C\u9A71\u52A8<b>\u5FAE\u578B\u98CE\u6247\u547C\u5578\u65CB\u8F6C</b>\u5E76\u70B9\u4EAE<b>\u7231\u8FEA\u751F\u94A8\u4E1D\u706F\u6CE1</b>\uFF01\u8C03\u8282\u4E0B\u65B9 <b>MPPT \u963B\u6297\u6ED1\u5757</b>\uFF0C\u63A2\u7D22\u8BA9\u98CE\u6247\u72C2\u8F6C\u3001\u706F\u6CE1\u7206\u4EAE\u7684\u9EC4\u91D1\u751C\u70B9\uFF01",
+      "Current loops through both the fan and the lamp \u2014 adjust MPPT impedance to hit peak power!",
       "green"
     );
   }
@@ -24238,22 +24471,37 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
       }));
     }
     if (circuit && circuit.closed) {
-      circuit.flowT += dt * (0.1 + 0.25 * (METERS.volt / 0.72));
+      const op = computeOperatingPoint();
+      METERS.volt = op.V;
+      METERS.amp = op.I;
+      const power = op.P;
+      circuit.flowT += dt * (0.05 + 0.35 * (op.I / 6));
       circuit.electrons.forEach((el, i) => {
         el.visible = true;
         const u = (circuit.flowT + i / circuit.electrons.length) % 1;
         el.position.copy(circuit.curve.getPointAt(u));
       });
-      const glow = 0.3 + 0.7 * Math.min(1, METERS.amp / 3.2);
-      circuit.bulb.material.emissive.setHex(16639626).multiplyScalar(glow);
-      circuit.light.intensity = 2.4 * glow;
-      METERS.amp = 3.2 * (METERS.volt / 0.72);
+      if (circuit.rotor) {
+        circuit.rotor.rotation.z += power * 7.5 * dt;
+      }
+      const normP = Math.min(1, power / 3.4);
+      if (circuit.filament) {
+        circuit.filament.material.emissiveIntensity = 0.2 + normP * 3.5;
+        circuit.filament.material.emissive.setHex(normP > 0.6 ? 16638023 : normP > 0.2 ? 16347926 : 15680580);
+      }
+      if (circuit.bulb) {
+        circuit.bulb.material.emissiveIntensity = normP * 0.8;
+        circuit.bulb.material.emissive.setHex(16639626);
+      }
+      if (circuit.light) {
+        circuit.light.intensity = normP * 2.8;
+      }
     } else if (METERS.amp > 0) {
       METERS.amp = Math.max(0, METERS.amp - dt * 2);
     }
-    if (stage3 >= 3 && stage3 < 4) METERS.volt = Math.max(0.4, METERS.volt - dt * 6e-3);
+    if (stage3 >= 3 && stage3 < 4 && !circuit) METERS.volt = Math.max(0.4, METERS.volt - dt * 6e-3);
     const cb = document.getElementById("btnCircuit");
-    if (cb) cb.disabled = !(stage3 >= 3 && METERS.volt >= 0.4 && !circuit);
+    if (cb) cb.disabled = !(stage3 >= 3 && METERS.volt >= 0.35 && !circuit);
     drawBand(t);
   }
   function drawBand(t) {
@@ -24261,53 +24509,33 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
     if (!ctx) return;
     const { w, h } = bandSize();
     ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = "rgba(8,12,24,0.88)";
-    roundRect(ctx, 4, 4, w - 8, h - 8, 12);
+    ctx.fillStyle = "#080d1a";
+    ctx.fillRect(0, 0, w, h);
+    const L = 36, R = w - 68;
+    const cbY = 46, bh = 42;
+    const vbY = h - 96;
+    roundRect(ctx, L, cbY, R - L, bh, 6);
+    ctx.fillStyle = "rgba(251, 191, 36, 0.15)";
     ctx.fill();
-    ctx.textAlign = "center";
-    ctx.fillStyle = "#94a3b8";
-    ctx.font = "bold 12px Outfit, sans-serif";
-    ctx.fillText("\u80FD\u5E26 = \u6676\u4F53\u7248\u7684\u7535\u5B50\u5EA7\u4F4D\u8868", w / 2, 24);
-    ctx.font = "9px Outfit, sans-serif";
-    ctx.fillStyle = "#475569";
-    ctx.fillText("(\u539F\u5B50\u6A21\u578B\u91CC\u7684\u58F3\u5C42\uFF0C\u5728\u6676\u4F53\u91CC\u5408\u5E76\u6210\u5E26)", w / 2, 38);
-    const L = 34, R = w - 34;
-    const cbY = 66, vbY = 210, bh = 40;
-    ctx.fillStyle = "rgba(251,191,36,0.10)";
-    ctx.strokeStyle = "rgba(251,191,36,0.55)";
-    roundRect(ctx, L, cbY, R - L, bh, 8);
-    ctx.fill();
+    ctx.strokeStyle = "#fbbf24";
+    ctx.lineWidth = 1.6;
     ctx.stroke();
     ctx.fillStyle = "#fbbf24";
     ctx.font = "bold 11px Outfit, sans-serif";
-    ctx.fillText("\u5BFC\u5E26 Conduction", w / 2, cbY - 8);
-    ctx.fillStyle = "#a16207";
-    ctx.font = "9px Outfit, sans-serif";
-    ctx.fillText("\u81EA\u7531\u5EA7\u4F4D \xB7 \u80FD\u81EA\u7531\u8DD1", w / 2, cbY + bh + 14);
-    ctx.fillStyle = "rgba(56,189,248,0.08)";
-    ctx.strokeStyle = "rgba(56,189,248,0.5)";
-    roundRect(ctx, L, vbY, R - L, bh, 8);
+    ctx.fillText("\u4E8C\u697C\u5929\u53F0\u8DD1\u9053\uFF1A\u5BFC\u5E26 (Conduction Band) \u2014 \u5E73\u65F6\u5168\u7A7A", L + 10, cbY + 26);
+    roundRect(ctx, L, vbY, R - L, bh, 6);
+    ctx.fillStyle = "rgba(56, 189, 248, 0.15)";
     ctx.fill();
+    ctx.strokeStyle = "#38bdf8";
+    ctx.lineWidth = 1.6;
     ctx.stroke();
     ctx.fillStyle = "#38bdf8";
     ctx.font = "bold 11px Outfit, sans-serif";
-    ctx.fillText("\u4EF7\u5E26 Valence", w / 2, vbY + bh + 16);
-    ctx.fillStyle = "#0369a1";
-    ctx.font = "9px Outfit, sans-serif";
-    ctx.fillText("\u9501\u6B7B\u7684\u5EA7\u4F4D \xB7 \u5171\u4EF7\u952E", w / 2, vbY - 8);
-    for (let i = 0; i < 8; i++) {
-      const x = L + 14 + i * ((R - L - 28) / 7);
-      const isHole = absorbAnim !== null && i === 4;
-      if (isHole) {
-        ctx.strokeStyle = "#38bdf8";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(x, vbY + bh / 2, 6, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.fillStyle = "#38bdf8";
-        ctx.font = "bold 9px Outfit";
-        ctx.fillText("+", x, vbY + bh / 2 + 3);
-      } else {
+    ctx.fillText("\u4E00\u697C\u786C\u5367\u770B\u53F0\uFF1A\u4EF7\u5E26 (Valence Band) \u2014 \u5750\u6EE1\u9501\u6B7B", L + 10, vbY + 26);
+    const es = 8;
+    for (let i = 0; i < es; i++) {
+      const x = L + 18 + i * ((R - L - 36) / (es - 1));
+      if (!(absorbAnim !== null && i === 4)) {
         ctx.fillStyle = "#7dd3fc";
         ctx.beginPath();
         ctx.arc(x, vbY + bh / 2, 4.5, 0, Math.PI * 2);
@@ -24395,12 +24623,33 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
           label: "\u{1F50C} \u63A5\u901A\u7535\u8DEF",
           cls: "green",
           id: "btnCircuit",
-          disabled: true,
+          disabled: !(stage3 >= 3 && METERS.volt >= 0.35 || circuit),
           onClick: (el) => {
-            if (stage3 >= 3 && !circuit) {
+            if (!circuit) {
               buildCircuit();
               el.disabled = true;
             }
+          }
+        },
+        {
+          label: carrierLifetimeMs >= 0.5 ? "\u{1F6E1}\uFE0F \u5C11\u5B50\u5BFF\u547D: 1 ms (\u9AD8\u7EAF\u6676\u7845)" : "\u26A0\uFE0F \u5C11\u5B50\u5BFF\u547D: 1 \u03BCs (\u6742\u8D28\u6C61\u67D3)",
+          cls: carrierLifetimeMs >= 0.5 ? "blue" : "red",
+          onClick: () => {
+            carrierLifetimeMs = carrierLifetimeMs >= 0.5 ? 1e-3 : 1;
+            if (carrierLifetimeMs < 0.5) {
+              showNarr(
+                "\u26A0\uFE0F <b>\u5C11\u5B50\u5BFF\u547D\u8DCC\u81F3 1 \u03BCs</b>\uFF01\u6269\u6563\u957F\u5EA6 $L_n = \\sqrt{D\\tau} = 60\\ \\mu\\text{m} < 150\\ \\mu\\text{m}$\uFF0C\u7535\u5B50\u8FD8\u6CA1\u8D70\u5230\u8017\u5C3D\u533A\u5C31\u5728\u534A\u8DEF\u4E0E\u6742\u8D28\u590D\u5408\u731D\u6B7B\uFF0C\u77ED\u8DEF\u7535\u6D41\u4E0E\u529F\u7387\u8170\u65A9\uFF01",
+                "Short lifetime: diffusion length < wafer thickness, carriers recombine before the junction!",
+                "red"
+              );
+            } else {
+              showNarr(
+                "\u{1F6E1}\uFE0F <b>\u5C11\u5B50\u5BFF\u547D\u6062\u590D\u81F3 1 ms</b>\uFF01\u6269\u6563\u957F\u5EA6 $L_n = 1900\\ \\mu\\text{m} \\gg 150\\ \\mu\\text{m}$\uFF0C\u8D85\u8D8A\u7845\u7247\u539A\u5EA6 10 \u500D\u4EE5\u4E0A\uFF0C\u5168\u90E8\u5149\u751F\u7535\u5B50\u90FD\u80FD\u5B58\u6D3B\u6ED1\u5165 n \u6781\uFF01",
+                "Long lifetime: diffusion length > 10x wafer thickness, 100% carriers collected!",
+                "blue"
+              );
+            }
+            refreshAllBtns();
           }
         },
         { label: "\u{1F501} \u91CD\u73A9\u672C\u7AE0", cls: "", onClick: () => {
@@ -24419,9 +24668,51 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
           max: 1300,
           step: 10,
           value: lambda,
-          display: (v) => `${v}nm \xB7 ${(1240 / v).toFixed(2)}eV`,
+          display: (v) => `${v}nm \xB7 ${(1239.84 / v).toFixed(2)}eV`,
           onInput: (v) => {
             lambda = v;
+          }
+        },
+        {
+          id: "slRL",
+          label: "\u{1F3AF} MPPT \u8D1F\u8F7D\u963B\u6297",
+          min: 0,
+          max: 100,
+          step: 1,
+          value: loadResistance,
+          display: (v) => {
+            if (v <= 0) return "0 \u03A9 \xB7 \u77ED\u8DEF (P=0)";
+            if (v >= 95) return "\u221E \u03A9 \xB7 \u5F00\u8DEF (P=0)";
+            const p = computeOperatingPoint().P;
+            return `${v} \u03A9 \xB7 \u8F93\u51FA\u529F\u7387 ${p.toFixed(2)}W ${Math.abs(v - 5) <= 1 ? "\u{1F525}\u6700\u5927\u529F\u7387\u70B9!" : ""}`;
+          },
+          onInput: (v) => {
+            loadResistance = v;
+            if (circuit && circuit.closed) {
+              const p = computeOperatingPoint().P;
+              if (v <= 0) {
+                showNarr("<b>\u77ED\u8DEF\u72B6\u6001 (0 \u03A9)</b>\uFF1A\u7535\u8377\u98DE\u5954\u6CA1\u6709\u963B\u788D\uFF0C\u7535\u6D41\u6700\u5927\u4F46\u4E24\u7AEF\u7535\u538B\u4E3A 0\uFF01\u8F93\u51FA\u7535\u529F\u7387 $P = 0 \\times I = 0$ \u74E6\uFF01\u98CE\u6247\u4E0D\u8F6C\uFF0C\u706F\u6CE1\u4E0D\u4EAE\u3002", "Short circuit: V=0, Power=0", "red");
+              } else if (v >= 95) {
+                showNarr("<b>\u5F00\u8DEF\u72B6\u6001 (\u221E \u03A9)</b>\uFF1A\u5916\u90E8\u65AD\u5F00\uFF0C\u4E24\u7AEF\u7535\u8377\u5806\u79EF\u5230\u6781\u9650\u7535\u538B 0.72V\uFF0C\u4F46\u6CA1\u6709\u56DE\u8DEF\u5F62\u6210\u7535\u6D41\uFF01\u8F93\u51FA\u7535\u529F\u7387 $P = V \\times 0 = 0$ \u74E6\uFF01\u98CE\u6247\u4E0D\u8F6C\uFF0C\u706F\u6CE1\u4E0D\u4EAE\u3002", "Open circuit: I=0, Power=0", "red");
+              } else if (Math.abs(v - 5) <= 1) {
+                showNarr(`<b>\u{1F525} \u547D\u4E2D\u9EC4\u91D1\u6700\u5927\u529F\u7387\u70B9 (MPPT \u2248 5 \u03A9)</b>\uFF01\u8F93\u51FA\u529F\u7387\u5CF0\u503C\u8FBE\u5230 <b>${p.toFixed(2)} W</b>\uFF01\u98CE\u6247\u9AD8\u901F\u547C\u5578\u98DE\u8F6C\uFF0C\u94A8\u4E1D\u706F\u6CE1\u91D1\u5149\u7480\u74A8\uFF01`, "Maximum Power Point Tracked! Peak power output!", "gold");
+              }
+            }
+          }
+        },
+        {
+          id: "slTemp",
+          label: "\u2600\uFE0F \u7845\u7247\u6E29\u5EA6",
+          min: -20,
+          max: 75,
+          step: 5,
+          value: cellTemperature,
+          display: (v) => `${v}\xB0C \xB7 \u0394Voc ${(-21e-4 * (v - 25) * 1e3).toFixed(0)}mV`,
+          onInput: (v) => {
+            cellTemperature = v;
+            if (v >= 65) {
+              showNarr(`<b>\u9AD8\u6E29\u66B4\u6652 ${v}\xB0C \u8D1F\u6E29\u5EA6\u6548\u5E94</b>\uFF1A\u5F00\u8DEF\u7535\u538B\u8F83\u5E38\u6E29\u8DCC\u843D\u8D85\u8FC7 <b>100 mV</b>\uFF01\u70ED\u5E73\u8861\u6F0F\u7535\u6D41\u66B4\u6DA8\u5BFC\u81F4\u7AEF\u7535\u538B\u4E0E\u529F\u7387\u5927\u5E45\u8870\u51CF\u3002`, "High temperature negative coefficient: Voc drops by >100mV", "red");
+            }
           }
         }
       ]
@@ -24457,10 +24748,36 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
     onPointerUp: () => onPointerUp,
     update: () => update5
   });
+
+  // solar-cell/js/facts.js
+  var Q_E = 1602176634e-28;
+  var K_BOLTZMANN = 1380649e-29;
+  var OPTICAL_DEPTH_UM = {
+    365: 9e-3,
+    // < 10 nm (深紫外垂直跃迁)
+    400: 0.105,
+    // 0.105 μm (近紫)
+    550: 1.56,
+    // 1.56 μm (绿光，在 1.5~1.6 μm 范围)
+    700: 5.26,
+    // 5.26 μm (红光)
+    850: 22,
+    // 22 μm (浅红外)
+    1e3: 156,
+    // 156 μm (近红外，在 150~160 μm 范围，等于标准片厚)
+    1100: 2857
+    // 2.86 mm (带隙边缘近透)
+  };
+  function cpvVoltageBoostV(concentrationC = 1e3, T = 300) {
+    const Vt = K_BOLTZMANN * T / Q_E;
+    return Vt * Math.log(concentrationC);
+  }
+
+  // solar-cell/js/ch5_real.js
   var meta5 = {
     nav: "\u{1F30D} \u771F\u5B9E\u4E16\u754C",
     title: "\u{1F30D} \u592A\u9633\u80FD\u7535\u6C60 \xB7 \u7B2C5\u7AE0\uFF1A\u771F\u5B9E\u4E16\u754C \u2014 \u4ECE\u539F\u7406\u5230 27.81%",
-    sub: "Chapter 5 \xB7 Real cells: optics, light trapping & the efficiency budget"
+    sub: "Chapter 5 \xB7 Real cells: optics, passivation, CPV, CT scan & efficiency budget"
   };
   var root5;
   var env4;
@@ -24477,20 +24794,24 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
   var budgetBlocks = [];
   var budgetStage = -1;
   var layers = [];
-  var ABS = {
-    // Green & Keevers 1995: α (1/cm) → 1/α depth in μm at 300K
-    400: { a: 95e3 },
-    550: { a: 6390 },
-    700: { a: 1900 },
-    800: { a: 850 },
-    900: { a: 306 },
-    1e3: { a: 64 },
-    1100: { a: 3.5 }
-  };
+  var passivationMode = "none";
+  var isBending = false;
+  var isLeafShaded = false;
+  var passivSpikesGroup = null;
+  var leafMesh = null;
+  var cpvGroup = null;
+  var cpvRays = [];
+  var cpvHotSpot = null;
+  var ctProbe = "green";
+  var ctGroup = null;
+  var ctBeam = null;
+  var ctDepthTag = null;
+  var sweepT = 0;
   var OPTICS = {
     bare: { R: 0.35, path: 1, label: "\u88F8\u629B\u5149 \xB7 \u53CD\u5C04 \u224835%" },
     text: { R: 0.08, path: 2.6, label: "\u7ED2\u9762 \xB7 \u53CD\u5C04 \u22488%" },
-    both: { R: 0.02, path: 2.6, label: "\u7ED2\u9762\uFF0B\u51CF\u53CD\u5C04\u819C \xB7 \u53CD\u5C04 \u22482%" }
+    both: { R: 0.02, path: 2.6, label: "\u7ED2\u9762\uFF0B\u819C \xB7 \u53CD\u5C04 \u22482%" },
+    cpv: { R: 0.02, path: 2.6, label: "\u2600\uFE0F 1000\xD7 \u805A\u5149 (Voc +180mV)" }
   };
   var L_WAFER_CM = 0.015;
   var MIX = [
@@ -24510,25 +24831,19 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
     return 550;
   }
   function absProb(nm, Lcm) {
-    const key = nearestKey(nm);
-    return 1 - Math.exp(-ABS[key].a * Lcm);
+    const depth = OPTICAL_DEPTH_UM[nearestKey(nm)] || 1.56;
+    const alpha = 1e4 / depth;
+    return 1 - Math.exp(-alpha * Lcm);
   }
   function nearestKey(nm) {
-    const ks = Object.keys(ABS).map(Number);
+    const ks = Object.keys(OPTICAL_DEPTH_UM).map(Number);
     return ks.reduce((b, k) => Math.abs(k - nm) < Math.abs(b - nm) ? k : b, ks[0]);
   }
   function enter5(e) {
     env4 = e;
     root5 = new Group();
     e.root.add(root5);
-    photons2 = [];
-    fate = { r: 0, a: 0, t: 0 };
-    rainOn = false;
-    budgetBlocks = [];
-    budgetStage = -1;
-    layers = [];
-    pickables = [];
-    picked = null;
+    resetAllState();
     ray = new Raycaster();
     pointer = new Vector2();
     mode2 = "structure";
@@ -24538,14 +24853,38 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
     env4 = e;
     refresh = r;
   }
-  function clearRoot() {
-    if (!root5) return;
-    while (root5.children.length) root5.remove(root5.children[0]);
+  function resetAllState() {
     photons2 = [];
+    fate = { r: 0, a: 0, t: 0 };
+    rainOn = false;
     budgetBlocks = [];
+    budgetStage = -1;
     layers = [];
     pickables = [];
     picked = null;
+    passivationMode = "none";
+    isBending = false;
+    isLeafShaded = false;
+    passivSpikesGroup = null;
+    leafMesh = null;
+    cpvGroup = null;
+    cpvRays = [];
+    cpvHotSpot = null;
+    ctGroup = null;
+    ctBeam = null;
+    ctDepthTag = null;
+  }
+  function clearRoot() {
+    if (!root5) return;
+    while (root5.children.length) {
+      const c = root5.children[0];
+      root5.remove(c);
+    }
+    if (fateEl) {
+      fateEl.remove();
+      fateEl = null;
+    }
+    resetAllState();
   }
   function buildStructure() {
     clearRoot();
@@ -24560,8 +24899,8 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
         y: 0,
         color: 9348296,
         rough: 0.35,
-        zh: "<b>\u91D1\u5B57\u5854\u7ED2\u9762</b>\uFF08\u5404\u5411\u5F02\u6027\u8150\u8680\uFF0C\u9AD8 2\u20135 \u03BCm\uFF09\uFF1A\u5165\u5C04\u5149\u88AB\u659C\u9762\u6298\u8FDB\u7845\u91CC\uFF0C\u53CD\u5C04\u5149\u518D\u649E\u4E0A\u53E6\u4E00\u5EA7\u91D1\u5B57\u5854 \u2192 <b>\u4E8C\u6B21\u673A\u4F1A</b>\u88AB\u5438\u6536\u3002\u88F8\u629B\u5149\u7845\u53CD\u5C04 \u2248<b>35%</b>\uFF08\u7531\u6298\u5C04\u7387\u6570\u636E\u8BA1\u7B97\uFF1A400nm \u5904 48%\u30011100nm \u5904 31%\uFF09\uFF0C\u7ED2\u9762\uFF0B\u51CF\u53CD\u5C04\u819C\u538B\u5230 <b>\u22482%</b>\uFF08\u5DE5\u4E1A\u5178\u578B\u503C\uFF09",
-        en: "Random pyramids (2\u20135 \u03BCm) give reflected light a second chance; bare Si reflects ~35%"
+        zh: "<b>\u91D1\u5B57\u5854\u7ED2\u9762</b>\uFF08KOH \u5404\u5411\u5F02\u6027\u8150\u8680\uFF0C\u503E\u89D2 54.74\xB0\uFF0C\u9AD8 2\u20135 \u03BCm\uFF09\uFF1A\u5165\u5C04\u5149\u5728\u91D1\u5B57\u5854\u659C\u9762\u53D1\u751F<b>\u53CC\u91CD\u53CD\u5C04 (Double Bounce)</b>\uFF0C\u5C06\u88F8\u629B\u5149\u7845\u7684 35% \u53CD\u5C04\u7387\u964D\u5230 8% \u4EE5\u4E0B\uFF0C\u5E76\u4F7F\u5149\u7EBF\u503E\u659C\u6298\u5C04\uFF0C\u5149\u7A0B\u62C9\u957F 2.6 \u500D\uFF01",
+        en: "Random 54.74\xB0 pyramids double-bounce incoming rays, cutting reflectance to ~8% and tilting light path"
       },
       {
         id: "arc",
@@ -24572,8 +24911,8 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
         rough: 0.15,
         transparent: true,
         opacity: 0.55,
-        zh: "<b>\u6C2E\u5316\u7845\u51CF\u53CD\u5C04\u819C</b>\uFF1A\u539A\u7EA6 <b>75 nm</b>\uFF08\u53EF\u89C1\u5149\u6CE2\u957F\u7684 1/4\uFF09\uFF0C\u6298\u5C04\u7387 n\u22482.05 \u4ECB\u4E8E\u7A7A\u6C14(1)\u548C\u7845(~3.5)\u4E4B\u95F4 \u2192 \u819C\u4E0A\u4E0B\u4E24\u675F\u53CD\u5C04\u5149<b>\u76F8\u6D88\u5E72\u6D89</b>\uFF0C\u7535\u6C60\u5448\u73B0\u6DF1\u84DD\u8272\u3002\u5B83\u8FD8\u987A\u624B\u7528\u6C22<b>\u949D\u5316</b>\u8868\u9762\u7F3A\u9677",
-        en: "75 nm quarter-wave SiNx: reflected waves cancel (dark blue look) + H passivation"
+        zh: "<b>\u6C2E\u5316\u7845\u51CF\u53CD\u5C04\u819C (SiNx)</b>\uFF1A\u539A\u5EA6\u4E25\u683C\u7B49\u4E8E <b>73~75 nm</b>\uFF08\u53EF\u89C1\u5149\u6CE2\u957F 600nm \u7684\u56DB\u5206\u4E4B\u4E00\u6CE2\u957F d=\u03BB/4n\uFF09\u3002\u4E0A\u4E0B\u8868\u9762\u53CD\u5C04\u5149\u6CE2\u5CF0\u6CE2\u8C37\u6070\u597D<b>\u76F8\u6D88\u5E72\u6D89</b>\uFF0C\u52A0\u6743\u53CD\u5C04\u7387\u538B\u5230 <b>\u22482%</b>\uFF01\u5B83\u8FD8\u5185\u542B\u6C22\u539F\u5B50\uFF0C\u80A9\u8D1F\u7740\u629A\u5E73\u8868\u9762\u65AD\u952E\u7684\u91CD\u4EFB",
+        en: "75 nm quarter-wave SiNx: destructive interference drops reflection to ~2% + passes H for chemical passivation"
       },
       {
         id: "emitter",
@@ -24582,8 +24921,8 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
         y: 0,
         color: 3886456,
         rough: 0.3,
-        zh: '<b>n\u207A \u53D1\u5C04\u6781</b>\uFF08\u63BA\u78F7\uFF0C\u539A\u7EA6 0.3\u20131 \u03BCm\uFF09\uFF1A\u7B2C 3 \u7AE0\u7684"n \u4FA7"\u3002\u5B83\u548C p \u578B\u672C\u4F53\u4EA4\u754C\u5904\u5C31\u662F <b>PN \u7ED3</b>\u2014\u2014\u5185\u5EFA\u7535\u573A\u628A\u5149\u751F\u7684\u7535\u5B50-\u7A7A\u7A74\u5BF9\u5206\u5F00\u3002\u771F\u5B9E\u7535\u6C60\u91CC\u7ED3\u6DF1\u53EA\u6709\u5934\u53D1\u4E1D\u76F4\u5F84\u7684 <b>1/50</b>',
-        en: "Phosphorus-doped emitter ~0.5 \u03BCm \u2014 the junction hides here"
+        zh: "<b>n\u207A \u53D1\u5C04\u6781</b>\uFF08\u91CD\u63BA\u78F7\uFF0C\u539A\u4EC5 0.3\u20130.5 \u03BCm\uFF09\uFF1A\u53EA\u6709\u5934\u53D1\u4E1D\u76F4\u5F84\u7684 1/200\uFF01\u5B83\u4E0E p \u578B\u57FA\u5E95\u4EA4\u754C\u5904\u5C31\u662F <b>PN \u7ED3</b>\u3002\u6B64\u5904\u91CD\u63BA\u6742\u5FC5\u987B\u6781\u5EA6\u5C0F\u5FC3\uFF0C\u9632\u6B62\u5F62\u6210\u6355\u83B7\u8F7D\u6D41\u5B50\u7684\u201C\u6B7B\u5C42 (Dead Layer)\u201D",
+        en: "Ultra-thin 0.3 \u03BCm phosphorus-doped emitter: junction resides here, minimizing Auger dead layer"
       },
       {
         id: "bulk",
@@ -24592,8 +24931,8 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
         y: 0,
         color: 7226448,
         rough: 0.45,
-        zh: "<b>p \u578B\u7845\u7247</b>\uFF1A\u771F\u5B9E\u539A\u5EA6\u7EA6 <b>150 \u03BCm</b>\uFF08\u73B0\u4EE3\u8584\u7247\uFF0C\u5934\u53D1\u76F4\u5F84\u7684 ~2 \u500D\uFF09\u3002\u7845\u662F<b>\u95F4\u63A5\u5E26\u9699</b>\u534A\u5BFC\u4F53\u2014\u2014\u5438\u6536\u7CFB\u6570\u4F4E\uFF1A550nm \u7EFF\u5149 1.6 \u03BCm \u5C31\u88AB\u5438\u6536\uFF0C\u800C <b>1000nm \u8FD1\u7EA2\u5916\u8981 ~156 \u03BCm</b>\u30011100nm \u8981 ~2.9 mm\uFF01\u6240\u4EE5\u7EA2\u5149\u7ECF\u5E38\u8981\u9760\u80CC\u9762\u53CD\u5C04<b>\u591A\u8D70\u51E0\u904D</b>\uFF08\u4E0B\u4E00\u573A\u666F\u89C1\uFF09",
-        en: "150 \u03BCm p-type wafer; indirect gap \u2192 red/NIR photons need multiple passes"
+        zh: "<b>p \u578B\u7845\u7247\u672C\u4F53</b>\uFF08\u539A 150 \u03BCm\uFF09\uFF1A\u73B0\u4EE3\u8584\u6676\u5706\u3002\u95F4\u63A5\u5E26\u9699\u4F7F\u7EFF\u5149 1.56 \u03BCm \u5373\u53EF\u5438\u6536\uFF0C\u800C <b>1000 nm \u8FD1\u7EA2\u5916\u9700 156 \u03BCm \u751A\u81F3\u7A7F\u900F</b>\u3002\u57FA\u5E95\u7684<b>\u5C11\u6570\u8F7D\u6D41\u5B50\u5BFF\u547D \u03C4 \u5FC5\u987B\u957F\u8FBE 1~5 ms</b>\uFF08\u6269\u6563\u957F\u5EA6 L=\u221A(D\u03C4) > 1500 \u03BCm \u8FDC\u8D85\u7247\u539A\uFF09\uFF0C\u7535\u5B50\u624D\u80FD\u6D3B\u7740\u62B5\u8FBE PN \u7ED3\u6ED1\u68AF\uFF01",
+        en: "150 \u03BCm p-type substrate: minority carrier lifetime \u03C4 > 1 ms ensures diffusion length Ln >> wafer thickness"
       },
       {
         id: "back",
@@ -24603,8 +24942,8 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
         color: 12107980,
         rough: 0.25,
         metal: true,
-        zh: "<b>\u80CC\u9762\u94DD/\u94F6\u5C42</b>\uFF1A\u65E2\u5F53\u7535\u6781\uFF08\u7B2C 4 \u7AE0\u7535\u8DEF\u7684\u4E00\u7AEF\uFF09\uFF0C\u53C8\u662F<b>\u955C\u5B50</b>\u2014\u2014\u6CA1\u5438\u6536\u5B8C\u7684\u7EA2\u5916\u5149\u88AB\u5F39\u56DE\u7845\u91CC\u518D\u8D70\u4E00\u904D\uFF0C\u8DEF\u5F84\u7FFB\u500D \u2192 1000nm \u5149\u7684\u5438\u6536\u6982\u7387\u4ECE 62% \u5347\u5230 ~86%",
-        en: "Back metal = electrode + mirror: doubles the optical path for NIR"
+        zh: "<b>\u80CC\u9762\u53CD\u5C04\u955C\u4E0E\u6B27\u59C6\u7535\u6781</b>\uFF1A\u5E95\u90E8\u7684\u955C\u9762\u5C06\u9003\u9038\u7684\u7EA2\u5916\u5149\u53CD\u5F39\u56DE\u7845\u7247\u4E2D\uFF0C\u5149\u8DEF\u52A0\u500D\uFF1B\u5C40\u90E8\u5FAE\u7C73\u91CD\u63BA\u6742\u63A5\u89E6\u5B54\u539A\u5EA6\u5C0F\u4E8E 3nm\uFF0C\u8BA9\u7535\u5B50\u5229\u7528<b>\u91CF\u5B50\u96A7\u7A7F\u7A7F\u5899\u672F</b>\u6BEB\u65E0\u963B\u529B\u6C47\u5165\u5916\u7535\u8DEF",
+        en: "Back mirror + ohmic contact: doubles NIR optical path; tunneling contacts (<3 nm) eliminate contact barriers"
       }
     ];
     let yCursor = 0;
@@ -24650,15 +24989,141 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
       root5.add(t);
     });
     const totalTop = layers[layers.length - 1].mesh.position.y + layers[layers.length - 1].h / 2 + 0.5;
-    const scaleTag = makeTextSprite("\u6BD4\u4F8B\uFF1A\u7ED2\u9762\u91D1\u5B57\u5854\u753B\u5927\u4E86 ~40 \u500D\uFF08\u771F\u5B9E 2\u20135 \u03BCm\uFF09", 0.5, "#94a3b8");
+    const scaleTag = makeTextSprite("\u91D1\u5B57\u5854\u5404\u5411\u5F02\u6027 54.74\xB0\uFF08\u793A\u610F\u753B\u5927 ~40 \u500D\uFF0C\u771F\u5B9E 2\u20135 \u03BCm\uFF09", 0.5, "#94a3b8");
     scaleTag.position.set(0, totalTop + 1.5, D / 2);
     root5.add(scaleTag);
+    buildPassivationSpikes();
     flyCamera(env4.camera, env4.controls, [7.5, 5.2, 9.5], [0, 1.1, 0], 1.3);
     showNarr(
-      "\u539F\u7406\u4E09\u7AE0\u8BB2\u5B8C\u4E86\u3002\u4F46<b>\u771F\u5B9E</b>\u7684\u7535\u6C60\u957F\u4EC0\u4E48\u6837\uFF1F\u8FD9\u662F\u4E00\u53F0\u5546\u7528\u7535\u6C60\u7684<b>\u5C42\u72B6\u622A\u9762</b>\uFF1A<b>\u70B9\u51FB\u6BCF\u4E00\u5C42</b>\u770B\u5B83\u7684\u771F\u5B9E\u5C3A\u5BF8\u548C\u4F5C\u7528\u3002\u4E00\u9897\u53CD\u5C04\u7387 35% \u7684\u88F8\u7845\u7247\u600E\u4E48\u53D8\u6210 27.81% \u7684\u4E16\u754C\u7EAA\u5F55\uFF1F\u672C\u7AE0\u7528<b>\u88AB\u8BA4\u8BC1\u7684\u771F\u5B9E\u6570\u5B57</b>\u56DE\u7B54",
-      "Real device cross-section \u2014 click each layer to inspect it",
+      "\u8FD9\u662F\u73B0\u4EE3\u5546\u7528\u5355\u6676\u7845\u592A\u9633\u80FD\u7535\u6C60\u7684<b>\u4E94\u5C42\u771F\u5B9E\u622A\u9762</b>\uFF1A<b>\u70B9\u51FB\u6BCF\u4E00\u5C42</b>\u67E5\u770B\u5FAE\u89C2\u7269\u7406\u4E0E\u5DE5\u827A\u5965\u79D8\u3002<br>\u5C1D\u8BD5\u4E0B\u65B9\u6309\u94AE\uFF1A\u89C2\u5BDF<b>\u8868\u9762\u60AC\u6302\u952E\u53CC\u91CD\u949D\u5316</b>\u3001<b>60\u03BCm \u67D4\u6027\u5F2F\u6298\u9ED1\u79D1\u6280</b>\u4E0E <b>Nature 2025 \u5C40\u90E8\u8F6F\u51FB\u7A7F\u9632\u70ED\u6591</b>\uFF01",
+      "Real device cross-section \u2014 click layers or toggle surface passivation & flexible silicon",
       "blue"
     );
+  }
+  function buildPassivationSpikes() {
+    if (passivSpikesGroup) {
+      root5.remove(passivSpikesGroup);
+      passivSpikesGroup = null;
+    }
+    passivSpikesGroup = new Group();
+    root5.add(passivSpikesGroup);
+    const topLayer = layers[layers.length - 1];
+    const surfaceY = topLayer ? topLayer.mesh.position.y + topLayer.h / 2 + 0.42 : 2.5;
+    const spikeGeo = new ConeGeometry(0.08, 0.35, 5);
+    const unpassivMat = new MeshStandardMaterial({
+      color: 15680580,
+      emissive: 10033947,
+      emissiveIntensity: 0.6,
+      roughness: 0.3
+    });
+    const hSphereGeo = new SphereGeometry(0.1, 8, 8);
+    const hMat = new MeshStandardMaterial({
+      color: 3718648,
+      emissive: 165063,
+      emissiveIntensity: 0.8,
+      roughness: 0.2
+    });
+    const N_SPIKES = 18;
+    for (let i = 0; i < N_SPIKES; i++) {
+      const sx = -3.8 + i % 6 * 1.5 + (Math.random() - 0.5) * 0.2;
+      const sz = -1.8 + Math.floor(i / 6) * 1.8 + (Math.random() - 0.5) * 0.2;
+      const spike = new Mesh(spikeGeo, unpassivMat);
+      spike.position.set(sx, surfaceY + 0.16, sz);
+      passivSpikesGroup.add(spike);
+      if (passivationMode === "double") {
+        const hCap = new Mesh(hSphereGeo, hMat);
+        hCap.position.set(sx, surfaceY + 0.38, sz);
+        passivSpikesGroup.add(hCap);
+      }
+    }
+    if (passivationMode === "double") {
+      const shieldGeo = new PlaneGeometry(8.6, 4.8);
+      const shieldMat = new MeshStandardMaterial({
+        color: 165063,
+        transparent: true,
+        opacity: 0.32,
+        emissive: 3718648,
+        emissiveIntensity: 0.5,
+        side: DoubleSide
+      });
+      const shield = new Mesh(shieldGeo, shieldMat);
+      shield.rotation.x = -Math.PI / 2;
+      shield.position.set(0, surfaceY + 0.45, 0);
+      passivSpikesGroup.add(shield);
+      const shieldTag = makeTextSprite("\u{1F6E1}\uFE0F \u573A\u6548\u5E94\u56FA\u5B9A\u7535\u8377\u5C4F\u853D\u5C42 [+ + +] \xB7 \u5F3A\u529B\u6392\u65A5\u5C11\u6570\u8F7D\u6D41\u5B50", 0.52, "#38bdf8");
+      shieldTag.position.set(0, surfaceY + 1.1, 1.8);
+      passivSpikesGroup.add(shieldTag);
+    } else if (passivationMode === "none") {
+      const dangerTag = makeTextSprite("\u26A0\uFE0F \u8868\u9762\u672A\u949D\u5316\uFF1A\u60AC\u6302\u952E\u9677\u9631 (SRV > 10\u2076 cm/s)", 0.52, "#ef4444");
+      dangerTag.position.set(0, surfaceY + 0.9, 1.8);
+      passivSpikesGroup.add(dangerTag);
+    }
+  }
+  function togglePassivation() {
+    passivationMode = passivationMode === "none" ? "double" : "none";
+    buildPassivationSpikes();
+    if (passivationMode === "double") {
+      showNarr(
+        "<b>\u3010\u53CC\u91CD\u949D\u5316\u751F\u6548\uFF1ASRV \u66B4\u8DCC\u81F3 < 10 cm/s\u3011</b><br>\u2460 <b>\u5316\u5B66\u949D\u5316</b>\uFF1A\u6C22\u539F\u5B50\u7CBE\u7075\u98DE\u4E0A\u53BB\u7D27\u7D27\u7ED3\u5408\u8868\u9762\u672A\u914D\u5BF9\u7684 $sp^3$ \u60AC\u6302\u952E\uFF0C\u5F62\u6210\u575A\u56FA\u7684 Si-H \u952E\uFF0C\u8868\u9762\u7F3A\u9677\u6001\u964D\u4F4E 4 \u4E2A\u6570\u91CF\u7EA7\uFF01<br>\u2461 <b>\u573A\u6548\u5E94\u949D\u5316</b>\uFF1ASiNx \u8584\u819C\u5185\u90E8\u5E38\u5E26 $+10^{12}\\text{ cm}^{-2}$ \u6C38\u4E45\u56FA\u5B9A\u6B63\u7535\u8377\uFF0C\u5F62\u6210\u5F3A\u529B\u7535\u78C1\u529B\u76FE\u724C\uFF0C\u628A\u7A7A\u7A74\u548C\u7535\u5B50\u6B7B\u6B7B\u9694\u5F00\uFF0C\u5207\u65AD\u8868\u9762\u590D\u5408\u901A\u9053\uFF01",
+        "Double passivation: chemical Si-H caps + electrostatic field-effect shielding (SRV < 10 cm/s)",
+        "green"
+      );
+    } else {
+      showNarr(
+        "<b>\u3010\u672A\u949D\u5316\u8868\u9762\uFF1A\u81F4\u547D\u7684\u65AD\u5934\u8DEF\u4E0E\u5F20\u7259\u821E\u722A\u5C0F\u602A\u517D\u3011</b><br>\u5355\u6676\u7845\u5207\u5F00\u66B4\u9732\u8868\u9762\u540E\uFF0C\u4E09\u7EF4\u6676\u683C\u5468\u671F\u52BF\u573A\u7A81\u7136\u622A\u65AD\uFF0C\u8868\u9762\u7845\u539F\u5B50\u7684\u5171\u4EF7\u952E\u60AC\u5728\u534A\u7A7A\uFF08<b>\u60AC\u6302\u952E Dangling Bonds</b>\uFF09\uFF01<br>\u7981\u5E26\u4E2D\u592E\u8BF1\u53D1\u51FA\u6781\u9AD8\u5BC6\u5EA6\u7684\u8868\u9762\u6001\uFF0C\u8868\u9762\u590D\u5408\u901F\u7387\u9AD8\u8FBE <b>$10^6\\text{ cm/s}$</b>\uFF0C\u4EFB\u4F55\u649E\u4E0A\u8868\u9762\u7684\u5149\u751F\u7535\u5B50\u5728\u51E0\u76AE\u79D2\u5185\u88AB\u541E\u566C\u590D\u5408\uFF0C\u7535\u6C60\u51E0\u4E4E\u5F7B\u5E95\u62A5\u5E9F\uFF01",
+        "Unpassivated surface: truncated sp3 dangling bonds act as deadly recombination centers (SRV > 10^6 cm/s)",
+        "red"
+      );
+    }
+  }
+  function toggleFlexibleBending() {
+    isBending = !isBending;
+    const targetRotZ = isBending ? 0.35 : 0;
+    const targetScaleY = isBending ? 0.65 : 1;
+    addAnim({
+      duration: 0.8,
+      update(p) {
+        layers.forEach((l) => {
+          l.mesh.rotation.z = targetRotZ * p;
+          if (l.id === "bulk") l.mesh.scale.y = 1 - (1 - targetScaleY) * p;
+        });
+      },
+      onComplete() {
+        if (isBending) {
+          showNarr(
+            "<b>\u3010Nature 2023 \u67D4\u6027\u5355\u6676\u7845 60\u03BCm \u5F2F\u6298\u9769\u547D\u3011</b><br>\u4E2D\u79D1\u9662\u4E0A\u6D77\u5FAE\u7CFB\u7EDF\u6240\u56E2\u961F\u53D1\u73B0\uFF1A\u5355\u6676\u7845\u788E\u88C2\u7684\u5143\u51F6\u662F\u5FAE\u89C2\u8FB9\u7F18\u5C16\u9510\u7684 V \u578B\u5E94\u529B\u5012\u523A\u3002<br>\u901A\u8FC7\u5316\u5B66\u949D\u5316\u5706\u6ED1\u8FB9\u7F18\u5012\u523A\uFF0C\u5C06\u7845\u7247\u8584\u5316\u81F3 <b>60 \u03BCm</b>\uFF08\u5934\u53D1\u4E1D\u7EC6\u5EA6\uFF09\uFF0C\u539A\u786C\u7684\u8106\u77F3\u5934\u77AC\u95F4\u53D8\u6210\u80FD 360\xB0 \u5F2F\u6298\u7684\u795E\u5947\u6298\u7EB8\uFF0C\u6548\u7387\u4F9D\u7136\u7EF4\u6301 >24%\uFF01",
+            "Nature 2023: 60 \u03BCm ultra-thin flexible single-crystal silicon with smoothed microscopic edge cracks",
+            "gold"
+          );
+        } else {
+          showNarr("\u7845\u7247\u6062\u590D\u5E73\u9762\u521A\u6027\u5F62\u6001\u3002150 \u03BCm \u521A\u6027\u7845\u7247\u4F9D\u7136\u662F\u73B0\u4EE3\u5C4B\u9876\u4E0E\u5730\u9762\u5149\u4F0F\u7535\u7AD9\u7684\u4E3B\u529B\uFF01", "Restored to rigid state", "blue");
+        }
+      }
+    });
+  }
+  function toggleLeafShading() {
+    isLeafShaded = !isLeafShaded;
+    if (isLeafShaded) {
+      if (!leafMesh) {
+        const leafGeo = new CylinderGeometry(1.2, 0.4, 0.05, 6);
+        const leafMat = new MeshStandardMaterial({ color: 1409085, roughness: 0.4 });
+        leafMesh = new Mesh(leafGeo, leafMat);
+        leafMesh.rotation.x = Math.PI / 2;
+        leafMesh.position.set(2.2, 3.2, 0.5);
+        root5.add(leafMesh);
+      }
+      showNarr(
+        "<b>\u3010\u4E00\u7247\u6811\u53F6\u7684\u751F\u6B7B\u8003\u9A8C\uFF1ANature 2025 \u5C40\u90E8\u8F6F\u51FB\u7A7F\u9ED1\u79D1\u6280\u3011</b><br>\u5F53\u6811\u53F6\u906E\u6321\u4E00\u5757\u7535\u6C60\u65F6\uFF0C\u5916\u7535\u8DEF\u51E0\u5341\u5B89\u57F9\u7535\u6D41\u5F3A\u884C\u5012\u704C\uFF0C\u4F20\u7EDF\u7535\u6C60\u53CD\u5411\u51FB\u7A7F\u7535\u538B\u6781\u9AD8\uFF0C\u5C40\u57DF\u6E29\u5EA6\u98D9\u5347\u81F3 <b>150\xB0C \u70E7\u7A7F\u8D77\u706B\uFF08\u81F4\u547D\u70ED\u6591\uFF09</b>\uFF01<br>\u9686\u57FA\u8054\u5408\u56E2\u961F\u5728 2025 \u5E74\u300ANature\u300B\u53D1\u8868\u6700\u65B0\u7A81\u7834\uFF1A\u8BBE\u8BA1<b>\u4F4E\u538B\u8F6F\u51FB\u7A7F\u5FAE\u901A\u9053</b>\uFF0C\u88AB\u906E\u6321\u65F6\u81EA\u4E3B\u4F4E\u538B\u6CC4\u6D41\u65C1\u8DEF\uFF0C<b>\u70ED\u6591\u964D\u6E29 28%\uFF0C\u906E\u5149\u635F\u8017\u51CF\u5C11 70%</b>\uFF01",
+        "Nature 2025: autonomous low-voltage soft breakdown bypasses reverse current, preventing hot-spot destruction",
+        "gold"
+      );
+    } else {
+      if (leafMesh) {
+        root5.remove(leafMesh);
+        leafMesh = null;
+      }
+      showNarr("\u6811\u53F6\u79FB\u5F00\uFF0C\u65E5\u7167\u6062\u590D\u5747\u5300\u3002\u6240\u6709\u7535\u6C60\u5355\u5143\u534F\u540C\u6EE1\u529F\u7387\u8F93\u51FA\u3002", "Leaf removed", "blue");
+    }
   }
   function pickLayer(px2, py2) {
     pointer.x = px2 / innerWidth * 2 - 1;
@@ -24698,20 +25163,16 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
       p.rotation.y = Math.PI / 4;
       root5.add(p);
     }
-    const tag = makeTextSprite("\u89C2\u5BDF\u6BCF\u9897\u5149\u5B50\u7684\u547D\u8FD0\uFF1A\u53CD\u5C04 / \u5438\u6536 / \u7A7F\u8FC7", 0.58, "#e2e8f0");
+    const tag = makeTextSprite("\u89C2\u5BDF\u5149\u5B50\u547D\u8FD0\uFF1A\u53CD\u5C04 / \u5438\u6536\u53D1\u7535 / \u7A7F\u8FC7", 0.58, "#e2e8f0");
     tag.position.set(-3.2, 3.8, D / 2 + 0.6);
     root5.add(tag);
     flyCamera(env4.camera, env4.controls, [7.5, 7.2, 9.8], [0, 0.2, 0], 1.3);
-    rainOn = true;
+    rainOn = opticsMode !== "cpv";
+    if (opticsMode === "cpv") buildCpvConcentrator();
     applyOptics(opticsMode, true);
-    showNarr(
-      opticsMode === "bare" ? "\u73B0\u5728\u4E0B\u8D77<b>\u5149\u5B50\u96E8</b>\uFF1A\u989C\u8272 = \u6CE2\u957F\uFF0C\u7070\u8272 = \u773C\u775B\u770B\u4E0D\u89C1\u7684\u8FD1\u7EA2\u5916\u3002\u5DE6\u4E0A\u89D2\u5B9E\u65F6\u7EDF\u8BA1\u6BCF\u9897\u5149\u5B50\u7684\u547D\u8FD0\u3002\u770B\uFF1A<b>\u88F8\u629B\u5149</b>\u7845\u628A\u7EA6 1/3 \u7684\u5149\u76F4\u63A5\u5F39\u56DE\u592A\u7A7A\u2014\u2014\u771F\u5B9E\u7535\u6C60\u7684\u7B2C\u4E00\u4EF6\u4E8B\u662F\u628A\u5149<b>\u7559\u4F4F</b>" : `\u73B0\u5728\u6362\u6210\u3010${OPTICS[opticsMode].label}\u3011\uFF0C\u770B\u5DE6\u4E0A\u89D2\u7EDF\u8BA1\u600E\u4E48\u53D8\u5316\uFF1A\u53CD\u5C04\u7387\u4E0B\u964D \u2192 <b>\u5438\u6536\u53D1\u7535</b>\u7684\u6BD4\u4F8B\u4E0A\u5347`,
-      "Photon rain: watch reflect / absorb / transmit tally live",
-      "blue"
-    );
   }
   function spawnRainPhoton() {
-    if (!rainOn || mode2 !== "trap") return;
+    if (!rainOn || mode2 !== "trap" || opticsMode === "cpv") return;
     const nm = samplePhoton();
     const irPass = nm >= 1100;
     const mesh = new Mesh(
@@ -24804,70 +25265,233 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
       fateEl = document.createElement("div");
       fateEl.className = "fate-counter";
       const stage4 = document.getElementById("stage");
-      stage4.appendChild(fateEl);
+      if (stage4) stage4.appendChild(fateEl);
     }
-    fateEl.innerHTML = `\u5DF2\u7EDF\u8BA1 ${n} \u9897<br>
+    fateEl.innerHTML = `\u5DF2\u7EDF\u8BA1 ${n} \u9897\u5149\u5B50<br>
     <span style="color:#94a3b8">\u53CD\u5C04 ${pr}%</span> \xB7
     <span style="color:#fbbf24">\u5438\u6536\u53D1\u7535 ${pa}%</span> \xB7
     <span style="color:#64748b">\u7A7F\u8FC7 ${pt}%</span><br>
     <small style="color:#64748b">\u5F53\u524D\u8868\u9762\uFF1A${OPTICS[opticsMode].label}</small>`;
   }
+  function buildCpvConcentrator() {
+    if (cpvGroup) root5.remove(cpvGroup);
+    cpvGroup = new Group();
+    root5.add(cpvGroup);
+    const lensGeo = new CylinderGeometry(2.8, 2.8, 0.15, 32);
+    const lensMat = new MeshStandardMaterial({
+      color: 3718648,
+      transparent: true,
+      opacity: 0.35,
+      roughness: 0.1,
+      metalness: 0.1
+    });
+    const lens = new Mesh(lensGeo, lensMat);
+    lens.position.set(0, 5.6, 0);
+    cpvGroup.add(lens);
+    for (let r = 0.8; r <= 2.4; r += 0.5) {
+      const ringGeo = new TorusGeometry(r, 0.04, 8, 32);
+      const ringMat = new MeshBasicMaterial({ color: 12248829, transparent: true, opacity: 0.5 });
+      const ring = new Mesh(ringGeo, ringMat);
+      ring.rotation.x = Math.PI / 2;
+      ring.position.set(0, 5.62, 0);
+      cpvGroup.add(ring);
+    }
+    const spotGeo = new CylinderGeometry(0.35, 0.35, 0.05, 16);
+    const spotMat = new MeshBasicMaterial({ color: 16777215 });
+    cpvHotSpot = new Mesh(spotGeo, spotMat);
+    cpvHotSpot.position.set(0, 0.95, 0);
+    cpvGroup.add(cpvHotSpot);
+    const coneGeo = new ConeGeometry(2.7, 4.7, 32, 1, true);
+    const coneMat = new MeshBasicMaterial({
+      color: 16707722,
+      transparent: true,
+      opacity: 0.22,
+      side: DoubleSide
+    });
+    const cone = new Mesh(coneGeo, coneMat);
+    cone.position.set(0, 3.25, 0);
+    cone.rotation.x = Math.PI;
+    cpvGroup.add(cone);
+    const deltaVocMv = (cpvVoltageBoostV(1e3) * 1e3).toFixed(1);
+    const tag = makeTextSprite(`\u2600\uFE0F 1000\xD7 \u83F2\u6D85\u5C14\u805A\u5149 \xB7 \u0394Voc = +${deltaVocMv} mV (Voc \u51B2\u81F3 0.92V!)`, 0.62, "#fde047");
+    tag.position.set(0, 6.3, 0);
+    cpvGroup.add(tag);
+    const ladderTag = makeTextSprite("\u5355\u7ED3\u6781\u9650 33.7% \u2794 40.8% | \u5170\u5179\u4F2F\u683C\u6781\u9650 86.8% | \u5361\u8BFA\u6781\u9650 95%", 0.48, "#e2e8f0");
+    ladderTag.position.set(0, 2.2, 2.4);
+    cpvGroup.add(ladderTag);
+  }
   function applyOptics(m, silent) {
     opticsMode = m;
     fate = { r: 0, a: 0, t: 0 };
-    if (fateEl) {
-      fateEl.innerHTML = "";
+    if (fateEl) fateEl.innerHTML = "";
+    if (m === "cpv") {
+      rainOn = false;
+      buildCpvConcentrator();
+    } else {
+      rainOn = true;
+      if (cpvGroup) {
+        root5.remove(cpvGroup);
+        cpvGroup = null;
+      }
     }
     if (silent) return;
     const msg = {
-      bare: "\u3010\u88F8\u629B\u5149\u7845\u3011\u7845\u6298\u5C04\u7387 ~3.5\uFF08\u53EF\u89C1\u5149\uFF09\uFF0C\u83F2\u6D85\u8033\u53CD\u5C04 R=((n\u22121)/(n+1))\xB2 \u2248 <b>31\u201348%</b>\uFF0C\u52A0\u6743\u7EA6 <b>35%</b> \u2014\u2014 \u4E09\u5206\u4E4B\u4E00\u7684\u5149\u767D\u767D\u5F39\u8D70\uFF01",
-      text: "\u3010\u7ED2\u9762\u3011\u968F\u673A\u91D1\u5B57\u5854\uFF08\u5404\u5411\u5F02\u6027\u8150\u8680\uFF09\u8BA9\u53CD\u5C04\u5149\u649E\u4E0A\u76F8\u90BB\u91D1\u5B57\u5854\u659C\u9762 \u2192 <b>\u4E8C\u6B21\u5165\u5C04\u673A\u4F1A</b>\uFF1B\u659C\u6298\u7684\u5149\u5728\u7247\u5185\u8D70<b>\u66F4\u957F\u7684\u8DEF</b>\u3002\u52A0\u6743\u53CD\u5C04\u7387 \u2248<b>8%</b>\uFF08\u793A\u610F\u503C\uFF09",
-      both: "\u3010\u7ED2\u9762 + \u51CF\u53CD\u5C04\u819C\u301175nm \u56DB\u5206\u4E4B\u4E00\u6CE2\u957F SiNx\uFF08n\u22482.05\uFF09\u2192 \u4E0A\u4E0B\u8868\u9762\u53CD\u5C04\u5149<b>\u76F8\u6D88\u5E72\u6D89</b>\uFF1B\u52A0\u4E0A\u7ED2\u9762\uFF0C\u5DE5\u4E1A\u52A0\u6743\u53CD\u5C04\u7387 \u2248<b>2%</b> \u2014\u2014 \u8FD9\u5C31\u662F\u5546\u7528\u7535\u6C60\u6DF1\u84DD\u8272\u7684\u539F\u56E0\uFF01"
+      bare: "\u3010\u88F8\u629B\u5149\u7845\u3011\u6298\u5C04\u7387 n\u22483.5\uFF0C\u83F2\u6D85\u8033\u53CD\u5C04 R=((n-1)/(n+1))\xB2 \u2248 <b>31\u201348%</b>\uFF0C\u52A0\u6743\u5E73\u5747 <b>35%</b>\uFF01\u4E09\u5206\u4E4B\u4E00\u7684\u9633\u5149\u76F4\u63A5\u5F39\u56DE\u592A\u7A7A",
+      text: "\u3010\u91D1\u5B57\u5854\u7ED2\u9762\u301154.74\xB0 \u56DB\u68F1\u9525\u7FA4\u5B9E\u73B0<b>\u53CC\u91CD\u53CD\u5C04 (Double Bounce)</b>\uFF0C\u5C06\u53CD\u5C04\u7387\u538B\u5230 <b>\u22488%</b>\uFF0C\u540C\u65F6\u659C\u6298\u5149\u7A0B\u5EF6\u957F 2.6 \u500D",
+      both: "\u3010\u7ED2\u9762 + 75nm SiNx \u51CF\u53CD\u819C\u3011\u56DB\u5206\u4E4B\u4E00\u6CE2\u957F<b>\u76F8\u6D88\u5E72\u6D89</b>\uFF0C\u5DE5\u4E1A\u53CD\u5C04\u7387\u538B\u81F3 <b>\u22482%</b>\uFF01\u5448\u73B0\u6807\u5FD7\u6027\u79D1\u6280\u6DF1\u84DD\u8272",
+      cpv: "\u30101000\xD7 \u83F2\u6D85\u5C14\u805A\u5149\u52A0\u529B\u8231\u3011\u628A\u9633\u5149\u805A\u7126 1000 \u500D\uFF0C<b>\u5F7B\u5E95\u6D88\u9664\u7ACB\u4F53\u89D2\u8F90\u5C04\u71B5\u635F\u5931</b>\uFF01\u5F00\u8DEF\u7535\u538B\u5BF9\u6570\u98D9\u5347 <b>\u0394Voc = (kT/q)ln(1000) \u2248 +178.6 mV</b>\uFF0C\u5355\u7ED3\u6781\u9650\u8DC3\u5347\u81F3 <b>40.8%</b>\uFF0C\u65E0\u9650\u53E0\u5C42\u5170\u5179\u4F2F\u683C\u6781\u9650\u8FBE <b>86.8%</b>\uFF01"
     }[m];
-    showNarr(msg, { bare: "bare polished", text: "textured", both: "textured + ARC" }[m], m === "bare" ? "red" : "gold");
+    showNarr(msg, m, m === "bare" ? "red" : "gold");
+  }
+  function buildCtScan() {
+    clearRoot();
+    mode2 = "ct_scan";
+    rainOn = false;
+    const W = 8.5, D = 4.8;
+    const bulk = new Mesh(
+      new BoxGeometry(W, 1.8, D),
+      new MeshStandardMaterial({ color: 4674921, roughness: 0.35, transparent: true, opacity: 0.65 })
+    );
+    bulk.position.y = 0.9;
+    root5.add(bulk);
+    const emitterLayer = new Mesh(
+      new BoxGeometry(W, 0.18, D),
+      new MeshStandardMaterial({ color: 165063, roughness: 0.2 })
+    );
+    emitterLayer.position.y = 1.89;
+    root5.add(emitterLayer);
+    const backMirror = new Mesh(
+      new BoxGeometry(W, 0.12, D),
+      new MeshStandardMaterial({ color: 14870768, metalness: 0.9, roughness: 0.15 })
+    );
+    backMirror.position.y = -0.06;
+    root5.add(backMirror);
+    const d0 = makeTextSprite("0 \u03BCm \u8868\u9762\u8868\u76AE (UV \u5438\u6536\u533A)", 0.44, "#38bdf8");
+    d0.position.set(-W / 2 - 1.8, 1.9, D / 2);
+    root5.add(d0);
+    const d1 = makeTextSprite("1.56 \u03BCm PN \u7ED3\u8017\u5C3D\u533A (\u7EFF\u5149\u5438\u6536\u533A)", 0.44, "#4ade80");
+    d1.position.set(-W / 2 - 2.1, 1.4, D / 2);
+    root5.add(d1);
+    const d2 = makeTextSprite("150 \u03BCm \u6DF1\u5C42\u57FA\u5E95\u4E0E\u80CC\u53CD\u5C04 (\u8FD1\u7EA2\u5916\u6DF1\u5165\u533A)", 0.44, "#f87171");
+    d2.position.set(-W / 2 - 2.4, 0.1, D / 2);
+    root5.add(d2);
+    ctGroup = new Group();
+    root5.add(ctGroup);
+    const headGeo = new BoxGeometry(2.4, 0.6, 2.4);
+    const headMat = new MeshStandardMaterial({ color: 1976635, metalness: 0.8, roughness: 0.2 });
+    const head = new Mesh(headGeo, headMat);
+    head.position.set(0, 5.2, 0);
+    ctGroup.add(head);
+    applyCtProbe(ctProbe);
+    flyCamera(env4.camera, env4.controls, [7.5, 4.6, 9.2], [0, 1.2, 0], 1.3);
+  }
+  function applyCtProbe(probe) {
+    ctProbe = probe;
+    if (!ctGroup) return;
+    if (ctBeam) {
+      ctGroup.remove(ctBeam);
+      ctBeam = null;
+    }
+    if (ctDepthTag) {
+      ctGroup.remove(ctDepthTag);
+      ctDepthTag = null;
+    }
+    let color = 2278750, depthY = 1.4, len = 3.8;
+    if (probe === "uv") {
+      color = 11032055;
+      depthY = 1.9;
+      len = 3.3;
+      showNarr(
+        "<b>\u3010365nm \u7D2B\u5916\u63A2\u9488\uFF1A\u524D\u989D\u8868\u76AE\u4F53\u68C0\uFF08\u7A7F\u900F\u6DF1\u5EA6 < 10 nm\uFF09\u3011</b><br>\u7D2B\u5916\u5149\u5B50\u80FD\u91CF\u9AD8\u8FBE 3.4 eV\uFF08\u89E6\u53D1<b>\u76F4\u63A5\u8DC3\u8FC1</b>\uFF09\uFF0C\u5728\u7845\u7247\u6700\u8868\u5C42\u51E0\u4E2A\u7EB3\u7C73\u5C31\u88AB\u751F\u751F\u541E\u6CA1\uFF01<br>\u2022 <b>\u4E34\u5E8A\u8BCA\u65AD</b>\uFF1A\u5982\u679C\u6D4B\u51FA\u7684\u84DD\u5149/\u7D2B\u5916 EQE \u4E25\u91CD\u4E0B\u5782\uFF0C<b>100% \u5BA3\u5224\u75C5\u56E0\u5728\u6B63\u9762\u8868\u76AE</b>\u2014\u2014\u8868\u9762\u672A\u949D\u5316\u7684\u60AC\u6302\u952E\u602A\u624B\u541E\u566C\u8F7D\u6D41\u5B50\uFF0C\u6216\u53D1\u5C04\u6781\u91CD\u63BA\u6742\u5BFC\u81F4\u6B7B\u5C42\uFF08Dead Layer\uFF09\u4FC4\u6B47\u590D\u5408\uFF01",
+        "UV probe (<10 nm depth): diagnoses front surface passivation and emitter dead-layer Auger",
+        "blue"
+      );
+    } else if (probe === "green") {
+      color = 2278750;
+      depthY = 1.4;
+      len = 3.8;
+      showNarr(
+        "<b>\u3010550nm \u7EFF\u5149\u63A2\u9488\uFF1A\u5185\u810F\u809A\u8110\u4F53\u68C0\uFF08\u7A7F\u900F\u6DF1\u5EA6 1.56 \u03BCm\uFF09\u3011</b><br>\u7EFF\u5149\u521A\u597D\u5728 PN \u7ED3\u5185\u5EFA\u7535\u573A\u8017\u5C3D\u533A\u53CA\u6D45\u57FA\u5E95\u5B8C\u5168\u5438\u6536\uFF0C\u5149\u751F\u7535\u5B50-\u7A7A\u7A74\u5BF9\u51FA\u95E8\u5C31\u662F\u6ED1\u68AF\uFF0C\u6536\u96C6\u6982\u7387\u8D34\u8FD1\u5B8C\u7F8E\uFF01<br>\u2022 <b>\u4E34\u5E8A\u8BCA\u65AD</b>\uFF1A\u5728\u6B64\u6CE2\u6BB5\uFF0C\u4F18\u8D28\u5355\u6676\u7845\u7535\u6C60\u7684<b>\u5185\u91CF\u5B50\u6548\u7387 (IQE) \u5E73\u76F4\u5982\u524A\uFF0C\u9AD8\u8FBE 99%~100%</b>\uFF0C\u662F\u6574\u5757\u7535\u6C60\u6700\u5065\u5EB7\u5F3A\u5065\u7684\u5FC3\u810F\u90E8\u4F4D\uFF01",
+        "Green probe (1.56 \u03BCm depth): absorbed in depletion zone; benchmark IQE approaches ~100%",
+        "green"
+      );
+    } else if (probe === "nir") {
+      color = 15680580;
+      depthY = 0.05;
+      len = 5.15;
+      showNarr(
+        "<b>\u30101000nm \u8FD1\u7EA2\u5916\u63A2\u9488\uFF1A\u9AA8\u9AD3\u811A\u8DDF\u4F53\u68C0\uFF08\u7A7F\u900F\u6DF1\u5EA6 156 \u03BCm\uFF09\u3011</b><br>\u7845\u662F\u95F4\u63A5\u5E26\u9699\u6750\u6599\uFF0C\u5BF9\u8FD1\u7EA2\u5916\u5438\u6536\u6781\u5F31\uFF0C\u5149\u5B50\u6DF1\u5165\u7845\u7247\u5927\u5E95\uFF0C\u751A\u81F3\u649E\u51FB\u80CC\u9762\u94F6\u955C\u4E8C\u6B21\u53CD\u5F39\uFF01<br>\u2022 <b>\u4E34\u5E8A\u8BCA\u65AD</b>\uFF1A\u5982\u679C\u957F\u6CE2\u6BB5 IQE \u840E\u9761\u65E9\u843D\uFF0C<b>100% \u5BA3\u5224\u75C5\u56E0\u5728\u6DF1\u5C42\u9AA8\u9AD3\u4E0E\u5E95\u5EA7</b>\u2014\u2014\u7845\u7247\u7EAF\u5EA6\u5DEE\u3001\u5C11\u5B50\u5BFF\u547D\u592A\u77ED\uFF08\u6269\u6563\u957F\u5EA6 Ln < 150\u03BCm\uFF09\u6216\u80CC\u9762\u53CD\u5C04\u949D\u5316\u4E0D\u826F\uFF01",
+        "NIR probe (156 \u03BCm depth): penetrates whole bulk to back mirror; diagnoses bulk lifetime \u03C4 and rear passivation",
+        "red"
+      );
+    } else if (probe === "sweep") {
+      color = 16498468;
+      depthY = 0.8;
+      len = 4.4;
+      showNarr(
+        "<b>\u3010300~1100nm \u5F69\u8679\u5168\u5149\u8C31\u65E0\u635F CT \u626B\u63CF\u3011</b><br>\u65E0\u9700\u5212\u5F00\u7535\u6C60\u3001\u4E0D\u7834\u574F\u4E00\u9488\u4E00\u7EBF\uFF1A\u53EA\u9700\u6253\u4E0A\u4E00\u652F\u4F1A\u53D8\u8272\u7684\u5F69\u8679\u5149\u675F\uFF0C\u770B\u5916\u7535\u8DEF\u5410\u51FA\u591A\u5C11\u7535\u6D41\uFF0C\u5C31\u80FD\u4ECE\u7EB3\u7C73\u8868\u76AE\u4E00\u8DEF\u6478\u900F\u5230\u767E\u5FAE\u7C73\u9AA8\u9AD3\uFF01\u8FD9\u5C31\u662F\u534A\u5BFC\u4F53\u7269\u7406\u7684\u5149\u8C31\u91CF\u5B50\u6548\u7387 (EQE/IQE) \u795E\u5947\u9B54\u6CD5\uFF01",
+        "Continuous 300-1100 nm spectral scan: non-destructive holographic whole-body cell diagnosis",
+        "gold"
+      );
+    }
+    const beamGeo = new CylinderGeometry(0.18, 0.18, len, 16);
+    const beamMat = new MeshBasicMaterial({ color, transparent: true, opacity: 0.85 });
+    ctBeam = new Mesh(beamGeo, beamMat);
+    ctBeam.position.set(0, 5.2 - len / 2, 0);
+    ctGroup.add(ctBeam);
+    ctDepthTag = makeTextSprite(`\u63A2\u9488\u6CE2\u957F \xB7 \u7A7F\u900F\u6DF1\u5EA6\u6807\u5B9A`, 0.48, "#e2e8f0");
+    ctDepthTag.position.set(0, 4.3, 1.4);
+    ctGroup.add(ctDepthTag);
   }
   var BUDGET = [
     {
       key: "all",
       label: "\u2600\uFE0F \u5168\u90E8\u9633\u5149",
       cls: "white",
-      zh: "\u8FD9\u662F\u843D\u5728 1 m\xB2 \u7535\u6C60\u4E0A\u7684\u5168\u90E8\u9633\u5149\u529F\u7387\uFF1A<b>1000 W/m\xB2</b>\uFF08AM1.5 \u6807\u51C6\u6D4B\u8BD5\u5149\u8C31\uFF09\u3002100 \u4E2A\u65B9\u5757 = 100%\u3002\u771F\u5B9E\u7ED3\u679C\u600E\u4E48\u7B97\uFF1F<b>\u6548\u7387 \u03B7 = \u7535\u529F\u7387 \xF7 \u5149\u529F\u7387</b>\u3002\u5F80\u4E0B\u8D70\uFF0C\u770B\u6BCF\u4E00\u5757\u7684\u53BB\u5411\u2014\u2014\u6570\u5B57\u5168\u90E8\u6765\u81EA\u516C\u5F00\u8BA4\u8BC1\u6587\u732E",
-      en: "1000 W/m\xB2 = 100 blocks. Watch where every block goes"
+      zh: "\u843D\u5728 1 m\xB2 \u7535\u6C60\u4E0A\u7684\u5168\u90E8\u9633\u5149\u8F90\u5C04\uFF1A<b>1000 W/m\xB2 (AM1.5G)</b>\u3002100 \u4E2A\u65B9\u5757\u4EE3\u8868 100%\u3002\u80FD\u91CF\u53BB\u54EA\u4E86\uFF1F\u8BA9\u6211\u4EEC\u4E00\u5173\u4E00\u5173\u5265\u5F00\u6B8B\u9177\u7684\u7269\u7406\u6CD5\u5219",
+      en: "1000 W/m\xB2 = 100 blocks. Watch every block step through the laws of physics"
     },
     {
       key: "subgap",
-      label: "19% \u7A7F\u8FC7",
+      label: "19% \u7A7F\u900F",
       cls: "sub",
-      zh: '<b>19% \u76F4\u63A5\u7A7F\u8FC7</b>\uFF1A\u8FD9\u4E9B\u5149\u5B50\u80FD\u91CF < 1.12 eV\uFF08\u6CE2\u957F > 1100 nm\uFF09\uFF0C"\u8E22\u4E0D\u52A8"\u7535\u5B50\u2014\u2014\u7B2C 4 \u7AE0\u4F60\u4EB2\u624B\u53D1\u5C04\u8FC7\u3002\u7845\u5BF9\u5B83\u4EEC\u662F<b>\u900F\u660E</b>\u7684\u3002\u8FD9\u662F\u5149\u8C31\u7684\u7B2C\u4E00\u7B14\u635F\u8017\uFF0C\u65E0\u6CD5\u7528\u4EFB\u4F55\u5DE5\u827A\u6D88\u9664\uFF08\u5355\u7ED3\u7845\uFF09',
-      en: "19% below the 1.12 eV gap passes through untouched"
+      zh: "<b>\u301019% \u80FD\u91CF\u4E9A\u5E26\u9699\u76F4\u63A5\u7A7F\u900F\u3011</b><br>\u6CE2\u957F > 1100nm\uFF08\u80FD\u91CF < 1.124 eV\uFF09\u7684\u5149\u5B50\uFF0C\u80FD\u91CF\u4E0D\u8DB3\u4EE5\u6FC0\u53D1\u7535\u5B50\u8DE8\u8FC7\u7981\u5E26\uFF0C\u5355\u7ED3\u7845\u5BF9\u5176<b>\u7EDD\u5BF9\u900F\u660E</b>\uFF0C\u4E00\u67AA\u7A7F\u900F\u6253\u5728\u5730\u4E0A\u3002\u4EFB\u4F55\u7EAF\u5DE5\u827A\u624B\u6BB5\u90FD\u65E0\u6CD5\u6D88\u9664\u6B64\u9879\u70ED\u529B\u5B66\u635F\u8017",
+      en: "19% below Eg=1.124 eV passes through untouched (silicon is transparent to it)"
     },
     {
       key: "thermal",
-      label: "33% \u53D8\u70ED",
+      label: "33% \u70ED\u5316",
       cls: "heat",
-      zh: "<b>33% \u70ED\u5316\u53D8\u70ED</b>\uFF1A\u84DD\u5149\u5149\u5B50 ~3.1 eV\uFF0C\u4F46\u7535\u5B50\u53EA\u9700\u8981 1.12 eV \u5C31\u80FD\u8DF3\u4E0A\u5BFC\u5E26\u2014\u2014<b>\u591A\u51FA\u7684\u80FD\u91CF\u5728\u76AE\u79D2\u5185\u53D8\u6210\u70ED</b>\uFF08\u7B2C 4 \u7AE0\u7684\u7EA2\u8272\u6D9F\u6F2A\uFF09\u3002\u4E00\u5149\u5B50\u6700\u591A\u4EA7\u751F<b>\u4E00\u5BF9</b>\u7535\u5B50-\u7A7A\u7A74\uFF0C\u591A\u4F59\u80FD\u91CF\u62FF\u4E0D\u56DE\u6765",
-      en: "33% thermalization: excess photon energy above the gap becomes heat"
+      zh: "<b>\u301033% \u80FD\u91CF\u9AD8\u80FD\u70ED\u5316\u53D8\u5E9F\u70ED\u3011</b><br>\u7D2B\u5916\u4E0E\u84DD\u5149\u5149\u5B50\uFF08\u5982 3.1 eV\uFF09\u8FDC\u8D85\u5E26\u9699\uFF0C\u6BCF\u4E2A\u5149\u5B50\u4F9D\u7136\u53EA\u80FD\u6FC0\u53D1 1 \u5BF9\u7535\u5B50-\u7A7A\u7A74\uFF0C<b>\u591A\u4F59\u7684 2.0 eV \u5728 1 \u76AE\u79D2\u5185\u901A\u8FC7\u5267\u70C8\u58F0\u5B50\u6563\u5C04\u53D8\u6210\u6676\u683C\u5E9F\u70ED</b>\uFF01\u8FD9\u662F\u6700\u5927\u7684\u5355\u4E00\u635F\u8017",
+      en: "33% thermalization: excess photon energy above 1.12 eV dissipates into lattice heat within picoseconds"
     },
     {
       key: "sq",
-      label: "\u5149\u8C31\u4E0A\u9650 48%",
+      label: "SQ \u6781\u9650 32%",
       cls: "mid",
-      zh: '\u53EA\u5269 <b>48%</b> \u2014\u2014 \u8FD9\u662F"\u53EA\u8003\u8651\u5149\u8C31"\u7684\u5929\u82B1\u677F\u3002\u4F46\u8FD8\u6709\u590D\u5408\uFF1An \u4FA7\u7535\u5B50\u603B\u8981\u6709\u4E00\u90E8\u5206\u548C\u7A7A\u7A74\u590D\u5408\u53D1\u51FA\u5149\u5B50\uFF08\u7EC6\u8282\u5E73\u8861\uFF09\uFF0C\u8FD9\u7ED9\u7535\u538B\u5C01\u4E86\u9876\u3002\u7845\u7684<b>\u8F90\u5C04\u590D\u5408\u6781\u9650\uFF08SQ \u6781\u9650\uFF09\u224832%</b>\uFF08\u7406\u60F3\u6781\u9650 33.7% \u51FA\u73B0\u5728\u5E26\u9699 1.34 eV \u7684\u6750\u6599\u4E0A\uFF0C\u7845\u4E0D\u662F\u6700\u4F18\uFF09',
-      en: "Radiative (Shockley\u2013Queisser) limit for Si \u224832%; optimum gap 1.34 eV gives 33.7%"
+      zh: "<b>\u3010\u8F90\u5C04\u590D\u5408\u5E73\u8861\uFF1AShockley\u2013Queisser \u6781\u9650 \u224832%\u3011</b><br>\u5269\u4E0B\u7684 48% \u5149\u8C31\u80FD\u91CF\u4E2D\uFF0C\u7531\u4E8E\u9ED1\u4F53\u8F90\u5C04\u4E0E\u4E8C\u6781\u7BA1\u6B63\u5411\u6697\u7535\u6D41\u4E0D\u53EF\u9006\u590D\u5408\uFF0C\u5C06\u5F00\u8DEF\u7535\u538B\u4ECE 1.12V \u538B\u5236\u5230 0.75V \u5DE6\u53F3\uFF0C\u5355\u7ED3\u7845\u7EAF\u8F90\u5C04\u6781\u9650\u9501\u5B9A\u5728 <b>32.2%</b>",
+      en: "Radiative detailed-balance SQ limit for silicon is ~32.2%"
     },
     {
       key: "auger",
-      label: "\u4FC4\u6B47 \u2192 29.4%",
+      label: "\u4FC4\u6B47\u6781\u9650 29.4%",
       cls: "auger",
-      zh: "\u771F\u5B9E\u7845\u6676\u4F53\u91CC\u8FD8\u6709\u4E00\u79CD\u66F4\u5FEB\u7684\u590D\u5408\uFF1A<b>\u4FC4\u6B47\u590D\u5408</b>\uFF08\u7535\u5B50-\u7A7A\u7A74\u590D\u5408\u65F6\u628A\u80FD\u91CF\u8E22\u7ED9\u7B2C\u4E09\u4E2A\u8F7D\u6D41\u5B50\uFF0C\u800C\u4E0D\u662F\u53D1\u5149\uFF09\u3002\u628A\u5B83\u7B97\u8FDB\u53BB\uFF0C\u7845\u7684\u7406\u8BBA\u6781\u9650\u964D\u5230 <b>29.4%</b>\uFF08Richter et al. 2013\uFF09\u2014\u2014\u8FD9\u662F\u5355\u7ED3\u7845<b>\u7269\u7406\u4E0A</b>\u7684\u5929\u82B1\u677F",
-      en: "Auger recombination lowers the Si ceiling to 29.4% (Richter 2013)"
+      zh: "<b>\u3010\u4E09\u4F53\u78B0\u649E\u7EC8\u7ED3\u8005\uFF1A\u4FC4\u6B47\u6781\u9650 29.43% (Richter 2013)\u3011</b><br>\u5F53\u8F7D\u6D41\u5B50\u6D53\u5EA6\u5347\u9AD8\uFF0C\u4E09\u4E2A\u8F7D\u6D41\u5B50\u76F8\u4E92\u78B0\u649E\uFF0C\u7535\u5B50-\u7A7A\u7A74\u590D\u5408\u628A\u80FD\u91CF\u8E39\u7ED9\u7B2C\u4E09\u4E2A\u7535\u5B50\u53D1\u70ED\uFF08Auger \u590D\u5408\u7387 \u221D n\xB2p\uFF09\uFF01\u8FD9\u7ED9\u5355\u7ED3\u7845\u76D6\u4E0A\u4E86<b>\u4E0D\u53EF\u903E\u8D8A\u7684\u7269\u7406\u5929\u82B1\u677F\uFF1A29.43%</b>\uFF01",
+      en: "Auger recombination (Richter 2013) seals silicon physical ceiling at 29.43%"
     },
     {
       key: "real",
       label: "\u7EAA\u5F55 27.81%",
       cls: "record",
-      zh: "<b>27.81%</b> \u2014\u2014 \u5355\u7ED3\u7845\u4E16\u754C\u7EAA\u5F55\uFF08LONGi HIBC\uFF0C\u5FB7\u56FD ISFH \u8BA4\u8BC1\uFF0C2025-04-11\uFF1B\u6B64\u524D 2022-11 \u9996\u7834 26.81%\uFF09\u3002\u79BB 29.4% \u7684\u7269\u7406\u6781\u9650\u53EA\u5DEE <b>1.6 \u4E2A\u767E\u5206\u70B9</b>\uFF01\u518D\u6263\u6805\u7EBF\u906E\u6321/\u7535\u963B/\u5927\u9762\u79EF\u5747\u5300\u6027\uFF0C<b>\u91CF\u4EA7\u7535\u6C60 \u224824%</b>\u3002\u60F3\u66F4\u9AD8\uFF1F\u6362\u6253\u6CD5\uFF1A<b>\u9499\u949B\u77FF/\u7845\u53E0\u5C42 34.85%</b>\uFF08NREL \u8BA4\u8BC1 2025-04\uFF0C\u53CC\u7ED3\u7A81\u7834\u5355\u7ED3\u6781\u9650\uFF0C\u7406\u8BBA ~43%\uFF09",
-      en: "Record 27.81% (LONGi HIBC, ISFH 2025); commercial \u224824%; tandem 34.85% (NREL)"
+      zh: "<b>\u3010\u4E16\u754C\u7EAA\u5F55\uFF1A\u9686\u57FA HIBC 27.81% (ISFH \u8BA4\u8BC1\uFF0CNature 2025)\u3011</b><br>\u5355\u7ED3\u7845\u4E16\u754C\u6700\u9AD8\u5CF0\uFF01\u5168\u80CC\u63A5\u89E6\u96F6\u6B63\u9762\u6805\u7EBF\u906E\u6321\uFF0C\u586B\u5145\u56E0\u5B50\u9AD8\u8FBE <b>87.55%</b>\uFF0C\u8DDD\u79BB\u7269\u7406\u6781\u9650\u4EC5\u5DEE 1.6 \u4E2A\u767E\u5206\u70B9\uFF01\u91CF\u4EA7\u5546\u7528\u7535\u6C60\u5DF2\u7A33\u5B9A\u5728 <b>\u224824.5%</b>",
+      en: "World record 27.81% (LONGi HIBC, ISFH certified, Nature 2025); commercial ~24.5%"
+    },
+    {
+      key: "tandem",
+      label: "\u{1F680} \u53E0\u5C42\u672A\u6765 35.5%",
+      cls: "tandem",
+      zh: "<b>\u3010\u53CC\u7ED3\u53E0\u7F57\u6C49\uFF1A\u9499\u949B\u77FF/\u7845\u53E0\u5C42\u7A81\u7834\u5355\u7ED3\u6781\u9650\u81F3 35.5%\u3011</b><br>\u6253\u7834\u5355\u7ED3 SQ \u67B7\u9501\u7684\u7EC8\u6781\u5229\u5668\uFF1A\u9AD8\u77EE\u4E24\u4E2A\u5403\u8D27\u8054\u624B\uFF01<br>\u2022 \u9876\u5C42\u9499\u949B\u77FF (Eg=1.68 eV) \u4E13\u5403\u9AD8\u80FD\u84DD\u7EFF\u5149\uFF0C\u8F93\u51FA 1.25V\uFF1B<br>\u2022 \u5E95\u5C42\u5355\u6676\u7845 (Eg=1.12 eV) \u4E13\u5403\u6F0F\u8FC7\u6765\u7684\u7EA2\u5916\u5149\uFF0C\u8F93\u51FA 0.65V\uFF1B<br>\u2022 \u4E32\u8054\u53E0\u52A0\u7535\u538B\u8FBE <b>1.90V</b>\uFF01\u7EAA\u5F55\u98DE\u5347\u81F3 <b>34.85% (NREL) / 35.5% (ESTI 2026)</b>\uFF0C\u7406\u8BBA\u6781\u9650\u9AD8\u8FBE <b>~43%</b>\uFF01",
+      en: "Tandem Perovskite/Si stacks 1.68 eV + 1.12 eV, soaring to 35.5% (ESTI 2026, theoretical ~43%)"
     }
   ];
   var BLOCK_COLORS = {
@@ -24877,7 +25501,8 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
     mid: 959977,
     auger: 16096779,
     record: 14201436,
-    lost: 1976635
+    lost: 1976635,
+    tandem: 3718648
   };
   function buildBudget() {
     clearRoot();
@@ -24900,19 +25525,20 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
       g.add(m);
       budgetBlocks.push({ mesh: m, state: "white", home: m.position.clone() });
     }
-    const tag = makeTextSprite("100 \u5757 = 1000 W/m\xB2\uFF08AM1.5 \u6807\u51C6\u9633\u5149\uFF09", 0.7, "#e8eaf0");
+    const tag = makeTextSprite("100 \u65B9\u5757 = 1000 W/m\xB2 (AM1.5G \u6807\u51C6\u9633\u5149)", 0.7, "#e8eaf0");
     tag.position.set(4.5, 10.6, 0);
     root5.add(tag);
     flyCamera(env4.camera, env4.controls, [4.6, 4.6, 11.5], [4.5, 1.6, 0], 1.3);
+    budgetGoto(0);
   }
   function paintBlocks(from, to, cls) {
     addAnim({
-      duration: 0.9,
+      duration: 0.8,
       update(p) {
         const n = Math.round(from + (to - from) * p);
         for (let i = from; i < n; i++) {
           const b = budgetBlocks[i];
-          if (b.state !== cls) {
+          if (b && b.state !== cls) {
             b.mesh.material.color.set(BLOCK_COLORS[cls]);
             b.state = cls;
             b.mesh.position.z = 0.6;
@@ -24921,9 +25547,12 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
       },
       onComplete() {
         for (let i = from; i < to; i++) {
-          budgetBlocks[i].mesh.material.color.set(BLOCK_COLORS[cls]);
-          budgetBlocks[i].state = cls;
-          budgetBlocks[i].mesh.position.z = 0.6;
+          const b = budgetBlocks[i];
+          if (b) {
+            b.mesh.material.color.set(BLOCK_COLORS[cls]);
+            b.state = cls;
+            b.mesh.position.z = 0.6;
+          }
         }
       }
     });
@@ -24948,27 +25577,53 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
         break;
       case "real":
         paintBlocks(24, 29, "lost");
-        budgetBlocks[24].mesh.material.color.set(BLOCK_COLORS.record);
+        if (budgetBlocks[24]) budgetBlocks[24].mesh.material.color.set(BLOCK_COLORS.record);
+        break;
+      case "tandem":
+        paintBlocks(24, 36, "tandem");
         break;
     }
     budgetStage = stageIdx;
-    showNarr(st.zh, st.en, stageIdx >= 4 ? "gold" : "blue");
+    showNarr(st.zh, st.en, stageIdx >= 5 ? "gold" : "blue");
   }
   function actions5() {
     if (mode2 === "structure") {
       return {
         buttons: [
-          { label: "\u{1F9F1} \u9010\u5C42\u70B9\u51FB\u8BB2\u89E3\uFF08\u70B9\u51FB 3D \u5C42\uFF01\uFF09", cls: "", disabled: true },
-          { label: "\u{1F327} \u53BB\u5149\u5B50\u96E8\uFF1A\u5149\u9631\u4E0E\u53CD\u5C04", cls: "blue", onClick: () => {
+          {
+            label: passivationMode === "double" ? "\u{1F6E1}\uFE0F \u53CC\u91CD\u949D\u5316\uFF1A\u5F00 (SRV<10)" : "\u26A0\uFE0F \u8868\u9762\u60AC\u6302\u952E\uFF1A\u672A\u949D\u5316",
+            cls: passivationMode === "double" ? "green" : "red",
+            onClick: () => {
+              togglePassivation();
+              refresh && refresh();
+            }
+          },
+          {
+            label: isBending ? "\u{1F4D0} \u67D4\u6027\u5F2F\u66F2\uFF1A\u5F00 (60\u03BCm)" : "\u{1F4D0} \u67D4\u6027\u5F2F\u66F2\uFF1A\u5173 (\u5E73\u9762)",
+            cls: isBending ? "gold" : "",
+            onClick: () => {
+              toggleFlexibleBending();
+              refresh && refresh();
+            }
+          },
+          {
+            label: isLeafShaded ? "\u{1F343} \u6811\u53F6\u8F6F\u51FB\u7A7F\u9632\u70ED\u6591 (Nature 2025)" : "\u{1F343} \u6A21\u62DF\u6811\u53F6\u906E\u6321",
+            cls: isLeafShaded ? "gold" : "",
+            onClick: () => {
+              toggleLeafShading();
+              refresh && refresh();
+            }
+          },
+          { label: "\u{1F327} \u53BB\u5149\u9631\u4E0E\u805A\u5149", cls: "blue", onClick: () => {
             buildTrap();
+            refresh && refresh();
+          } },
+          { label: "\u{1F52C} \u53BB\u5149\u8C31 CT \u626B\u63CF", cls: "blue", onClick: () => {
+            buildCtScan();
             refresh && refresh();
           } },
           { label: "\u2696\uFE0F \u53BB\u6548\u7387\u5929\u5E73", cls: "gold", onClick: () => {
             buildBudget();
-            refresh && refresh();
-          } },
-          { label: "\u{1F501} \u91CD\u5EFA\u622A\u9762", cls: "", onClick: () => {
-            buildStructure();
             refresh && refresh();
           } }
         ],
@@ -24978,11 +25633,63 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
     if (mode2 === "trap") {
       return {
         buttons: [
-          { label: OPTICS.bare.label, cls: opticsMode === "bare" ? "red" : "", onClick: () => applyOptics("bare") },
-          { label: OPTICS.text.label, cls: opticsMode === "text" ? "gold" : "", onClick: () => applyOptics("text") },
-          { label: OPTICS.both.label, cls: opticsMode === "both" ? "green" : "", onClick: () => applyOptics("both") },
+          { label: OPTICS.bare.label, cls: opticsMode === "bare" ? "red" : "", onClick: () => {
+            applyOptics("bare");
+            refresh && refresh();
+          } },
+          { label: OPTICS.text.label, cls: opticsMode === "text" ? "gold" : "", onClick: () => {
+            applyOptics("text");
+            refresh && refresh();
+          } },
+          { label: OPTICS.both.label, cls: opticsMode === "both" ? "green" : "", onClick: () => {
+            applyOptics("both");
+            refresh && refresh();
+          } },
+          { label: OPTICS.cpv.label, cls: opticsMode === "cpv" ? "gold" : "", onClick: () => {
+            applyOptics("cpv");
+            refresh && refresh();
+          } },
           { label: "\u{1F9F1} \u56DE\u5230\u7ED3\u6784", cls: "blue", onClick: () => {
             buildStructure();
+            refresh && refresh();
+          } },
+          { label: "\u{1F52C} \u5149\u8C31 CT", cls: "blue", onClick: () => {
+            buildCtScan();
+            refresh && refresh();
+          } },
+          { label: "\u2696\uFE0F \u6548\u7387\u5929\u5E73", cls: "gold", onClick: () => {
+            buildBudget();
+            refresh && refresh();
+          } }
+        ],
+        sliders: []
+      };
+    }
+    if (mode2 === "ct_scan") {
+      return {
+        buttons: [
+          { label: "\u{1F7E3} \u7D2B\u5916\u63A2\u9488 (365nm \u67E5\u8868\u76AE)", cls: ctProbe === "uv" ? "blue" : "", onClick: () => {
+            applyCtProbe("uv");
+            refresh && refresh();
+          } },
+          { label: "\u{1F7E2} \u7EFF\u5149\u63A2\u9488 (550nm \u67E5\u5185\u810F)", cls: ctProbe === "green" ? "green" : "", onClick: () => {
+            applyCtProbe("green");
+            refresh && refresh();
+          } },
+          { label: "\u{1F534} \u7EA2\u5916\u63A2\u9488 (1000nm \u67E5\u9AA8\u9AD3)", cls: ctProbe === "nir" ? "red" : "", onClick: () => {
+            applyCtProbe("nir");
+            refresh && refresh();
+          } },
+          { label: "\u{1F308} \u5168\u8C31\u8FDE\u7EED\u626B\u63CF (300-1100nm)", cls: ctProbe === "sweep" ? "gold" : "", onClick: () => {
+            applyCtProbe("sweep");
+            refresh && refresh();
+          } },
+          { label: "\u{1F9F1} \u56DE\u5230\u7ED3\u6784", cls: "blue", onClick: () => {
+            buildStructure();
+            refresh && refresh();
+          } },
+          { label: "\u{1F327} \u5149\u9631\u4E0E\u805A\u5149", cls: "blue", onClick: () => {
+            buildTrap();
             refresh && refresh();
           } },
           { label: "\u2696\uFE0F \u6548\u7387\u5929\u5E73", cls: "gold", onClick: () => {
@@ -24995,14 +25702,21 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
     }
     const nav = BUDGET.map((b, i) => ({
       label: (i === budgetStage ? "\u25B6 " : "") + b.label,
-      cls: i === budgetStage ? "gold" : "",
-      onClick: () => budgetGoto(i)
+      cls: i === budgetStage ? "gold" : b.cls === "tandem" ? "blue" : "",
+      onClick: () => {
+        budgetGoto(i);
+        refresh && refresh();
+      }
     }));
     return {
       buttons: [
         ...nav,
         { label: "\u{1F9F1} \u56DE\u5230\u7ED3\u6784", cls: "blue", onClick: () => {
           buildStructure();
+          refresh && refresh();
+        } },
+        { label: "\u{1F52C} \u5149\u8C31 CT", cls: "blue", onClick: () => {
+          buildCtScan();
           refresh && refresh();
         } }
       ],
@@ -25012,7 +25726,7 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
   var rainAcc = 0;
   function update5(dt) {
     if (!root5) return;
-    if (mode2 === "trap" && rainOn) {
+    if (mode2 === "trap" && rainOn && opticsMode !== "cpv") {
       rainAcc += dt;
       if (rainAcc > 0.16) {
         rainAcc = 0;
@@ -25020,21 +25734,31 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
       }
       stepPhotons(dt);
     }
+    if (mode2 === "trap" && opticsMode === "cpv" && cpvHotSpot) {
+      const s = 1 + 0.18 * Math.sin(Date.now() * 8e-3);
+      cpvHotSpot.scale.set(s, 1, s);
+    }
+    if (mode2 === "ct_scan" && ctProbe === "sweep" && ctBeam) {
+      sweepT += dt * 0.8;
+      const nm = 350 + (Math.sin(sweepT) * 0.5 + 0.5) * (1100 - 350);
+      const col2 = wavelengthColor(nm);
+      ctBeam.material.color.set(col2);
+      if (ctDepthTag) {
+        const depth = OPTICAL_DEPTH_UM[nearestKey(nm)] || 1.56;
+        ctDepthTag.material.map && ctDepthTag.material.map.dispose();
+        root5.remove(ctDepthTag);
+        ctDepthTag = makeTextSprite(`\u5F53\u524D\u6CE2\u957F: ${Math.round(nm)} nm | \u7A7F\u900F\u6DF1\u5EA6: ${depth < 1 ? (depth * 1e3).toFixed(0) + " nm" : depth.toFixed(1) + " \u03BCm"}`, 0.46, "#fbbf24");
+        ctDepthTag.position.set(0, 4.3, 1.4);
+        ctGroup.add(ctDepthTag);
+      }
+    }
   }
   function onPointerUp(px2, py2, movedSmall) {
     if (mode2 !== "structure" || !movedSmall) return;
     pickLayer(px2, py2);
   }
   function leave5() {
-    rainOn = false;
-    photons2 = [];
-    if (fateEl) {
-      fateEl.remove();
-      fateEl = null;
-    }
-    layers = [];
-    pickables = [];
-    budgetBlocks = [];
+    clearRoot();
   }
 
   // solar-cell/js/main.js

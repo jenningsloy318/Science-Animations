@@ -143,38 +143,117 @@ export function wavelengthColor(nm) {
 }
 
 /* photon energy in eV from wavelength nm */
-export function photonEnergy(nm) { return 1240 / nm; }
+export function photonEnergy(nm) { return 1239.84 / nm; }
 
-/* ── shared silicon lattice builder ── */
-export function buildLattice(group, { NX = 6, NY = 2, NZ = 5, SP = 1.55 } = {}) {
-  const atomGeo = new THREE.SphereGeometry(0.46, 18, 18);
-  const bondGeo = new THREE.CylinderGeometry(0.07, 0.07, SP, 8);
-  const atoms = [], bonds = [];
-  const siMat = () => new THREE.MeshStandardMaterial({
-    color: COL.silicon, roughness: .4, metalness: .3, emissive: 0x1a2333, emissiveIntensity: .4,
-  });
-  for (let z = 0; z < NZ; z++) for (let y = 0; y < NY; y++) for (let x = 0; x < NX; x++) {
-    const m = new THREE.Mesh(atomGeo, siMat());
-    m.position.set(x * SP, y * SP, z * SP);
-    group.add(m);
-    atoms.push({ mesh: m, x, y, z });
-  }
-  const bondMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: .5 });
-  for (const a of atoms) {
-    for (const [dx, dy, dz] of [[1, 0, 0], [0, 1, 0], [0, 0, 1]]) {
-      const n = atoms.find(o => o.x === a.x + dx && o.y === a.y + dy && o.z === a.z + dz);
-      if (!n) continue;
-      const b = new THREE.Mesh(bondGeo, bondMat);
-      b.position.copy(a.mesh.position).lerp(n.mesh.position, 0.5);
-      b.lookAt(n.mesh.position);
-      b.rotateX(Math.PI / 2);
-      group.add(b);
-      bonds.push(b);
+/* ── 真实面心金刚石立方晶格构建器 (Diamond Cubic Lattice, Fd3̄m) ── */
+export function buildDiamondLattice(group, { NX = 2, NY = 1, NZ = 2, a = 3.6 } = {}) {
+  const d0 = (Math.sqrt(3) / 4) * a;
+  const base = [
+    [0, 0, 0], [0.5, 0.5, 0], [0.5, 0, 0.5], [0, 0.5, 0.5],
+    [0.25, 0.25, 0.25], [0.75, 0.75, 0.25], [0.75, 0.25, 0.75], [0.25, 0.75, 0.75]
+  ];
+  const rawPts = [];
+  for (let cx = 0; cx <= NX; cx++) {
+    for (let cy = 0; cy <= NY; cy++) {
+      for (let cz = 0; cz <= NZ; cz++) {
+        for (const b of base) {
+          const x = (cx + b[0]) * a;
+          const y = (cy + b[1]) * a;
+          const z = (cz + b[2]) * a;
+          if (x <= NX * a + 1e-4 && y <= NY * a + 1e-4 && z <= NZ * a + 1e-4) {
+            const exists = rawPts.some(p => Math.hypot(p.x - x, p.y - y, p.z - z) < 0.1);
+            if (!exists) rawPts.push({ x, y, z });
+          }
+        }
+      }
     }
   }
-  group.position.set(-NX * SP / 2, -1.2, -NZ * SP / 2);
-  return { atoms, bonds, dims: { NX, NY, NZ, SP } };
+
+  // 识别成对的共价键 (距离严格满足 (√3/4)*a)
+  const rawBonds = [];
+  rawPts.forEach((p1, i) => {
+    rawPts.forEach((p2, j) => {
+      if (i < j) {
+        const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y, p1.z - p2.z);
+        if (Math.abs(dist - d0) < 0.06 * d0) {
+          rawBonds.push([i, j, dist]);
+        }
+      }
+    });
+  });
+
+  // 保留所有至少有1个共价键的原子
+  const atomIndices = new Set();
+  rawBonds.forEach(([i, j]) => { atomIndices.add(i); atomIndices.add(j); });
+  const indexMap = new Map();
+  const validPts = [];
+  Array.from(atomIndices).sort((a, b) => a - b).forEach((oldIdx, newIdx) => {
+    indexMap.set(oldIdx, newIdx);
+    validPts.push(rawPts[oldIdx]);
+  });
+
+  const atomGeo = new THREE.SphereGeometry(0.38, 16, 16);
+  const bondGeo = new THREE.CylinderGeometry(0.065, 0.065, 1, 8);
+  const siMat = () => new THREE.MeshStandardMaterial({
+    color: COL.silicon, roughness: .35, metalness: .3, emissive: 0x1a2333, emissiveIntensity: .4,
+  });
+  const bondMat = new THREE.MeshStandardMaterial({
+    color: 0x475569, roughness: .5, metalness: 0.2
+  });
+
+  const atoms = [];
+  validPts.forEach((pt, i) => {
+    const mesh = new THREE.Mesh(atomGeo, siMat());
+    mesh.position.set(pt.x, pt.y, pt.z);
+    group.add(mesh);
+    atoms.push({
+      mesh,
+      x: pt.x,
+      y: pt.y,
+      z: pt.z,
+      target: mesh.position.clone(),
+      index: i
+    });
+  });
+
+  const bonds = [];
+  rawBonds.forEach(([oldI, oldJ, dist]) => {
+    const i = indexMap.get(oldI);
+    const j = indexMap.get(oldJ);
+    if (i === undefined || j === undefined) return;
+    const a1 = atoms[i];
+    const a2 = atoms[j];
+    const bMesh = new THREE.Mesh(bondGeo, bondMat);
+    bMesh.scale.set(1, dist, 1);
+    bMesh.position.copy(a1.mesh.position).lerp(a2.mesh.position, 0.5);
+    bMesh.quaternion.setFromUnitVectors(
+      new THREE.Vector3(0, 1, 0),
+      a2.mesh.position.clone().sub(a1.mesh.position).normalize()
+    );
+    group.add(bMesh);
+    bonds.push({ mesh: bMesh, a: a1, b: a2 });
+  });
+
+  // 居中偏移
+  const midX = (NX * a) / 2;
+  const midY = (NY * a) / 2;
+  const midZ = (NZ * a) / 2;
+  group.position.set(-midX, 0.6 - midY, -midZ);
+
+  return {
+    atoms,
+    bonds,
+    dims: {
+      NX: NX * 3, NY: NY * 2, NZ: NZ * 2.5,
+      SP: a / 2,
+      width: NX * a, height: NY * a, depth: NZ * a,
+    },
+    midX,
+    diamond: true,
+  };
 }
+
+export const buildLattice = buildDiamondLattice;
 
 /* wandering carrier (electron or hole) around an anchor */
 export function makeCarrierMesh(kind) {
@@ -186,3 +265,4 @@ export function makeCarrierMesh(kind) {
         new THREE.SphereGeometry(0.21, 12, 12),
         new THREE.MeshStandardMaterial({ color: COL.hole, wireframe: true, emissive: COL.hole, emissiveIntensity: .7 }));
 }
+
