@@ -583,5 +583,207 @@ gantt
     3. **双语状态 CDP 自动化测试**：通过 Headless Chrome CDP 驱动无头浏览器在 `zh` 与 `en` 下分别截图并比对元素边界，确保无文本折叠冲撞、无横向滚动条溢出。
 
 ---
+
+## 十一、 第三轮深度质询：动态交互实战、高频渲染管线与异构代码库治理 (Round 3 Grilling: Dynamic Walkthroughs, High-FPS Render Pipelines & Legacy Refactoring)
+
+在第三轮质询中，我们针对真实代码库中 15 个子项目的复杂交互细节展开了逐行排查，深挖出关于**叙事导览现场保活、三维射线拾取元数据解耦、高频渲染 GC 停顿、复合滑块标签、首页卡片杂交态治理、私有持久化键迁移与语音无障碍合成**等 7 项极其隐蔽的工程暗坑，并制定了严密的代码治理与架构定标：
+
+### 质询 11.1：导览漫游与叙事动画进行中途切语种的现场状态保活与平滑重绘 (Mid-Flight Story/Tour Walkthrough State Preservation & In-Place Rerender)
+- **深渊挖掘**：
+  - 核心困惑：“在 `ion-thruster-3d`（NASA 栅格推进 6 步漫游 `TOUR`）、`nuclear-fusion-3d`（5 步导览 `TOUR_STEPS`）、`how-cars-work`（9 步燃油/5 步纯电点火叙事 `storySteps()`）、`photosynthesis`（4 句一分钟故事）中，当学生正在聚精会神看第 3 步、相机正在飞行缓动或粒子正在激发电离时，突然点击了中/英切换按钮：如果直接刷新页面（`location.reload()`），用户会立刻被扔回第 0 步，视角重置、动画中断；如果只替换静态 HTML，正在屏幕上展示的动态字幕是由 JS 写入的，依然会卡死在旧语言上，怎么解决？”
+  - **物理真实与代码剖析**：
+    - 在 `how-cars-work/js/main.js` 第 460 行：
+      `captionEl.innerText = \`第 \${storyStep + 1} / \${steps.length} 步 · \${step.caption}\`;`
+    - 在 `ion-thruster-3d/js/main.js` 第 1548 行：
+      `document.getElementById('tourTitle').textContent = s.title; document.getElementById('tourText').innerHTML = s.text;`
+    - 这些动态叙事面板均由命令式状态机驱动，DOM 树上并不存在静态占位符。若切换语言时不通知叙事控制器，已弹出的浮层将彻底成为“遗留的旧语种孤岛”；若暴力重置整个动画，会极大破坏探究学习的心流体验。
+- **终审裁决**：
+  - **现场状态无损原地蜕变契约（In-Place Live Refresh Contract）**：
+    1. **时钟与物理状态永不中断**：严禁调用 `location.reload()`，严禁清除物理模拟粒子场或重置相机 Tween 轨道；
+    2. **导览控制器监听语言变更**：所有包含步进导览的项目，必须向 `i18n.subscribe` 注册动态重绘回调；
+    3. **原地更新文本**：在当前步骤索引（`currentStepIndex`）保持不变的前提下，根据最新语言重新执行文案注入：
+       ```javascript
+       i18n.subscribe((lang) => {
+         if (tourActive) {
+           const s = TOUR[tourIdx];
+           document.getElementById('tourTitle').textContent = s.title[lang];
+           document.getElementById('tourText').innerHTML = s.text[lang];
+         }
+         if (storyState.playing) {
+           const step = storyState.steps[storyState.step];
+           document.getElementById('storyCaption').innerText = i18n.t('story.step_fmt', {
+             current: storyState.step + 1,
+             total: storyState.steps.length,
+             text: step.caption[lang]
+           });
+         }
+       });
+       ```
+    从容实现“画面不停、镜头不晃、文字瞬间完成双语蜕变”。
+
+---
+
+### 质询 11.2：三维射线拾取 (Raycasting / Hover Tooltip) 动态元数据的多语言解耦 (Dynamic 3D Raycasting Metadata & Tooltips Decoupling)
+- **深渊挖掘**：
+  - 核心困惑：“在 `how-cars-work`（21 个封闭子系统部件）、`solar-system`（太阳+8 行星+22 卫星）、`particle-collider`（探测器层级与对撞事例）、`observatory-3d`（8 大光学仪器部件）中，大量网格在初始化时直接把文本塞进了 `mesh.userData`。如果初始化时存的是死字符串，语言切换后鼠标再去拾取，HUD 岂不是永远显示初始语言？”
+  - **物理真实与代码剖析**：
+    - 在 `how-cars-work/js/main.js` 第 411-413 行：
+      `obj.userData.name = \`\${info.nameZh} \${info.nameEn}\`;`
+      `obj.userData.description = info.kidDesc;`
+    - 在 `solar-system/js/celestial.js` 第 342 行：
+      `const label = \`\${textZh} · \${textEn}\`;`
+    - 当用户在 3D 视口中移动鼠标点击零件时，Raycaster 检测到相交物体，直接取出 `intersect.object.userData.description` 并塞进浮窗。如果这些数据在网格生成时就硬编码了字符串，语言翻转后这些三维物体内部的数据依然是陈旧数据。
+- **终审裁决**：
+  - **元数据纯键化契约（Semantic Key Binding for 3D Mesh UserData）**：
+    - **严禁**在 `mesh.userData` 中保存已渲染的本地化自然语言长文本；
+    - `mesh.userData` 仅允许存储语义唯一标识（ID）或标准 i18n 键名：
+      `mesh.userData.partId = 'fuelPump';`
+      `mesh.userData.i18nKey = 'car.parts.fuelPump';`
+    - 在 Raycaster 触发点击或悬停的回调逻辑中，动态调用 `i18n.t()` 实时获取当前语言的文案与解释：
+      ```javascript
+      function showPartHUD(mesh) {
+        const key = mesh.userData.i18nKey;
+        if (!key) return;
+        hudName.textContent = i18n.t(`${key}.name`);
+        hudDesc.innerHTML = i18n.t(`${key}.desc`);
+        hudCategory.textContent = i18n.t(`car.category.${mesh.userData.category}`);
+      }
+      ```
+    彻底解耦三维网格几何体与显示文案，保证随时随地拾取出的 HUD 信息 100% 忠实于当前选择的语言。
+
+---
+
+### 质询 11.3：高频渲染管线 (60/120 FPS requestAnimationFrame) 中 Canvas 2D 文本绘制的 GC 停顿防范 (Garbage Collection Jank in Animation Loops)
+- **深渊挖掘**：
+  - 核心困惑：“在 `gravity-slingshot`（每帧绘制航天器与行星标签 `drawLabel`）、`solar-cell`（第 4 章能带图与光子激发 `ch4_current.js`）、`observatory-3d`（谱线与多普勒波长标尺 `tab-t4-doppler.js`）、`nuclear-fission-3d`（产额双峰）中，2D Canvas 在每帧 `requestAnimationFrame`（60Hz 或 120Hz 高刷屏）都要全部清空重绘。如果每一帧都调用 `i18n.t()` 并度量文本，会不会产生垃圾回收卡顿（GC Jank）？”
+  - **物理真实与代码剖析**：
+    - `ctx.measureText(text)` 是一个涉及字体字形度量的高开销底层调用；
+    - 若在每秒 60 次甚至 120 次的 `update()` 循环中，反复拼接模板字符串（如 ``i18n.t('band.conduction') + ' — ' + status``）并在 Canvas 内部执行度量；
+    - V8 引擎将在微秒级时间内生成数以万计的短期临时字符串和度量对象，导致新生代垃圾回收（Minor GC）高频触发，学生在平板或低配笔记本上拖动 3D 场景时，就会出现肉眼可见的“微掉帧与顿挫感”。
+- **终审裁决**：
+  - **高频渲染双层缓存法则 (Render Loop Text Caching Protocol)**：
+    1. **静态图表文案预缓存**：
+       所有固定不变的轴标签、物理能带名称、单位提示，在模块初始化及 `i18n.subscribe` 回调中完成一次性度量并保存在缓存对象中：
+       ```javascript
+       let cachedTexts = {};
+       function updateTextCache(lang) {
+         cachedTexts = {
+           cbLabel: i18n.t('solar.conduction_band'),
+           vbLabel: i18n.t('solar.valence_band'),
+           cbWidth: ctx.measureText(i18n.t('solar.conduction_band')).width,
+         };
+       }
+       i18n.subscribe(updateTextCache);
+       ```
+    2. **每帧内部零重度量**：
+       在 `requestAnimationFrame` 驱动的真实绘制代码中，直接读取 `cachedTexts.cbLabel`，严禁在渲染循环中进行无谓的字典深层遍历和重复度量；对于必须随时间变化的数值（如 `${val} eV`），仅进行最简数字格式化拼接，确保帧率稳定在 60/120 FPS 满帧丝滑无卡顿。
+
+---
+
+### 质询 11.4：交互滑块 (Range Sliders) 带有内嵌前缀标签的动态重绘陷阱 (Dynamic Value Badges with Embedded Prefixes)
+- **深渊挖掘**：
+  - 核心困惑：“在 `uphill-roller`（调节斜面倾角、母线夹角、导轨张角）、`nuclear-fusion-3d`（调节温度与磁场）、`solar-cell`（调节波长与电压）中，滑块数值标签经常被写死在 `oninput` 回调中（如 `valAlpha.textContent = '斜面倾角 α: ' + angle + '°';`）。切换语言时，如果用户没动滑块，文字不会变；如果用户动了滑块，硬编码的代码又会把中文重新写回界面，形成严重的双语串味，如何根除？”
+  - **物理真实与代码剖析**：
+    - 在 `gravity-slingshot/index.html` 第 94 行：
+      `<div class="ctrl-label"><span>动画速度</span><span class="val" id="valSpeed">0.35×</span></div>`
+    - 在 `nuclear-fusion-3d/js/main.js` 第 682 行：
+      `if (probEl) probEl.textContent = \`P ~ \${prob}% (伽莫夫峰共振开启!)\`;`
+    - 如果状态前缀与动态数值挤在同一个 DOM 节点内，并且由事件处理器直接写死，国际化系统在执行全局遍历时根本无法获知该文本的动态参数结构，极易发生覆盖不全或被用户后续操作再次覆盖为旧语种。
+- **终审裁决**：
+  - **结构与数值 DOM 物理隔离准则 (Decoupled Slider Label Architecture)**：
+    1. **DOM 结构强制双节点解耦**：
+       描述性前缀必须与动态数值徽章独立分立：
+       ```html
+       <div class="ctrl-label">
+         <span data-i18n="slider.anim_speed">动画速度</span>
+         <span class="val" id="valSpeed">0.35×</span>
+       </div>
+       ```
+       滑块事件处理函数仅负责更新纯数值部分：
+       `valSpeed.textContent = slider.value + '×';`，使前缀翻译与数值更新完全互不干扰；
+    2. **复杂语义徽章的参数化翻译**：
+       对于像“伽莫夫峰共振开启!”这种与数值深层绑定的动态提示，严禁硬编码，必须统一使用带参字典词条：
+       `probEl.textContent = i18n.t('fusion.prob_gamow', { prob: prob.toFixed(1) });`
+       并在语言切换时主动调用所有已激活滑块的刷新逻辑。
+
+---
+
+### 质询 11.5：首页 (Root index.html) 15 个卡片的异构杂交状态整肃与双向链接保真 (Frankenstein Hybrid Purification & Bidirectional Link Preservation)
+- **深渊挖掘**：
+  - 核心困惑：“全站根目录 `index.html` 经过多轮快速迭代，15 张卡片呈现出了严重的‘中英弗兰肯斯坦杂交态’：有的卡片纯英文（引力弹弓、汽车原理），有的卡片中英混排，有的卡片描述纯中文。不仅如此，如果学生从首页切换成英文并进入子项目，子项目里的‘返回首页’按钮若是写死的 `<a id="homeBtn" href="../index.html">`，在 `file://` 沙箱阻断本地存储的环境下，点击返回首页会导致语言丢失，重新变回默认中文，这怎么能算完整的闭环？”
+  - **物理真实与代码剖析**：
+    - 检查 `index.html` 源代码：
+      - 卡片 1 (`gravity-slingshot`) 标题为 `Gravity Slingshot`，描述纯英文；
+      - 卡片 3 (`ion-thruster-3d`) 标题为 `Ion Thruster 3D 离子推进器`，描述纯中文；
+      - 卡片 4 (`atomic-model`) 标题为 `Atomic Model 原子模型`，描述纯英文；
+      - 卡片 14 (`uphill-roller`) 标题为 `Uphill Roller 锥体上滚`，描述纯中文；
+    - 整个首页没有任何一套连贯、规范的语言呈现！
+    - 同时，子项目中的 `#homeBtn` 如果没有动态附带 `?lang=` 参数，跨目录跳转时便失去了 URL 这一最坚固的跨沙箱信息载体。
+- **终审裁决**：
+  - **首页全卡片正规化双语字典 (Root Card Purification)**：
+    在 `index.html` 中建立规范化的 15 组全量中英词典，包含完全独立的 `title.zh / title.en` 与 `desc.zh / desc.en`，杜绝任何中英混拼夹杂：
+    - 中文模式下：呈现纯粹、标准、严谨的中文科学译名与少儿导读；
+    - 英文模式下：呈现地道、规范的国际科学表达与原汁原味导读；
+  - **双向双通道参数全生命周期绑定 (Bidirectional Link Fidelity)**：
+    1. **首页向子项目正向传参**：
+       首页语言切换器在触发语言翻转时，不仅更新自身卡片文字，必须立即动态重写所有 15 个卡片 `<a>` 的 `href`：
+       `document.querySelectorAll('.grid a.card').forEach(a => a.href = a.pathname + '?lang=' + lang);`
+    2. **子项目向首页反向传参**：
+       每个子项目的核心初始化逻辑中，必须无条件对 `#homeBtn` 执行动态重写：
+       `document.getElementById('homeBtn').href = '../index.html?lang=' + currentLang;`
+    从而在协议底层构筑无论如何跳转都不会遗失语种配置的无坚不摧的双向闭环通道。
+
+---
+
+### 质询 11.6：遗留独立存储键的平滑迁移与命名空间污染治理 (Legacy Storage Key Migration & Namespace Governance)
+- **深渊挖掘**：
+  - 核心困惑：“代码库搜索证实，`particle-collider` 在其历史代码中已经使用 `collider_lang` 作为其私有存储键，而其他项目或后续项目可能未接入统一命名空间。当一个学生在主页把语言选为英文，然后进入对撞机页面，如果对撞机固执地去读取它以前保存的 `collider_lang`（值为 `'zh'`），就会产生‘全站英文唯独对撞机拒绝听从指挥’的孤岛叛逆 Bug，如何实现既不破坏旧兼容又彻底统一命名空间？”
+  - **物理真实与代码剖析**：
+    - 在 `particle-collider/js/data.js` 第 13 行：
+      `const savedLang = (typeof localStorage !== 'undefined' && localStorage.getItem('collider_lang'));`
+    - 在 `particle-collider/js/ui.js` 第 36 行：
+      `try { localStorage.setItem('collider_lang', lang); } catch (e) {}`
+    - 如果没有对旧代码进行多级仲裁和双向平滑同步，不同开发者维护的子项目将持续保留碎片化的本地键名，导致全站多语言协同分崩离析。
+- **终审裁决**：
+  - **权威仲裁与双写收编法则 (Master-Slave Storage Governance)**：
+    1. **权威信任级差划分**：
+       全站统一设定最高权威键为 `science_lang`，仲裁决议序列固化为：
+       `URL 参数 (?lang=)` **>** `全局标准键 (science_lang)` **>** `项目遗留键 (collider_lang)` **>** `默认语言 (zh)`；
+    2. **双写与平滑迁移 (Dual-Write on Mutation)**：
+       在 `particle-collider` 接入统一 `ScienceI18n` 框架时，若检测到用户切换了语言，框架在写入全局权威键的同时，同步执行遗留键的写入：
+       ```javascript
+       try {
+         localStorage.setItem('science_lang', lang);
+         localStorage.setItem('collider_lang', lang); // 兼容遗留逻辑
+       } catch (e) {}
+       ```
+    通过向后兼容与统一仲裁，彻底治愈历史残留的命名空间冲突隐患。
+
+---
+
+### 质询 11.7：Web Audio / 语音朗读 (Web Speech API) 无障碍合成的语种匹配与口音灾难防御 (Web Speech API TTS Alignment & Accent Disaster Prevention)
+- **深渊挖掘**：
+  - 核心困惑：“面向少儿的科学探究软件非常强调‘视听一体’。在 `how-cars-work` 的 9 步点火故事、`photosynthesis` 的 4 句故事和 `atomic-model` 的吸收发射叙事中，随着无障碍辅助技术或 `window.speechSynthesis` 朗读字幕的介入：如果只调用 `speechSynthesis.speak(utterance)` 而没有显式指定 `utterance.lang`，或者正在朗读中文时用户突然翻转成英文，会有什么灾难发生？”
+  - **物理真实与在线调研证明**：
+    - 根据万维网无障碍联盟 W3C Web Speech API 规范，若未明确设置 `utterance.lang`，浏览器将完全依赖客户端操作系统的默认系统语言；
+    - 在一台美式英语 Windows/Mac 设备上，系统默认发音器（如 Microsoft David 或 Apple Samantha）在尝试拼读中文 UTF-8 字符时，会由于缺乏声调与音节映射，发出极其怪异的破音噪音甚至静默抛出错误；
+    - 反之，中文发音器（如 Microsoft Huihui 或 Apple Tingting）在朗读专业英文物理名词（如“Valence Band”、“Toroid Magnets”）时，会带有极其生硬的汉化拼读口音；
+    - 更致命的是：**语音合成是异步队列执行的**！如果用户在播放到一半时点击语言切换按钮，旧语言的语音队列若不被强制掐断，新语言的界面上将继续播放旧语言的语音，造成极其恶劣的视听认知分裂！
+- **终审裁决**：
+  - **语音引擎精确绑定与生命周期掐断契约 (TTS Voice Alignment Standard)**：
+    1. **显式语种声明与自然语音优选**：
+       凡调用语音朗读之处，必须显式指定 `utterance.lang`：
+       `utterance.lang = (lang === 'zh' ? 'zh-CN' : 'en-US');`
+       并在 `window.speechSynthesis.getVoices()` 列表中优先筛选出 `voice.lang` 精确匹配的高保真自然发音人；
+    2. **语种切换强制静音掐断 (Cancel On Switch)**：
+       在全局 `i18n.subscribe` 的生命周期回调中，一旦监听到语种翻转，第一步必须无条件执行：
+       ```javascript
+       if ('speechSynthesis' in window) {
+         window.speechSynthesis.cancel(); // 立即掐断正在发音的所有旧语种队列
+       }
+       ```
+    彻底杜绝跨语种语音残留，保障少儿科学启蒙的极致纯粹与无障碍听觉尊严。
+
+---
 *本规范为全站双语国际化改造的唯一法定技术蓝图与实施基准。*
 
