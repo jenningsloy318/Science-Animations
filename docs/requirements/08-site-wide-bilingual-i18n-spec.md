@@ -1,10 +1,10 @@
-# 06 全站双语国际化 (EN & CN) 系统架构与集成规范
+# 08 全站双语国际化 (EN & CN) 系统架构与集成规范
 # (Site-wide Bilingual i18n & Localization Specification)
 
-> **版本**：v1.0.0  
+> **版本**：v2.0.0 (深度质询与终审裁决版)  
 > **状态**：正式规范 (Canonical Specification)  
 > **生效时间**：2026-09-22  
-> **文档编号**：`docs/requirements/06-site-wide-bilingual-i18n-spec.md`  
+> **文档编号**：`docs/requirements/08-site-wide-bilingual-i18n-spec.md`  
 > **适用范围**：仓库根主页 (`/index.html`) 及全部 15 个科学可视化子项目
 
 ---
@@ -244,94 +244,6 @@ export class ScienceI18n {
 
 ---
 
-### 6.2 重点子项目改造档案 (Per-Project Implementation Plan)
-
-#### 1. 太阳能电池 (`solar-cell/`)
-- **已有优势**：解说框已原生支持 `showNarr(zhHtml, enSub)` 双语调用；`ch1~ch5` 元数据已定义 `meta.title` 与 `meta.sub`；
-- **重构点**：
-  - 章节导航器 (`#chapters`)：中文（“第1章 从原子到晶体”）/ 英文（“Ch 1 Atoms to Crystal”）；
-  - 电路仪表盘 (`#infoPanel`)：`电压 / Voltage` 与 `电流 / Current`；
-  - 底部操作栏 (`#actionBtns`)：全部按钮支持中英文标签；
-  - 3D 空间标签 (`makeTextSprite`)：根据语言动态切换，如金字塔绒面（Pyramid Texture）、减反射膜（SiNx ARC）、n+发射极（n+ Emitter）、p型硅基底（p-Si Bulk）、背面电极（Back Mirror）；
-  - 单结与叠层天平（100 块阳光分解）：亚带隙穿透（Sub-bandgap pass）、高能热化（Thermalization）、辐射复合（SQ Limit）、俄歇复合（Auger Limit）、HIBC纪录（Record 27.81%）、钙钛矿/硅叠层（Perovskite/Si Tandem 35.5%）。
-
-#### 2. 光合作用 (`photosynthesis/`)
-- **重构点**：
-  - 4 大视点（叶片宏观 / 叶绿体 / 类囊体膜光反应 / 卡尔文循环暗反应）；
-  - 类囊体膜核心蛋白复合体标定（PSII 光系统II, 细胞色素 b6f, PSI 光系统I, ATP 合成酶, 铁氧还蛋白 FNR）；
-  - 电子传递 Z-scheme 能量爬坡动效文字；
-  - Kok 循环水氧化钟 ($S_0 \to S_1 \to S_2 \to S_3 \to S_4 \to \text{O}_2$)；
-  - 卡尔文暗反应拼糖三阶段（碳固定 Carbon Fixation、碳还原 Reduction、RuBP再生 Regeneration）。
-
-#### 3. 原子模型 (`atomic-model/`)
-- **重构点**：
-  - 原子状态面板：质子（Protons）、中子（Neutrons）、电子（Electrons）、净电荷（Net Charge）、能级状态（Ground / Excited / Ionized）；
-  - 光子信息指示卡：入射/释放光子能量（Photon Energy $h\nu$）、跃迁波长（Wavelength $\lambda$）、能级落差（Transition $n_1 \to n_2$）；
-  - 能级阶梯图（Bohr 能级图与赖曼/巴耳末线系谱线）。
-
-#### 4. 核聚变 (`nuclear-fusion-3d/`) 与 核裂变 (`nuclear-fission-3d/`)
-- **核聚变**：
-  - 3 大反应类型选择：D-T (氘-氚)、D-D (氘-氘)、p-¹¹B (质子-硼11洁净聚变)；
-  - 10 步互动导览故事（从宏观托卡马克线圈到微观克服库仑排斥隧穿聚变）；
-  - 能量比重显示：中子动能 14.1 MeV 与 α 粒子动能 3.5 MeV。
-- **核裂变**：
-  - 三幕剧分幕叙事（中子俘获液滴震颤、非对称两体分裂、慢化剂与链式反应）；
-  - 骆驼双峰产额曲线图文字（轻峰 A≈95、重峰 A≈139、对称分裂谷 <0.01%）；
-  - 200 MeV 能量分配饼图与条形图。
-
-#### 5. 观天仪器 (`observatory-3d/`)
-- **重构点**：
-  - 8 大仪器选择卡：折反射望远镜、光栅光谱仪、多普勒红移测速、迈克尔逊干涉仪、自适应光学(AO)、高灵敏CCD/CMOS探测器、非电磁波引力波LIGO探测器、多信使天文学；
-  - 数据流水线 3 阶段（原始观测 Raw Reading $\to$ 物理校准 Calibration $\to$ 顶刊发表数据 Published Result）；
-  - 电磁波谱段过滤条（射电 Radio, 红外 IR, 可见光 Visible, 紫外 UV, X射线, 伽马射线）。
-
-#### 6. 汽车是怎么跑起来的 (`how-cars-work/`)
-- **重构点**：
-  - 燃油车 vs 纯电动车模式切换；
-  - 9 步点火启动故事剧情字幕；
-  - 零部件剖析（曲轴 Crankshaft, 活塞 Piston, 火花塞 Spark Plug, 进排气门 Valves, 飞轮 Flywheel, 离合器 Clutch, 手动/自动变速箱 Gearbox, 传动轴 Driveshaft, 差速器 Differential, 盘式制动器 Brakes, 交流永磁同步电机 EV Traction Motor）；
-  - 仪表盘数据（转速 RPM, 扭矩 Torque, 实时挡位 Gear）。
-
-#### 7. 相对论黑洞 (`black-hole/`)
-- **重构点**：
-  - 物理控件 HUD：引力透镜开关（Gravitational Lensing）、相对论多普勒聚束（Relativistic Doppler Beaming）、广义相对论测地线积分器参数；
-  - 核心物理层注记：事件视界（Event Horizon, $r=2M$）、光子球层（Photon Sphere, $r=3M$）、最内稳定圆轨道（ISCO, $r=6M$）。
-
-#### 8. 引力弹弓 (`gravity-slingshot/`)
-- **重构点**：
-  - 飞行遥测状态栏：当前航速（Speed）、引力弹弓增益（Gravity Assist Boost）、引力加速度（Acceleration）；
-  - 任务阶段提示卡：地球起飞 $\to$ 木星飞掠 $\to$ 土星弹弓 $\to$ 冲出太阳系；
-  - 真实物理图例：实际双曲轨道 vs 惯性直线轨道 vs 引力矢量线。
-
-#### 9. 离子推进器 (`ion-thruster-3d/`)
-- **重构点**：
-  - 4 大视角切换：推进器全貌（Overall View）、环形尖点磁阱（Ring Cusp Magnetic Trap）、单微孔双栅极静电透镜（Ion Optics）、双轴万向常平架（2-Axis Gimbal）；
-  - 深空任务预设：深空1号 (Deep Space 1)、黎明号谷神星探索 (Dawn)。
-
-#### 10. 旋转地球 (`rotating-earth/`)
-- **重构点**：
-  - 季节与节气选择（春分/秋分 Equinox、夏至 Summer Solstice、冬至 Winter Solstice）；
-  - 昼夜分界线（Terminator）与地球自转轴倾角（23.44° Axial Tilt）图解；
-  - 城市注记（北京、伦敦、纽约、东京等）。
-
-#### 11. 太阳系探索者 (`solar-system/`)
-- **重构点**：
-  - 天体信息面板（太阳、水星、金星、地球、火星、木星、土星、天王星、海王星，各卫星半径、轨道半长轴、周期）；
-  - 航天轨道规划器（霍曼转移轨道、入轨速度、发射窗口期计算）。
-
-#### 12. 运动视差 (`motion-parallax/`)
-- **重构点**：
-  - 双视点切换：驾驶员座舱透视视角 vs 天顶俯视扫角透视；
-  - 物理感知公式标定：角速度 $\omega \approx v/d$；
-  - 恒星周年视差测距滑块（从公里到秒差距 parsec）。
-
-#### 13. 锥体上滚 (`uphill-roller/`)
-- **重构点**：
-  - 三大几何参数滑块：导轨坡度角 $\alpha$、导轨开角 $\beta$、圆锥顶半角 $\gamma$；
-  - 力学重心判据：重心高度变化曲线 $\Delta h(x)$ 与滚动驱动力分析。
-
----
-
 ## 七、 自动化事实测试与构建部署准则 (Testing & Deployment)
 
 ### 7.1 单元测试断言覆盖 (`tests/i18n.test.mjs`)
@@ -380,6 +292,139 @@ gantt
     全站无头浏览器 CDP 端到端自动化扫荡      :         des12, 2026-09-28, 1d
     生产环境部署同步 (rsync.sh) 与上线交付  :         des13, 2026-09-28, 1d
 ```
+
+---
+
+## 九、 国际化架构深度质询与终审裁决 (Round 1 Grilling: Online Research & Code Analysis)
+
+面对生产环境、真实浏览器安全策略、WebGL 显存与跨设备离线运行的极端考验，我们通过**在线前沿研究与全工程代码深度剖析**，对国际化架构进行了 7 项深度质询，并确立终审解法：
+
+### 质询 9.1：为什么仅靠 `localStorage` 会在本地双击 `file://` 打开时崩溃或失灵？
+- **深渊挖掘**：
+  - 核心困惑：“如果直接用 `localStorage.getItem('science_lang')` 保存语言，只要用户在主页选了一次英文，跳转到 `solar-cell/` 读这个值不就行了吗？为什么还要大费周章设计 URL 参数传递？”
+  - **物理真实与在线调研证明**：
+    - 根据 W3C Web Storage 规范，`localStorage` 严格绑定到浏览器的 **Origin（源：协议 + 域名 + 端口）**；
+    - 在本地双击 HTML 文件的 `file://` 协议下，**根本不存在有效的域名和端口**！
+    - **Chromium**：在某些安全版本下，不同目录的 `file:///path/A/index.html` 和 `file:///path/B/solar-cell.html` 会被视为互相隔离的独特源，`localStorage` 无法跨目录共享读取；
+    - **Safari / WebKit**：在默认的隐私沙箱设置下，对 `file://` 协议访问 `localStorage` 会直接抛出致命异常：`SecurityError: The operation is insecure`！如果代码没有捕获该异常，整段脚本会直接中断挂死，3D 画面彻底黑屏！
+- **终审裁决**：
+  - **双轨制传输（Dual-Track Synchronization）**：
+    1. **显式 URL 传导（第一优先级）**：主页在渲染或切换语言时，自动重构所有 15 个子项目超链接，在 URL 尾部显式附加 `?lang=zh` 或 `?lang=en`；各子项目的 `#homeBtn` 返回按钮也必须附带 `../index.html?lang=${currentLang}`。在没有 Web 服务器的本地 `file://` 离线环境下，URL 参数成为跨页面 100% 坚不可摧的握手通道！
+    2. **安全包裹持久化**：所有涉及 `localStorage.getItem` 与 `localStorage.setItem` 的代码必须全部封装在 `try...catch` 块内，遭遇安全限制时静默降级，保证在任何极端离线沙箱中永不崩溃。
+
+---
+
+### 质询 9.2：Three.js 3D 空间文字精灵 (TextSprite) 在动态切换语言时如何防止 GPU 显存雪崩与文案畸变？
+- **深渊挖掘**：
+  - 核心困惑：“网页里的普通 HTML 标签切换语言很简单，`textContent = dict[lang]` 就完事了。但在 Three.js 里，所有空间漂浮标签（如‘金字塔绒面’、‘n⁺ 发射极’、‘耗尽区滑梯’）都是通过离屏 Canvas 生成纹理、贴到 Sprite 上的。语言一换，如果重新调用 `makeTextSprite()` 创建新精灵，会不会导致内存和显存无限暴涨？为什么英文标签常常被压扁成一团？”
+  - **物理真实与在线调研证明**：
+    - **GPU 显存无法被 JavaScript GC 自动回收**：每次调用 `new THREE.CanvasTexture(canvas)` 和 `new THREE.SpriteMaterial({ map: tex })`，WebGL 会在 GPU 端分配显存纹理槽位。如果直接覆盖而不显式调用 `tex.dispose()` 和 `material.dispose()`，旧纹理将永久滞留在 GPU 显存中，直到 WebGL 上下文丢失；
+    - **中英文宽高比字符爆炸**：中文字符方形紧凑，5 个汉字（如“金字塔绒面”）在 256×84 画布上宽高比约 3:1；对应的英文“Random Textured Pyramids”长达 24 个字符，若沿用固定画布或强制拉伸，英文字母将被横向压缩至无法辨识或两头截断。
+- **终审裁决**：
+  - **原地复用与动态度量（In-Place Canvas Update）**：
+    在 `core.js` 中确立 `updateTextSprite(sprite, newText, color)` 统一规范：
+    ```javascript
+    export function updateTextSprite(sprite, text, color = '#e2e8f0') {
+      if (!sprite || !sprite.material || !sprite.material.map) return;
+      const font = 'bold 40px Outfit, sans-serif';
+      const probe = document.createElement('canvas').getContext('2d');
+      probe.font = font;
+      const textW = probe.measureText(text).width;
+      const pad = 24;
+      // 复用既有纹理底层的 Image Canvas
+      const canvas = sprite.material.map.image;
+      canvas.width = Math.max(256, Math.ceil(textW + pad * 2));
+      canvas.height = 84;
+      const ctx = canvas.getContext('2d');
+      ctx.font = font;
+      ctx.fillStyle = color;
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(text, canvas.width / 2, 42);
+      // 触发 GPU 显存位图原地重载，零新增 Texture 对象！
+      sprite.material.map.needsUpdate = true;
+      // 依据新文本真实宽高比动态重置 Sprite 空间缩放
+      const aspect = canvas.width / canvas.height;
+      const baseH = sprite.userData.baseH || 0.55;
+      sprite.scale.set(baseH * aspect, baseH, 1);
+    }
+    ```
+  - 当整章销毁重建时，必须严格执行 `disposeGroup(group)` 深度递归释放 `geometry.dispose()` 与 `material.map.dispose()`。
+
+---
+
+### 质询 9.3：为什么严禁采用外部 CDN 翻译接口或动态 `fetch('locales/en.json')`？
+- **深渊挖掘**：
+  - 核心困惑：“很多现代 web 框架都推荐把中英文放在独立的 `zh.json` 和 `en.json` 里，进入页面用 `fetch('/locales/en.json')` 异步拉取。为什么在我们的项目中被列为第一大禁忌？”
+  - **物理真实与在线调研证明**：
+    - **CORS 本地文件致命拦截**：在本地通过 `file://` 双击打开 `solar-cell.html` 时，所有主流现代浏览器（Chrome、Edge、Safari、Firefox）都会出于安全策略强行拦截 `fetch('locales/en.json')` 并抛出错误：`URL scheme must be "http" or "https" for CORS request`！这会导致本地双击时任何翻译数据都加载失败；
+    - **教育场景断网隔离**：许多中小学科学实验室、偏远地区机房或竞赛现场处于完全断网状态；
+    - **单文件独立构建完整性**：本项目 9 个核心子项目通过 `build.py` 编译产出 1 MB 左右的单文件离线 HTML。若语言包遗留在外部，单文件分发理念将彻底破产。
+- **终审裁决**：
+  - **静态嵌入式全内存字典（Zero-Dependency In-Memory Dictionaries）**：
+    全站所有中英对照词条必须直接以 JavaScript 原生对象结构内联在代码库中。在打包阶段随 `main.js` 一并编译打包至单文件 HTML 内部。零网络延迟、零外部请求、零 CORS 拦截，双击即用！
+
+---
+
+### 9.4 质询 9.4：浏览器往返缓存 (bfcache) 与历史栈后退时如何避免“语言幽灵撕裂”？
+- **深渊挖掘**：
+  - 核心困惑：“用户在主页选择英文，进入太阳能电池；在太阳能电池里学习时点右上角把语言切回了中文；接着用户点击浏览器自带的‘后退’按钮返回主页。由于现代浏览器具有往返缓存（Back-Forward Cache, bfcache），主页不会重新加载，直接从内存快照恢复，此时主页依旧是英文，但底层存储已经是中文，产生了状态撕裂！”
+- **终审裁决**：
+  - **`pageshow` 页面恢复事件全息监听**：
+    在 `index.html` 以及所有子项目的生命周期中，必须注册 `pageshow` 监听器：
+    ```javascript
+    window.addEventListener('pageshow', (event) => {
+      // 检查当前持久化存储的语言是否与页面现存语言一致
+      const latestLang = i18n.resolveInitialLang();
+      if (latestLang !== i18n.lang) {
+        i18n.setLang(latestLang); // 立即静默同步更新当前视图
+      }
+    });
+    ```
+    无论是通过历史栈后退、前进还是标签页切换切回，页面瞬间感知最新状态并保持 100% 步调一致。
+
+---
+
+### 9.5 质询 9.5：英文排版字符膨胀 (Text Expansion) 造成的按钮撑爆与手机端折行灾难
+- **深渊挖掘**：
+  - 核心困惑：“中文两个字‘重置’，英文是‘Reset’；中文‘全谱连续扫描’6 个字，英文是‘Continuous Full-Spectrum Scan’长达 30 个字符！如果按钮设置了固定宽度（如 `width: 130px`），英文就会直接溢出边界或者遮挡相邻按钮，手机上更是一片狼藉。”
+  - **排版物理学事实**：汉字是二维紧凑表意方块字，英文字母是一维流式拼音字符。统计表明，中文科技文献翻译为英文后，**文本视觉长度平均暴增 1.8 至 2.6 倍**！
+- **终审裁决**：
+  - **弹性流式栅格准则 (Fluid Flow Layout Standard)**：
+    1. **严禁在动态文案按钮上施加定宽**：禁止 `width: 120px`，统一使用 `min-width` 与 `padding: 8px 16px; width: auto;`；
+    2. **自动换行弹性包裹**：按钮栏统一使用 `display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;`；
+    3. **自适应视口字号**：按钮文字采用相对视口弹性字号，如 `font-size: clamp(0.72rem, 1.4vw, 0.82rem); white-space: nowrap;`；
+    4. **移动端容错容器**：操作面板最大宽度设定为 `max-width: min(92vw, 760px)`，确保即使英文单词较长，按钮自动下沉折行排列，保持整齐大气。
+
+---
+
+### 9.6 质询 9.6：物理公式、科学符号与国际单位 (SI) 的不可变性原则
+- **深渊挖掘**：
+  - 核心困惑：“翻译成英文版时，爱因斯坦质能方程 $E=mc^2$、开路电压符号 $V_{oc}$、单位 $\text{W/m}^2$、光波长 $\lambda=550\text{ nm}$ 要不要翻译？怎么界定哪些该翻、哪些绝对不能碰？”
+  - **国际科学标准界定**：根据国际纯粹与应用物理学联合会 (IUPAP) 及国际标准化组织 ISO 80000-1 规范，**科学物理量符号与国际单位制属于全球通用的数学语言，严禁局部化篡改！**
+- **终审裁决**：
+  - **科学符号不可变准则 (Invariance Principle of Scientific Symbols)**：
+    - **绝对不可变**：物理常数（$c, h, k_B, q$）、公式主干（$E=mc^2, I(V)=I_{sc}-I_0(e^{qV/kT}-1)$）、国际单位（$\text{eV}, \text{nm}, \mu\text{m}, \text{W/m}^2, \text{ps}, \text{A}, \text{V}$）在所有语言版本中**必须 100% 保持原样**；
+    - **必须翻译**：仅翻译公式周边的描述性解释、变量物理意义标注、单位前缀名称与界面提示文字（如“开路电压” ➔ “Open-Circuit Voltage”；“短路电流” ➔ “Short-Circuit Current”）。
+
+---
+
+### 9.7 质询 9.7：如何用全自动流水线验证 15 个项目的双语自洽性？（拒绝人工肉眼排查）
+- **深渊挖掘**：
+  - 核心困惑：“全站包含 1 个主页和 15 个复杂的 3D 可视化子项目，包含数千个专业科学词汇和动态状态。人工逐一打开页面去肉眼排查中英切换，效率极低且必然遗漏死角。如何建立工业级的自动化防护网？”
+- **终审裁决**：
+  - **三层自动化断言测试网 (Automated Multi-layer Test Harness)**：
+    1. **底层数据单元测试 (`tests/i18n.test.mjs`)**：
+       - 执行 `node --test tests/i18n.test.mjs`；
+       - 静态验证全部 15 个子项目注册字典中无一空缺字段，且中英键值对一一对应；
+       - 模拟验证多级仲裁逻辑（URL 参数覆盖、存储读取、降级回退）；
+    2. **中间层单文件离线构建校验 (`build.py`)**：
+       - 执行各项目 `build.py` 生成的单文件 HTML，断言检查绝对不含外部翻译 CDN，单文件字节大小处于健康范围；
+    3. **顶层无头浏览器全交互真机扫荡 (Headless Chrome CDP Matrix)**：
+       - 使用无头 Chrome 自动化驱动，依次进入 `index.html`，触发中文/英文切换；
+       - 遍历点击 15 个卡片跳转进入每个子项目；
+       - 验证页面在 1 秒内正确定位并渲染对应语言；
+       - 验证页面控制台 `0 运行时异常`、`0 语法错误`、`0 未翻译占位符 undefined`；
+       - 在子项目中翻转语言，模拟点击 `#homeBtn` 返回主页，验证主页语言联动同步成功！
 
 ---
 *本规范为全站双语国际化改造的唯一法定技术蓝图与实施基准。*

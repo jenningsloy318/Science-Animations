@@ -1,7 +1,8 @@
 // ═══════════════════════════════════════════════════════
 // facts.js — 太阳能电池：纯物理数据与数学模型模块 (SSOT)
 // 无 THREE、无 DOM，Node.js 可直接执行测试
-// 所有数据严格契合 docs/requirements/solar-cell-system-integration-spec.md
+// 所有数据严格契合 docs/requirements/06-solar-cell-system-integration-spec.md
+// 单源真理 (SSOT) 库：带隙、直接跃迁、深度表、常数、公式模型与测试断言基准
 // ═══════════════════════════════════════════════════════
 
 // ── 基础物理常数 ──
