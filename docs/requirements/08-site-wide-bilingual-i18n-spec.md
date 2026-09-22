@@ -1156,5 +1156,134 @@ gantt
     3. **构建产物零网络外链断言**：运行所有 15 个项目的 `build.py`，自动校验产出的 `*.html` 单文件完全符合零 CDN、零外部请求的离线标准。
 
 ---
+
+## 十五、 第八轮深度质询：数值格式化孤岛、多标签页同频与古典科技翻译准则 (Round 8 Grilling: Number Formatting, Multi-Tab Bus & Classical Science Terms)
+
+在第八轮深度质询中，我们针对真实代码库中**数字格式化本地化孤岛、多标签页/多窗口同频广播 (`StorageEvent`)、中文输入法组合按键冲突、古典科技工程（都江堰水利）双轨翻译、多媒体视频字幕时钟切分、严苛 CSP 无评估安全以及 15 项目全量测试矩阵**等 7 项极具纵深维度的关键领域展开了攻关，完成终审架构定标：
+
+### 质询 15.1：跨项目数字格式化本地化孤岛治理 (`.toLocaleString()` 语种硬编码与漂移)
+- **深渊挖掘**：
+  - 核心困惑：“全站代码库检索发现：
+    - 在 `observatory-3d/js/data.js` 第 35 行中：
+      `function fmt(v, d) { return (+v).toLocaleString('zh-CN', { ... }); }`
+      直接硬编码了 `'zh-CN'`！即便用户切换到英文，数字仍然以中文习惯格式化；
+    - 在 `particle-collider/js/utils.js` 第 14 行中：
+      `U.fmt = (n) => n.toLocaleString('en-US');`
+      直接硬编码了 `'en-US'`！即便用户切换到中文，数字依然以美式习惯格式化；
+    - 在 `solar-system/js/main.js`（第 269、272 行）和 `nuclear-fusion-3d`（第 891 行）中：
+      直接裸写 `body.radiusKm.toLocaleString()`，完全不传任何参数，导致其完全依赖运行设备的操作系统 Locale（若在德国/法国运行，千分位直接变成点号 `.` 或空格，严重污染科学读数！），如何彻底治理？”
+- **终审裁决**：
+  - **全站科学数字格式化统一收编规范 (Unified Science Number Formatter)**：
+    1. 在 `ScienceI18n` 核心暴露标准格式化工具：
+       ```javascript
+       export function formatNumber(num, options = {}) {
+         const locale = (i18n.currentLang === 'zh' ? 'zh-CN' : 'en-US');
+         return Number(num).toLocaleString(locale, options);
+       }
+       ```
+    2. 彻底清除各子项目中散落硬编码的 `toLocaleString('zh-CN')` 与 `toLocaleString('en-US')`，统一接入 `i18n.formatNumber(n)`，确保数字千位分隔符与小数位展示严格与当前界面的语种 100% 同频。
+
+---
+
+### 质询 15.2：多标签页/多窗口协同下的跨标签实时热重载 (`StorageEvent` Multi-Tab Sync)
+- **深渊挖掘**：
+  - 核心困惑：“学生或教师在电脑上经常并排打开多个标签页（如 Tab 1 是总览首页 `index.html`，Tab 2 是 `solar-cell/`，Tab 3 是 `photosynthesis/`）：当用户在 Tab 1 将语言从中文切换到英文时，浏览器会在同源其他标签页触发 `window.onstorage` 事件。如果子项目没有监听该事件，Tab 2 和 Tab 3 依然顽固地保持在中文状态，直到用户手动刷新页面，造成严重的多窗口状态撕裂，怎么解决？”
+- **终审裁决**：
+  - **跨标签状态无缝同频总线 (Multi-Tab Storage Bus)**：
+    `ScienceI18n` 全局初始化时自动挂载同源存储事件监听：
+    ```javascript
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'science_lang' && (e.newValue === 'zh' || e.newValue === 'en')) {
+        if (e.newValue !== i18n.currentLang) {
+          i18n.setLanguage(e.newValue, { fromStorageEvent: true });
+        }
+      }
+    });
+    ```
+    用户在任意标签页切换语言，后台所有已打开的实验窗口在毫秒级内全部自动翻转，无需用户进行任何多余的刷新操作。
+
+---
+
+### 质询 15.3：输入法合成中 (IME Composition) 快捷键抢占与热键提示国际化
+- **深渊挖掘**：
+  - 核心困惑：“在 `black-hole`（按 `L` 切换透镜，按 `D` 切换多普勒）、`how-cars-work`（按 `Space` 暂停，按 `1-4` 换挡）、`nuclear-fusion-3d`（按 `Space` 暂停）等项目中：当中国学生打开中文输入法（如微软拼音、搜狗输入法）时，按下字母 `L` 或 `D`，浏览器触发的是输入法组合事件（`isComposing === true`，`e.key === 'Process'`）；此时热键处理器如果直接读取 `e.key` 或 `e.code` 触发物理开关，会与输入法候选词发生严重的按键冲突，导致输入法卡死或无法选字；反之，界面的 Tooltip 提示如果写死为中文‘按 L 开关透镜’，在英文版下怎么优雅自适应？”
+- **终审裁决**：
+  - **输入法安全热键守卫与多语言提示 (IME-Safe Hotkey Guard)**：
+    1. 全局按键监听器必须强制加入合成器检查：
+       `if (e.isComposing || e.keyCode === 229) return;`
+    2. 区分按键物理位置与字符语义，统一采用 `e.code === 'KeyL'` 匹配物理键位，避免大小写 CapsLock 锁定状态下的判定失灵；
+    3. 热键引导提示通过动态参数插槽生成：
+       `tooltip.textContent = i18n.t('key.hint_lensing', { key: 'L' });`。
+
+---
+
+### 质询 15.4：古代工程与科学史专有名词（如都江堰水利）的双语翻译保真哲学
+- **深渊挖掘**：
+  - 核心困惑：“在以中国古典工程或科技史为代表的项目（如即将上线的《都江堰 3D》`docs/requirements/04-dujiangyan-animation-spec.md`）中，存在大量具有特定科学机理的古典术语（如‘鱼嘴’、‘飞沙堰’、‘宝瓶口’、‘离堆’、‘杩槎’、‘竹笼’、‘卧铁’、‘深淘滩，低作堰’）。如果机械直译为‘Fish Mouth’或‘Flying Sand’，西方读者会以为是神话或生物学；如果完全抛弃拼音，又失去了中国古典科技文物的历史文化本色，如何界定标准？”
+- **终审裁决**：
+  - **拼音地标 + 物理功能双轨复合命名法 (Dual-Track Terminology Standard)**：
+    凡古典科技文物与历史发明，英文命名强制采用“罗马化拼音 (Pinyin) + 物理工程功能界定”复合体：
+    - 鱼嘴 ➔ **Yuzui (Bypass Water Divide)**
+    - 飞沙堰 ➔ **Feishayan (Sand-Discharge Spillway)**
+    - 宝瓶口 ➔ **Baopingkou (Bottle-Neck Inflow Regulator)**
+    - 离堆 ➔ **Lidui (Isolated Energy-Dissipating Crag)**
+    - 杩槎 ➔ **Macha (Water-Blocking Wooden Tripods)**
+    - 竹笼 ➔ **Zhulong (Pebble-Filled Bamboo Sausages)**
+    - 卧铁 ➔ **Wotie (Desilting Iron Benchmark Bars)**
+    - 深淘滩，低作堰 ➔ **Dig the channel deep; build the spillway low**
+    既保护中国科技文物的独创性尊严，又向全球少儿传递严谨的流体力学工程原理。
+
+---
+
+### 质询 15.5：多媒体视频轨与解说字幕双语同步时钟 (Remotion / WebVTT Dual-Track Timeline Sync)
+- **深渊挖掘**：
+  - 核心困惑：“在包含长篇解说视频的项目（如《都江堰》150 秒 4K/60fps 宏篇叙事、宇宙时钟全幕演化）中，解说字幕通过 Remotion（`Subtitles.tsx`）或 HTML5 `<track>` WebVTT 渲染：英文语速与中文语速不同（中文 1 秒通常朗读 3~4 个字，英文 1 秒通常说 2~3 个单词）。如果只根据中文普通话的时长强行塞入英文句子，英文句子往往长达 20 多个单词，学生根本读不完就被切走，怎么办？”
+- **终审裁决**：
+  - **对等信息量时轴切分与双轨字幕自适应 (Timed Cue Alignment)**：
+    1. 建立基于镜头切镜点（Shot Boundary）的时间对齐基准：无论中英文，字幕的切分点必须严格锁定在同一个关键帧剪辑点上；
+    2. 英文文案必须经过“一息朗读优化（One-Breath Rule）”，单行字符严格控制在 45 个字符以内，并在宽屏模式下支持中英双行同显（Bilingual Subtitles: 上行英文主字号，下行中文辅助），供双语教学使用。
+
+---
+
+### 质询 15.6：全站离线资源构建的 CSP 安全策略与内联 Script 散列断言 (Content Security Policy & Inline Script Hashes)
+- **深渊挖掘**：
+  - 核心困惑：“在很多严格的教学操作系统或带有严苛企业/学校安全策略的浏览器中，配置了严格的 CSP（Content Security Policy）：`default-src 'self'; script-src 'self'; object-src 'none';`。如果我们的国际化系统在某些地方使用了 `eval()`、`new Function()` 或注入不安全的内联动态字符串，页面在学校受控设备上会直接被安全软件就地封杀拦截！”
+- **终审裁决**：
+  - **纯静态安全无评估准则 (Strict CSP Zero-Eval Standard)**：
+    1. 严禁在任何国际化逻辑中使用 `eval()`、`new Function()` 或非法的字符串模板求值；
+    2. 所有字典查找严格基于纯粹的对象哈希检索 `dict[lang][key]`；
+    3. 动态插槽参数替换统一使用纯正则字符串替换 `str.replace(/{(\w+)}/g, ...)`，杜绝一切代码注入可能，确保通过任何企业级严苛 CSP 策略。
+
+---
+
+### 质询 15.7：全站 15 个项目完整生命周期端到端集成测试演练 (Full Matrix End-to-End Test Suite)
+- **深渊挖掘**：
+  - 核心困惑：“经过多轮质询，规范已非常完备，但如果不把所有 15 个项目纳入一键运行的自动化测试脚本中，人工不可能在每次发布时去点验 15 个项目的双语状态。”
+- **终审裁决**：
+  - **在 `tests/i18n.test.mjs` 中构建 15 项目全扫描矩阵**：
+    矩阵必须遍历覆盖：
+    - `atomic-model`
+    - `black-hole`
+    - `gravity-slingshot`
+    - `how-cars-work`
+    - `ion-thruster-3d`
+    - `motion-parallax`
+    - `nuclear-fission-3d`
+    - `nuclear-fusion-3d`
+    - `observatory-3d`
+    - `particle-collider`
+    - `photosynthesis`
+    - `rotating-earth`
+    - `solar-cell`
+    - `solar-system`
+    - `uphill-roller`
+    校验项目：
+    1. 首页卡片对齐性与双向链接有效性；
+    2. 子项目 `#homeBtn` 存在性及参数承载；
+    3. 字典键值对称性（断言无一漏译）；
+    4. 静态 HTML 与 JS 模板中 `data-i18n` 引用的合法性；
+    5. 运行各项目 `build.py`，断言单文件输出正常且无外链。
+
+---
 *本规范为全站双语国际化改造的唯一法定技术蓝图与实施基准。*
 
