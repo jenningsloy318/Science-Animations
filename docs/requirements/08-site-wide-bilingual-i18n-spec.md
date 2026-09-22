@@ -785,5 +785,130 @@ gantt
     彻底杜绝跨语种语音残留，保障少儿科学启蒙的极致纯粹与无障碍听觉尊严。
 
 ---
+
+## 十二、 第四轮深度质询：离线工程编译、HiDPI 高清光栅化与无障碍焦点防护 (Round 4 Grilling: Dual-Mode Bundling, Retina HiDPI & a11y Focus)
+
+在第四轮质询中，我们针对**双模运行构建流水线 (`build.py` vs 开发态 `index.html`)、Retina/4K 屏幕 Canvas 2D 亚像素模糊、页面 Title/Meta 标签同步、西文 `white-space: nowrap` 撑爆容器、复杂 HTML 嵌套按钮原子翻译、航天遥测单复数语法以及无障碍键盘焦点保持**等 7 项底层工程硬核问题，进行了在线规范调研与代码测试，完成终审架构裁决：
+
+### 质询 12.1：离线单文件构建 (`build.py`) 与模块化开发 (`index.html`) 的双模依赖与路径越界陷阱 (Dual-Mode Bundling vs Dev Import Resolution)
+- **深渊挖掘**：
+  - 核心困惑：“全站 15 个项目均采用双模架构：开发态用 `index.html`（通过 `<script type="importmap">` 模块化加载，需本地 HTTP 服务器）；生产态用各自的 `build.py` 调用 `esbuild` 打包为 100% 自包含的单个 HTML（如 `solar-cell.html`，可在完全断网的机房 `file://` 双击直接运行）。如果我们在根目录创建共享核心 `common/js/i18n.js`，子项目在开发态写 `import { i18n } from '../common/js/i18n.js'`：
+    1. `esbuild` 打包单文件时，跨目录引用 `../common/` 会不会报错？
+    2. 各项目的 `build.py` 内部均有断言：`for bad in ("importmap", 'src="js/', "cdn.jsdelivr", ...): if bad in html: sys.exit()`。共享 i18n 会不会破坏这个严苛的离线单文件纯度断言？”
+  - **物理真实与构建系统实测验证**：
+    - `esbuild` 原生具备完备的文件系统跨目录解析能力，将 `../common/js/i18n.js` 作为依赖传入时，能将其与项目内部代码完全平展合并（Flat-bundle）并 Tree-shake 到单文件的 IIFE `<script>` 闭包内；
+    - 打包生成的结果完全内联在单个 HTML 中，不产生任何外部网络外链或外部相对路径请求，完全符合 `build.py` 的零外部引用断言。
+- **终审裁决**：
+  - **双模自洽构建规范 (Dual-Mode Build Harmony)**：
+    1. **开发态路径契约**：开发环境下统一以仓库根目录作为 HTTP 服务根目录（`python3 -m http.server`），子项目使用标准相对路径 `import { i18n } from '../common/js/i18n.js'` 引入；
+    2. **单文件打包自动化覆盖**：各子项目的 `build.py` 无需繁杂修改，`esbuild` 自动将 `common/js/i18n.js` 及当前项目词典编译内联至产物文件（如 `solar-cell.html`、`photosynthesis.html`），确保打包出来的离线版本不仅 100% 独立自包含，而且完整封装了双语中英切换能力。
+
+---
+
+### 质询 12.2：Retina 高清屏 (HiDPI / `devicePixelRatio`) 下 Canvas 2D 动态重绘的文本模糊与物理缩放撕裂 (Retina HiDPI Canvas Crispness & Scale Drift)
+- **深渊挖掘**：
+  - 核心困惑：“在 `photosynthesis`（`makeLabel`）、`solar-system`（`createLabelSprite`）、`gravity-slingshot`（`drawLabel`）、`solar-cell`（`bandCanvas`）中：Canvas 2D 文本在苹果 MacBook Retina 屏或高分辨率手机屏幕上（`dpr = 2` 或 `3`）如果仅按 CSS 像素声明 `canvas.width = w`，绘制出的文字会像马赛克一样模糊发虚；当语言由中文切换为英文时，英文字符串变长，代码如果重新分配 canvas 尺寸，不仅容易失去 DPR 缩放，更可怕的是在 Three.js 中，TextSprite 的 3D 尺寸若直接依据 `canvas.width` 缩放，英文版会导致三维空间标签整体膨胀变大，直接撞进相邻的模型内部！”
+  - **物理真实与光学渲染管线**：
+    - 高清屏（Retina / 4K / OLED）的一个 CSS 逻辑像素由 $2\times2$ 或 $3\times3$ 个物理发光子像素组成。若未将 `canvas.width / height` 乘以 `window.devicePixelRatio`，浏览器只能强制拉伸位图，导致文字严重模糊；
+    - 在 Three.js 中，Sprite 的渲染尺寸由 `sprite.scale.set(w, h, 1)` 决定。如果把 Canvas 的像素宽度直接映射为世界坐标系长度，英文版（字符数常为中文的 2 倍）就会使整个标牌在 3D 空间中被拉得巨大，侵入其他科学部件的视线通道。
+- **终审裁决**：
+  - **HiDPI 物理光栅化与基线字高恒定规范 (HiDPI Crispness & Baseline Anchor)**：
+    1. **Canvas 像素高保真光栅化**：
+       ```javascript
+       const dpr = Math.min(window.devicePixelRatio || 1, 2.5); // 钳位最高2.5，兼顾清晰度与内存
+       canvas.width = Math.round(logicalWidth * dpr);
+       canvas.height = Math.round(logicalHeight * dpr);
+       ctx.scale(dpr, dpr);
+       ```
+    2. **Three.js 3D 空间基准字高恒定原则**：
+       在空间中放置 TextSprite 时，**空间高度必须严格固定为物理常数 `H_BASE`**，仅空间宽度随宽高比自然展开：
+       ```javascript
+       const aspect = canvas.width / canvas.height;
+       sprite.scale.set(H_BASE * aspect, H_BASE, 1);
+       ```
+       确保中英文标签在三维空间中的“文字物理高度”完全等高，绝不因为英文单词长而把字形放大变形，保障 3D 场景的精准科学秩序。
+
+---
+
+### 质询 12.3：页面元数据 (`document.title`、`<meta name="description">`) 动态同步与浏览器标签页可达性 (Page Metadata & SEO/Tab Accessibility)
+- **深渊挖掘**：
+  - 核心困惑：“当前每个子项目的 `<title>` 均写死在 HTML 头部（例如 `<title>原子模型 · 3D Interactive Atomic Model</title>`）。如果学生在英文模式下切换，浏览器标签页、书签栏、浏览器历史记录中依然残留长串中文，甚至导致视障屏幕阅读器在进入页面时报出完全不匹配的页面标题，如何优雅同步？”
+- **终审裁决**：
+  - **元数据动态响应契约 (Dynamic Page Metadata Contract)**：
+    1. 全局字典必须为每个页面配置规范的 `meta.title` 和 `meta.description`；
+    2. `i18n` 框架在执行语言初始化与语言切换时，自动同步至宿主文档：
+       ```javascript
+       document.title = i18n.t('meta.title');
+       const metaDesc = document.querySelector('meta[name="description"]');
+       if (metaDesc) metaDesc.setAttribute('content', i18n.t('meta.description'));
+       document.documentElement.lang = (lang === 'zh' ? 'zh-CN' : 'en');
+       ```
+    3. 使浏览器标签页、收藏夹名称、多任务切换卡片与当前语言严密贴合。
+
+---
+
+### 质询 12.4：西文字符不换行规范 (`white-space: nowrap`) 与容器横向撑爆的灾难防御 (White-Space Overflow Defense)
+- **深渊挖掘**：
+  - 核心困惑：“代码库检索发现，全站 15 个项目在按钮和标签 CSS 中极其普遍地使用了 `white-space: nowrap;`（如 `atomic-model/css/style.css:163`、`solar-cell/css/style.css:171`、`nuclear-fusion-3d/css/style.css:98`）。中文词汇极其精炼（2~4 字），`nowrap` 保证了文字绝不无故折行；但英文科技短语（如 "Capture Free Electron"、"Continuous Full-Spectrum Scan"、"Valence Band: Fully Occupied"）字符长度激增。若盲目强制 `nowrap` 且父容器缺少弹性包裹，会导致按钮文字冲出边界、相邻控制组件被挤到屏幕外、或者手机端出现丑陋的水平横向滚动条。”
+- **终审裁决**：
+  - **弹性流式换行与分层降级排版 (Adaptive Wrap & Layered Typography)**：
+    1. **控制栏弹性自适应**：
+       底栏与按钮组容器必须声明 `display: flex; flex-wrap: wrap; justify-content: center; gap: 8px;`，并设置最大安全边距 `max-width: min(94vw, 760px)`；
+    2. **复合型按钮上下分行结构**：
+       复合型按钮强制采用垂直分行排版（`<span class="btn-main">...</span><span class="btn-sub">...</span>`），主操作动词居上、补充提示词居下，横向尺寸大幅收敛；
+    3. **自适应字号防溢出**：
+       按钮文字采用弹性视口流式字号 `font-size: clamp(0.72rem, 1.2vw, 0.82rem)`，确保在手机横竖屏切换下均能优雅排布，绝不产生破版横向滚动条。
+
+---
+
+### 质询 12.5：复合控制项中 HTML 嵌套结构 (`<br>`, `<span>`, Tooltip `title`) 的原子化翻译契约 (Nested Markup & Atomic Translation)
+- **深渊挖掘**：
+  - 核心困惑：“在 `atomic-model` 的吸收/释放按钮中：
+    `<button id="btnAbsorb" title="光子飞入原子 → 被电子吸收 → 电子跳到高能级">☀️ 吸收光子<br><span class="dir-hint">光子 → 原子 (飞入)</span></button>`
+    这里一个简单的按钮同时包含了：主文本、换行符、子标签 `.dir-hint` 和 `title` 浮动气泡 4 层信息！如果简单地使用 `el.textContent = i18n.t(...)`，会把内部的 `<span class="dir-hint">` 冲毁抹杀；如果使用 `el.innerHTML = i18n.t(...)`，又必须在字典里写死 HTML 标签，极易引发 XSS 风险并污染翻译字典，怎么办？”
+- **终审裁决**：
+  - **声明式插槽与原子分治渲染 (Declarative Slot Architecture)**：
+    将复合按钮拆解为原子化声明插槽：
+    ```html
+    <button id="btnAbsorb" class="ctrl-btn absorb" data-i18n-title="atom.btn.absorb_tip">
+      <span data-i18n="atom.btn.absorb_main">☀️ 吸收光子</span><br>
+      <span class="dir-hint" data-i18n="atom.btn.absorb_hint">光子 → 原子 (飞入)</span>
+    </button>
+    ```
+    - 字典中仅维护纯文本字符串（Pure String），严禁夹杂任何 HTML 标记；
+    - 国际化框架统一扫描 `[data-i18n]` 与 `[data-i18n-title]`，定向替换具体叶子节点的 `textContent` 与父元素的 `title`，既百分之百保留原有的精美视觉层级，又杜绝了 innerHTML 的安全与破坏性风险。
+
+---
+
+### 质询 12.6：实时天体力学与航天遥测数据中的时间/状态语法本地化 (Orbital Telemetry & Time Pluralization)
+- **深渊挖掘**：
+  - 核心困惑：“在 `solar-system`（440 行：`+365 天`；455 行：`120 / 250 天`；458 行：`🚀 霍曼转移轨道巡航中...`）和 `gravity-slingshot`（飞行日志与飞掠事件）中：中文时间没有单复数之分（‘1 天’、‘365 天’）；英文存在严格单复数变化（‘1 day’ vs ‘365 days’）。如果不加以规范，英文版会出现诸如 `1 days` 这种不专业的语法错误。”
+- **终审裁决**：
+  - **国际化遥测格式化器 (Telemetry I18n Formatter)**：
+    1. 在 `i18n` 辅助工具库中提供轻量时间与度量单位复数格式化方法：
+       ```javascript
+       export function formatDays(days, lang) {
+         if (lang === 'zh') return `${days} 天`;
+         return `${days} ${days === 1 ? 'day' : 'days'}`;
+       }
+       ```
+    2. 航天任务状态机（巡航中、入轨成功、重力助推完成）统一解耦为状态枚举常量（如 `OrbitalState.CRUISING` / `OrbitalState.INSERTED`），文案展示严格从字典映射读取，状态指示灯色彩与文字彻底解耦。
+
+---
+
+### 质询 12.7：无障碍键盘焦点保持与屏幕阅读器实时区域通知 (Focus Preservation & ARIA Live Regions)
+- **深渊挖掘**：
+  - 核心困惑：“在少儿无障碍访问（a11y）中，如果使用键盘导航（Tab 键），在点击中英切换按钮或触发动态事件时：如果整个面板使用 `innerHTML` 重写，原本处于激活聚焦状态的按钮节点会被浏览器销毁，键盘焦点直接被重置丢失到 `<body>`，导致视障学生必须从头重新 Tab 几十次！此外，像‘点火成功！’、‘吸收光子’这种突发物理事件，视障用户若没有辅助设备的读屏通知，完全不知道屏幕上发生了什么。”
+- **终审裁决**：
+  - **原地属性更新防焦点漂移 (Focus-Preserving Mutation)**：
+    框架必须严格采用原地节点属性更新（In-place mutation），绝不暴力销毁和重建容器 DOM，确保切换语言后键盘焦点指针稳固停留在当前元素上；
+  - **部署无障碍实时播报通道 (`aria-live="polite"`)**：
+    在根布局中部署无障碍屏幕阅读器通知区：
+    ```html
+    <div id="a11yLiveAnnouncer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+    ```
+    当语种翻转或物理关键里程碑达成时，向该区域写入当前语言的简明通知（如“Language changed to English” / “已切换为中文”），实现真正国际一流的普惠无障碍科学探索体验。
+
+---
 *本规范为全站双语国际化改造的唯一法定技术蓝图与实施基准。*
 
