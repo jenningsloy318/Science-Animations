@@ -427,4 +427,161 @@ gantt
        - 在子项目中翻转语言，模拟点击 `#homeBtn` 返回主页，验证主页语言联动同步成功！
 
 ---
+
+## 十、 第二轮深度质询与微观系统架构定标 (Round 2 Grilling: Online Research & Code Analysis)
+
+在第二轮质询中，面对真实底层字体渲染管线、URL 语法规范、SVG 绝对坐标矢量图、无障碍 (a11y) 屏幕阅读器与长时间交互内存闭包等更隐蔽的微观陷阱，我们通过**在线前沿研究与全代码库分析**，彻底攻关了 7 项核心架构质询：
+
+### 质询 10.1：CSS Font Loading 竞态危机与 Canvas 2D 降级文字排版事故 (Font Loading Race Condition & Canvas Fallback Trap)
+- **深渊挖掘**：
+  - 核心困惑：“为什么有时候在冷启动或离线环境下，3D 场景里的漂浮标签（如 TextSprite）或 2D 能带图文字显得格外模糊粗糙、字体发虚，甚至文字宽度计算错误导致文字出界？”
+  - **物理真实与在线调研证明**：
+    - `CanvasRenderingContext2D` 与常规 HTML DOM 元素存在本质区别：**Canvas 绘制是静态光栅化，没有任何动态样式响应机制！**
+    - 如果页面引入了 Web 字体（如 Google Fonts `'Outfit'` 或特定字形），在字体网络请求或本地解析完成之前，Canvas 代码若抢先执行了 `ctx.font = 'bold 40px Outfit, sans-serif'` 并调用 `ctx.fillText()`，浏览器会**静默降级为系统通用默认字体**（如 Times New Roman 或系统备用字体）进行光栅化！
+    - **致命后果**：当稍后 `'Outfit'` 字体文件加载就绪时，DOM 元素会自动重排刷新，**但 Canvas 绝不会重新绘制**！所有已经绘制出的 TextSprite 纹理将永久卡死在丑陋的降级字体上；更严重的是，`ctx.measureText()` 是依据降级字体计算宽度的，导致随后按比例分配的 Sprite 空间尺寸产生严重几何形变！
+- **终审裁决**：
+  - **CSS Font Loading API 严格就绪握手（`document.fonts.ready` 契约）**：
+    在任何包含 Canvas 2D 纹理与 TextSprite 初始化的模块中，必须等待字体完全就绪：
+    ```javascript
+    // 确保字体完全就绪后再测量与绘制 Canvas 纹理
+    await document.fonts.ready;
+    ```
+  - **系统级无衬线抗混叠字体回退栈 (Robust System Fallback Stack)**：
+    所有 Canvas 绘图与 CSS 字体声明严禁孤立写单个网络字体，必须包含全平台等宽比系统回退栈：
+    `font = 'bold 40px "Outfit", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif'`；
+    在离线断网机房中，也能第一时间以最优系统无衬线字体对齐字距与基线。
+
+---
+
+### 质询 10.2：URL Hash 路由与 Query SearchParam 顺序颠倒导致语言参数吞没 (Hash Fragment vs SearchParam Ordering Bug)
+- **深渊挖掘**：
+  - 核心困惑：“在 `observatory-3d`（8大仪器标签）、`solar-cell`（5个章节）等带有内部锚点或多标签的项目中，如果用户或脚本将链接拼写为 `observatory-3d/#t2?lang=en`，为什么页面常常无法识别 `lang=en`，依然退回默认语言？”
+  - **物理真实与在线调研证明**：
+    - 根据 RFC 3986 统一资源标识符 (URI) 规范标准：**Query String (`?`) 必须严格位于 Fragment Identifier (`#`) 之前**，即标准格式必须为：`path?query#fragment`；
+    - 当写成 `path#t2?lang=en` 时，浏览器底层的 URL 解析器会将 `#` 之后的所有字符统一判定为哈希片段（Fragment Identifier）！
+    - 此时：
+      - `window.location.search` 严格返回空字符串 `""`！
+      - `window.location.hash` 返回 `"#t2?lang=en"`！
+    - 如果子项目仅调用 `new URLSearchParams(window.location.search).get('lang')`，将**彻底无法提取到任何语言参数**！
+- **终审裁决**：
+  - **双通道容错解析算法（Dual-Source URL Extraction）**：
+    全局 `ScienceI18n` 解析核心必须同时覆盖标准位置与 Hash 尾随位置：
+    ```javascript
+    function resolveLangFromUrl() {
+      // 1. 标准 SearchParam 解析 (?lang=en#t2)
+      let lang = new URLSearchParams(window.location.search).get('lang');
+      if (lang === 'zh' || lang === 'en') return lang;
+
+      // 2. 容错解析 Hash 尾随 SearchParam (#t2?lang=en)
+      if (window.location.hash.includes('?')) {
+        const hashQuery = window.location.hash.split('?')[1];
+        lang = new URLSearchParams(hashQuery).get('lang');
+        if (lang === 'zh' || lang === 'en') return lang;
+      }
+      return null;
+    }
+    ```
+  - **链接规范重构**：全站所有卡片和内部导航跳转，强制采用标准语法格式：`href="${base}?lang=${currentLang}#${hash}"`。
+
+---
+
+### 质询 10.3：无障碍 a11y 盲区：`aria-label`、`title` 与屏幕阅读器多语言发音灾难 (Accessibility & Screen Reader Multilingual Voice Switching)
+- **深渊挖掘**：
+  - 核心困惑：“为什么做国际化如果仅仅替换 HTML 内部的看见文本（Visible Text），而忽略了 `aria-label` 和 `title` 属性，会导致严重的可用性灾难？”
+  - **物理真实与在线调研证明**：
+    - 根据万维网无障碍联盟 W3C WCAG 2.2 成功准则 3.1.1（页面语言, Level A），视障儿童与无障碍辅助设备（如 Apple VoiceOver、Android TalkBack、Windows NVDA）完全依赖根节点 `document.documentElement.lang` 来动态挂载对应语种的发音合成引擎 (TTS)；
+    - 在项目中存在大量仅含 Emoji 或图标的工具按钮（例如 `nuclear-fusion-3d` 中的 `<button id="btnSound" aria-label="音效开关">🔊</button>`）；
+    - 如果页面切换到了英文，但 `aria-label` 残留中文“音效开关”，英文发音合成器将无法正确拼读，甚至发出乱码噪音；
+    - `aria-label`、`title` 和 `alt` 属于非文本渲染节点，主流浏览器的自动翻译插件对其**完全不具备自动转译能力**。
+- **终审裁决**：
+  - **声明式属性级双语契约（Declarative Attribute Localization Contract）**：
+    所有只含图标、需要无障碍标签的 DOM 元素，统一声明 `data-i18n-aria` 与 `data-i18n-title`：
+    ```html
+    <button id="btnSound" class="tool-btn" data-i18n-aria="tool.sound" data-i18n-title="tool.sound">🔊</button>
+    ```
+    在语言切换更新时，框架统一执行全局属性扫描并动态重置：
+    ```javascript
+    document.querySelectorAll('[data-i18n-aria]').forEach(el => {
+      el.setAttribute('aria-label', i18n.t(el.dataset.i18nAria));
+    });
+    document.querySelectorAll('[data-i18n-title]').forEach(el => {
+      el.title = i18n.t(el.dataset.i18nTitle);
+    });
+    ```
+
+---
+
+### 质询 10.4：矢量图 SVG 与 2D Canvas 复杂图表的跨语言硬编码坐标碰撞 (SVG Text Coordinates & Chart Overlaps)
+- **深渊挖掘**：
+  - 核心困惑：“常规 HTML 文本可以通过 CSS 自动流动折行，但在 `nuclear-fission-3d` 的骆驼双峰产额曲线（内联 SVG）以及 `solar-cell` 的能带图（2D Canvas）中，文字都是靠写死的坐标 `(x, y)` 画出来的。中文‘轻峰’只有 2 个字，英文‘Light Fission Peak’长达 18 个字符，会不会发生严重的坐标重叠与画面撕裂？”
+  - **物理真实与代码剖析**：
+    - 在 `nuclear-fission-3d/index.html` 第 38 行：
+      `<text x="80" y="32" fill="#7dd3fc" font-size="9" font-weight="bold">轻峰 A≈95</text>`；
+      若默认采用左对齐（`text-anchor="start"`），长英文字符串将向右单向无限延伸，直接盖死中间的 `<text x="135">对称谷</text>` 标签！
+    - 在 `solar-cell` 的 `bandCanvas` 中，若直接以固定像素坐标执行 `ctx.fillText('导带 Ec', x, y)`，英文“Conduction Band Ec”将直接冲出坐标轴右侧边界。
+- **终审裁决**：
+  - **SVG 居中锚定与百分比保护（`text-anchor: middle`）**：
+    所有科学图表中的 SVG `<text>` 必须强制声明 `text-anchor="middle"`，以几何中心点为轴对称扩展，使中英文无论长短均能以对称重心居中对齐；
+  - **Canvas 2D 动态度量与边界钳位（Dynamic Clamping）**：
+    绘制图表文字前，必须调用 `ctx.measureText(text)` 获得实际像素跨度，并执行动态边界钳位：
+    `const drawX = Math.max(minX, Math.min(targetX, maxX - textWidth));`；
+    确保图表在任何语言下都绝不发生文字压线或越界。
+
+---
+
+### 质询 10.5：跨语言数字格式化、千位分隔符与国际化标点规范 (Number & Punctuation Localization)
+- **深渊挖掘**：
+  - 核心困惑：“中文常写‘电压：0.745V’、‘1000W/m²’或全角括号‘（D-T 聚变）’。直接把英文单词塞进去（如 `Voltage：0.745V`），为什么在母语者眼里显得极其山寨不专业？”
+  - **科学排版美学与国际标准规范**：
+    - 中文标点（`：`、`，`、`。`、`（）`、`、`）具有完整的全角宽度（Full-width），英文环境中出现全角冒号或顿号会产生异常空白缺口；
+    - 英文标点要求：冒号、逗号后必须紧跟一个半角空格（如 `Voltage: 0.745 V`），数值与物理单位之间必须留有标准半角空格（`1000 W/m²` 而非 `1000W/m²`）；
+    - 超过四位的科学计数（如 AM0 常数 $1367\text{ W/m}^2$、光速 $299,792\text{ km/s}$），英美标准需使用逗号 `,` 作为千位分隔符。
+- **终审裁决**：
+  - **标点与数值排版标准**：
+    - 双语字典严格物理隔离标点符号：中文条目使用正规全角标点，英文条目严格使用半角标点配标准空格；
+    - 科学数值展示严格遵守 SI 国际单位制间距规范；
+    - 提供 `formatScienceNumber(num, lang)` 辅助方法，自动对大数与带单位数值执行本地化规范化输出。
+
+---
+
+### 质询 10.6：跨章多场景切换与长期驻留下的语言订阅者内存泄漏 (Event Listener & Subscriber Cleanup)
+- **深渊挖掘**：
+  - 核心困惑：“在 `solar-cell`（5个章节）、`observatory-3d`（8大仪器）、`how-cars-work`（9步点火故事）等大型复杂工程中，用户在学习时会反复在不同章节和视点间跳转。如果每个章节进入时都向 `i18n` 注册一个监听回调用来刷新该章节的 3D 空间标签，来回切换 20 次后，会不会产生 20 个常驻内存的废弃监听器？旧章节的三维网格会不会因为被闭包抓牢而无法释放？”
+  - **物理真实**：JavaScript 闭包引用的作用域链不会被垃圾回收器切断。如果被观察者（`ScienceI18n` 全局单例）持有了已离开章节的回调函数，该回调函数所闭包引用的 Three.js Scene、Mesh、BufferGeometry、Material 将**全部被迫常驻内存**，造成极其严重的“游离 DOM / Detached Three.js Object 显存雪崩”！
+- **终审裁决**：
+  - **订阅者生命周期安全解绑契约（Disposable Subscription Lifecycle）**：
+    `ScienceI18n` 的事件订阅接口必须强制返回唯一的注销函数（Unsubscribe）：
+    ```javascript
+    // 章节进入时订阅
+    export function enter(env) {
+      unsubI18n = i18n.subscribe((lang) => {
+        refreshChapterLabels(lang);
+      });
+    }
+
+    // 章节离开时必须无条件调用注销
+    export function leave() {
+      if (typeof unsubI18n === 'function') {
+        unsubI18n();
+        unsubI18n = null;
+      }
+      disposeChapterThreeObjects();
+    }
+    ```
+    从根本上切断闭包常驻链条，确保多章节反复切换下 CPU/GPU 内存平直如削。
+
+---
+
+### 质询 10.7：自动化端到端测试覆盖：双语字典热重载与全属性差异验证 (Bi-directional Comprehensive E2E Test Suite)
+- **深渊挖掘**：
+  - 核心困惑：“全站包含 15 个子项目，每个项目有上百个文本节点。仅靠手工点击怎么能确保 100% 毫无漏网之鱼？”
+- **终审裁决**：
+  - **建立金牌全自动化三维质量防护矩阵**：
+    在 `tests/i18n.test.mjs` 中固化执行：
+    1. **静态键集完备性检查**：自动化脚本提取全站所有字典对象，断言每个 `key` 必须严格具有 `zh` 与 `en` 属性，长度均大于 0，杜绝任何未定义回退；
+    2. **HTML 模板占位符断言**：加载渲染页面后，正则扫描页面 innerHTML，断言绝不包含 `undefined`、`null`、`[object Object]` 或未解析的双花括号 `{{...}}`；
+    3. **双语状态 CDP 自动化测试**：通过 Headless Chrome CDP 驱动无头浏览器在 `zh` 与 `en` 下分别截图并比对元素边界，确保无文本折叠冲撞、无横向滚动条溢出。
+
+---
 *本规范为全站双语国际化改造的唯一法定技术蓝图与实施基准。*
+
