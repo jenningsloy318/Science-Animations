@@ -123,37 +123,73 @@
 
   <!-- ③ 光反应 + 拼糖 -->
   <div class="viewpanel" data-panel="light">
-    <h2>一台完整的机器<small>充电 + 拼糖，同屏看</small></h2>
-    <div class="formula">光子(能量) → 电子(e⁻) → H⁺ 梯度 → ATP + NADPH</div>
+    <h2>一台完整的机器<small>充电 + 拼糖 · 同屏看</small></h2>
+    
+    <div style="display:flex;gap:8px;margin:8px 0 6px">
+      <button class="btn on" id="mLightLive" style="flex:1;text-align:center">⚡ 连续运转</button>
+      <button class="btn" id="mLightTour" style="flex:1;text-align:center">🎬 讲透四步曲</button>
+    </div>
+    <div id="tourStepList" style="display:none;gap:4px;margin-bottom:8px">
+      <button class="btn cur" data-tour="1" style="flex:1;padding:4px 2px;font-size:11px">① 全景叶绿体</button>
+      <button class="btn" data-tour="2" style="flex:1;padding:4px 2px;font-size:11px">② 膜上发电</button>
+      <button class="btn" data-tour="3" style="flex:1;padding:4px 2px;font-size:11px">③ 能量专线</button>
+      <button class="btn" data-tour="4" style="flex:1;padding:4px 2px;font-size:11px">④ 基质拼糖</button>
+    </div>
+
+    <div class="formula">光能 → 电子电梯 → H⁺ 大坝水压 → ATP + NADPH 电池 → 拼装出糖</div>
+
     <div class="legend">
-      <span><i class="dot" style="background:#ffd54a"></i>光子·能量</span>
-      <span><i class="dot" style="background:#7dd3fc"></i>电子 e⁻</span>
-      <span><i class="dot" style="background:#ff6b9d"></i>H⁺ 质子</span>
-      <span><i class="dot" style="background:#f4f7fa"></i>O₂</span>
-      <span><i class="dot" style="background:#ffa94d"></i>ATP</span>
-      <span><i class="dot" style="background:#b197fc"></i>NADPH</span>
+      <span><i class="dot" style="background:#ffd54a"></i>光子</span>
+      <span><i class="dot" style="background:#38bdf8"></i>e⁻ 电子</span>
+      <span><i class="dot" style="background:#f43f5e"></i>H⁺ 质子</span>
+      <span><i class="dot" style="background:#f8fafc"></i>O₂ 氧气</span>
+      <span><i class="dot" style="background:#f59e0b"></i>🔋ATP满电</span>
+      <span><i class="dot" style="background:#78716c"></i>🪫ADP待充</span>
+      <span><i class="dot" style="background:#a855f7"></i>⚡NADPH满载</span>
+      <span><i class="dot" style="background:#6b7280"></i>📦NADP⁺待装</span>
+      <span><i class="dot" style="background:#1e293b;border:1px solid #ef4444"></i>1碳 CO₂</span>
+      <span><i class="dot" style="background:#22c55e"></i>3碳糖 G3P</span>
     </div>
+
     <div class="steps" id="stepList">
-      <div data-step="1">① 光子把<b>能量</b>交给 PSII / PSI</div>
-      <div data-step="2">② PSII 放出<b>e⁻ 电子</b>（水补位，顺带放 O₂）</div>
-      <div data-step="3">③ e⁻ 路过 b6f：泵 <b>H⁺</b> 入腔（H⁺ 池充电）</div>
-      <div data-step="4">④ H⁺ 池流出 → 转出 <b>ATP</b></div>
-      <div data-step="5">⑤ 到 PSI 时 e⁻ 没劲了：<b>第二个光子</b>再充能</div>
-      <div data-step="6">⑥ FNR 把 e⁻+H⁺ 装袋 → <b>NADPH</b></div>
+      <div data-step="1">① 光子打入 PSII：电子乘<b>阳光电梯 1</b> 跃迁（水被拆开放出 O₂ 与 H⁺）</div>
+      <div data-step="3">② 电子滑过 b6f：做功像<b>抽水泵把 H⁺ 压入腔内大坝</b></div>
+      <div data-step="5">③ 电子到 PSI 没劲了：第二个光子启动<b>阳光电梯 2</b> 再次激发</div>
+      <div data-step="6">④ FNR 酶把高能电子和 H⁺ 封装入 NADP⁺ → <b>NADPH 满载电池</b></div>
+      <div data-step="4">⑤ 腔内高压 H⁺ 喷涌推动水轮机 → 旋转压出 <b>ATP 满电电池</b></div>
     </div>
-    <p><b>上半</b>：光子打进膜上的两个光系统，电子流动把 H⁺ 泵进腔——H⁺ 涌出时转子转出 <b>ATP</b>，FNR 拼出 <b>NADPH</b>；水被拆开，<b>O₂</b> 由此放出。</p>
-    <p><b>下半</b>：满电池（黄/紫）会<b>掉进右下的拼糖环</b>，每轮花 3 ATP + 2 NADPH 抓住一个 CO₂ 拼糖；用完的<b>空电池</b>再飞回膜上充电——循环不停。</p>
+
     <div class="stat"><span>😮‍💨 O₂ 放出</span><b id="hO2" style="color:#fff">0</b></div>
-    <div class="stat"><span>🔋 电池库存（ATP / NADPH）</span><b><span id="hBatAtp" style="color:var(--orange)">0</span> / <span id="hBatNadph" style="color:var(--violet)">0</span></b></div>
+    <div class="stat"><span>🔋 满格电池（ATP / NADPH）</span><b><span id="hBatAtp" style="color:var(--orange)">0</span> / <span id="hBatNadph" style="color:var(--violet)">0</span></b></div>
     <div class="stat"><span>🍬 拼糖圈数</span><b id="hTurns" style="color:var(--cyan)">0</b></div>
-    <div class="stat"><span>✅ 净得糖块</span><b id="hG3p" style="color:var(--green)">0</b></div>
-    <div class="stat"><span>放氧复合体</span><b id="hKok" style="color:var(--cyan)">S1</b></div>
-    <p style="font-size:11.5px">看细节：库存不够时拼糖会<b>停下来等电池</b>——就像手机没电充不了电。点击膜上部件可看说明。</p>
-    <div class="facts">
-      <div class="fact gold"><b>量子需求</b> — 放 1 个 O₂ 理论最少 8 个光子，实测 8–10 个。</div>
-      <div class="fact"><b>水是电子来源</b> — O₂ 里的氧来自水，不是 CO₂（¹⁸O 同位素证实，1941）。</div>
-      <div class="fact green"><b>为什么要充两次电？</b> 一次阳光的能量不够用——电子要在两个“充电站”（光系统 II 和 I）各充一次，先充的电先用掉，这就是“Z 形”方案的由来。</div>
-      <div class="fact"><b>FNR 是谁</b> — 铁氧还蛋白-NADP⁺ 还原酶：装电池的酶，把电子和 H⁺ 装进 NADP⁺ 变成 NADPH。</div>
+    <div class="stat"><span>🧱 净得糖块（G3P）</span><b id="hG3p" style="color:var(--green)">0</b></div>
+    <div class="stat"><span>放氧复合体（Kok 态）</span><b id="hKok" style="color:var(--cyan)">S1</b></div>
+
+    <!-- 独立与联系 · 遮光探索实验 -->
+    <div id="expCoupling" style="margin-top:10px;padding:9px 12px;background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.3);border-radius:10px">
+      <div style="font-weight:bold;color:var(--cyan);display:flex;justify-content:space-between;align-items:center">
+        <span>🔬 独立与联系 · 遮光小实验</span>
+        <button class="btn" id="bCutLight" style="padding:2px 9px;font-size:11px;background:rgba(244,63,94,0.15);border-color:rgba(244,63,94,0.4);color:#fda4af">🌑 关掉太阳</button>
+      </div>
+      <div id="expCouplingMsg" style="font-size:11.5px;color:var(--txt);margin-top:5px;line-height:1.45">
+        点“关掉太阳”观察：光反应立刻断电，但拼糖车间如何利用【存量电池】独立继续运转！
+      </div>
+    </div>
+
+    <!-- 部件交互科普卡片 -->
+    <div id="lightInspector" style="margin-top:10px;padding:9px 12px;background:rgba(255,255,255,0.05);border-radius:10px;border:1px solid var(--line)">
+      <div style="font-weight:bold;color:var(--gold);display:flex;justify-content:space-between">
+        <span id="inspTitle">💡 点击 3D 部件看大白话档案</span>
+        <span id="inspTag" style="font-size:11px;color:var(--mut)">可随时点击</span>
+      </div>
+      <div id="inspMetaphor" style="font-size:12px;color:var(--green);margin:4px 0;font-weight:600"></div>
+      <div id="inspDesc" style="font-size:11.5px;color:var(--txt);line-height:1.5">拖动旋转场景，点击膜上的蛋白质、旋转的水轮机或拼糖车间，揭秘微观机器的精妙分工！</div>
+    </div>
+
+    <div class="facts" style="margin-top:10px">
+      <div class="fact green"><b>为什么叫“拼糖”？</b> 空气中的 CO₂ 只有 1 个碳，是散落的积木。植物用 5 碳抓手（RuBP）把它们抓牢，并消耗光反应做好的化学电池（ATP 与 NADPH）注入高能量，拼合成真正的食物——糖（G3P）。</div>
+      <div class="fact gold"><b>为什么要充两次电？</b> 阳光单个光子的能量不足以一口气把电子从水直接顶上 NADPH。大自然巧妙设计了两个“阳光充电站”（PSII 和 PSI），接力把电子能量推上巅峰！</div>
+      <div class="fact"><b>暗反应真的不需要光吗？</b> 暗反应本身不需要光子直接轰击，但它极其依赖光反应送来的新鲜 ATP 和 NADPH 电池；如果长时间没光，电池耗尽，拼糖车间立刻停摆！</div>
     </div>
   </div>
 
@@ -187,7 +223,9 @@
       <button class="btn" id="bLeafHome">⟲ 回到全景</button>
     </div>
     <div class="viewbar" data-bar="light">
+      <button class="btn" id="bLightTour">🎬 讲透四步曲</button>
       <button class="btn" id="bLightPause">⏸ 暂停</button>
+      <button class="btn" id="bLightHome">⟲ 回到全景</button>
       <button class="btn on" id="bLabels">🏷 标签</button>
       <div class="ctl"><label>光强</label><input type="range" id="rLight" min="0.3" max="2.5" step="0.1" value="1"><output id="oLight">1.0×</output></div>
       <div class="ctl"><label>速度</label><input type="range" id="rSpeed" min="0.4" max="2.5" step="0.1" value="1"><output id="oSpeed">1.0×</output></div>
@@ -18605,6 +18643,32 @@
       }
     }
   };
+  var _start = /* @__PURE__ */ new Vector3();
+  var _end = /* @__PURE__ */ new Vector3();
+  var LineSegments = class extends Line {
+    constructor(geometry, material) {
+      super(geometry, material);
+      this.isLineSegments = true;
+      this.type = "LineSegments";
+    }
+    computeLineDistances() {
+      const geometry = this.geometry;
+      if (geometry.index === null) {
+        const positionAttribute = geometry.attributes.position;
+        const lineDistances = [];
+        for (let i = 0, l = positionAttribute.count; i < l; i += 2) {
+          _start.fromBufferAttribute(positionAttribute, i);
+          _end.fromBufferAttribute(positionAttribute, i + 1);
+          lineDistances[i] = i === 0 ? 0 : lineDistances[i - 1];
+          lineDistances[i + 1] = lineDistances[i] + _start.distanceTo(_end);
+        }
+        geometry.setAttribute("lineDistance", new Float32BufferAttribute(lineDistances, 1));
+      } else {
+        console.warn("THREE.LineSegments.computeLineDistances(): Computation only possible with non-indexed BufferGeometry.");
+      }
+      return this;
+    }
+  };
   var CanvasTexture = class extends Texture {
     constructor(canvas2, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy) {
       super(canvas2, mapping, wrapS, wrapT, magFilter, minFilter, format, type, anisotropy);
@@ -20048,6 +20112,283 @@
     }
     static fromJSON(data) {
       return new _PolyhedronGeometry(data.vertices, data.indices, data.radius, data.details);
+    }
+  };
+  var DodecahedronGeometry = class _DodecahedronGeometry extends PolyhedronGeometry {
+    constructor(radius = 1, detail = 0) {
+      const t = (1 + Math.sqrt(5)) / 2;
+      const r = 1 / t;
+      const vertices = [
+        // (±1, ±1, ±1)
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        1,
+        -1,
+        1,
+        -1,
+        -1,
+        1,
+        1,
+        1,
+        -1,
+        -1,
+        1,
+        -1,
+        1,
+        1,
+        1,
+        -1,
+        1,
+        1,
+        1,
+        // (0, ±1/φ, ±φ)
+        0,
+        -r,
+        -t,
+        0,
+        -r,
+        t,
+        0,
+        r,
+        -t,
+        0,
+        r,
+        t,
+        // (±1/φ, ±φ, 0)
+        -r,
+        -t,
+        0,
+        -r,
+        t,
+        0,
+        r,
+        -t,
+        0,
+        r,
+        t,
+        0,
+        // (±φ, 0, ±1/φ)
+        -t,
+        0,
+        -r,
+        t,
+        0,
+        -r,
+        -t,
+        0,
+        r,
+        t,
+        0,
+        r
+      ];
+      const indices = [
+        3,
+        11,
+        7,
+        3,
+        7,
+        15,
+        3,
+        15,
+        13,
+        7,
+        19,
+        17,
+        7,
+        17,
+        6,
+        7,
+        6,
+        15,
+        17,
+        4,
+        8,
+        17,
+        8,
+        10,
+        17,
+        10,
+        6,
+        8,
+        0,
+        16,
+        8,
+        16,
+        2,
+        8,
+        2,
+        10,
+        0,
+        12,
+        1,
+        0,
+        1,
+        18,
+        0,
+        18,
+        16,
+        6,
+        10,
+        2,
+        6,
+        2,
+        13,
+        6,
+        13,
+        15,
+        2,
+        16,
+        18,
+        2,
+        18,
+        3,
+        2,
+        3,
+        13,
+        18,
+        1,
+        9,
+        18,
+        9,
+        11,
+        18,
+        11,
+        3,
+        4,
+        14,
+        12,
+        4,
+        12,
+        0,
+        4,
+        0,
+        8,
+        11,
+        9,
+        5,
+        11,
+        5,
+        19,
+        11,
+        19,
+        7,
+        19,
+        5,
+        14,
+        19,
+        14,
+        4,
+        19,
+        4,
+        17,
+        1,
+        12,
+        14,
+        1,
+        14,
+        5,
+        1,
+        5,
+        9
+      ];
+      super(vertices, indices, radius, detail);
+      this.type = "DodecahedronGeometry";
+      this.parameters = {
+        radius,
+        detail
+      };
+    }
+    static fromJSON(data) {
+      return new _DodecahedronGeometry(data.radius, data.detail);
+    }
+  };
+  var _v0 = /* @__PURE__ */ new Vector3();
+  var _v1$1 = /* @__PURE__ */ new Vector3();
+  var _normal = /* @__PURE__ */ new Vector3();
+  var _triangle = /* @__PURE__ */ new Triangle();
+  var EdgesGeometry = class extends BufferGeometry {
+    constructor(geometry = null, thresholdAngle = 1) {
+      super();
+      this.type = "EdgesGeometry";
+      this.parameters = {
+        geometry,
+        thresholdAngle
+      };
+      if (geometry !== null) {
+        const precisionPoints = 4;
+        const precision = Math.pow(10, precisionPoints);
+        const thresholdDot = Math.cos(DEG2RAD * thresholdAngle);
+        const indexAttr = geometry.getIndex();
+        const positionAttr = geometry.getAttribute("position");
+        const indexCount = indexAttr ? indexAttr.count : positionAttr.count;
+        const indexArr = [0, 0, 0];
+        const vertKeys = ["a", "b", "c"];
+        const hashes = new Array(3);
+        const edgeData = {};
+        const vertices = [];
+        for (let i = 0; i < indexCount; i += 3) {
+          if (indexAttr) {
+            indexArr[0] = indexAttr.getX(i);
+            indexArr[1] = indexAttr.getX(i + 1);
+            indexArr[2] = indexAttr.getX(i + 2);
+          } else {
+            indexArr[0] = i;
+            indexArr[1] = i + 1;
+            indexArr[2] = i + 2;
+          }
+          const { a, b, c } = _triangle;
+          a.fromBufferAttribute(positionAttr, indexArr[0]);
+          b.fromBufferAttribute(positionAttr, indexArr[1]);
+          c.fromBufferAttribute(positionAttr, indexArr[2]);
+          _triangle.getNormal(_normal);
+          hashes[0] = `${Math.round(a.x * precision)},${Math.round(a.y * precision)},${Math.round(a.z * precision)}`;
+          hashes[1] = `${Math.round(b.x * precision)},${Math.round(b.y * precision)},${Math.round(b.z * precision)}`;
+          hashes[2] = `${Math.round(c.x * precision)},${Math.round(c.y * precision)},${Math.round(c.z * precision)}`;
+          if (hashes[0] === hashes[1] || hashes[1] === hashes[2] || hashes[2] === hashes[0]) {
+            continue;
+          }
+          for (let j = 0; j < 3; j++) {
+            const jNext = (j + 1) % 3;
+            const vecHash0 = hashes[j];
+            const vecHash1 = hashes[jNext];
+            const v0 = _triangle[vertKeys[j]];
+            const v1 = _triangle[vertKeys[jNext]];
+            const hash = `${vecHash0}_${vecHash1}`;
+            const reverseHash = `${vecHash1}_${vecHash0}`;
+            if (reverseHash in edgeData && edgeData[reverseHash]) {
+              if (_normal.dot(edgeData[reverseHash].normal) <= thresholdDot) {
+                vertices.push(v0.x, v0.y, v0.z);
+                vertices.push(v1.x, v1.y, v1.z);
+              }
+              edgeData[reverseHash] = null;
+            } else if (!(hash in edgeData)) {
+              edgeData[hash] = {
+                index0: indexArr[j],
+                index1: indexArr[jNext],
+                normal: _normal.clone()
+              };
+            }
+          }
+        }
+        for (const key in edgeData) {
+          if (edgeData[key]) {
+            const { index0, index1 } = edgeData[key];
+            _v0.fromBufferAttribute(positionAttr, index0);
+            _v1$1.fromBufferAttribute(positionAttr, index1);
+            vertices.push(_v0.x, _v0.y, _v0.z);
+            vertices.push(_v1$1.x, _v1$1.y, _v1$1.z);
+          }
+        }
+        this.setAttribute("position", new Float32BufferAttribute(vertices, 3));
+      }
+    }
+    copy(source) {
+      super.copy(source);
+      this.parameters = Object.assign({}, source.parameters);
+      return this;
     }
   };
   var Shape = class extends Path {
@@ -23336,8 +23677,9 @@
     g2.font = `bold ${size}px "PingFang SC", sans-serif`;
     g2.textAlign = "center";
     g2.textBaseline = "middle";
-    g2.strokeStyle = "rgba(6,11,18,0.9)";
-    g2.lineWidth = 10;
+    g2.lineJoin = "round";
+    g2.strokeStyle = "rgba(6,11,18,0.92)";
+    g2.lineWidth = 6;
     g2.strokeText(text, c.width / 2, c.height / 2);
     g2.fillStyle = color;
     g2.fillText(text, c.width / 2, c.height / 2);
@@ -23549,14 +23891,14 @@
         new OctahedronGeometry(0.42),
         new MeshStandardMaterial({ color: C.sugar, roughness: 0.3, emissive: "#4a5a10", emissiveIntensity: 0.5 })
       );
-      const i = sugarPile.children.length;
+      const i = sugars.length;
       m.position.set((i % 4 - 1.5) * 1.15 + (Math.random() - 0.5) * 0.2, Math.floor(i / 4) * 1.05, 0.9);
-      scene.add(m);
+      sugarPile.add(m);
       sugars.push(m);
       state.counts.sugar++;
       if (sugars.length > 8) {
         const old = sugars.shift();
-        scene.remove(old);
+        sugarPile.remove(old);
         sugarPile.children.slice().forEach((c) => {
           if (c !== old && !sugars.includes(c)) sugarPile.remove(c);
         });
@@ -23984,695 +24326,1223 @@
   // js/light.js
   var C2 = {
     photon: 16766282,
-    electron: 8246268,
-    hplus: 16739229,
-    o2: 16054266,
-    atp: 16755021,
-    nadph: 11638780,
-    water: 6928383,
-    membrane: 13083738,
-    psii: 4173418,
-    psi: 3116891,
-    b6f: 9268835,
-    fnr: 7166928,
-    co2: 11187394,
-    adp: 13208133,
-    nadpp: 9403088,
-    g3p: 4906624
+    electron: 3718648,
+    hplus: 16007006,
+    o2: 16317180,
+    atp: 16096779,
+    nadph: 11032055,
+    water: 3718648,
+    membrane: 13935475,
+    psii: 1096065,
+    psi: 366185,
+    b6f: 11817737,
+    fnr: 8141549,
+    adp: 7893356,
+    nadpp: 7041664,
+    carbon: 1976635,
+    oxygen: 15680580,
+    phosphate: 16347926,
+    g3p: 2278750,
+    sugar: 15381256,
+    rubp: 440020,
+    rubisco: 1409085
   };
-  var RING_C = new Vector3(12, -7.2, 0);
-  var RING_R = 2.7;
-  var A_FIX = Math.PI / 2;
-  var A_RED = Math.PI / 2 - 2 * Math.PI / 3;
-  var A_REG = Math.PI / 2 + 2 * Math.PI / 3;
+  var MEMBRANE_X_MIN = -16.5;
+  var MEMBRANE_X_MAX = 1.8;
+  var HIGHWAY_START = new Vector3(1.5, 3, 0);
+  var HIGHWAY_END = new Vector3(9.2, 3, 0);
+  var RETURN_START = new Vector3(9.2, -1.8, 0);
+  var RETURN_END = new Vector3(1, -1.8, 0);
+  var RING_C = new Vector3(12.2, 0.8, 0);
+  var RING_R = 2.6;
+  var ANG_FIX = Math.PI / 2;
+  var ANG_RED = Math.PI / 2 - 2 * Math.PI / 3;
+  var ANG_REG = Math.PI / 2 + 2 * Math.PI / 3;
   function buildLight() {
     const scene = new Scene();
-    scene.background = new Color("#060b12");
+    scene.background = new Color("#060b13");
     const camera = new PerspectiveCamera(46, innerWidth / innerHeight, 0.1, 300);
-    camera.position.set(7, 4, 44);
-    scene.add(new AmbientLight("#42506a", 1));
-    const key = new DirectionalLight("#fff2d8", 1.4);
-    key.position.set(6, 14, 16);
-    scene.add(key);
+    const HOME_CAM = new Vector3(0.5, 0.6, 38);
+    const HOME_TAR = new Vector3(0.5, 0.2, 0);
+    camera.position.copy(HOME_CAM);
+    scene.add(new AmbientLight("#4b5563", 1.2));
+    const sunLight = new DirectionalLight("#fff7ed", 1.8);
+    sunLight.position.set(-6, 20, 18);
+    scene.add(sunLight);
+    const fillLight = new PointLight("#38bdf8", 0.8, 40);
+    fillLight.position.set(-6, -2, 8);
+    scene.add(fillLight);
     const controls = new OrbitControls(camera, document.getElementById("gl"));
     controls.enableDamping = true;
     controls.dampingFactor = 0.08;
-    controls.target.set(6, 1, 0);
-    const lumenBg = new Mesh(
-      new PlaneGeometry(46, 3.6),
-      new MeshBasicMaterial({ color: "#0d1f38", transparent: true, opacity: 0.9 })
-    );
-    lumenBg.position.set(-4, -1.7, -1.5);
-    scene.add(lumenBg);
-    const lumenFrame = new Mesh(
-      new BoxGeometry(46, 3.6, 0.04),
-      new MeshBasicMaterial({ color: "#1d3a5f", transparent: true, opacity: 0.7 })
-    );
-    lumenFrame.position.set(-4, -1.7, -1.4);
-    scene.add(lumenFrame);
+    controls.target.copy(HOME_TAR);
+    controls.minDistance = 12;
+    controls.maxDistance = 50;
     const labels = [];
     const leaderLines = [];
-    function partLabel(text, color, x, y, k = 1) {
+    const clickables = [];
+    function addLabel(text, color, x, y, k = 1) {
       const l = makeLabel(text, color);
-      l.scale.multiplyScalar(k);
-      l.position.set(x, y, 0);
+      l.scale.multiplyScalar(k * 0.95);
+      l.userData.baseScale = l.scale.clone();
+      l.position.set(x, y, 0.2);
       scene.add(l);
       labels.push(l);
       return l;
     }
-    function componentLabel(text, color, lx, ly, tx, ty) {
-      const l = partLabel(text, color, lx, ly, 1.35);
+    function addComponentLabel(text, color, lx, ly, tx, ty, k = 0.85) {
+      const l = addLabel(text, color, lx, ly, k);
       const line = new Line(
-        new BufferGeometry().setFromPoints([new Vector3(lx, ly - 1.05, 0), new Vector3(tx, ty, 0)]),
-        new LineBasicMaterial({ color: 16760952, transparent: true, opacity: 0.6 })
+        new BufferGeometry().setFromPoints([new Vector3(lx, ly - 0.5, 0.1), new Vector3(tx, ty, 0.1)]),
+        new LineBasicMaterial({ color: 9741240, transparent: true, opacity: 0.45 })
       );
       scene.add(line);
       leaderLines.push(line);
       return l;
     }
-    const lumenLabel = partLabel("\u7C7B\u56CA\u4F53\u8154 = H\u207A \u6C60\uFF08\u8D8A\u6EE1\u7535\u8D8A\u8DB3\uFF09", "#7db4d8", -13.5, -3.6);
-    const flowLine = new Mesh(
-      new BoxGeometry(4.2, 0.06, 0.04),
-      new MeshBasicMaterial({ color: 16739229, transparent: true, opacity: 0.65 })
+    const chloroplastBackdrop = new Mesh(
+      new PlaneGeometry(54, 28),
+      new MeshBasicMaterial({
+        color: 268560,
+        transparent: true,
+        opacity: 0.18,
+        depthWrite: false
+      })
     );
-    flowLine.position.set(2.4, -1.35, 0.3);
-    scene.add(flowLine);
-    const flowArrow = new Mesh(
-      new ConeGeometry(0.14, 0.36, 8),
-      new MeshBasicMaterial({ color: 16739229 })
+    chloroplastBackdrop.position.set(0.5, 0.8, -2.8);
+    scene.add(chloroplastBackdrop);
+    const envelopeShape = new Shape();
+    const ew = 25.5, eh = 11.5, er = 5;
+    envelopeShape.moveTo(-ew + er, -eh);
+    envelopeShape.lineTo(ew - er, -eh);
+    envelopeShape.quadraticCurveTo(ew, -eh, ew, -eh + er);
+    envelopeShape.lineTo(ew, eh - er);
+    envelopeShape.quadraticCurveTo(ew, eh, ew - er, eh);
+    envelopeShape.lineTo(-ew + er, eh);
+    envelopeShape.quadraticCurveTo(-ew, eh, -ew, eh - er);
+    envelopeShape.lineTo(-ew, -eh + er);
+    envelopeShape.quadraticCurveTo(-ew, -eh, -ew + er, -eh);
+    const envelopeLine = new Line(
+      new BufferGeometry().setFromPoints(envelopeShape.getPoints(80)),
+      new LineBasicMaterial({ color: 1096065, transparent: true, opacity: 0.25 })
     );
-    flowArrow.rotation.z = -Math.PI / 2;
-    flowArrow.position.set(4.35, -1.35, 0.3);
-    scene.add(flowArrow);
-    const flowLabel = partLabel("H\u207A \u6D41 \u2192 \u63A8\u8F6C\u5B50", "#ff9ec4", 2.2, -2.6, 0.75);
+    envelopeLine.position.set(0.5, 0.8, -2.6);
+    scene.add(envelopeLine);
+    addLabel("\u{1F343} \u53F6\u7EFF\u4F53\u5185\u90E8\u5FAE\u5B87\u5B99 (Chloroplast Matrix \xB7 \u7EDF\u4E00\u751F\u547D\u673A\u5668)", "#10b981", 0.5, 11.2, 1.15);
+    const stromaDust = [];
+    for (let i = 0; i < 40; i++) {
+      const dot = makeGlowDot(0.08 + Math.random() * 0.08, 1096065);
+      dot.position.set(
+        -18 + Math.random() * 37,
+        -7 + Math.random() * 16,
+        (Math.random() - 0.5) * 1.5 - 0.5
+      );
+      dot.userData = {
+        baseY: dot.position.y,
+        seed: Math.random() * 10,
+        speed: 0.2 + Math.random() * 0.35
+      };
+      scene.add(dot);
+      stromaDust.push(dot);
+    }
+    const lumenWidth = MEMBRANE_X_MAX - MEMBRANE_X_MIN + 1.2;
+    const lumenCenterX = (MEMBRANE_X_MIN + MEMBRANE_X_MAX) / 2;
+    const lightZoneBackdrop = new Mesh(
+      new PlaneGeometry(lumenWidth + 1.4, 11.8),
+      new MeshBasicMaterial({ color: 165063, transparent: true, opacity: 0.05, depthWrite: false })
+    );
+    lightZoneBackdrop.position.set(lumenCenterX, 0.8, -1.8);
+    scene.add(lightZoneBackdrop);
+    addLabel("\u{1F3ED} \u8FC7\u7A0B \u2460 \xB7 \u5149\u53CD\u5E94\u53D1\u7535\u5DE5\u573A (\u7C7B\u56CA\u4F53\u819C\u7CFB\u7EDF)", "#38bdf8", lumenCenterX, 6.1, 1.05);
+    addLabel("\u6C34\u88C2\u53D1\u653E\u6C27 \xB7 \u8D28\u5B50\u6C34\u5E93\u5927\u575D \xB7 \u7EB3\u7C73\u6C34\u8F6E\u673A\u538B\u5236\u6EE1\u7535\u7535\u6C60", "#94a3b8", lumenCenterX, 5.5, 0.75);
+    const lumenBox = new Mesh(
+      new BoxGeometry(lumenWidth, 3.4, 2.2),
+      new MeshStandardMaterial({
+        color: 994120,
+        roughness: 0.3,
+        transparent: true,
+        opacity: 0.65,
+        emissive: 466483,
+        emissiveIntensity: 0.4
+      })
+    );
+    lumenBox.position.set(lumenCenterX, -2.1, -0.2);
+    scene.add(lumenBox);
+    const edges = new EdgesGeometry(new BoxGeometry(lumenWidth, 3.4, 2.2));
+    const lineBox = new LineSegments(edges, new LineBasicMaterial({ color: 3718648, transparent: true, opacity: 0.35 }));
+    lineBox.position.copy(lumenBox.position);
+    scene.add(lineBox);
+    addLabel("\u7C7B\u56CA\u4F53\u8154 \xB7 \u8D28\u5B50\u6C34\u5E93 (\u9AD8\u538B\u84C4\u6C34\u5927\u575D \xB7 \u5145\u76C8 H\u207A)", "#7dd3fc", lumenCenterX, -4.3, 0.88);
+    const flowTrack = new Mesh(
+      new BoxGeometry(5, 0.08, 0.08),
+      new MeshBasicMaterial({ color: 16007006, transparent: true, opacity: 0.6 })
+    );
+    flowTrack.position.set(-1.2, -1.8, 0.4);
+    scene.add(flowTrack);
+    const flowHead = new Mesh(new ConeGeometry(0.2, 0.45, 8), new MeshBasicMaterial({ color: 16007006 }));
+    flowHead.rotation.z = -Math.PI / 2;
+    flowHead.position.set(1.4, -1.8, 0.4);
+    scene.add(flowHead);
+    addLabel("H\u207A \u987A\u6C34\u52BF\u51B2\u5411\u6C34\u8F6E\u673A \u2192", "#f43f5e", -1.2, -2.5, 0.85);
     const membrane = new Group();
     scene.add(membrane);
-    const headMat = new MeshStandardMaterial({ color: C2.membrane, roughness: 0.55, emissive: "#4a3a12", emissiveIntensity: 0.4 });
-    for (const y of [0.42, -0.42]) {
-      const layer = new Mesh(new BoxGeometry(56, 0.3, 1.6), headMat);
-      layer.position.set(-6, y, 0);
+    const headMat = new MeshStandardMaterial({
+      color: C2.membrane,
+      roughness: 0.5,
+      metalness: 0.1,
+      emissive: 4140560,
+      emissiveIntensity: 0.3
+    });
+    [-0.42, 0.42].forEach((y) => {
+      const layer = new Mesh(new BoxGeometry(lumenWidth, 0.28, 2.4), headMat);
+      layer.position.set(lumenCenterX, y, 0);
       membrane.add(layer);
-    }
-    const core = new Mesh(
-      new BoxGeometry(56, 0.5, 1.4),
-      new MeshStandardMaterial({ color: "#6e5a28", roughness: 0.8 })
+    });
+    const coreLayer = new Mesh(
+      new BoxGeometry(lumenWidth, 0.52, 2.2),
+      new MeshStandardMaterial({ color: 4534552, roughness: 0.8 })
     );
-    core.position.x = -6;
-    membrane.add(core);
-    function blob(x, w, h, color, y = 0) {
-      const m = new Mesh(
-        new SphereGeometry(1, 26, 18),
-        new MeshStandardMaterial({ color, roughness: 0.42, emissive: color, emissiveIntensity: 0.18 })
-      );
-      m.scale.set(w, h, 1.15);
+    coreLayer.position.set(lumenCenterX, 0, 0);
+    membrane.add(coreLayer);
+    function makeProtein(x, y, w, h, d, color, name, desc) {
+      const geo = new CylinderGeometry(w / 2, w / 2, h, 20);
+      const mat = new MeshStandardMaterial({
+        color,
+        roughness: 0.35,
+        metalness: 0.15,
+        emissive: color,
+        emissiveIntensity: 0.2
+      });
+      const m = new Mesh(geo, mat);
+      m.scale.set(1, 1, d / w);
       m.position.set(x, y, 0);
       scene.add(m);
+      m.userData = { name, desc };
+      clickables.push({ mesh: m, name, desc });
       return m;
     }
-    const psii = blob(-8.2, 2.1, 2.6, C2.psii);
-    const b6f = blob(0, 1.7, 2.2, C2.b6f);
-    const psi = blob(7.2, 1.9, 2.4, C2.psi);
-    const fnr = blob(10.7, 1.1, 1.1, C2.fnr, 2.35);
-    for (let i = 0; i < 7; i++) {
-      const a = makeGlowDot(0.16, 6740367);
-      const ang = Math.PI * (0.15 + 0.7 * i / 6);
-      a.position.set(-8.2 + Math.cos(ang) * 2.35, Math.sin(ang) * 2.9, 0);
-      scene.add(a);
-    }
-    for (let i = 0; i < 6; i++) {
-      const a = makeGlowDot(0.14, 6740367);
-      const ang = Math.PI * (0.12 + 0.76 * i / 5);
-      a.position.set(7.2 + Math.cos(ang) * 2.1, Math.sin(ang) * 2.7, 0);
-      scene.add(a);
-    }
-    const pipeCurve = new CatmullRomCurve3([
-      new Vector3(-8.2, 1.35, 0),
-      new Vector3(-4.5, 1.95, 0),
-      new Vector3(0, 1.45, 0),
-      new Vector3(3.6, 1.95, 0),
-      new Vector3(7.2, 1.35, 0),
-      new Vector3(9.3, 1.95, 0),
-      new Vector3(10.6, 2.3, 0)
-    ]);
-    const pipe = new Mesh(
-      new TubeGeometry(pipeCurve, 72, 0.085, 8),
-      new MeshBasicMaterial({ color: 8246268, transparent: true, opacity: 0.3 })
+    const psiiX = -12.2;
+    const psii = makeProtein(
+      psiiX,
+      0.2,
+      2.6,
+      2.4,
+      2.2,
+      C2.psii,
+      "\u5149\u7CFB\u7EDF II (PSII / P680)",
+      "\u3010\u9633\u5149\u7535\u68AF 1 \u53F7 + \u62C6\u6C34\u653E\u6C27\u3011\u53F6\u7EFF\u7D20\u5438\u6536\u5149\u5B50\uFF0C\u5C06\u7535\u5B50\u9876\u4E0A\u9AD8\u80FD\u6001\uFF1B\u5E95\u90E8\u9530\u7C07\uFF08OEC\uFF09\u4ECE\u6C34\u91CC\u593A\u8D70\u7535\u5B50\u8865\u4F4D\uFF0C\u6C34\u88AB\u62C6\u5F00\u91CA\u653E O\u2082 \u548C H\u207A\uFF01"
     );
-    scene.add(pipe);
-    [0.14, 0.5, 0.86].forEach((u) => {
-      const p = pipeCurve.getPointAt(u);
-      const t = pipeCurve.getTangentAt(u);
-      const cone = new Mesh(
-        new ConeGeometry(0.12, 0.32, 8),
-        new MeshBasicMaterial({ color: 8246268, transparent: true, opacity: 0.85 })
-      );
-      cone.position.copy(p);
-      cone.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), t.clone().normalize());
-      scene.add(cone);
-    });
-    function uAtX(xTarget) {
-      let best = 0, bd = 1e9;
-      for (let i = 0; i <= 100; i++) {
-        const p = pipeCurve.getPointAt(i / 100);
-        const d = Math.abs(p.x - xTarget);
-        if (d < bd) {
-          bd = d;
-          best = i / 100;
-        }
-      }
-      return best;
-    }
-    const U_B6F = uAtX(0);
-    const U_PSI = uAtX(7.2);
-    const atpX = 4.6;
-    const knob = new Mesh(
-      new SphereGeometry(0.85, 22, 16),
-      new MeshStandardMaterial({ color: 16748866, roughness: 0.35, emissive: "#a34e08", emissiveIntensity: 0.6 })
-    );
-    knob.position.set(atpX, 1.7, 0);
-    scene.add(knob);
-    const stalk = new Mesh(
-      new CylinderGeometry(0.13, 0.13, 1.35, 10),
-      new MeshStandardMaterial({ color: 15769675 })
-    );
-    stalk.position.set(atpX, 0.75, 0);
-    scene.add(stalk);
-    const rotor = new Group();
-    rotor.position.set(atpX, -0.62, 0);
-    scene.add(rotor);
+    addComponentLabel("\u2460 PSII \xB7 \u62C6\u6C34\u653E\u6C27", "#34d399", psiiX, 4.4, psiiX, 1.4);
+    const chlRing = new Group();
     for (let i = 0; i < 8; i++) {
+      const ang = i / 8 * Math.PI * 2;
+      const dot = makeGlowDot(0.18, 4906624);
+      dot.position.set(psiiX + Math.cos(ang) * 1.3, 1.35, Math.sin(ang) * 0.9);
+      chlRing.add(dot);
+    }
+    scene.add(chlRing);
+    const oecGroup = new Group();
+    oecGroup.position.set(psiiX, -1.2, 0.2);
+    scene.add(oecGroup);
+    [[-0.25, 0.15], [0.25, 0.15], [-0.2, -0.2], [0.2, -0.2]].forEach(([mx, my]) => {
+      const mn = makeSphere(0.14, 9133302, { ei: 0.4 });
+      mn.position.set(mx, my, 0);
+      oecGroup.add(mn);
+    });
+    const ca = makeSphere(0.16, 16347926, { ei: 0.5 });
+    ca.position.set(0, 0, 0.15);
+    oecGroup.add(ca);
+    addLabel("OEC \u9530\u7C07 (\u62C6\u6C34\u5200)", "#c4b5fd", psiiX - 1.6, -1.3, 0.75);
+    const b6fX = -7.4;
+    const b6f = makeProtein(
+      b6fX,
+      0.1,
+      2.1,
+      2.2,
+      1.9,
+      C2.b6f,
+      "\u7EC6\u80DE\u8272\u7D20 b6f \u590D\u5408\u4F53",
+      "\u3010\u8D28\u5B50\u62BD\u6C34\u6CF5\u3011\u7535\u5B50\u50CF\u6ED1\u68AF\u6ED1\u7ECF\u5B83\u65F6\uFF0C\u5B83\u5229\u7528\u7535\u5B50\u4E0B\u5761\u7684\u80FD\u91CF\uFF0C\u5C06\u57FA\u8D28\u4E2D\u7684 H\u207A \u5F3A\u884C\u6CF5\u8FDB\u7C7B\u56CA\u4F53\u8154\uFF0C\u9020\u51FA\u5927\u575D\u6C34\u538B\uFF01"
+    );
+    addComponentLabel("\u2461 b6f \xB7 \u6CF5 H\u207A \u5165\u5927\u575D", "#fb923c", b6fX, 4.4, b6fX, 1.2);
+    const b6fShaft = new Mesh(
+      new CylinderGeometry(0.25, 0.25, 2.4, 12),
+      new MeshBasicMaterial({ color: 16007006, transparent: true, opacity: 0.4 })
+    );
+    b6fShaft.position.set(b6fX, 0.1, 0.3);
+    scene.add(b6fShaft);
+    const psiX = -3.2;
+    const psi = makeProtein(
+      psiX,
+      0.2,
+      2.4,
+      2.3,
+      2,
+      C2.psi,
+      "\u5149\u7CFB\u7EDF I (PSI / P700)",
+      "\u3010\u9633\u5149\u7535\u68AF 2 \u53F7\u3011\u5230\u8FBE\u8FD9\u91CC\u7684\u7535\u5B50\u5DF2\u7ECF\u75B2\u60EB\u6CA1\u52B2\u4E86\uFF1B\u7B2C\u4E8C\u4E2A\u5149\u5B50\u6253\u5165\uFF0C\u5C06\u7535\u5B50\u518D\u6B21\u9876\u4E0A\u6781\u9AD8\u80FD\u6001\uFF0C\u51C6\u5907\u9001\u53BB\u88C5\u5305\uFF01"
+    );
+    addComponentLabel("\u2462 PSI \xB7 \u4E8C\u6B21\u5145\u80FD", "#34d399", -3.6, 4.6, psiX, 1.4, 0.82);
+    const fnrX = -0.7;
+    const fnr = makeProtein(
+      fnrX,
+      2.1,
+      1.4,
+      1.4,
+      1.3,
+      C2.fnr,
+      "FNR (\u94C1\u6C27\u8FD8\u86CB\u767D-NADP\u207A \u8FD8\u539F\u9176)",
+      "\u3010\u7535\u6C60\u6253\u5305\u8F66\u95F4\u3011\u628A\u4ECE PSI \u9001\u6765\u7684 2 \u4E2A\u9AD8\u80FD\u7535\u5B50\u4E0E H\u207A \u88C5\u8FDB NADP\u207A\uFF0C\u5C01\u88C5\u6210\u6EE1\u7535\u5316\u5B66\u7535\u6C60 NADPH\uFF01"
+    );
+    addComponentLabel("\u2463 FNR \xB7 \u5C01\u88C5 NADPH", "#c084fc", -0.7, 3.6, fnrX, 2.8, 0.8);
+    const atpX = 1.3;
+    const atpSynthaseGrp = new Group();
+    scene.add(atpSynthaseGrp);
+    const rotor = new Group();
+    rotor.position.set(atpX, -0.65, 0);
+    atpSynthaseGrp.add(rotor);
+    for (let i = 0; i < 14; i++) {
+      const ang = i / 14 * Math.PI * 2;
       const seg = new Mesh(
-        new BoxGeometry(0.34, 0.5, 0.2),
-        new MeshStandardMaterial({ color: 13208133, roughness: 0.5 })
+        new BoxGeometry(0.26, 0.58, 0.16),
+        new MeshStandardMaterial({ color: 16498468, roughness: 0.4, metalness: 0.2 })
       );
-      const a = i / 8 * Math.PI * 2;
-      seg.position.set(Math.cos(a) * 0.42, 0, Math.sin(a) * 0.42);
-      seg.rotation.y = -a;
+      seg.position.set(Math.cos(ang) * 0.52, 0, Math.sin(ang) * 0.52);
+      seg.rotation.y = -ang;
       rotor.add(seg);
     }
-    const labelsOn = { v: true };
-    const lblTitle = partLabel("\u4E0A\u534A \xB7 \u5149\u53CD\u5E94\uFF1A\u628A\u5149\u88C5\u8FDB\u7535\u6C60\uFF0C\u987A\u4FBF\u653E\u51FA\u6C27\u6C14", "#9ff0b5", -8, 6.6, 1.15);
-    const lblPsii = componentLabel("PSII \xB7 \u5206\u89E3\u6C34", "#8af0ae", -8.2, 4.6, -8.2, 1.5);
-    const lblB6f = componentLabel("b6f \xB7 \u6CF5 H\u207A", "#d7b8a8", -0.7, 4.6, 0, 1.6);
-    const atpLabel = componentLabel("ATP \u5408\u9176", "#ffc078", 3, 4.6, 4.6, 2.45);
-    const lblPsi = componentLabel("PSI \xB7 \u7B2C 2 \u6B21\u5145\u7535", "#8af0ae", 8, 4.6, 7.2, 1.5);
-    const lblFnr = componentLabel("FNR \xB7 \u88C5 NADPH", "#cdb4ff", 12.2, 4, 10.7, 2.95);
-    const pipeLabel = partLabel("\u7535\u5B50\u7BA1\u9053\uFF1Ae\u207B \u6CBF\u7BA1\u8D70", "#a5e3ff", -4.8, 2.75, 0.75);
-    const ringGrp = new Group();
-    ringGrp.position.copy(RING_C);
-    ringGrp.scale.setScalar(0.62);
-    scene.add(ringGrp);
-    const ring = new Mesh(
-      new TorusGeometry(RING_R / 0.62, 0.16, 12, 80),
-      new MeshStandardMaterial({ color: "#2a4a38", roughness: 0.5, emissive: "#0c2417", emissiveIntensity: 0.7 })
+    const axle = new Mesh(
+      new CylinderGeometry(0.14, 0.14, 1.3, 12),
+      new MeshStandardMaterial({ color: 14251782, roughness: 0.3 })
     );
-    ringGrp.add(ring);
-    const ringStations = [];
-    [[A_FIX, "\u2460 \u56FA\u5B9A \xB7 RuBisCO \u6293 CO\u2082", "#8af0ae"], [A_RED, "\u2461 \u8FD8\u539F \xB7 \u82B1 3ATP+2NADPH", "#cdb4ff"], [A_REG, "\u2462 \u518D\u751F \xB7 RuBP \u56DE\u4F4D", "#7dd3fc"]].forEach(([ang, txt, col]) => {
-      const pos = new Vector3(Math.cos(ang) * (RING_R / 0.62), Math.sin(ang) * (RING_R / 0.62), 0);
-      const pad = new Mesh(
-        new CylinderGeometry(1, 1, 0.3, 20),
-        new MeshStandardMaterial({ color: col, roughness: 0.4, transparent: true, opacity: 0.3, emissive: col, emissiveIntensity: 0.3 })
+    axle.position.set(atpX, 0.65, 0);
+    atpSynthaseGrp.add(axle);
+    const knob = new Group();
+    knob.position.set(atpX, 1.8, 0);
+    atpSynthaseGrp.add(knob);
+    for (let i = 0; i < 3; i++) {
+      const a = i / 3 * Math.PI * 2;
+      const lobe = new Mesh(
+        new SphereGeometry(0.55, 16, 14),
+        new MeshStandardMaterial({
+          color: C2.atp,
+          roughness: 0.35,
+          emissive: 14251782,
+          emissiveIntensity: 0.4
+        })
       );
-      pad.position.copy(pos);
-      ringGrp.add(pad);
-      const l = makeLabel(txt, "#eaf4ec");
-      l.scale.multiplyScalar(0.62);
-      l.position.copy(pos).add(new Vector3(0, 1.5, 0));
-      ringGrp.add(l);
-      ringStations.push({ pad, l });
-    });
-    const lblRing = partLabel("\u4E0B\u534A \xB7 \u62FC\u7CD6\u5FAA\u73AF\uFF1A\u82B1\u7535\u6C60\uFF0C\u628A CO\u2082 \u62FC\u6210\u7CD6", "#9ff0b5", RING_C.x + 2.4, RING_C.y + 4.6);
-    const sugarLabel = partLabel("\u{1F36C} \u7CD6\u51FA\u5382\uFF08\u98DF\u7269\uFF09", "#dbe86a", RING_C.x + 0.4, RING_C.y - 4.4);
-    const lblShuttle = partLabel("\u6EE1\u7535\u6C60 \u2193 \u9001\u53BB\u62FC\u7CD6", "#ffc078", 7.6, -4.6);
-    const lblReturn = partLabel("\u2191 \u7A7A\u7535\u6C60\u56DE\u819C\u4E0A\u518D\u5145\u7535", "#c98a45", 7.8, -6.2);
-    labels.push(lblRing, sugarLabel, lblShuttle, lblReturn, ...ringStations.map((s) => s.l));
-    const atpStack = new Group();
-    atpStack.position.set(RING_C.x + 3.6, RING_C.y - 1.2, 0);
-    scene.add(atpStack);
-    const nadphStack = new Group();
-    nadphStack.position.set(RING_C.x - 3.6, RING_C.y - 1.2, 0);
-    scene.add(nadphStack);
-    const batLabel = partLabel("\u7535\u6C60\u5E93\u5B58\uFF08\u6EE1\uFF09", "#ffc078", RING_C.x, RING_C.y + 1.4);
-    labels.push(batLabel);
-    function transferTag(text, color, x, y) {
-      const l = makeLabel(text, color);
-      l.scale.multiplyScalar(0.62);
-      l.position.set(x, y, 0.4);
-      scene.add(l);
-      labels.push(l);
-      return l;
+      lobe.position.set(Math.cos(a) * 0.35, 0, Math.sin(a) * 0.35);
+      knob.add(lobe);
     }
-    transferTag("\u5149\u5B50 = \u80FD\u91CF\u5305\u88F9", "#ffd54a", -6.4, 7.2);
-    transferTag("H\u207A \u6CF5\u5165\u8154", "#ff6b9d", 0.2, -0.75);
-    transferTag("H\u207A \u5206\u89E3\u6C34\u653E\u51FA", "#ff6b9d", -9.6, -1.9);
-    transferTag("\u6C34", "#69b7ff", -10.6, -1);
-    const ray = new Raycaster();
-    const clickable = [
-      { mesh: psii, text: "PSII\uFF08P680\uFF09\uFF1A\u5438\u6536\u5149\u5B50\u540E\u4ECE\u6C34\u91CC\u593A\u7535\u5B50\u2014\u2014\u6C34\u88AB\u62C6\u6210 O\u2082 + H\u207A + e\u207B\u3002" },
-      { mesh: b6f, text: 'b6f\uFF1Ae\u207B \u8DEF\u8FC7\u5B83\u65F6\uFF0C\u5B83\u628A H\u207A \u4ECE\u57FA\u8D28\u6CF5\u8FDB\u8154\u2014\u2014\u5B83\u4E0D\u4EA7\u7535\u6C60\uFF0C\u5B83\u9020"\u6C34\u4F4D\u5DEE"\u3002' },
-      { mesh: psi, text: "PSI\uFF08P700\uFF09\uFF1A\u7535\u5B50\u5230\u8FD9\u91CC\u5DF2\u7ECF\u6CA1\u52B2\u4E86\uFF0C\u7B2C\u4E8C\u4E2A\u5149\u5B50\u628A\u5B83\u518D\u9876\u4E0A\u53BB\uFF08\u7B2C 2 \u6B21\u5145\u7535\uFF09\u3002" },
-      { mesh: fnr, text: "FNR\uFF1A\u88C5\u7535\u6C60\u7684\u9176\u2014\u2014\u628A 2 \u4E2A\u7535\u5B50\u548C H\u207A \u88C5\u8FDB NADP\u207A\uFF0C\u505A\u51FA\u6EE1\u683C\u5145\u7535\u5B9D NADPH\u3002" },
-      { mesh: knob, text: "ATP \u5408\u9176\uFF1AH\u207A \u6C60\u91CC\u7684 H\u207A \u987A\u6C34\u4F4D\u5DEE\u6D8C\u51FA\uFF0C\u8F6C\u5B50\u6BCF\u8F6C\u4E00\u5708\uFF0814 H\u207A\uFF09\u5408\u6210 3 \u4E2A ATP\u3002" }
-    ];
-    const infoDiv = document.createElement("p");
-    infoDiv.id = "lightInfo";
-    infoDiv.style.cssText = "font-size:12px;color:#ffd54a;min-height:2.4em;border-top:1px dashed var(--line);padding-top:6px";
-    infoDiv.textContent = "\u70B9\u51FB\u819C\u4E0A\u90E8\u4EF6\u770B\u8BF4\u660E \u2197";
-    document.querySelector('[data-panel="light"]').appendChild(infoDiv);
-    const canvasEl = document.getElementById("gl");
-    canvasEl.addEventListener("pointerdown", (e) => {
-      if (document.body.dataset.view !== "light") return;
-      const r = canvasEl.getBoundingClientRect();
-      ray.setFromCamera(new Vector2(
-        (e.clientX - r.left) / r.width * 2 - 1,
-        -((e.clientY - r.top) / r.height) * 2 + 1
-      ), camera);
-      const hit = ray.intersectObjects(clickable.map((c) => c.mesh), false)[0];
-      if (hit) infoDiv.textContent = "\u{1F4A1} " + clickable.find((c) => c.mesh === hit.object).text;
+    clickables.push({
+      mesh: knob,
+      name: "ATP \u5408\u9176 (\u5206\u5B50\u6C34\u8F6E\u53D1\u7535\u673A)",
+      desc: "\u3010\u6C34\u8F6E\u53D1\u7535\u673A\u3011\u7C7B\u56CA\u4F53\u8154\u5185\u9AD8\u538B H\u207A \u55B7\u6D8C\u800C\u51FA\u63A8\u7740 c \u73AF\u9AD8\u901F\u65CB\u8F6C\uFF0C\u5E26\u52A8\u8F6C\u8F74\u5728\u7403\u5934\u91CC\u5494\u54D2\u7EC4\u88C5 ADP + Pi \u2192 ATP \u6EE1\u7535\u7535\u6C60\uFF01"
     });
-    const stepEls = [...document.querySelectorAll("#stepList [data-step]")];
-    function step(n) {
-      stepEls.forEach((el) => el.classList.toggle("cur", +el.dataset.step === n));
-    }
-    const zc = document.getElementById("zscheme");
-    const zctx = zc.getContext("2d");
-    const Z_PTS = [
-      [0.04, 0.78],
-      [0.09, 0.1],
-      [0.36, 0.62],
-      [0.43, 0.72],
-      [0.6, 0.12],
-      [0.78, 0.64],
-      [0.95, 0.82]
-    ];
-    const Z_LABELS = [
-      [0.09, 0.1, "P680* \u7B2C\u4E00\u6B21\u5145\u7535", "#ffd54a"],
-      [0.36, 0.62, "\u6CBF\u94FE\u4E0B\u884C \xB7 \u6CF5 H\u207A", "#7dd3fc"],
-      [0.43, 0.72, "b6f", "#d7b8a8"],
-      [0.6, 0.12, "P700* \u7B2C\u4E8C\u6B21\u5145\u7535", "#ffd54a"],
-      [0.8, 0.64, "Fd", "#9ae6b8"],
-      [0.95, 0.82, "NADPH", "#b197fc"]
-    ];
-    function drawChart(markerS) {
-      const W = zc.width, H = zc.height;
-      zctx.clearRect(0, 0, W, H);
-      zctx.fillStyle = "rgba(10,16,28,0.0)";
-      zctx.fillRect(0, 0, W, H);
-      zctx.strokeStyle = "rgba(255,255,255,0.25)";
-      zctx.strokeRect(6.5, 6.5, W - 13, H - 13);
-      zctx.font = 'bold 13px "PingFang SC", sans-serif';
-      zctx.fillStyle = "#9ff0b5";
-      zctx.fillText("Z \u65B9\u6848\uFF1A\u7535\u5B50\u7684\u4E24\u6B21\u5145\u7535\u4E4B\u65C5", 16, 24);
-      zctx.strokeStyle = "#e8b84b";
-      zctx.lineWidth = 2.5;
-      zctx.beginPath();
-      Z_PTS.forEach(([x, y], i) => {
-        const px2 = 14 + x * (W - 28), py2 = 30 + y * (H - 62);
-        i ? zctx.lineTo(px2, py2) : zctx.moveTo(px2, py2);
-      });
-      zctx.stroke();
-      [[0.09, 0.1], [0.6, 0.12]].forEach(([x, y]) => {
-        const px2 = 14 + x * (W - 28), py2 = 30 + y * (H - 62);
-        zctx.strokeStyle = "#ffd54a";
-        zctx.lineWidth = 1.5;
-        zctx.beginPath();
-        zctx.moveTo(px2, py2 - 20);
-        zctx.lineTo(px2 - 3, py2 - 10);
-        zctx.lineTo(px2 + 3, py2 - 10);
-        zctx.lineTo(px2, py2);
-        zctx.stroke();
-      });
-      zctx.lineWidth = 1;
-      zctx.font = '11px "PingFang SC", sans-serif';
-      Z_LABELS.forEach(([x, y, txt, col]) => {
-        zctx.fillStyle = col;
-        zctx.fillText(txt, 14 + x * (W - 28) - 20, 30 + y * (H - 62) + (y > 0.5 ? 16 : -10));
-      });
-      if (markerS != null) {
-        const s = Math.max(0, Math.min(1, markerS));
-        let total = 0;
-        const segs = [];
-        for (let i = 1; i < Z_PTS.length; i++) {
-          const dx = (Z_PTS[i][0] - Z_PTS[i - 1][0]) * (W - 28);
-          const dy = (Z_PTS[i][1] - Z_PTS[i - 1][1]) * (H - 62);
-          const L = Math.hypot(dx, dy);
-          segs.push(L);
-          total += L;
-        }
-        let dist = s * total;
-        for (let i = 0; i < segs.length; i++) {
-          if (dist <= segs[i]) {
-            const k = dist / segs[i];
-            const x = Z_PTS[i][0] + (Z_PTS[i + 1][0] - Z_PTS[i][0]) * k;
-            const y = Z_PTS[i][1] + (Z_PTS[i + 1][1] - Z_PTS[i][1]) * k;
-            const px2 = 14 + x * (W - 28), py2 = 30 + y * (H - 62);
-            zctx.fillStyle = "#7dd3fc";
-            zctx.beginPath();
-            zctx.arc(px2, py2, 5, 0, Math.PI * 2);
-            zctx.fill();
-            zctx.strokeStyle = "rgba(125,211,252,0.5)";
-            zctx.beginPath();
-            zctx.arc(px2, py2, 9, 0, Math.PI * 2);
-            zctx.stroke();
-            break;
-          }
-          dist -= segs[i];
+    addComponentLabel("\u2464 ATP \u5408\u9176 \xB7 \u65CB\u8F6C\u53D1\u7535", "#fbbf24", 1.4, 5.1, atpX, 2.3, 0.82);
+    const pipeCurve = new CatmullRomCurve3([
+      new Vector3(psiiX, 1.4, 0),
+      // PSII 出口
+      new Vector3((psiiX + b6fX) / 2, 2.2, 0),
+      // 阳光电梯 1 顶峰
+      new Vector3(b6fX, 1.3, 0),
+      // b6f 入口
+      new Vector3((b6fX + psiX) / 2, 0.4, 0),
+      // 能量下滑
+      new Vector3(psiX, 1.4, 0),
+      // PSI 入口
+      new Vector3((psiX + fnrX) / 2, 2.8, 0),
+      // 阳光电梯 2 顶峰
+      new Vector3(fnrX, 2.4, 0)
+      // FNR 终点
+    ]);
+    const pipeTube = new Mesh(
+      new TubeGeometry(pipeCurve, 80, 0.08, 8),
+      new MeshBasicMaterial({ color: 3718648, transparent: true, opacity: 0.35 })
+    );
+    scene.add(pipeTube);
+    [0.15, 0.48, 0.85].forEach((u) => {
+      const p = pipeCurve.getPointAt(u);
+      const t = pipeCurve.getTangentAt(u).normalize();
+      const cone = new Mesh(new ConeGeometry(0.12, 0.32, 8), new MeshBasicMaterial({ color: 3718648 }));
+      cone.position.copy(p);
+      cone.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), t);
+      scene.add(cone);
+    });
+    function getUAtX(targetX) {
+      let bestU = 0, minDist = 1e9;
+      for (let i = 0; i <= 100; i++) {
+        const u = i / 100;
+        const p = pipeCurve.getPointAt(u);
+        const d = Math.abs(p.x - targetX);
+        if (d < minDist) {
+          minDist = d;
+          bestU = u;
         }
       }
+      return bestU;
+    }
+    const U_B6F = getUAtX(b6fX);
+    const U_PSI = getUAtX(psiX);
+    const highwayGroup = new Group();
+    scene.add(highwayGroup);
+    const forwardCurve = new LineCurve3(HIGHWAY_START, HIGHWAY_END);
+    const forwardTube = new Mesh(
+      new TubeGeometry(forwardCurve, 32, 0.09, 8, false),
+      new MeshStandardMaterial({
+        color: 16096779,
+        roughness: 0.3,
+        emissive: 14251782,
+        emissiveIntensity: 0.7,
+        transparent: true,
+        opacity: 0.65
+      })
+    );
+    highwayGroup.add(forwardTube);
+    [0.25, 0.55, 0.85].forEach((u) => {
+      const arrow = new Mesh(new ConeGeometry(0.18, 0.42, 8), new MeshBasicMaterial({ color: 16638023 }));
+      arrow.rotation.z = -Math.PI / 2;
+      arrow.position.set(HIGHWAY_START.x + (HIGHWAY_END.x - HIGHWAY_START.x) * u, HIGHWAY_START.y, 0);
+      highwayGroup.add(arrow);
+    });
+    addLabel("\u26A1 \u6EE1\u7535\u524D\u9001 (3 ATP + 2 NADPH) \u2192", "#fcd34d", 5.35, 3.6, 0.78);
+    addLabel("\u21C4 \u80FD\u91CF\u4E0E\u539F\u6599\u7A7F\u68AD\u4E13\u7EBF \u21C4", "#ffd54a", 5.35, 0.6, 0.86);
+    const returnCurve = new LineCurve3(RETURN_START, RETURN_END);
+    const returnTube = new Mesh(
+      new TubeGeometry(returnCurve, 32, 0.09, 8, false),
+      new MeshStandardMaterial({
+        color: 9741240,
+        roughness: 0.4,
+        emissive: 4674921,
+        emissiveIntensity: 0.4,
+        transparent: true,
+        opacity: 0.65
+      })
+    );
+    highwayGroup.add(returnTube);
+    [0.25, 0.55, 0.85].forEach((u) => {
+      const arrow = new Mesh(new ConeGeometry(0.18, 0.42, 8), new MeshBasicMaterial({ color: 13358561 }));
+      arrow.rotation.z = Math.PI / 2;
+      arrow.position.set(RETURN_START.x + (RETURN_END.x - RETURN_START.x) * u, RETURN_START.y, 0);
+      highwayGroup.add(arrow);
+    });
+    addLabel("\u2190 \u{1FAAB} \u7A7A\u7535\u56DE\u5145 (3 ADP + 2 NADP\u207A)", "#cbd5e1", 5.35, -1.2, 0.78);
+    const calvinZoneBackdrop = new Mesh(
+      new PlaneGeometry(9, 11.8),
+      new MeshBasicMaterial({ color: 417606, transparent: true, opacity: 0.045, depthWrite: false })
+    );
+    calvinZoneBackdrop.position.set(RING_C.x, 0.8, -1.8);
+    scene.add(calvinZoneBackdrop);
+    addLabel("\u{1F36C} \u8FC7\u7A0B \u2461 \xB7 \u78B3\u53CD\u5E94\u62FC\u7CD6\u5DE5\u573A (\u53F6\u7EFF\u4F53\u57FA\u8D28)", "#4ade80", RING_C.x, 6.1, 1.05);
+    addLabel("RuBisCO \u6293\u78B3 \xB7 \u6CE8\u5165\u6C22\u80FD \xB7 \u7EC4\u88C5\u4EA7\u51FA\u7CD6", "#86efac", RING_C.x, 5.5, 0.75);
+    const calvinGroup = new Group();
+    calvinGroup.position.copy(RING_C);
+    scene.add(calvinGroup);
+    const ringMesh = new Mesh(
+      new TorusGeometry(RING_R, 0.14, 16, 80),
+      new MeshStandardMaterial({
+        color: 413243,
+        roughness: 0.4,
+        emissive: 274222,
+        emissiveIntensity: 0.8
+      })
+    );
+    calvinGroup.add(ringMesh);
+    const stations = [];
+    const posFix = new Vector3(Math.cos(ANG_FIX) * RING_R, Math.sin(ANG_FIX) * RING_R, 0);
+    const rubiscoMesh = new Mesh(
+      new DodecahedronGeometry(0.82),
+      new MeshStandardMaterial({
+        color: C2.rubisco,
+        roughness: 0.35,
+        emissive: 1332013,
+        emissiveIntensity: 0.5
+      })
+    );
+    rubiscoMesh.position.copy(posFix);
+    calvinGroup.add(rubiscoMesh);
+    clickables.push({
+      mesh: rubiscoMesh,
+      name: "RuBisCO (\u6838\u916E\u7CD6\u4E8C\u78F7\u9178\u7FA7\u5316\u9176)",
+      desc: "\u3010\u6293\u78B3\u673A\u68B0\u624B\u3011\u5730\u7403\u4E0A\u6700\u591A\u7684\u9176\uFF01\u8D1F\u8D23\u4ECE\u7A7A\u6C14\u4E2D\u6293\u4F4F\u53EA\u6709 1 \u4E2A\u78B3\u7684 CO\u2082\uFF0C\u5F3A\u884C\u6263\u5728 5 \u78B3\u6293\u624B RuBP \u4E0A\uFF0C\u62C9\u5F00\u62FC\u7CD6\u5E8F\u5E55\uFF01"
+    });
+    const lblFix = makeLabel("\u2460 \u6293\u78B3\u56FA\u5B9A (RuBisCO)", "#86efac", 38);
+    lblFix.position.set(posFix.x, posFix.y + 1.25, 0);
+    lblFix.scale.multiplyScalar(0.78);
+    calvinGroup.add(lblFix);
+    stations.push({ pad: rubiscoMesh, label: lblFix });
+    const posRed = new Vector3(Math.cos(ANG_RED) * RING_R, Math.sin(ANG_RED) * RING_R, 0);
+    const redPad = new Mesh(
+      new CylinderGeometry(0.75, 0.75, 0.22, 20),
+      new MeshStandardMaterial({
+        color: 8141549,
+        roughness: 0.4,
+        transparent: true,
+        opacity: 0.6,
+        emissive: 7153881,
+        emissiveIntensity: 0.4
+      })
+    );
+    redPad.position.copy(posRed);
+    calvinGroup.add(redPad);
+    clickables.push({
+      mesh: redPad,
+      name: "\u8FD8\u539F\u5DE5\u4F4D (\u80FD\u91CF\u4E0E\u7535\u5B50\u6CE8\u5165)",
+      desc: "\u3010\u7535\u6C60\u82B1\u5728\u8FD9\u91CC\uFF01\u30113-PGA \u5438\u6536 ATP \u63D0\u4F9B\u7684\u80FD\u91CF\u78F7\u9178\uFF0C\u5E76\u541E\u4E0B NADPH \u9001\u6765\u7684\u9AD8\u80FD\u7535\u5B50\u4E0E\u6C22\uFF0C\u8715\u53D8\u4E3A\u751C\u7F8E\u7684\u9AD8\u80FD\u7CD6\u7816 G3P\uFF01"
+    });
+    const lblRed = makeLabel("\u2461 \u5145\u80FD\u8FD8\u539F (\u6CE8\u5165\u80FD\u91CF)", "#c084fc", 38);
+    lblRed.position.set(posRed.x, -3.5, 0);
+    lblRed.scale.multiplyScalar(0.78);
+    calvinGroup.add(lblRed);
+    stations.push({ pad: redPad, label: lblRed });
+    const posReg = new Vector3(Math.cos(ANG_REG) * RING_R, Math.sin(ANG_REG) * RING_R, 0);
+    const regPad = new Mesh(
+      new CylinderGeometry(0.75, 0.75, 0.22, 20),
+      new MeshStandardMaterial({
+        color: 165063,
+        roughness: 0.4,
+        transparent: true,
+        opacity: 0.6,
+        emissive: 223649,
+        emissiveIntensity: 0.4
+      })
+    );
+    regPad.position.copy(posReg);
+    calvinGroup.add(regPad);
+    clickables.push({
+      mesh: regPad,
+      name: "\u518D\u751F\u4E0E\u51FA\u7CD6\u5DE5\u4F4D",
+      desc: "\u30101 \u5757\u51FA\u5382\uFF0C5 \u5757\u56DE\u7089\u30113 \u5708\u79EF\u6512 6 \u5757 G3P\uFF0C\u5176\u4E2D 1 \u5757\u4F5C\u4E3A\u7EAF\u6536\u5165\u79BB\u5F00\u8F66\u95F4\u53BB\u9020\u8461\u8404\u7CD6\uFF1B\u5269\u4F59 5 \u5757\u5728 ATP \u652F\u6301\u4E0B\u91CD\u65B0\u62FC\u56DE 3 \u4E2A RuBP \u6293\u624B\uFF01"
+    });
+    const lblReg = makeLabel("\u2462 \u6293\u624B\u518D\u751F (RuBP)", "#7dd3fc", 38);
+    lblReg.position.set(posReg.x, -3.5, 0);
+    lblReg.scale.multiplyScalar(0.78);
+    calvinGroup.add(lblReg);
+    stations.push({ pad: regPad, label: lblReg });
+    const sugarExitPos = new Vector3(RING_C.x, RING_C.y - RING_R - 0.2, 0);
+    const sugarRamp = new Line(
+      new BufferGeometry().setFromPoints([sugarExitPos, new Vector3(sugarExitPos.x, sugarExitPos.y - 1.2, 0)]),
+      new LineBasicMaterial({ color: 16436245, transparent: true, opacity: 0.75 })
+    );
+    scene.add(sugarRamp);
+    const sugarPile = new Group();
+    sugarPile.position.set(sugarExitPos.x, sugarExitPos.y - 1.6, 0);
+    scene.add(sugarPile);
+    addLabel("\u{1F36C} \u7EAF\u8D5A 1 \u5757\u7CD6\u51FA\u5382 (G3P)", "#facc15", RING_C.x, sugarExitPos.y - 2.6, 0.82);
+    function makeCO2Mesh() {
+      const grp = new Group();
+      const c = makeSphere(0.18, C2.carbon, { rough: 0.4, ei: 0.3 });
+      grp.add(c);
+      [-0.26, 0.26].forEach((dx) => {
+        const o = makeSphere(0.14, C2.oxygen, { rough: 0.3, ei: 0.4 });
+        o.position.x = dx;
+        grp.add(o);
+      });
+      return grp;
+    }
+    function make3PGAMesh() {
+      const grp = new Group();
+      for (let i = 0; i < 3; i++) {
+        const c = makeSphere(0.15, 4674921, { ei: 0.2 });
+        c.position.x = (i - 1) * 0.26;
+        grp.add(c);
+      }
+      const p = makeSphere(0.13, C2.phosphate, { ei: 0.4 });
+      p.position.set(0.38, 0.2, 0);
+      grp.add(p);
+      return grp;
+    }
+    function makeG3PMesh() {
+      const grp = new Group();
+      for (let i = 0; i < 3; i++) {
+        const c = makeSphere(0.18, C2.g3p, { rough: 0.25, ei: 0.7 });
+        c.position.x = (i - 1) * 0.3;
+        grp.add(c);
+      }
+      const p = makeSphere(0.15, 16436245, { ei: 0.8 });
+      p.position.set(0.42, 0.22, 0);
+      grp.add(p);
+      return grp;
+    }
+    function makeRuBPMesh() {
+      const grp = new Group();
+      for (let i = 0; i < 5; i++) {
+        const c = makeSphere(0.15, C2.rubp, { rough: 0.3, ei: 0.4 });
+        c.position.x = (i - 2) * 0.25;
+        grp.add(c);
+      }
+      [-0.65, 0.65].forEach((dx) => {
+        const p = makeSphere(0.13, C2.phosphate, { ei: 0.5 });
+        p.position.set(dx, 0.2, 0);
+        grp.add(p);
+      });
+      return grp;
+    }
+    function makeATPMesh() {
+      const grp = new Group();
+      const body = new Mesh(
+        new CylinderGeometry(0.18, 0.18, 0.52, 12),
+        new MeshStandardMaterial({ color: C2.atp, roughness: 0.3, emissive: 14251782, emissiveIntensity: 0.6 })
+      );
+      body.rotation.z = Math.PI / 2;
+      grp.add(body);
+      [-0.14, 0, 0.14].forEach((dx) => {
+        const ring = new Mesh(
+          new TorusGeometry(0.19, 0.03, 8, 16),
+          new MeshBasicMaterial({ color: 4906624 })
+        );
+        ring.position.x = dx;
+        ring.rotation.y = Math.PI / 2;
+        grp.add(ring);
+      });
+      return grp;
+    }
+    function makeADPMesh() {
+      const grp = new Group();
+      const body = new Mesh(
+        new CylinderGeometry(0.17, 0.17, 0.46, 12),
+        new MeshStandardMaterial({ color: C2.adp, roughness: 0.6, emissive: 2696484, emissiveIntensity: 0.2 })
+      );
+      body.rotation.z = Math.PI / 2;
+      grp.add(body);
+      return grp;
+    }
+    function makeNADPHMesh() {
+      const grp = new Group();
+      const core = new Mesh(
+        new OctahedronGeometry(0.24),
+        new MeshStandardMaterial({ color: C2.nadph, roughness: 0.25, emissive: 9647082, emissiveIntensity: 0.7 })
+      );
+      grp.add(core);
+      const halo = makeGlowDot(0.32, 14202110);
+      halo.material.transparent = true;
+      halo.material.opacity = 0.5;
+      grp.add(halo);
+      return grp;
+    }
+    function makeNADPMesh() {
+      const grp = new Group();
+      const core = new Mesh(
+        new OctahedronGeometry(0.2),
+        new MeshStandardMaterial({ color: C2.nadpp, roughness: 0.6, emissive: 3621201, emissiveIntensity: 0.2 })
+      );
+      grp.add(core);
+      return grp;
     }
     const state = {
       paused: false,
       speed: 1,
       lightRate: 1,
-      alt: 0,
+      co2Rate: 1,
+      // 导览讲解模式
+      tourMode: false,
+      tourStep: 1,
+      tourTimer: 0,
+      // 膜上微粒
       photons: [],
-      electrons: [],
-      hplus: [],
-      hpool: [],
-      o2: [],
       waters: [],
+      electrons: [],
+      o2Bubbles: [],
+      lumenHCount: 16,
+      lumenHDots: [],
+      pumpingHDots: [],
+      atpHDots: [],
+      // 飞行动画对象
       fliers: [],
-      psiQueue: 0,
+      // 电池库存（ATP / NADPH）
+      bat: { atp: 2, nadph: 2 },
+      emptyBat: { adp: 1, nadpp: 1 },
+      sunCutoff: false,
+      // 统计数字
+      counts: { o2: 0, atp: 0, nadph: 0, adp: 0, nadpp: 0 },
       kokIdx: 1,
-      psiElectronCount: 0,
-      lumenH: 8,
+      psiiCount: 0,
+      psiElectrons: 0,
       rotorAngle: 0,
-      atpFrac: 0,
-      counts: { o2: 0, nadph: 0, atp: 0 },
-      bat: { atp: 0, nadph: 0 },
-      turn: null,
-      turnTimer: 2.5,
+      atpAccum: 0,
+      // 卡尔文循环
+      calvinTurn: null,
+      calvinTimer: 0.8,
       turns: 0,
-      g3p: 0,
-      photonTimer: 0,
-      waterTimer: 0,
-      zu: null
+      g3pCount: 0,
+      // Z 方案当前电子位置
+      zPos: 0
     };
-    function spawnPhoton(target, kind) {
-      const m = makeGlowDot(0.14, C2.photon);
-      m.position.set(target.x + (Math.random() - 0.5) * 1.6, 9.5 + Math.random() * 2, 0);
-      scene.add(m);
-      state.photons.push({ mesh: m, tx: target.x, ty: target.y, kind });
-      step(1);
+    for (let i = 0; i < 28; i++) {
+      const d = makeGlowDot(0.12, C2.hplus);
+      d.position.set(
+        MEMBRANE_X_MIN + 0.6 + Math.random() * (lumenWidth - 1.2),
+        -1.2 - Math.random() * 2,
+        (Math.random() - 0.5) * 1.4
+      );
+      d.userData.baseY = d.position.y;
+      d.userData.seed = Math.random() * 10;
+      scene.add(d);
+      state.lumenHDots.push(d);
     }
-    function flier(mesh, target, speed, onArrive) {
+    function addHToLumen(x) {
+      state.lumenHCount++;
+      const d = makeGlowDot(0.12, C2.hplus);
+      d.position.set(x + (Math.random() - 0.5) * 0.8, -1.2, (Math.random() - 0.5) * 0.8);
+      d.userData.baseY = -1.5 - Math.random() * 1.5;
+      d.userData.seed = Math.random() * 10;
+      scene.add(d);
+      state.lumenHDots.push(d);
+      if (state.lumenHDots.length > 40) {
+        const old = state.lumenHDots.shift();
+        scene.remove(old);
+      }
+    }
+    function drainHFromLumen() {
+      state.lumenHCount = Math.max(4, state.lumenHCount - 1);
+      if (state.lumenHDots.length > 12) {
+        const d = state.lumenHDots.pop();
+        scene.remove(d);
+      }
+    }
+    function fly(mesh, target, speed, onArrive) {
       scene.add(mesh);
       state.fliers.push({ mesh, target, speed, onArrive });
     }
-    function spawnH(x, y, vy, toLumen) {
-      const m = makeGlowDot(0.11, C2.hplus);
-      m.position.set(x, y, 0);
-      scene.add(m);
-      state.hplus.push({ mesh: m, vy, toLumen });
-    }
-    function restack(group, n, color) {
-      while (group.children.length) group.remove(group.children[0]);
-      for (let i = 0; i < Math.min(n, 6); i++) {
-        const chip = makeGlowDot(0.17, color);
-        chip.position.set(0, i * 0.4, 0);
-        group.add(chip);
-      }
-      if (n > 6) {
-        const more = makeLabel(`+${n - 6}`, "#dbe4ee");
-        more.scale.multiplyScalar(0.5);
-        more.position.set(0, 2.8, 0);
-        group.add(more);
-      }
-    }
-    function addHToPool(x) {
-      state.lumenH++;
-      if (state.hpool.length < 14) {
-        const d = makeGlowDot(0.12, C2.hplus);
-        d.position.set(x + (Math.random() - 0.5) * 1.2, -1.15 - Math.random() * 1.6, 0);
-        d.userData.baseY = d.position.y;
-        scene.add(d);
-        state.hpool.push(d);
-      }
-    }
-    function takeHFromPool() {
-      const d = state.hpool.pop();
-      if (d) {
-        d.userData.baseY = null;
-        scene.remove(d);
-      }
-      state.lumenH = Math.max(0, state.lumenH - 1);
-    }
-    function startTurn() {
-      if (state.bat.atp < CALVIN.atpPerCO2 || state.bat.nadph < CALVIN.nadphPerCO2) return;
-      state.bat.atp -= CALVIN.atpPerCO2;
-      state.bat.nadph -= CALVIN.nadphPerCO2;
-      restack(atpStack, state.bat.atp, C2.atp);
-      restack(nadphStack, state.bat.nadph, C2.nadph);
-      state.turns++;
-      state.turn = { phase: "co2", t: 0 };
-      const co2 = makeGlowDot(0.2, C2.co2);
-      flier(co2, RING_C.clone().add(new Vector3(0, RING_R * 0.62 + 0.3, 0)), 3.2, () => {
-        state.turn.phase = "work";
-        state.turn.t = 0;
-        for (const s of [-0.6, 0.6]) {
-          const pga = makeGlowDot(0.13, 10467529);
-          pga.position.copy(RING_C).add(new Vector3(s, 0.6, 0));
-          flier(pga, RING_C.clone().add(new Vector3(s * 2.2, -0.6, 0)), 1.6, () => scene.remove(pga));
-        }
-        for (let i = 0; i < 3; i++) {
-          const a = makeGlowDot(0.13, C2.adp);
-          a.position.copy(RING_C).add(new Vector3(1.5, 0.5 + i * 0.3, 0));
-          flier(a, new Vector3(atpX + 0.9, 1.6, 0), 2.6, () => scene.remove(a));
-        }
-        for (let i = 0; i < 2; i++) {
-          const n = makeGlowDot(0.13, C2.nadpp);
-          n.position.copy(RING_C).add(new Vector3(-1.5, 0.5 + i * 0.3, 0));
-          flier(n, new Vector3(11, 2.4, 0), 2.6, () => scene.remove(n));
+    function supplyWater() {
+      const w = new Group();
+      const oxy = makeSphere(0.16, C2.water, { rough: 0.3, ei: 0.4 });
+      w.add(oxy);
+      [-0.14, 0.14].forEach((dx) => {
+        const h = makeSphere(0.09, 16317180, { ei: 0.5 });
+        h.position.set(dx, 0.12, 0);
+        w.add(h);
+      });
+      w.position.set(psiiX + (Math.random() - 0.5) * 0.6, -3.4, 0.2);
+      scene.add(w);
+      fly(w, new Vector3(psiiX, -1.2, 0.2), 2.2, () => {
+        scene.remove(w);
+        state.psiiCount++;
+        state.kokIdx = state.psiiCount % 4 + 1;
+        addHToLumen(psiiX);
+        addHToLumen(psiiX + 0.4);
+        if (state.psiiCount % 4 === 0) {
+          state.kokIdx = 0;
+          state.counts.o2++;
+          const o2Bubble = makeSphere(0.24, C2.o2, { rough: 0.1, opacity: 0.85, ei: 0.6 });
+          o2Bubble.position.set(psiiX, -0.6, 0.5);
+          scene.add(o2Bubble);
+          state.o2Bubbles.push({ mesh: o2Bubble, t: 0 });
         }
       });
     }
-    const els = ["hO2", "hBatAtp", "hBatNadph", "hKok", "hTurns", "hG3p"].map((id) => document.getElementById(id));
-    function refreshHUD() {
-      els[0].textContent = state.counts.o2;
-      els[1].textContent = state.bat.atp;
-      els[2].textContent = state.bat.nadph;
-      els[3].textContent = KOK_STATES[state.kokIdx] + (state.psiElectronCount % 4 ? `\uFF08+${state.psiElectronCount % 4} e\u207B\uFF09` : "");
-      els[4].textContent = state.turns;
-      els[5].textContent = state.g3p;
+    function launchPhoton(targetComplex, kind) {
+      const tx = kind === "PSII" ? psiiX : psiX;
+      const p = makeGlowDot(0.17, C2.photon);
+      p.position.set(tx + (Math.random() - 0.5) * 1, 9.2 + Math.random() * 1.5, 0);
+      scene.add(p);
+      state.photons.push({
+        mesh: p,
+        tx,
+        ty: 1.35,
+        kind,
+        onHit: () => {
+          if (kind === "PSII") {
+            psii.material.emissiveIntensity = 0.8;
+            const e = makeGlowDot(0.16, C2.electron);
+            e.position.copy(pipeCurve.getPointAt(0));
+            scene.add(e);
+            state.electrons.push({ mesh: e, u: 0, seg: "A", end: U_PSI });
+            highlightStep(1);
+          } else {
+            psi.material.emissiveIntensity = 0.8;
+            const e = makeGlowDot(0.16, C2.electron);
+            e.position.copy(pipeCurve.getPointAt(U_PSI));
+            scene.add(e);
+            state.electrons.push({ mesh: e, u: U_PSI, seg: "B", end: 1 });
+            highlightStep(5);
+          }
+        }
+      });
     }
-    document.getElementById("bLightPause").addEventListener("click", (e) => {
-      state.paused = !state.paused;
-      e.target.textContent = state.paused ? "\u25B6 \u7EE7\u7EED" : "\u23F8 \u6682\u505C";
-      e.target.classList.toggle("on", state.paused);
+    function triggerCalvinCycle() {
+      if (state.bat.atp < CALVIN.atpPerCO2 || state.bat.nadph < CALVIN.nadphPerCO2) {
+        if (state.sunCutoff && expCouplingMsg) {
+          expCouplingMsg.innerHTML = '<b style="color:#f43f5e">\u{1FAAB} \u5B58\u91CF\u7535\u6C60\u8017\u5C3D\uFF01</b>\u8FC7\u7A0B \u2461 \u62FC\u7CD6\u5382\u56E0\u7F3A\u7535\u505C\u5DE5\u3002<br><b>\u63ED\u793A\u672C\u8D28\uFF1A</b>\u4E24\u5382\u7269\u7406\u72EC\u7ACB\uFF0C\u4F46\u56E0\u7535\u6C60\u7EBD\u5E26\u751F\u6B7B\u4E0E\u5171\uFF01\u70B9\u201C\u91CD\u65B0\u6253\u5F00\u592A\u9633\u201D\u590D\u5DE5\u3002';
+        }
+        return;
+      }
+      state.bat.atp -= CALVIN.atpPerCO2;
+      state.bat.nadph -= CALVIN.nadphPerCO2;
+      if (state.sunCutoff && expCouplingMsg) {
+        expCouplingMsg.innerHTML = '<b>\u{1F311} \u6697\u5BA4\u62FC\u7CD6\u4E2D\uFF1A</b>\u6D88\u8017\u5B58\u91CF\u7535\u6C60\uFF01\u5269\u4F59 <b style="color:var(--orange)">' + state.bat.atp + ' ATP</b> / <b style="color:var(--violet)">' + state.bat.nadph + " NADPH</b>\uFF08\u5370\u8BC1\uFF1A\u62FC\u7CD6\u8FC7\u7A0B\u4E0D\u5403\u5149\uFF0C\u5403\u7535\u6C60\u5373\u53EF\u72EC\u7ACB\u8FD0\u884C\uFF09...";
+      }
+      state.turns++;
+      state.calvinTurn = { stage: "fix", t: 0 };
+      const co2 = makeCO2Mesh();
+      co2.position.set(RING_C.x + 3.2, RING_C.y + 4, 0);
+      fly(co2, RING_C.clone().add(posFix), 3.2, () => {
+        scene.remove(co2);
+        rubiscoMesh.material.emissiveIntensity = 0.9;
+        state.calvinTurn.stage = "reduction";
+        state.calvinTurn.t = 0;
+        const pga1 = make3PGAMesh();
+        pga1.position.copy(RING_C).add(posFix);
+        fly(pga1, RING_C.clone().add(posRed).add(new Vector3(-0.3, 0.2, 0)), 2.2, () => {
+          for (let i = 0; i < 3; i++) {
+            const adp = makeADPMesh();
+            adp.position.copy(RING_C).add(posRed).add(new Vector3(0, i * 0.25, 0));
+            fly(adp, new Vector3(atpX, 1.8, 0), 2.4, () => {
+              scene.remove(adp);
+              state.counts.adp++;
+            });
+          }
+          for (let i = 0; i < 2; i++) {
+            const nadpp = makeNADPMesh();
+            nadpp.position.copy(RING_C).add(posRed).add(new Vector3(-0.4, i * 0.3, 0));
+            fly(nadpp, new Vector3(fnrX, 2.3, 0), 2.4, () => {
+              scene.remove(nadpp);
+              state.counts.nadpp++;
+            });
+          }
+          scene.remove(pga1);
+          const g3p = makeG3PMesh();
+          g3p.position.copy(RING_C).add(posRed);
+          fly(g3p, RING_C.clone().add(posReg), 2, () => {
+            scene.remove(g3p);
+            state.calvinTurn.stage = "regeneration";
+            state.calvinTurn.t = 0;
+            if (state.turns % CALVIN.g3pPerTurns === 0) {
+              state.g3pCount++;
+              const sugarCube = makeG3PMesh();
+              sugarCube.position.copy(RING_C).add(posReg);
+              fly(sugarCube, sugarPile.position.clone().add(new Vector3((state.g3pCount % 4 - 1.5) * 0.7, Math.floor(state.g3pCount / 4) * 0.6, 0)), 2.6, () => {
+              });
+            }
+          });
+        });
+      });
+    }
+    const stepDivs = [...document.querySelectorAll("#stepList [data-step]")];
+    function highlightStep(n) {
+      stepDivs.forEach((d) => d.classList.toggle("cur", +d.dataset.step === n));
+    }
+    const inspTitle = document.getElementById("inspTitle");
+    const inspTag = document.getElementById("inspTag");
+    const inspMetaphor = document.getElementById("inspMetaphor");
+    const inspDesc = document.getElementById("inspDesc");
+    const inspIO = document.getElementById("inspIO");
+    function inspectComponent(name, desc) {
+      if (!inspTitle) return;
+      inspTitle.textContent = name;
+      inspTag.textContent = "\u{1F4A1} \u70B9\u51FB\u67E5\u770B\u6863\u6848";
+      inspMetaphor.textContent = desc.split("\u3011")[0] ? desc.split("\u3011")[0] + "\u3011" : "";
+      inspDesc.textContent = desc.includes("\u3011") ? desc.split("\u3011")[1] : desc;
+    }
+    const raycaster = new Raycaster();
+    const mouse = new Vector2();
+    const canvasEl = document.getElementById("gl");
+    canvasEl.addEventListener("pointerdown", (e) => {
+      if (document.body.dataset.view !== "light") return;
+      const r = canvasEl.getBoundingClientRect();
+      mouse.x = (e.clientX - r.left) / r.width * 2 - 1;
+      mouse.y = -((e.clientY - r.top) / r.height) * 2 + 1;
+      raycaster.setFromCamera(mouse, camera);
+      const hit = raycaster.intersectObjects(clickables.map((c) => c.mesh), true)[0];
+      if (hit) {
+        let targetObj = hit.object;
+        while (targetObj && !targetObj.userData.name && targetObj.parent) targetObj = targetObj.parent;
+        const found = clickables.find((c) => c.mesh === targetObj || c.mesh === hit.object);
+        if (found) {
+          inspectComponent(found.name, found.desc);
+        }
+      }
     });
-    document.getElementById("bLabels").addEventListener("click", (e) => {
-      labelsOn.v = !labelsOn.v;
-      e.target.classList.toggle("on", labelsOn.v);
-      labels.forEach((l) => l.visible = labelsOn.v);
-      leaderLines.forEach((l) => l.visible = labelsOn.v);
-    });
-    document.getElementById("rLight").addEventListener("input", (e) => {
-      state.lightRate = +e.target.value;
-      document.getElementById("oLight").textContent = state.lightRate.toFixed(1) + "\xD7";
-    });
-    document.getElementById("rSpeed").addEventListener("input", (e) => {
-      state.speed = +e.target.value;
-      document.getElementById("oSpeed").textContent = state.speed.toFixed(1) + "\xD7";
-    });
-    function update(dt0) {
-      const dt = state.paused ? 0 : dt0 * state.speed;
-      state.photonTimer += dt * state.lightRate;
-      while (state.photonTimer > 0.55) {
-        state.photonTimer -= 0.55;
-        state.alt ^= 1;
-        if (state.alt === 0) {
-          spawnPhoton({ x: -8.2, y: 1.3 }, "A");
-          const m = makeGlowDot(0.15, C2.electron);
-          m.position.copy(pipeCurve.getPointAt(0));
-          scene.add(m);
-          state.electrons.push({ mesh: m, u: 0, end: U_PSI, seg: "A" });
-          step(2);
-          state.psiElectronCount++;
-          state.kokIdx = 1 + state.psiElectronCount % 4;
-          if (state.psiElectronCount % 4 === 0) {
-            state.kokIdx = 0;
-            const bub = makeGlowDot(0.22, C2.o2);
-            bub.position.set(-8.2, -1.2, 0);
-            scene.add(bub);
-            state.o2.push({ mesh: bub, t: 0 });
-            for (let k = 0; k < 4; k++) addHToPool(-8.2);
-            state.counts.o2++;
+    const zCanvas = document.getElementById("zscheme");
+    const zCtx = zCanvas ? zCanvas.getContext("2d") : null;
+    const Z_NODES = [
+      { x: 0.08, y: 0.78, label: "\u6C34 (H\u2082O)", col: "#38bdf8" },
+      { x: 0.18, y: 0.18, label: "\u2600\uFE0F \u7535\u68AF 1 (P680*)", col: "#facc15" },
+      { x: 0.42, y: 0.58, label: "b6f (\u6CF5 H\u207A)", col: "#fb923c" },
+      { x: 0.65, y: 0.18, label: "\u2600\uFE0F \u7535\u68AF 2 (P700*)", col: "#facc15" },
+      { x: 0.9, y: 0.78, label: "\u{1F4E6} NADPH", col: "#c084fc" }
+    ];
+    function drawZScheme(electronProgress) {
+      if (!zCtx || !zCanvas) return;
+      const W = zCanvas.width, H = zCanvas.height;
+      zCtx.clearRect(0, 0, W, H);
+      zCtx.textAlign = "left";
+      zCtx.textBaseline = "top";
+      zCtx.font = 'bold 12px "PingFang SC", sans-serif';
+      zCtx.fillStyle = "#9ff0b5";
+      zCtx.fillText("Z \u65B9\u6848\uFF1A\u7535\u5B50\u80FD\u91CF\u8FC7\u5C71\u8F66 (\u4E24\u6B21\u5145\u80FD)", 14, 12);
+      zCtx.font = '10px "PingFang SC", sans-serif';
+      zCtx.fillStyle = "#64748b";
+      zCtx.fillText("\u52BF\u80FD \u2191 (\u9AD8\u80FD\u91CF)", 14, 28);
+      zCtx.strokeStyle = "#eab308";
+      zCtx.lineWidth = 2.5;
+      zCtx.beginPath();
+      Z_NODES.forEach((pt, i) => {
+        const px2 = 20 + pt.x * (W - 40);
+        const py2 = 35 + pt.y * (H - 55);
+        i === 0 ? zCtx.moveTo(px2, py2) : zCtx.lineTo(px2, py2);
+      });
+      zCtx.stroke();
+      Z_NODES.forEach((pt, idx) => {
+        const px2 = 20 + pt.x * (W - 40);
+        const py2 = 35 + pt.y * (H - 55);
+        zCtx.fillStyle = pt.col;
+        zCtx.beginPath();
+        zCtx.arc(px2, py2, 4, 0, Math.PI * 2);
+        zCtx.fill();
+        zCtx.fillStyle = pt.col;
+        if (idx === Z_NODES.length - 1) {
+          zCtx.textAlign = "right";
+          zCtx.fillText(pt.label, px2 + 8, py2 - 10);
+        } else if (idx === 0) {
+          zCtx.textAlign = "left";
+          zCtx.fillText(pt.label, px2 - 6, py2 + 14);
+        } else {
+          zCtx.textAlign = "center";
+          zCtx.fillText(pt.label, px2, py2 + (pt.y > 0.4 ? 14 : -10));
+        }
+      });
+      if (electronProgress != null) {
+        const u = Math.max(0, Math.min(1, electronProgress));
+        const segCount = Z_NODES.length - 1;
+        const idx = Math.min(segCount - 1, Math.floor(u * segCount));
+        const k = u * segCount - idx;
+        const p1 = Z_NODES[idx], p2 = Z_NODES[idx + 1];
+        const ex = 20 + (p1.x + (p2.x - p1.x) * k) * (W - 40);
+        const ey = 35 + (p1.y + (p2.y - p1.y) * k) * (H - 55);
+        zCtx.fillStyle = "#38bdf8";
+        zCtx.beginPath();
+        zCtx.arc(ex, ey, 6, 0, Math.PI * 2);
+        zCtx.fill();
+        zCtx.strokeStyle = "rgba(56, 189, 248, 0.5)";
+        zCtx.beginPath();
+        zCtx.arc(ex, ey, 10, 0, Math.PI * 2);
+        zCtx.stroke();
+      }
+    }
+    const captionEl = document.getElementById("storyCaption");
+    const TOUR_STEPS = [
+      {
+        cam: new Vector3(0.5, 0.6, 38),
+        tar: new Vector3(0.5, 0.2, 0),
+        title: "\u2460 \u5168\u666F\u53F6\u7EFF\u4F53\u5FAE\u5B87\u5B99 (\u5B8F\u89C2\u603B\u63FD \xB7 \u751F\u547D\u673A\u5668)",
+        text: "\u3010\u7F6E\u8EAB\u53F6\u7EFF\u4F53\u5185\u90E8\u3011\u5DE6\u4FA7\u56FA\u6001\u819C\u7CFB\u7EDF\u9633\u5149\u5145\u7535\u653E\u6C27\uFF0C\u53F3\u4FA7\u6DB2\u6001\u57FA\u8D28\u91CC\u5403\u7535\u6C60\u62FC\u7CD6\uFF0C\u4E2D\u95F4\u662F\u6E90\u6E90\u4E0D\u65AD\u7684\u80FD\u91CF\u5BF9\u6D41\u9AD8\u94C1\u3002\u4E24\u5382\u5206\u5DE5\u660E\u786E\u3001\u6D51\u7136\u4E00\u4F53\uFF01"
+      },
+      {
+        cam: new Vector3(-7.5, 0.6, 20),
+        tar: new Vector3(-7.5, 0.2, 0),
+        title: "\u2461 \u8FC7\u7A0B \u2460 \xB7 \u819C\u4E0A\u53D1\u7535\u5927\u575D (\u7C7B\u56CA\u4F53\u819C\u7CFB\u7EDF)",
+        text: "\u3010\u72EC\u7ACB\u786C\u4EF6\uFF1A\u56FA\u6001\u819C\u673A\u5668\u3011\u9633\u5149\u6253\u5165 PSII \u548C PSI\uFF0C\u6C34\u5206\u5B50\u5728 OEC \u5200\u53E3\u88AB\u5207\u5F00\u53D1\u51FA\u6C27\u6C14\u3002\u4E0B\u5761\u7535\u5B50\u63A8\u52A8 b6f \u6CF5\u5EFA\u8D77\u8D28\u5B50\u5927\u575D\uFF0C\u9AD8\u538B\u8D28\u5B50\u51B2\u5237\u7EB3\u7C73\u6C34\u8F6E\u673A\uFF08ATP\u5408\u9176\uFF09\u98DE\u8F6C\u538B\u51FA\u6EE1\u683C\u7535\u6C60\uFF01"
+      },
+      {
+        cam: new Vector3(5.35, 0.6, 18),
+        tar: new Vector3(5.35, 0.4, 0),
+        title: "\u2462 \u552F\u4E00\u7EBD\u5E26 \xB7 \u80FD\u91CF\u4E0E\u539F\u6599\u7A7F\u68AD\u4E13\u7EBF (\u57CE\u9645\u7269\u6D41)",
+        text: "\u3010\u4E24\u5382\u751F\u6B7B\u8110\u5E26\u3011\u5149\u53CD\u5E94\u7EDD\u4E0D\u76F4\u63A5\u9020\u7CD6\uFF0C\u62FC\u7CD6\u8F66\u95F4\u7EDD\u4E0D\u76F4\u63A5\u5403\u5149\uFF01\u4E24\u5382\u7A7A\u95F4\u72EC\u7ACB\uFF0C\u5168\u9760\u4E24\u6761\u7A7F\u68AD\u7EBF\u8FDE\u7ED3\uFF1A\u91D1\u8272\u6EE1\u7535\u9001\u53BB\u62FC\u7CD6\uFF0C\u9752\u7070\u7A7A\u7535\u56DE\u819C\u5145\u7535\uFF01"
+      },
+      {
+        cam: new Vector3(12.2, 0.6, 18),
+        tar: new Vector3(12.2, 0.6, 0),
+        title: "\u2463 \u8FC7\u7A0B \u2461 \xB7 \u78B3\u53CD\u5E94\u62FC\u7CD6\u5DE5\u573A (\u53F6\u7EFF\u4F53\u57FA\u8D28\u6DB2\u76F8)",
+        text: "\u3010\u72EC\u7ACB\u8F6F\u4EF6\uFF1A\u6DB2\u76F8\u81EA\u50AC\u5316\u5FAA\u73AF\u3011RuBisCO \u6293\u53D6\u7A7A\u6C14\u4E2D\u7684 CO\u2082\uFF0C\u541E\u4E0B\u9001\u6765\u7684\u6EE1\u7535\u7535\u6C60\u6CE8\u5165\u9AD8\u80FD\u6C22\uFF0C\u62FC\u88C5\u51FA 3\u78B3\u7CD6 G3P\uFF01\u6BCF 3 \u5708\u7EAF\u8D5A 1 \u5757\u7CD6\u51FA\u5382\uFF0C\u5176\u4F59\u56DE\u7089\u518D\u751F\u6293\u624B\uFF01"
+      }
+    ];
+    function startTourStep(idx) {
+      state.tourMode = true;
+      state.tourStep = idx;
+      state.speed = 0.8;
+      const info = TOUR_STEPS[idx - 1];
+      if (captionEl) {
+        captionEl.style.display = "block";
+        captionEl.innerHTML = `<b style="color:#ffd54a;font-size:20px">${info.title}</b><br><span style="font-size:16px">${info.text}</span>`;
+      }
+      document.querySelectorAll("#tourStepList [data-tour]").forEach((b) => {
+        b.classList.toggle("cur", +b.dataset.tour === idx);
+      });
+    }
+    function exitTour() {
+      state.tourMode = false;
+      state.speed = 1;
+      if (captionEl) captionEl.style.display = "none";
+    }
+    const bPause = document.getElementById("bLightPause");
+    if (bPause) {
+      bPause.addEventListener("click", () => {
+        state.paused = !state.paused;
+        bPause.textContent = state.paused ? "\u25B6 \u7EE7\u7EED" : "\u23F8 \u6682\u505C";
+        bPause.classList.toggle("on", state.paused);
+      });
+    }
+    const bHome = document.getElementById("bLightHome");
+    if (bHome) {
+      bHome.addEventListener("click", () => {
+        exitTour();
+        camera.position.copy(HOME_CAM);
+        controls.target.copy(HOME_TAR);
+        controls.update();
+      });
+    }
+    const bLabels = document.getElementById("bLabels");
+    let showLabels = true;
+    if (bLabels) {
+      bLabels.addEventListener("click", () => {
+        showLabels = !showLabels;
+        bLabels.classList.toggle("on", showLabels);
+        labels.forEach((l) => l.visible = showLabels);
+        leaderLines.forEach((l) => l.visible = showLabels);
+      });
+    }
+    const rLight = document.getElementById("rLight");
+    const oLight = document.getElementById("oLight");
+    if (rLight) {
+      rLight.addEventListener("input", (e) => {
+        state.lightRate = +e.target.value;
+        if (oLight) oLight.textContent = state.lightRate.toFixed(1) + "\xD7";
+      });
+    }
+    const rSpeed = document.getElementById("rSpeed");
+    const oSpeed = document.getElementById("oSpeed");
+    if (rSpeed) {
+      rSpeed.addEventListener("input", (e) => {
+        state.speed = +e.target.value;
+        if (oSpeed) oSpeed.textContent = state.speed.toFixed(1) + "\xD7";
+      });
+    }
+    const bCutLight = document.getElementById("bCutLight");
+    if (bCutLight) {
+      bCutLight.addEventListener("click", () => {
+        state.sunCutoff = !state.sunCutoff;
+        if (state.sunCutoff) {
+          state.lightRate = 0;
+          sunLight.intensity = 0.15;
+          bCutLight.textContent = "\u2600\uFE0F \u91CD\u65B0\u5F00\u542F\u592A\u9633";
+          bCutLight.style.background = "rgba(74,222,128,0.2)";
+          bCutLight.style.borderColor = "rgba(74,222,128,0.5)";
+          bCutLight.style.color = "#86efac";
+          if (expCouplingMsg) {
+            expCouplingMsg.innerHTML = '<b>\u{1F311} \u592A\u9633\u5DF2\u7184\u706D\uFF01</b>\u8FC7\u7A0B \u2460 \u5149\u53CD\u5E94\u65AD\u7535\u505C\u4EA7\u3002<br>\u6B64\u65F6\u8FC7\u7A0B \u2461 \u62FC\u7CD6\u5382\u6709 <b style="color:var(--orange)">' + state.bat.atp + ' ATP</b> \u4E0E <b style="color:var(--violet)">' + state.bat.nadph + " NADPH</b> \u5B58\u91CF\u7535\u6C60\uFF0C\u6B63\u5728\u3010\u72EC\u7ACB\u3011\u8FD0\u8F6C...";
           }
         } else {
-          spawnPhoton({ x: 7.2, y: 1.2 }, "B");
-          const m = makeGlowDot(0.15, C2.electron);
-          m.position.copy(pipeCurve.getPointAt(U_PSI));
-          scene.add(m);
-          state.electrons.push({ mesh: m, u: U_PSI, end: 1, seg: "B" });
-          step(5);
+          state.lightRate = 1;
+          sunLight.intensity = 1.8;
+          bCutLight.textContent = "\u{1F311} \u5173\u6389\u592A\u9633";
+          bCutLight.style.background = "rgba(244,63,94,0.15)";
+          bCutLight.style.borderColor = "rgba(244,63,94,0.4)";
+          bCutLight.style.color = "#fda4af";
+          if (expCouplingMsg) {
+            expCouplingMsg.innerHTML = '<b style="color:var(--green)">\u26A1 \u9633\u5149\u6062\u590D\uFF01</b>\u5149\u53CD\u5E94\u91CD\u65B0\u53D1\u7535\uFF0C\u7535\u6C60\u9001\u8FBE\uFF0C\u62FC\u7CD6\u8F66\u95F4\u77AC\u95F4\u590D\u5DE5\uFF01';
+          }
         }
+      });
+    }
+    const mLive = document.getElementById("mLightLive");
+    const mTour = document.getElementById("mLightTour");
+    const tourList = document.getElementById("tourStepList");
+    if (mLive && mTour) {
+      mLive.addEventListener("click", () => {
+        mLive.classList.add("on");
+        mTour.classList.remove("on");
+        if (tourList) tourList.style.display = "none";
+        exitTour();
+      });
+      mTour.addEventListener("click", () => {
+        mTour.classList.add("on");
+        mLive.classList.remove("on");
+        if (tourList) tourList.style.display = "flex";
+        startTourStep(1);
+      });
+    }
+    document.querySelectorAll("#tourStepList [data-tour]").forEach((b) => {
+      b.addEventListener("click", () => {
+        startTourStep(+b.dataset.tour);
+      });
+    });
+    const bLightTourBar = document.getElementById("bLightTour");
+    if (bLightTourBar) {
+      bLightTourBar.addEventListener("click", () => {
+        if (mTour) mTour.click();
+      });
+    }
+    let photonClock = 0;
+    let waterClock = 0;
+    let altLight = 0;
+    function update(dt0) {
+      const dt = state.paused ? 0 : dt0 * state.speed;
+      if (state.tourMode) {
+        const targetSetting = TOUR_STEPS[state.tourStep - 1];
+        camera.position.lerp(targetSetting.cam, 0.04);
+        controls.target.lerp(targetSetting.tar, 0.04);
+      }
+      waterClock += dt * state.lightRate;
+      if (waterClock > 1.2) {
+        waterClock = 0;
+        supplyWater();
+      }
+      photonClock += dt * state.lightRate;
+      if (photonClock > 0.6) {
+        photonClock = 0;
+        altLight ^= 1;
+        launchPhoton(null, altLight ? "PSII" : "PSI");
       }
       for (let i = state.photons.length - 1; i >= 0; i--) {
         const p = state.photons[i];
-        const dx = p.tx - p.mesh.position.x, dy = p.ty - p.mesh.position.y;
+        const dx = p.tx - p.mesh.position.x;
+        const dy = p.ty - p.mesh.position.y;
         const d = Math.hypot(dx, dy);
-        if (d < 0.25) {
+        if (d < 0.3) {
           scene.remove(p.mesh);
           state.photons.splice(i, 1);
+          p.onHit?.();
           continue;
         }
-        p.mesh.position.x += dx / d * 7.5 * dt;
-        p.mesh.position.y += dy / d * 7.5 * dt;
+        p.mesh.position.x += dx / d * 10 * dt;
+        p.mesh.position.y += dy / d * 10 * dt;
       }
-      let zu = null;
+      let activeZU = null;
       for (let i = state.electrons.length - 1; i >= 0; i--) {
         const e = state.electrons[i];
         const u0 = e.u;
-        e.u += 0.22 * dt;
+        e.u += 0.28 * dt;
+        if (e.seg === "A" && u0 < U_B6F && e.u >= U_B6F) {
+          b6f.material.emissiveIntensity = 0.9;
+          highlightStep(3);
+          const pumpH = makeGlowDot(0.13, C2.hplus);
+          pumpH.position.set(b6fX, 1.8, 0.3);
+          scene.add(pumpH);
+          fly(pumpH, new Vector3(b6fX, -1.5, 0.3), 3.5, () => {
+            scene.remove(pumpH);
+            addHToLumen(b6fX);
+          });
+        }
         if (e.u >= e.end) {
           scene.remove(e.mesh);
           state.electrons.splice(i, 1);
           if (e.seg === "B") {
-            state.psiQueue++;
-            if (state.psiQueue >= 2) {
-              state.psiQueue = 0;
-              spawnH(11, 2, 1.5, false);
-              const chip = makeGlowDot(0.2, C2.nadph);
-              flier(chip, nadphStack.position.clone().add(new Vector3(0, 0.5, 0)), 3, () => {
-                state.bat.nadph++;
-                restack(nadphStack, state.bat.nadph, C2.nadph);
-              });
+            state.psiElectrons++;
+            if (state.psiElectrons >= 2) {
+              state.psiElectrons = 0;
               state.counts.nadph++;
-              step(6);
+              highlightStep(6);
+              fnr.material.emissiveIntensity = 0.9;
+              const fullNADPH = makeNADPHMesh();
+              fullNADPH.position.set(fnrX, 2.6, 0);
+              fly(fullNADPH, HIGHWAY_END.clone().add(new Vector3(0, 0.4, 0)), 2.8, () => {
+                scene.remove(fullNADPH);
+                state.bat.nadph = Math.min(8, state.bat.nadph + 1);
+              });
             }
-          } else {
-            psi.material.emissiveIntensity = 0.7;
           }
           continue;
         }
-        if (e.seg === "A" && u0 < U_B6F && e.u >= U_B6F) {
-          b6f.material.emissiveIntensity = 0.8;
-          spawnH(0.2, 0.7, -2.4, true);
-          spawnH(-0.3, 0.6, -2.6, true);
-          step(3);
-        }
         e.mesh.position.copy(pipeCurve.getPointAt(Math.min(e.u, 1)));
-        if (e.seg === "B") zu = Math.max(zu ?? 0, U_PSI + (e.u - U_PSI) / (1 - U_PSI) * 0.28);
-        else zu = Math.max(zu ?? 0, e.u / U_PSI * 0.72);
+        activeZU = Math.max(activeZU ?? 0, e.u);
       }
-      b6f.material.emissiveIntensity = Math.max(0.18, b6f.material.emissiveIntensity - dt * 1.4);
-      psi.material.emissiveIntensity = Math.max(0.18, psi.material.emissiveIntensity - dt * 1.2);
-      state.zu = zu;
-      const now = performance.now() / 1e3;
-      state.hpool.forEach((d, i) => {
-        d.position.y = d.userData.baseY + Math.sin(now * 2 + i) * 0.07;
-      });
-      const atpFlow = state.lumenH > 4 ? 2.2 : 1.2;
-      state.atpFrac += dt * atpFlow / H_PER_ATP;
-      if (state.lumenH > 2 && Math.random() < dt * 1.2) {
-        takeHFromPool();
-        const m = makeGlowDot(0.11, C2.hplus);
-        m.position.set(atpX + (Math.random() - 0.5) * 0.3, -0.62, 0.42);
-        scene.add(m);
-        state.hplus.push({ mesh: m, vy: 1.8, toLumen: false, out: true });
-      }
-      state.rotorAngle += dt * atpFlow / 14 * Math.PI * 2;
+      state.zPos = activeZU;
+      const waterFlowSpeed = Math.min(3.2, 1 + state.lumenHCount * 0.12);
+      state.rotorAngle += dt * waterFlowSpeed * 3.5;
       rotor.rotation.y = state.rotorAngle;
-      if (state.atpFrac >= 1) {
-        state.atpFrac -= 1;
-        const chip = makeGlowDot(0.19, C2.atp);
-        flier(chip, atpStack.position.clone().add(new Vector3(0, 0.5, 0)), 3, () => {
-          state.bat.atp++;
-          restack(atpStack, state.bat.atp, C2.atp);
-        });
+      knob.rotation.y = state.rotorAngle;
+      state.atpAccum += dt * (waterFlowSpeed / H_PER_ATP) * 0.95;
+      if (state.atpAccum >= 1) {
+        state.atpAccum -= 1;
+        drainHFromLumen();
         state.counts.atp++;
-        step(4);
+        highlightStep(4);
+        const fullATP = makeATPMesh();
+        fullATP.position.set(atpX, 2.4, 0);
+        fly(fullATP, HIGHWAY_END.clone(), 3, () => {
+          scene.remove(fullATP);
+          state.bat.atp = Math.min(12, state.bat.atp + 1);
+        });
       }
-      for (let i = state.hplus.length - 1; i >= 0; i--) {
-        const h = state.hplus[i];
-        h.mesh.position.y += h.vy * dt;
-        if (h.toLumen) {
-          if (h.mesh.position.y <= -1.15) {
-            addHToPool(h.mesh.position.x);
-            scene.remove(h.mesh);
-            state.hplus.splice(i, 1);
-          }
-        } else if (h.mesh.position.y > 4.2) {
-          scene.remove(h.mesh);
-          state.hplus.splice(i, 1);
+      const nowTime = performance.now() / 1e3;
+      state.lumenHDots.forEach((dot) => {
+        dot.position.y = dot.userData.baseY + Math.sin(nowTime * 2.5 + dot.userData.seed) * 0.1;
+      });
+      stromaDust.forEach((dot) => {
+        dot.position.y = dot.userData.baseY + Math.sin(nowTime * dot.userData.speed + dot.userData.seed) * 0.25;
+        dot.position.x += Math.cos(nowTime * 0.3 + dot.userData.seed) * 5e-3;
+      });
+      const camDistRef = 34;
+      labels.forEach((l) => {
+        if (l.userData.baseScale) {
+          const d = camera.position.distanceTo(l.position);
+          const factor = Math.pow(Math.max(0.4, d / camDistRef), 0.85);
+          l.scale.copy(l.userData.baseScale).multiplyScalar(factor);
         }
-      }
-      for (let i = state.o2.length - 1; i >= 0; i--) {
-        const o = state.o2[i];
+      });
+      for (let i = state.o2Bubbles.length - 1; i >= 0; i--) {
+        const o = state.o2Bubbles[i];
         o.t += dt;
-        o.mesh.position.y += dt * 1.6;
-        o.mesh.position.x -= dt * 0.8;
-        if (o.t > 2.6) {
+        o.mesh.position.y += dt * 1.8;
+        o.mesh.position.x -= dt * 0.4;
+        if (o.t > 2.8) {
           scene.remove(o.mesh);
-          state.o2.splice(i, 1);
-        }
-      }
-      state.waterTimer += dt;
-      if (state.waterTimer > 1.1) {
-        state.waterTimer = 0;
-        const w = makeGlowDot(0.12, C2.water);
-        w.position.set(-9.3 + Math.random() * 1.2, -2.4, 0);
-        scene.add(w);
-        state.waters.push({ mesh: w, t: 0 });
-      }
-      for (let i = state.waters.length - 1; i >= 0; i--) {
-        const w = state.waters[i];
-        w.t += dt;
-        w.mesh.position.y += dt * 1.2;
-        w.mesh.position.x += dt * 0.5;
-        if (w.t > 1) {
-          scene.remove(w.mesh);
-          state.waters.splice(i, 1);
+          state.o2Bubbles.splice(i, 1);
         }
       }
       for (let i = state.fliers.length - 1; i >= 0; i--) {
         const f = state.fliers[i];
-        const d = f.mesh.position.distanceTo(f.target);
-        if (d < 0.28) {
+        const dist = f.mesh.position.distanceTo(f.target);
+        if (dist < 0.25) {
+          f.onArrive?.();
           scene.remove(f.mesh);
           state.fliers.splice(i, 1);
-          f.onArrive?.();
           continue;
         }
         f.mesh.position.lerp(f.target, Math.min(1, f.speed * dt));
       }
-      if (!state.turn) {
-        state.turnTimer -= dt;
-        if (state.turnTimer <= 0) {
-          state.turnTimer = 1.5;
-          startTurn();
-        }
-      } else {
-        state.turn.t += dt;
-        if (state.turn.phase === "work" && state.turn.t > 0.9) {
-          state.turn.phase = "g3p";
-          state.turn.t = 0;
-          const g = makeGlowDot(0.16, C2.g3p);
-          g.position.copy(RING_C).add(new Vector3(0, 0.5, 0));
-          flier(g, RING_C.clone().add(new Vector3(0, -RING_R * 0.62 - 0.4, 0)), 1.8, () => {
-            if (state.turns % CALVIN.g3pPerTurns === 0) {
-              state.g3p++;
-              const out = makeGlowDot(0.2, 13166698);
-              out.position.copy(RING_C).add(new Vector3(0, -RING_R * 0.62 - 0.5, 0));
-              flier(out, new Vector3(RING_C.x + 0.4, RING_C.y - 3.6, 0), 2, () => scene.remove(out));
-            }
-          });
-        }
-        if (state.turn.phase === "g3p" && state.turn.t > 0.8) state.turn = null;
+      state.calvinTimer -= dt;
+      if (state.calvinTimer <= 0) {
+        state.calvinTimer = 1.4;
+        triggerCalvinCycle();
       }
-      drawChart(state.zu);
+      psii.material.emissiveIntensity = Math.max(0.2, psii.material.emissiveIntensity - dt * 1.2);
+      b6f.material.emissiveIntensity = Math.max(0.2, b6f.material.emissiveIntensity - dt * 1.2);
+      psi.material.emissiveIntensity = Math.max(0.2, psi.material.emissiveIntensity - dt * 1.2);
+      fnr.material.emissiveIntensity = Math.max(0.2, fnr.material.emissiveIntensity - dt * 1.2);
+      rubiscoMesh.material.emissiveIntensity = Math.max(0.4, rubiscoMesh.material.emissiveIntensity - dt * 1);
+      drawZScheme(state.zPos);
       controls.update();
     }
-    labels.forEach((l) => l.scale.multiplyScalar(1.5));
+    const hudO2 = document.getElementById("hO2");
+    const hudAtp = document.getElementById("hBatAtp");
+    const hudNadph = document.getElementById("hBatNadph");
+    const hudTurns = document.getElementById("hTurns");
+    const hudG3p = document.getElementById("hG3p");
+    const hudKok = document.getElementById("hKok");
+    function refreshHUD() {
+      if (hudO2) hudO2.textContent = state.counts.o2;
+      if (hudAtp) hudAtp.textContent = state.bat.atp;
+      if (hudNadph) hudNadph.textContent = state.bat.nadph;
+      if (hudKok) hudKok.textContent = KOK_STATES[state.kokIdx];
+      if (hudTurns) hudTurns.textContent = state.turns;
+      if (hudG3p) hudG3p.textContent = state.g3pCount;
+    }
     return {
       scene,
       camera,
       controls,
       update,
       refreshHUD,
+      onShow() {
+        controls.enabled = true;
+      },
+      onResize(w, h) {
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        if (w / h < 1.35) {
+          camera.position.z = 38 * (1.35 / (w / h));
+        }
+      },
       getInfo() {
-        return { ...state.counts, kok: KOK_STATES[state.kokIdx], bat: { ...state.bat }, turns: state.turns, g3p: state.g3p };
+        return {
+          o2: state.counts.o2,
+          bat: { ...state.bat },
+          turns: state.turns,
+          g3p: state.g3pCount,
+          kok: KOK_STATES[state.kokIdx]
+        };
       }
     };
   }
@@ -24874,9 +25744,19 @@
     document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t.dataset.view === name));
     document.querySelectorAll(".viewpanel").forEach((p) => p.classList.toggle("active", p.dataset.panel === name));
     document.querySelectorAll(".viewbar").forEach((b) => b.classList.toggle("active", b.dataset.bar === name));
+    for (const [k, v] of Object.entries(views)) {
+      if (v.controls) v.controls.enabled = k === name;
+    }
     views[name].onShow?.();
   }
+  for (const [k, v] of Object.entries(views)) {
+    if (v.controls) v.controls.enabled = k === current;
+  }
   document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => setView(t.dataset.view)));
+  var initialView = new URLSearchParams(location.search).get("view") || location.hash.replace("#", "");
+  if (initialView && views[initialView]) {
+    setView(initialView);
+  }
   var last = performance.now();
   function frame(now) {
     const dt = Math.min((now - last) / 1e3, 0.05);

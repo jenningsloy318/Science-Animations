@@ -175,14 +175,14 @@ export function buildStory() {
   function spawnSugar() {
     const m = new THREE.Mesh(new THREE.OctahedronGeometry(0.42),
       new THREE.MeshStandardMaterial({ color: C.sugar, roughness: 0.3, emissive: '#4a5a10', emissiveIntensity: 0.5 }));
-    const i = sugarPile.children.length;
+    const i = sugars.length;
     m.position.set(((i % 4) - 1.5) * 1.15 + (Math.random() - 0.5) * 0.2, Math.floor(i / 4) * 1.05, 0.9);
-    scene.add(m);
+    sugarPile.add(m);
     sugars.push(m);
     state.counts.sugar++;
     if (sugars.length > 8) {
       const old = sugars.shift();
-      scene.remove(old);
+      sugarPile.remove(old);
       sugarPile.children.slice().forEach(c => { if (c !== old && !sugars.includes(c)) sugarPile.remove(c); });
     }
   }

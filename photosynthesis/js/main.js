@@ -30,11 +30,23 @@ function setView(name) {
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.view === name));
   document.querySelectorAll('.viewpanel').forEach(p => p.classList.toggle('active', p.dataset.panel === name));
   document.querySelectorAll('.viewbar').forEach(b => b.classList.toggle('active', b.dataset.bar === name));
+  for (const [k, v] of Object.entries(views)) {
+    if (v.controls) v.controls.enabled = (k === name);
+  }
   views[name].onShow?.();
+}
+
+for (const [k, v] of Object.entries(views)) {
+  if (v.controls) v.controls.enabled = (k === current);
 }
 
 document.querySelectorAll('.tab').forEach(t =>
   t.addEventListener('click', () => setView(t.dataset.view)));
+
+const initialView = new URLSearchParams(location.search).get('view') || location.hash.replace('#', '');
+if (initialView && views[initialView]) {
+  setView(initialView);
+}
 
 let last = performance.now();
 function frame(now) {

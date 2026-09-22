@@ -11,7 +11,8 @@ export function makeLabel(text, color = '#dbe4ee', size = 44) {
   const g2 = c.getContext('2d');
   g2.font = `bold ${size}px "PingFang SC", sans-serif`;
   g2.textAlign = 'center'; g2.textBaseline = 'middle';
-  g2.strokeStyle = 'rgba(6,11,18,0.9)'; g2.lineWidth = 10;
+  g2.lineJoin = 'round';
+  g2.strokeStyle = 'rgba(6,11,18,0.92)'; g2.lineWidth = 6;
   g2.strokeText(text, c.width / 2, c.height / 2);
   g2.fillStyle = color;
   g2.fillText(text, c.width / 2, c.height / 2);

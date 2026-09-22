@@ -26,7 +26,7 @@ def main():
 
     html = (ROOT / "index.html").read_text(encoding="utf-8")
     html = re.sub(
-        r'<script type="importmap">.*?</script>\s*<script type="module" src="js/main\.js"></script>',
+        r'<script type="importmap">.*?</script>\s*<script type="module" src="js/main\.js(?:\?[^"]*)?"></script>',
         lambda m: "<script>\n" + js.replace("</script>", "<\\/script>") + "\n</script>",
         html, flags=re.S,
     )
