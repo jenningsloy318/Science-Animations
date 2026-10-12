@@ -56,8 +56,8 @@ export class SpaceflightPlanner {
     const busGeom = new THREE.BoxGeometry(0.8, 0.8, 1.2);
     const goldFoilMat = new THREE.MeshStandardMaterial({
       color: 0xf59e0b,
-      metalness: 0.85,
-      roughness: 0.25
+      metalness: 0.85,  // NO-PROV: 渲染/材质参数或局部变量，非对外科学数值
+      roughness: 0.25  // NO-PROV: 渲染/材质参数或局部变量，非对外科学数值
     });
     const busMesh = new THREE.Mesh(busGeom, goldFoilMat);
     this.spacecraft.add(busMesh);
@@ -66,8 +66,8 @@ export class SpaceflightPlanner {
     const panelGeom = new THREE.BoxGeometry(2.4, 0.05, 0.7);
     const solarMat = new THREE.MeshStandardMaterial({
       color: 0x1e3a8a,
-      roughness: 0.3,
-      metalness: 0.5
+      roughness: 0.3,  // NO-PROV: 渲染/材质参数或局部变量，非对外科学数值
+      metalness: 0.5  // NO-PROV: 渲染/材质参数或局部变量，非对外科学数值
     });
     const panelL = new THREE.Mesh(panelGeom, solarMat);
     panelL.position.set(-1.6, 0, 0);
@@ -82,7 +82,7 @@ export class SpaceflightPlanner {
     dishGeom.rotateX(Math.PI / 2);
     const dishMat = new THREE.MeshStandardMaterial({
       color: 0xf1f5f9,
-      roughness: 0.4
+      roughness: 0.4  // NO-PROV: 渲染/材质参数或局部变量，非对外科学数值
     });
     const dishMesh = new THREE.Mesh(dishGeom, dishMat);
     dishMesh.position.set(0, 0.55, 0.2);
@@ -93,7 +93,7 @@ export class SpaceflightPlanner {
     nozzleGeom.rotateX(Math.PI / 2);
     const nozzleMat = new THREE.MeshStandardMaterial({
       color: 0x475569,
-      metalness: 0.9
+      metalness: 0.9  // NO-PROV: 渲染/材质参数或局部变量，非对外科学数值
     });
     const nozzleMesh = new THREE.Mesh(nozzleGeom, nozzleMat);
     nozzleMesh.position.set(0, 0, -0.75);
@@ -105,7 +105,7 @@ export class SpaceflightPlanner {
     const plumeMat = new THREE.MeshBasicMaterial({
       color: 0x38bdf8,
       transparent: true,
-      opacity: 0.85
+      opacity: 0.85  // NO-PROV: 渲染/材质参数或局部变量，非对外科学数值
     });
     this.plumeMesh = new THREE.Mesh(plumeGeom, plumeMat);
     this.plumeMesh.position.set(0, 0, -1.2);
@@ -120,7 +120,7 @@ export class SpaceflightPlanner {
     const trailMat = new THREE.LineBasicMaterial({
       color: 0x38bdf8,
       transparent: true,
-      opacity: 0.65
+      opacity: 0.65  // NO-PROV: 渲染/材质参数或局部变量，非对外科学数值
     });
     this.flightTrail = new THREE.Line(trailGeom, trailMat);
     this.scene.add(this.flightTrail);
@@ -147,7 +147,7 @@ export class SpaceflightPlanner {
       ? (CELESTIAL_MAP.get(destData.parent)?.semiMajorAxisKm || destData.semiMajorAxisKm)
       : destData.semiMajorAxisKm;
 
-    const muSun = 1.3271244e11; // km^3/s^2 (Standard gravitational parameter of the Sun)
+    const muSun = 1.3271244e11; // km^3/s^2 (Standard gravitational parameter of the Sun)  // PROV: measured | IAU 高斯常数 | 2015 | km³/s²
 
     // 1. Semi-major axis of transfer ellipse (km)
     const aTransferReal = (r1Real + r2Real) / 2;
@@ -217,7 +217,7 @@ export class SpaceflightPlanner {
 
     // Generate elliptical transfer arc from origin to destination intercept
     const points = [];
-    const segments = 80;
+    const segments = 80;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
     const r1 = plan.originR;
     const r2 = plan.destR;
     const a = (r1 + r2) / 2;
@@ -242,9 +242,9 @@ export class SpaceflightPlanner {
     const geom = new THREE.BufferGeometry().setFromPoints(points);
     const mat = new THREE.LineDashedMaterial({
       color: 0xf59e0b, // Golden trajectory
-      dashSize: 2.5,
-      gapSize: 1.5,
-      linewidth: 2
+      dashSize: 2.5,  // NO-PROV: 渲染/材质参数或局部变量，非对外科学数值
+      gapSize: 1.5,  // NO-PROV: 渲染/材质参数或局部变量，非对外科学数值
+      linewidth: 2  // NO-PROV: 渲染/材质参数或局部变量，非对外科学数值
     });
     this.trajectoryLine = new THREE.Line(geom, mat);
     this.trajectoryLine.computeLineDistances();
@@ -291,8 +291,8 @@ export class SpaceflightPlanner {
 
     this.activeMission = {
       plan: this.currentPlan,
-      progress: 0,
-      flightSpeed: 0.035, // Progress per second at 1x speed
+      progress: 0,  // NO-PROV: 渲染/材质参数或局部变量，非对外科学数值
+      flightSpeed: 0.035, // Progress per second at 1x speed  // PROV: illustrative | 渲染 | - | 巡航速度（演示用）
       originPos: originPos.clone(),
       isArrived: false
     };
@@ -337,7 +337,7 @@ export class SpaceflightPlanner {
     // If arrived, enter parking orbit around destination
     if (mission.isArrived) {
       const parkAngle = Date.now() * 0.002;
-      const parkRadius = 3.5;
+      const parkRadius = 3.5;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
       currentPos.set(
         destPos.x + Math.cos(parkAngle) * parkRadius,
         destPos.y,

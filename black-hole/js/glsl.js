@@ -2,7 +2,7 @@
 // 每个像素反向积分一条类光测地线（rs=1 几何单位）：
 //   ODE: d²x/dλ² = −1.5 · h² · x / r⁵ ，h² = |x × ẋ|²（守恒）
 // 数值已在 node 验证：临界撞击参数 b=2.5952 vs 解析 3√3/2=2.5981（0.1%）
-// 视界 r=1 · 光子球 r=1.5 · ISCO r=3（v=0.5c）· 阴影角径 b_crit=2.6 rs
+// 视界 r=1 · 光子球 r=1.5 · ISCO r=3（v=0.5c）· 阴影临界冲击参数 b_crit=2.6 rs（观测角径 sin α = b_crit/D）
 'use strict';
 window.BH_GLSL = {};
 
@@ -116,7 +116,7 @@ vec3 diskHit(vec3 hp, vec3 photonDir, out float alpha){
   alpha = clamp(filaments, 0.0, 1.0) * edgeIn * edgeOut * 0.82;
   float g = gFactor(hp, normalize(vec3(-hp.z, 0.0, hp.x)), photonDir);
   vec3 c = blackbody(T * g);
-  float I = pow(prof, 5.0) * pow(g, 4.0);
+  float I = pow(prof, 4.0) * pow(g, 4.0);  // F06: I ∝ T⁴；prof 即归一化温度形状
   return c * I * filaments * uDiskGain * 5.5;
 }
 

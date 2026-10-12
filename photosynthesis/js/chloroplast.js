@@ -6,7 +6,8 @@
 // ═══════════════════════════════════════════════════════
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { makeLabel, makeSphere } from './sprite.js';
+import { makeLabel, makeSphere, updateLabel } from './sprite.js';
+import { i18n } from '../../common/js/i18n.js';
 
 export function buildLeaf() {
   const scene = new THREE.Scene();
@@ -24,7 +25,13 @@ export function buildLeaf() {
   controls.enableDamping = true; controls.dampingFactor = 0.08;
   // 本视图跨度大、相机远：所有标签按远景尺寸放大，再在每帧按相机距离补偿（屏幕大小恒定）
   const allLabels = [];
-  const bigLabel = (l) => { l.scale.multiplyScalar(4.2); l.userData.base = l.scale.clone(); allLabels.push(l); return l; };
+  const bigLabel = (l) => {
+    l.scale.multiplyScalar(4.2);
+    l.userData.scaleScalar = (l.userData.scaleScalar || 1) * 4.2;
+    l.userData.base = l.scale.clone();
+    allLabels.push(l);
+    return l;
+  };
 
   // ═══ 面板 A：叶片横切（x=-30，整体缩小到 0.45）═══
   const leaf = new THREE.Group();
@@ -56,9 +63,11 @@ export function buildLeaf() {
       st.position.set(-12 + i * 6, -3.3, 0);
       leaf.add(st);
     }
-    const l = bigLabel(makeLabel('① 这是一片叶子（横切面）', '#9ff0b5'));
+    const l = bigLabel(makeLabel(i18n.t('photo.leaf_lbl_section'), '#9ff0b5'));
+    l.userData.i18nKey = 'photo.leaf_lbl_section';
     l.position.set(0, 8.4, 0); leaf.add(l);
-    const sun = bigLabel(makeLabel('☀ 阳光从这里进来', '#ffd54a'));
+    const sun = bigLabel(makeLabel(i18n.t('photo.leaf_lbl_sun'), '#ffd54a'));
+    sun.userData.i18nKey = 'photo.leaf_lbl_sun';
     sun.position.set(6, 6.2, 0); leaf.add(sun);
   }
 
@@ -93,8 +102,12 @@ export function buildLeaf() {
       ch.rotation.y = i * 0.7;
       cell.add(ch);
     });
-    const l = bigLabel(makeLabel('② 放大其中一个细胞', '#9ff0b5')); l.position.set(0, 13.8, 0); cell.add(l);
-    const l2 = bigLabel(makeLabel('绿色豆豆 = 叶绿体', '#d6ffe2')); l2.position.set(0, -8, 6); cell.add(l2);
+    const l = bigLabel(makeLabel(i18n.t('photo.leaf_lbl_cell'), '#9ff0b5'));
+    l.userData.i18nKey = 'photo.leaf_lbl_cell';
+    l.position.set(0, 13.8, 0); cell.add(l);
+    const l2 = bigLabel(makeLabel(i18n.t('photo.leaf_lbl_chloro_dots'), '#d6ffe2'));
+    l2.userData.i18nKey = 'photo.leaf_lbl_chloro_dots';
+    l2.position.set(0, -8, 6); cell.add(l2);
   }
   const ringB = new THREE.Mesh(new THREE.TorusGeometry(1.9, 0.13, 10, 40),
     new THREE.MeshBasicMaterial({ color: 0xffd54a }));
@@ -134,15 +147,19 @@ export function buildLeaf() {
     lam.position.set(0.4, 2.6, 0); lam.rotation.z = 0.12; big.add(lam);
     const lam2 = lam.clone(); lam2.position.set(-3.6, -0.4, 0); lam2.rotation.z = -0.1; big.add(lam2);
 
-    const l = bigLabel(makeLabel('③ 再放大：叶绿体（剖开）', '#9ff0b5')); l.position.set(0, 12.2, 0); big.add(l);
-    const l2 = bigLabel(makeLabel('硬币堆 = 基粒（光反应②在这层膜上）', '#ffd54a'));
+    const l = bigLabel(makeLabel(i18n.t('photo.leaf_lbl_chloro_cut'), '#9ff0b5'));
+    l.userData.i18nKey = 'photo.leaf_lbl_chloro_cut';
+    l.position.set(0, 12.2, 0); big.add(l);
+    const l2 = bigLabel(makeLabel(i18n.t('photo.leaf_lbl_grana'), '#ffd54a'));
+    l2.userData.i18nKey = 'photo.leaf_lbl_grana';
     l2.position.set(0, -9.2, 5); big.add(l2);
-    const l3 = bigLabel(makeLabel('周围液体 = 基质（合成循环③在这）', '#7dd3fc'));
+    const l3 = bigLabel(makeLabel(i18n.t('photo.leaf_lbl_stroma'), '#7dd3fc'));
+    l3.userData.i18nKey = 'photo.leaf_lbl_stroma';
     l3.position.set(0, -12, 5); big.add(l3);
   }
 
   // ═══ 放大镜锥（漫画 callout：从高亮圈张到下一面板）═══
-  function zoomWedge(fromWorld, ringR, toPanelX, halfH, label) {
+  function zoomWedge(fromWorld, ringR, toPanelX, halfH, labelKey) {
     const a1 = new THREE.Vector2(fromWorld.x - ringR * 0.75, fromWorld.y + ringR * 0.9);
     const a2 = new THREE.Vector2(fromWorld.x - ringR * 0.75, fromWorld.y - ringR * 0.9);
     const b1 = new THREE.Vector2(toPanelX, fromWorld.y + halfH);
@@ -160,22 +177,26 @@ export function buildLeaf() {
         [new THREE.Vector3(p.x, p.y, 0), new THREE.Vector3(q.x, q.y, 0)]), lineMat);
       scene.add(line);
     });
-    const l = bigLabel(makeLabel(label, '#ffd54a')); l.scale.multiplyScalar(0.8);
+    const l = bigLabel(makeLabel(i18n.t(labelKey), '#ffd54a'));
+    l.scale.multiplyScalar(0.8);
+    l.userData.scaleScalar = (l.userData.scaleScalar || 1) * 0.8;
+    l.userData.base = l.scale.clone();
+    l.userData.i18nKey = labelKey;
     l.position.set((fromWorld.x + toPanelX) / 2, fromWorld.y + halfH + 1.4, 0);
     scene.add(l);
   }
   // A 的世界坐标：leaf 组缩放 0.45；cell 组缩放 0.9
   const hlAWorld = HL_A.clone().multiplyScalar(0.45).add(leaf.position);
   const hlBWorld = HL_B.clone().multiplyScalar(0.9).add(new THREE.Vector3(cell.position.x, 0, 0));
-  zoomWedge(hlAWorld, 2.1 * 0.45, cell.position.x - 11.5, 10.4, '放大 →');
-  zoomWedge(hlBWorld, 1.9 * 0.9, big.position.x - 10.6, 7.6, '再放大 →');
+  zoomWedge(hlAWorld, 2.1 * 0.45, cell.position.x - 11.5, 10.4, 'photo.leaf_lbl_zoom1');
+  zoomWedge(hlBWorld, 1.9 * 0.9, big.position.x - 10.6, 7.6, 'photo.leaf_lbl_zoom2');
 
   // ═══ 相机 & 导览 ═══
   const HOME = { cam: new THREE.Vector3(6.7, 3, 70), target: new THREE.Vector3(6.7, 0, 0) };
   const TOUR = [
-    { cam: new THREE.Vector3(-34, 1.5, 16), target: new THREE.Vector3(-34, 0, 0), name: '① 叶片横切' },
-    { cam: new THREE.Vector3(-6, 1.5, 16), target: new THREE.Vector3(-6, 0, 0), name: '② 叶肉细胞' },
-    { cam: new THREE.Vector3(19.5, 2, 15), target: new THREE.Vector3(19.5, 0.5, 0), name: '③ 叶绿体' },
+    { cam: new THREE.Vector3(-34, 1.5, 16), target: new THREE.Vector3(-34, 0, 0), key: 'photo.leaf_tour_1' },
+    { cam: new THREE.Vector3(-6, 1.5, 16), target: new THREE.Vector3(-6, 0, 0), key: 'photo.leaf_tour_2' },
+    { cam: new THREE.Vector3(19.5, 2, 15), target: new THREE.Vector3(19.5, 0.5, 0), key: 'photo.leaf_tour_3' },
   ];
   camera.position.copy(HOME.cam);
   controls.target.copy(HOME.target);
@@ -186,13 +207,21 @@ export function buildLeaf() {
     controls.target.lerp(target, Math.min(1, dt * 2.2 * speed));
   }
   document.getElementById('bLeafTour').addEventListener('click', e => {
-    if (state.tour >= 0) { state.tour = -1; setPaused(false); e.target.textContent = '🎬 自动导览'; e.target.classList.remove('on'); controls.enabled = true; flyTo(HOME.cam, HOME.target, 0.999); }
-    else { setPaused(false); state.tour = 0; state.t = 0; e.target.textContent = '⏹ 停止导览'; e.target.classList.add('on'); controls.enabled = false; }
+    if (state.tour >= 0) {
+      state.tour = -1; setPaused(false);
+      e.target.textContent = i18n.t('photo.btn_leaf_tour');
+      e.target.classList.remove('on'); controls.enabled = true;
+      flyTo(HOME.cam, HOME.target, 0.999);
+    } else {
+      setPaused(false); state.tour = 0; state.t = 0;
+      e.target.textContent = i18n.t('photo.btn_leaf_stop');
+      e.target.classList.add('on'); controls.enabled = false;
+    }
   });
   function setPaused(v) {
     state.paused = v;
     const b = document.getElementById('bLeafPause');
-    b.textContent = v ? '▶ 继续' : '⏸ 暂停';
+    b.textContent = v ? i18n.t('photo.btn_resume') : i18n.t('photo.btn_pause');
     b.classList.toggle('on', v);
   }
   document.getElementById('bLeafPause').addEventListener('click', () => setPaused(!state.paused));
@@ -201,7 +230,8 @@ export function buildLeaf() {
     setPaused(false);
     state.tour = -1;
     const b = document.getElementById('bLeafTour');
-    b.textContent = '🎬 自动导览'; b.classList.remove('on'); controls.enabled = true;
+    b.textContent = i18n.t('photo.btn_leaf_tour');
+    b.classList.remove('on'); controls.enabled = true;
   });
 
   const tourHold = 1.6;
@@ -230,8 +260,20 @@ export function buildLeaf() {
     controls.update();
   }
 
+  function onLangChange(lang) {
+    for (const l of allLabels) {
+      if (l.userData.i18nKey) {
+        updateLabel(l, i18n.t(l.userData.i18nKey));
+      }
+    }
+    const bTour = document.getElementById('bLeafTour');
+    if (bTour) bTour.textContent = state.tour >= 0 ? i18n.t('photo.btn_leaf_stop') : i18n.t('photo.btn_leaf_tour');
+    const bPause = document.getElementById('bLeafPause');
+    if (bPause) bPause.textContent = state.paused ? i18n.t('photo.btn_resume') : i18n.t('photo.btn_pause');
+  }
+
   return {
-    scene, camera, update,
-    getInfo() { return { tour: state.tour, name: state.tour >= 0 ? TOUR[state.tour].name : '全景' }; },
+    scene, camera, update, onLangChange,
+    getInfo() { return { tour: state.tour, name: state.tour >= 0 ? i18n.t(TOUR[state.tour].key) : '全景' }; },
   };
 }

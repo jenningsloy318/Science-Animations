@@ -4,6 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>观天仪器 observatory-3d · 我们怎么观测宇宙</title>
+<script>
+  (function() {
+    try {
+      var p = new URLSearchParams(window.location.search).get('lang');
+      var s = (p === 'zh' || p === 'en') ? p : null;
+      if (!s) s = localStorage.getItem('science_lang');
+      if (!s && navigator.language) s = navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+      var lang = (s === 'en' ? 'en' : 'zh');
+      document.documentElement.lang = (lang === 'zh' ? 'zh-CN' : 'en');
+      document.documentElement.classList.add('i18n-loading');
+    } catch(e) {}
+  })();
+</script>
 <style>
 :root{
   --bg:#05070a; --panel:rgba(12,16,22,.82); --line:rgba(216,178,92,.22);
@@ -23,7 +36,7 @@ canvas{outline:none}
 
 /* 顶部 */
 #topbar{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;align-items:center;gap:14px;
-  padding:10px 16px 10px 104px;background:linear-gradient(180deg,rgba(5,7,10,.92),rgba(5,7,10,.55) 70%,transparent);
+  padding:10px 16px 10px 206px;background:linear-gradient(180deg,rgba(5,7,10,.92),rgba(5,7,10,.55) 70%,transparent);
   pointer-events:none}
 #topbar>*{pointer-events:auto}
 #title{font-size:15px;font-weight:700;letter-spacing:.06em;white-space:nowrap}
@@ -188,11 +201,40 @@ input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;bac
   box-shadow:0 4px 16px rgba(0,0,0,.35);transition:background .25s,border-color .25s,transform .25s}
 #homeBtn:hover{background:rgba(30,36,54,.95);border-color:rgba(216,178,92,.7);color:#fff;transform:translateY(-1px)}
 #homeBtn:active{transform:translateY(0)}
+
+/* ── 顶部语言切换药丸 ── */
+.lang-switch {
+  position: fixed; top: 14px; left: 106px; z-index: 60;
+  display: inline-flex; align-items: center; gap: 2px;
+  padding: 3px 6px;
+  background: rgba(15, 20, 34, 0.82); backdrop-filter: blur(10px);
+  border: 1px solid rgba(216, 178, 92, 0.4); border-radius: 19px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+}
+.lang-btn {
+  min-width: 38px; min-height: 28px; padding: 2px 8px;
+  background: transparent; border: none; border-radius: 14px;
+  color: var(--dim); font-size: 11.5px; font-weight: 600; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: all 0.2s ease;
+}
+.lang-btn:hover { color: var(--txt); }
+.lang-btn.active {
+  background: rgba(216, 178, 92, 0.22);
+  color: var(--gold);
+}
+.i18n-loading [data-i18n] {
+  visibility: hidden;
+}
 </style>
 </head>
 <body>
 
 <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
+<div class="lang-switch" role="group" aria-label="Language Switcher">
+  <button id="btnLangZh" class="lang-btn active" data-lang-btn="zh">中</button>
+  <button id="btnLangEn" class="lang-btn" data-lang-btn="en">EN</button>
+</div>
 
 <canvas id="gl"></canvas>
 <div id="vignette"></div>

@@ -18,6 +18,7 @@ import { updateDrivetrain, GEAR_RATIOS } from './kinematics.js';
 import { buildTorqueFlow, updateTorqueFlow } from './torque-flow.js';
 import { ICE_STEPS, EV_STEPS } from './ignition-story.js';
 import { updateTelemetry } from './telemetry.js';
+import { CAR_I18N } from './i18n.js';
 
 // The closed 21-part identifier inventory actually wired into the inspector
 // by this entry module (SCENARIO-016/SCENARIO-017).
@@ -33,6 +34,216 @@ let isRunning = false;
 let isBraking = false;
 let soundEnabled = true;
 let torqueFlow = null;
+let currentLang = 'zh';
+
+function resolveLanguage() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const urlLang = params.get('lang');
+    if (urlLang === 'zh' || urlLang === 'en') {
+      localStorage.setItem('science_lang', urlLang);
+      return urlLang;
+    }
+    const stored = localStorage.getItem('science_lang');
+    if (stored === 'zh' || stored === 'en') return stored;
+    const nav = (navigator.language || navigator.userLanguage || '').toLowerCase();
+    return nav.startsWith('zh') ? 'zh' : 'en';
+  } catch (e) {
+    return 'zh';
+  }
+}
+
+function setLanguage(lang) {
+  if (lang !== 'zh' && lang !== 'en') return;
+  currentLang = lang;
+  try {
+    localStorage.setItem('science_lang', lang);
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('lang') !== lang) {
+      url.searchParams.set('lang', lang);
+      window.history.replaceState({}, '', url.toString());
+    }
+  } catch (e) {}
+
+  document.documentElement.lang = (lang === 'zh') ? 'zh-CN' : 'en';
+
+  const homeBtn = document.getElementById('homeBtn');
+  if (homeBtn) {
+    homeBtn.href = `../index.html?lang=${lang}`;
+  }
+
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
+
+  applyLanguage();
+}
+
+function updateExplainer() {
+  const titleEl = document.getElementById('explainerTitle');
+  const textEl = document.getElementById('kidText');
+  if (titleEl) {
+    titleEl.innerText = currentMode === 'ICE'
+      ? (currentLang === 'en' ? CAR_I18N.explainerTitle.ICE.en : CAR_I18N.explainerTitle.ICE.zh)
+      : (currentLang === 'en' ? CAR_I18N.explainerTitle.EV.en : CAR_I18N.explainerTitle.EV.zh);
+  }
+  if (textEl) {
+    textEl.innerText = currentMode === 'ICE'
+      ? (currentLang === 'en' ? CAR_I18N.kidText.ICE.en : CAR_I18N.kidText.ICE.zh)
+      : (currentLang === 'en' ? CAR_I18N.kidText.EV.en : CAR_I18N.kidText.EV.zh);
+  }
+}
+
+function updateGearDesc() {
+  const descEl = document.getElementById('gearDescText');
+  if (descEl && CAR_I18N.gearDescMap[currentGear]) {
+    descEl.innerText = currentLang === 'en'
+      ? CAR_I18N.gearDescMap[currentGear].en
+      : CAR_I18N.gearDescMap[currentGear].zh;
+  }
+}
+
+function updateDiffHint() {
+  const hintEl = document.getElementById('diffHintText');
+  if (hintEl) {
+    hintEl.innerText = steerAngleDeg === 0
+      ? (currentLang === 'en' ? CAR_I18N.diffHint.straight.en : CAR_I18N.diffHint.straight.zh)
+      : (currentLang === 'en' ? CAR_I18N.diffHint.turn.en : CAR_I18N.diffHint.turn.zh);
+  }
+}
+
+function applyLanguage() {
+  const isEn = currentLang === 'en';
+
+  const appTitle = document.getElementById('appTitle');
+  if (appTitle) appTitle.textContent = isEn ? CAR_I18N.appTitle.en : CAR_I18N.appTitle.zh;
+  const appSub = document.getElementById('appSub');
+  if (appSub) appSub.textContent = isEn ? CAR_I18N.appSub.en : CAR_I18N.appSub.zh;
+  const homeTxt = document.getElementById('homeTxt');
+  if (homeTxt) homeTxt.textContent = isEn ? CAR_I18N.homeTxt.en : CAR_I18N.homeTxt.zh;
+
+  const shellBtn = document.getElementById('shellBtn');
+  if (shellBtn) {
+    shellBtn.innerText = shellVisible
+      ? (isEn ? CAR_I18N.shellBtn.showEn : CAR_I18N.shellBtn.showZh)
+      : (isEn ? CAR_I18N.shellBtn.hideEn : CAR_I18N.shellBtn.hideZh);
+  }
+  const soundBtn = document.getElementById('soundBtn');
+  if (soundBtn) {
+    soundBtn.innerText = soundEnabled
+      ? (isEn ? CAR_I18N.soundBtn.onEn : CAR_I18N.soundBtn.onZh)
+      : (isEn ? CAR_I18N.soundBtn.muteEn : CAR_I18N.soundBtn.muteZh);
+  }
+  const btnICE = document.getElementById('btnICE');
+  if (btnICE) btnICE.innerText = isEn ? CAR_I18N.btnICE.en : CAR_I18N.btnICE.zh;
+  const btnEV = document.getElementById('btnEV');
+  if (btnEV) btnEV.innerText = isEn ? CAR_I18N.btnEV.en : CAR_I18N.btnEV.zh;
+
+  const inspHint = document.getElementById('inspHint');
+  if (inspHint) inspHint.textContent = isEn ? CAR_I18N.inspHint.en : CAR_I18N.inspHint.zh;
+
+  const focusTitle = document.getElementById('focusTitle');
+  if (focusTitle) focusTitle.textContent = isEn ? CAR_I18N.focusTitle.en : CAR_I18N.focusTitle.zh;
+  document.querySelectorAll('.focus-btn').forEach(btn => {
+    const key = btn.dataset.focus;
+    if (CAR_I18N.focusPresets[key]) {
+      btn.textContent = isEn ? CAR_I18N.focusPresets[key].en : CAR_I18N.focusPresets[key].zh;
+    }
+  });
+
+  const hudTitle = document.getElementById('hudTitle');
+  if (hudTitle) hudTitle.textContent = isEn ? CAR_I18N.hudTitle.en : CAR_I18N.hudTitle.zh;
+  const hudLblRpm = document.getElementById('hudLblRpm');
+  if (hudLblRpm) hudLblRpm.textContent = isEn ? CAR_I18N.hudLblRpm.en : CAR_I18N.hudLblRpm.zh;
+  const hudLblGear = document.getElementById('hudLblGear');
+  if (hudLblGear) hudLblGear.textContent = isEn ? CAR_I18N.hudLblGear.en : CAR_I18N.hudLblGear.zh;
+  const hudLblStroke = document.getElementById('hudLblStroke');
+  if (hudLblStroke) hudLblStroke.textContent = isEn ? CAR_I18N.hudLblStroke.en : CAR_I18N.hudLblStroke.zh;
+  const hudLblDiff = document.getElementById('hudLblDiff');
+  if (hudLblDiff) hudLblDiff.textContent = isEn ? CAR_I18N.hudLblDiff.en : CAR_I18N.hudLblDiff.zh;
+  const hudLblCoolant = document.getElementById('hudLblCoolant');
+  if (hudLblCoolant) hudLblCoolant.textContent = isEn ? CAR_I18N.hudLblCoolant.en : CAR_I18N.hudLblCoolant.zh;
+  const hudLblOil = document.getElementById('hudLblOil');
+  if (hudLblOil) hudLblOil.textContent = isEn ? CAR_I18N.hudLblOil.en : CAR_I18N.hudLblOil.zh;
+
+  const cockpitTitle = document.getElementById('cockpitTitle');
+  if (cockpitTitle) cockpitTitle.textContent = isEn ? CAR_I18N.cockpitTitle.en : CAR_I18N.cockpitTitle.zh;
+  const brakeTxt = document.getElementById('brakeTxt');
+  if (brakeTxt) brakeTxt.textContent = isEn ? CAR_I18N.brakeTxt.en : CAR_I18N.brakeTxt.zh;
+  const brakeSub = document.getElementById('brakeSub');
+  if (brakeSub) brakeSub.textContent = isEn ? CAR_I18N.brakeSub.en : CAR_I18N.brakeSub.zh;
+  const replayBtnTxt = document.getElementById('replayBtnTxt');
+  if (replayBtnTxt) replayBtnTxt.textContent = isEn ? CAR_I18N.replayBtnTxt.en : CAR_I18N.replayBtnTxt.zh;
+  const replaySubTxt = document.getElementById('replaySubTxt');
+  if (replaySubTxt) replaySubTxt.textContent = isEn ? CAR_I18N.replaySubTxt.en : CAR_I18N.replaySubTxt.zh;
+  const throttleLbl = document.getElementById('throttleLbl');
+  if (throttleLbl) throttleLbl.textContent = isEn ? CAR_I18N.throttleLbl.en : CAR_I18N.throttleLbl.zh;
+  const gearTitle = document.getElementById('gearTitle');
+  if (gearTitle) gearTitle.textContent = isEn ? CAR_I18N.gearTitle.en : CAR_I18N.gearTitle.zh;
+  const steerTitle = document.getElementById('steerTitle');
+  if (steerTitle) steerTitle.textContent = isEn ? CAR_I18N.steerTitle.en : CAR_I18N.steerTitle.zh;
+  const steerLbl = document.getElementById('steerLbl');
+  if (steerLbl) steerLbl.textContent = isEn ? CAR_I18N.steerLbl.en : CAR_I18N.steerLbl.zh;
+  const strokeTitle = document.getElementById('strokeTitle');
+  if (strokeTitle) strokeTitle.textContent = isEn ? CAR_I18N.strokeTitle.en : CAR_I18N.strokeTitle.zh;
+  const btnModeAuto = document.getElementById('btnModeAuto');
+  if (btnModeAuto) btnModeAuto.textContent = isEn ? CAR_I18N.btnModeAuto.en : CAR_I18N.btnModeAuto.zh;
+  const btnModeStep = document.getElementById('btnModeStep');
+  if (btnModeStep) btnModeStep.textContent = isEn ? CAR_I18N.btnModeStep.en : CAR_I18N.btnModeStep.zh;
+  const btnNextStroke = document.getElementById('btnNextStroke');
+  if (btnNextStroke) btnNextStroke.textContent = isEn ? CAR_I18N.btnNextStroke.en : CAR_I18N.btnNextStroke.zh;
+
+  const scName1 = document.getElementById('scName1');
+  if (scName1) scName1.textContent = isEn ? CAR_I18N.scName1.en : CAR_I18N.scName1.zh;
+  const scDesc1 = document.getElementById('scDesc1');
+  if (scDesc1) scDesc1.textContent = isEn ? CAR_I18N.scDesc1.en : CAR_I18N.scDesc1.zh;
+  const scName2 = document.getElementById('scName2');
+  if (scName2) scName2.textContent = isEn ? CAR_I18N.scName2.en : CAR_I18N.scName2.zh;
+  const scDesc2 = document.getElementById('scDesc2');
+  if (scDesc2) scDesc2.textContent = isEn ? CAR_I18N.scDesc2.en : CAR_I18N.scDesc2.zh;
+  const scName3 = document.getElementById('scName3');
+  if (scName3) scName3.textContent = isEn ? CAR_I18N.scName3.en : CAR_I18N.scName3.zh;
+  const scDesc3 = document.getElementById('scDesc3');
+  if (scDesc3) scDesc3.textContent = isEn ? CAR_I18N.scDesc3.en : CAR_I18N.scDesc3.zh;
+  const scName4 = document.getElementById('scName4');
+  if (scName4) scName4.textContent = isEn ? CAR_I18N.scName4.en : CAR_I18N.scName4.zh;
+  const scDesc4 = document.getElementById('scDesc4');
+  if (scDesc4) scDesc4.textContent = isEn ? CAR_I18N.scDesc4.en : CAR_I18N.scDesc4.zh;
+
+  const cmpTitle = document.getElementById('cmpTitle');
+  if (cmpTitle) cmpTitle.textContent = isEn ? CAR_I18N.cmpTitle.en : CAR_I18N.cmpTitle.zh;
+  const cmpIceTitle = document.getElementById('cmpIceTitle');
+  if (cmpIceTitle) cmpIceTitle.textContent = isEn ? CAR_I18N.cmpIceTitle.en : CAR_I18N.cmpIceTitle.zh;
+  const cmpEvTitle = document.getElementById('cmpEvTitle');
+  if (cmpEvTitle) cmpEvTitle.textContent = isEn ? CAR_I18N.cmpEvTitle.en : CAR_I18N.cmpEvTitle.zh;
+  const cmpIceList = document.getElementById('cmpIceList');
+  if (cmpIceList) {
+    const list = isEn ? CAR_I18N.cmpIceList.en : CAR_I18N.cmpIceList.zh;
+    cmpIceList.innerHTML = list.map(item => `<li>${item}</li>`).join('');
+  }
+  const cmpEvList = document.getElementById('cmpEvList');
+  if (cmpEvList) {
+    const list = isEn ? CAR_I18N.cmpEvList.en : CAR_I18N.cmpEvList.zh;
+    cmpEvList.innerHTML = list.map(item => `<li>${item}</li>`).join('');
+  }
+
+  document.querySelectorAll('.gear-btn').forEach(btn => {
+    const g = btn.dataset.gear;
+    btn.textContent = isEn ? (g === 'R' ? 'R' : `G${g}`) : `${g}挡`;
+  });
+
+  const dir = steerAngleDeg === 0
+    ? (isEn ? 'Straight' : '直行')
+    : (steerAngleDeg > 0 ? (isEn ? 'Right' : '右转') : (isEn ? 'Left' : '左转'));
+  const steerEl = document.getElementById('steerText');
+  if (steerEl) steerEl.innerText = `${steerAngleDeg}° ${dir}`;
+
+  updateStartBtn();
+  updateGearDesc();
+  updateDiffHint();
+  updateExplainer();
+  updateHUD(0);
+}
 
 // Dynamic animation hooks & effect systems
 let radiatorFan = null;
@@ -457,7 +668,12 @@ function runStoryStep(stepIndex) {
 
   const captionEl = document.getElementById('storyCaption');
   captionEl.style.display = 'block';
-  captionEl.innerText = `第 ${storyStep + 1} / ${steps.length} 步 · ${step.caption}`;
+  const capText = (currentLang === 'en' && CAR_I18N.storyCaptionsEn && CAR_I18N.storyCaptionsEn[step.id])
+    ? CAR_I18N.storyCaptionsEn[step.id]
+    : step.caption;
+  captionEl.innerText = currentLang === 'en'
+    ? `Step ${storyStep + 1} of ${steps.length} · ${capText}`
+    : `第 ${storyStep + 1} / ${steps.length} 步 · ${capText}`;
 
   // SCENARIO-007: camera flight onto the part that is working right now.
   setFocusPreset(step.cameraFocus);
@@ -531,9 +747,11 @@ function finishStory() {
   setFocusPreset(currentMode === 'ICE' ? 'engine' : 'evMotor');
 
   const captionEl = document.getElementById('storyCaption');
-  captionEl.innerText = currentMode === 'ICE'
-    ? '🎉 点火完成！发动机怠速运转中 —— 点「重新播放点火」再看一遍。'
-    : '🎉 就绪！电机瞬间输出最大扭矩 —— 点「重新播放点火」再看一遍。';
+  if (captionEl) {
+    captionEl.innerText = currentMode === 'ICE'
+      ? (currentLang === 'en' ? CAR_I18N.storyCaptionDone.ICE.en : CAR_I18N.storyCaptionDone.ICE.zh)
+      : (currentLang === 'en' ? CAR_I18N.storyCaptionDone.EV.en : CAR_I18N.storyCaptionDone.EV.zh);
+  }
 
   showReplayBtn();
 }
@@ -571,10 +789,7 @@ function switchMode(mode) {
   document.getElementById('btnICE').className = mode === 'ICE' ? 'mode-btn active ice' : 'mode-btn ice';
   document.getElementById('btnEV').className  = mode === 'EV'  ? 'mode-btn active ev'  : 'mode-btn ev';
 
-  document.getElementById('explainerTitle').innerText = mode === 'ICE' ? '💡 燃油车动力传输全脉络：' : '💡 电动车动力传输全脉络：';
-  document.getElementById('kidText').innerText = mode === 'ICE'
-    ? '观察起动机推齿！按下启动键 ➔ 蓄电池给起动机供电 ➔ 电磁吸铁推动单向齿轮伸出咬合飞轮外齿圈 ➔ 起动机把发动机甩起来 ➔ 火花塞点火爆发，发动机自我运转 ➔ 起动机推齿自动退回！'
-    : '观察青色电流！电池包释放高压电 ➔ 逆变器转为三相交流电 ➔ 电机用旋转磁场让转子飞速旋转 ➔ 无需变速箱与活塞，瞬间输出最大扭矩直接带动车轮！';
+  updateExplainer();
 
   setFocusPreset(mode === 'ICE' ? 'overview' : 'evMotor');
 }
@@ -594,7 +809,13 @@ function updateStartBtn() {
   const startBtn = document.getElementById('startBtn');
   const startBtnText = document.getElementById('startBtnText');
   startBtn.className = (currentMode === 'ICE' ? 'start-btn ice' : 'start-btn ev') + (isRunning ? ' running' : '');
-  startBtnText.innerText = isRunning ? '熄火 Stop' : '一键启动';
+  if (storyPlaying && !isRunning) {
+    startBtnText.innerText = currentLang === 'en' ? CAR_I18N.startBtnText.crankEn : CAR_I18N.startBtnText.crankZh;
+  } else {
+    startBtnText.innerText = isRunning
+      ? (currentLang === 'en' ? CAR_I18N.startBtnText.runEn : CAR_I18N.startBtnText.runZh)
+      : (currentLang === 'en' ? CAR_I18N.startBtnText.idleEn : CAR_I18N.startBtnText.idleZh);
+  }
 }
 
 // ═══════════ 主循环 ═══════════
@@ -973,12 +1194,20 @@ function updateEngine(theta) {
 
 function updateHUD(dt) {
   document.getElementById('hudRpm').innerText = `${Math.round(currentRPM)} RPM`;
-  document.getElementById('hudGear').innerText = currentGear === 'R' ? 'R (倒车挡)' : `${currentGear}挡`;
+  document.getElementById('hudGear').innerText = currentGear === 'R'
+    ? (currentLang === 'en' ? 'R (Reverse)' : 'R (倒车挡)')
+    : (currentLang === 'en' ? `Gear ${currentGear}` : `${currentGear}挡`);
 
-  const strokeNames = ['1. 吸气', '2. 压缩', '3. 做功', '4. 排气'];
+  const strokeNamesZh = ['1. 吸气', '2. 压缩', '3. 做功', '4. 排气'];
+  const strokeNamesEn = ['1. Intake', '2. Compression', '3. Power', '4. Exhaust'];
+  const strokeNames = currentLang === 'en' ? strokeNamesEn : strokeNamesZh;
   document.getElementById('hudStroke').innerText = strokeNames[strokeStepIndex % 4];
 
-  const diffText = steerAngleDeg === 0 ? '直行 (左右轮同速)' : (steerAngleDeg > 0 ? '右转 (左外轮较快)' : '左转 (右外轮较快)');
+  const diffText = steerAngleDeg === 0
+    ? (currentLang === 'en' ? 'Straight (Equal speed)' : '直行 (左右轮同速)')
+    : (steerAngleDeg > 0
+        ? (currentLang === 'en' ? 'Right Turn (Left outer faster)' : '右转 (左外轮较快)')
+        : (currentLang === 'en' ? 'Left Turn (Right outer faster)' : '左转 (右外轮较快)'));
   document.getElementById('hudDiff').innerText = diffText;
 
   // SCENARIO-020/021: live coolant temperature and oil pressure, updated by
@@ -1047,10 +1276,11 @@ function setupEvents() {
 
   document.getElementById('steerSlider').addEventListener('input', (e) => {
     steerAngleDeg = parseFloat(e.target.value);
-    document.getElementById('steerText').innerText = `${steerAngleDeg}° ${steerAngleDeg === 0 ? '直行' : (steerAngleDeg > 0 ? '右转' : '左转')}`;
-    document.getElementById('diffHintText').innerText = steerAngleDeg === 0
-      ? '直行时，左右半轴与车轮转速完全相同。'
-      : `转弯时，差速器内部行星齿轮自转，让外侧车轮转得比内侧快！`;
+    const dir = steerAngleDeg === 0
+      ? (currentLang === 'en' ? 'Straight' : '直行')
+      : (steerAngleDeg > 0 ? (currentLang === 'en' ? 'Right' : '右转') : (currentLang === 'en' ? 'Left' : '左转'));
+    document.getElementById('steerText').innerText = `${steerAngleDeg}° ${dir}`;
+    updateDiffHint();
   });
 
   const gearRatiosMap = { '1': 0.4, '2': 0.65, '3': 0.85, '4': 1.1, 'R': -0.5 };
@@ -1068,7 +1298,7 @@ function setupEvents() {
       btn.classList.add('active');
       currentGear = btn.dataset.gear;
       gearRatio = gearRatiosMap[currentGear];
-      document.getElementById('gearDescText').innerText = gearDescMap[currentGear];
+      updateGearDesc();
     });
   });
 
@@ -1109,8 +1339,31 @@ function setupEvents() {
     storyStep = 0;
     playIgnitionStory();
   });
+
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      setLanguage(btn.dataset.lang);
+    });
+  });
+
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'science_lang' && (e.newValue === 'zh' || e.newValue === 'en')) {
+      if (e.newValue !== currentLang) {
+        setLanguage(e.newValue);
+      }
+    }
+  });
+
+  window.addEventListener('pageshow', () => {
+    const latest = resolveLanguage();
+    if (latest !== currentLang) {
+      setLanguage(latest);
+    }
+  });
 }
 
 // ═══════════ 启动 ═══════════
 init3D();
 switchMode('ICE');
+currentLang = resolveLanguage();
+setLanguage(currentLang);

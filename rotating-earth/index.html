@@ -4,6 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>旋转地球 — 实时昼夜与四季 · Rotating Earth</title>
+  <script>
+    (function() {
+      try {
+        var p = new URLSearchParams(window.location.search).get('lang');
+        var s = (p === 'zh' || p === 'en') ? p : null;
+        if (!s) s = localStorage.getItem('science_lang');
+        if (!s && navigator.language) s = navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+        var lang = (s === 'en' ? 'en' : 'zh');
+        document.documentElement.lang = (lang === 'zh' ? 'zh-CN' : 'en');
+        document.documentElement.classList.add('i18n-loading');
+      } catch(e) {}
+    })();
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --gold: #d8b25c; --ink: #e8e4d8; --dim: #9aa3b0; }
@@ -14,6 +27,29 @@
     }
     #gl { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; cursor: grab; }
     #gl:active { cursor: grabbing; }
+
+    /* ── 语言切换药丸 ── */
+    .lang-switch {
+      display: inline-flex; align-items: center; gap: 2px;
+      padding: 3px 6px; border-radius: 999px;
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14);
+      backdrop-filter: blur(8px);
+    }
+    .lang-btn {
+      min-width: 36px; min-height: 26px; padding: 2px 8px;
+      background: transparent; border: none; border-radius: 13px;
+      color: var(--dim); font-size: 12px; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: all 0.18s ease;
+    }
+    .lang-btn:hover { color: var(--ink); }
+    .lang-btn.active {
+      background: rgba(216, 178, 92, 0.22);
+      color: var(--gold);
+    }
+    .i18n-loading [data-i18n] {
+      visibility: hidden;
+    }
 
     #topbar {
       position: fixed; top: 0; left: 0; right: 0; z-index: 20;
@@ -151,11 +187,15 @@
        pointer-events:none;backdrop-filter:blur(8px)"></div>
 
   <div id="topbar">
-    <a class="btn" href="../index.html">🏠</a>
+    <a id="homeBtn" class="btn" href="../index.html" title="返回首页 Back to home">🏠 <span id="homeTxt">首页</span></a>
+    <div class="lang-switch" role="group" aria-label="Language Switcher">
+      <button id="btnLangZh" class="lang-btn active" data-lang-btn="zh">中</button>
+      <button id="btnLangEn" class="lang-btn" data-lang-btn="en">EN</button>
+    </div>
     <span id="title">旋转地球 · Rotating Earth<small>实时昼夜 / 四季 / 岁差 — 拖拽转视角 · 滚轮缩放</small></span>
     <span id="fps">— fps</span>
     <button class="btn" id="resetBtn">⟲ 复位</button>
-    <span class="q-lab">画质</span>
+    <span class="q-lab" id="qLab">画质</span>
     <button class="btn q2 on" data-q="2k">2K</button>
     <button class="btn q2" data-q="4k">4K</button>
     <button class="btn q2" data-q="8k">8K</button>
@@ -167,19 +207,19 @@
     <div id="countryCard"></div>
     <div id="panel"></div>
     <div id="pipelineBox">
-      <div style="font-size:12px;color:var(--gold);font-weight:700;margin-bottom:4px">📐 数据流水线</div>
+      <div id="pipeHead" style="font-size:12px;color:var(--gold);font-weight:700;margin-bottom:4px">📐 数据流水线</div>
       <div id="pipe"></div>
     </div>
   </div>
 
   <div id="timeBar">
     <button class="btn" id="playBtn">⏸</button>
-    <span class="chip" data-speed="1">×1 真实</span>
+    <span class="chip" data-speed="1" id="speed1">×1 真实</span>
     <span class="chip" data-speed="600">×600</span>
-    <span class="chip on" data-speed="3600">×3600（1天=24秒）</span>
+    <span class="chip on" data-speed="3600" id="speed3600">×3600（1天=24秒）</span>
     <span class="chip" data-speed="21600">×21600</span>
-    <label>时刻 <input type="range" id="utcSlider" min="0" max="24" step="0.05" value="6"><b id="utcVal">06:00</b></label>
-    <label>日期 <input type="range" id="dateSlider" min="1" max="365" step="1" value="172"><b id="dateVal">6月21日</b></label>
+    <label id="lblUtc">时刻 <input type="range" id="utcSlider" min="0" max="24" step="0.05" value="6"><b id="utcVal">06:00</b></label>
+    <label id="lblDate">日期 <input type="range" id="dateSlider" min="1" max="365" step="1" value="172"><b id="dateVal">6月21日</b></label>
   </div>
 
   <div id="physBar">
@@ -195,8 +235,8 @@
 
   <div id="help">
     <div class="card">
-      <h2>🖐 怎么玩</h2>
-      <table>
+      <h2 id="helpTitle">🖐 怎么玩</h2>
+      <table id="helpTable">
         <tr><td>拖拽 / 滚轮</td><td>旋转视角 / 缩放</td></tr>
         <tr><td>1–5</td><td>五个视角：昼夜 · 四季 · 自转 · 昼长 · 岁差</td></tr>
         <tr><td>日期滑块</td><td>看四季：直射点移动、晨昏线倾斜</td></tr>
@@ -207,7 +247,7 @@
         <tr><td>空格</td><td>播放 / 暂停</td></tr>
         <tr><td>R / H</td><td>复位视角 / 帮助</td></tr>
       </table>
-      <div class="note">
+      <div class="note" id="helpNote">
         <b>真实数据标注</b>：地轴倾角 23.44°；恒星日 23h56m4s；赤道自转 465.1 m/s（1674 km/h）；
         岁差 25,772 年。昼夜贴图 = NASA Blue Marble；城市灯光 = NASA Black Marble（Suomi NPP，
         2012 合成）；云层为卫星快照（会以示意速度漂移，非实时气象）。

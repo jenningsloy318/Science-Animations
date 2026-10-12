@@ -38,6 +38,32 @@ body {
 }
 #homeBtn:active { transform: translateY(0); }
 
+/* ── 顶部语言切换药丸 ── */
+.lang-switch {
+  position: fixed; top: 14px; left: 116px; z-index: 100;
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 44px; padding: 0 4px;
+  background: rgba(15, 23, 42, 0.82); backdrop-filter: blur(12px);
+  border: 1px solid rgba(148, 163, 184, 0.22); border-radius: 22px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+.lang-btn {
+  min-width: 44px; min-height: 44px; padding: 0 10px;
+  background: transparent; border: none; border-radius: 22px;
+  color: #94a3b8; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: all 0.2s ease;
+}
+.lang-btn:hover { color: #f8fafc; }
+.lang-btn.active {
+  background: rgba(245, 158, 11, 0.22);
+  color: #fbbf24;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.2);
+}
+.i18n-loading [data-i18n] {
+  visibility: hidden;
+}
+
 header {
   position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
   text-align: center; z-index: 10; pointer-events: none; width: 94vw;

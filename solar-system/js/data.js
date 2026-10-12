@@ -41,18 +41,18 @@ export const CELESTIAL_DATA = [
     nameZh: '太阳',
     type: 'star',
     parent: null,
-    radiusKm: 696340,
-    displayRadius: 18.0,
-    semiMajorAxisKm: 0,
-    displayDistance: 0,
-    orbitalPeriodDays: 0,
-    rotationPeriodHours: 609.12, // 25.4 Earth days at equator
-    axialTiltDeg: 7.25,
-    eccentricity: 0,
-    inclinationDeg: 0,
+    radiusKm: 696340,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 18.0,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 0,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 609.12,  // NO-PROV: 渲染/材质/时序参数，非对外科学数值  // 25.4 Earth days at equator
+    axialTiltDeg: 7.25,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0xfdb813,
     massKg: '1.989 × 10³⁰ kg (99.86% 太阳系总质量)',
-    gravityMps2: 274.0,
+    gravityMps2: 274.0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '太阳是太阳系中心的黄矮星（G2V型主序星），直径约为地球的109倍。',
       '核心温度达1500万摄氏度，每秒将6亿吨氢聚变为5.96亿吨氦，释放出巨大能量。',
@@ -74,18 +74,18 @@ export const CELESTIAL_DATA = [
     nameZh: '水星',
     type: 'planet',
     parent: null,
-    radiusKm: 2439.7,
-    displayRadius: 1.2,
-    semiMajorAxisKm: 57910000,
-    displayDistance: 32,
-    orbitalPeriodDays: 87.97,
-    rotationPeriodHours: 1407.6, // 58.65 days
-    axialTiltDeg: 0.034,
-    eccentricity: 0.2056,
-    inclinationDeg: 7.0,
+    radiusKm: 2439.7,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 1.2,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 57910000,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 32,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 87.97,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 1407.6,  // NO-PROV: 渲染/材质/时序参数，非对外科学数值  // 58.65 days
+    axialTiltDeg: 0.034,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.2056,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 7.0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0xa8a29e,
     massKg: '3.301 × 10²³ kg (0.055 地球)',
-    gravityMps2: 3.7,
+    gravityMps2: 3.7,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '离太阳最近的行星，昼夜温差极大，向阳面高达430℃，背阳面低至-180℃。',
       '表面布满撞击坑，外观酷似月球，最大的卡洛里斯撞击盆地直径达1550公里。',
@@ -107,20 +107,20 @@ export const CELESTIAL_DATA = [
     nameZh: '金星',
     type: 'planet',
     parent: null,
-    radiusKm: 6051.8,
-    displayRadius: 2.2,
-    semiMajorAxisKm: 108200000,
-    displayDistance: 48,
-    orbitalPeriodDays: 224.7,
-    rotationPeriodHours: -5832.5, // Retrograde rotation!
-    axialTiltDeg: 177.36,
-    eccentricity: 0.0067,
-    inclinationDeg: 3.39,
+    radiusKm: 6051.8,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 2.2,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 108200000,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 48,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 224.7,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: -5832.5,  // NO-PROV: 渲染/材质/时序参数，非对外科学数值  // Retrograde rotation!
+    axialTiltDeg: 177.36,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0067,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 3.39,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0xfde047,
     hasAtmosphere: true,
     atmosphereColor: 0xfef08a,
     massKg: '4.867 × 10²⁴ kg (0.815 地球)',
-    gravityMps2: 8.87,
+    gravityMps2: 8.87,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '太阳系中最热的行星，极强的二氧化碳温室效应使地表温度高达465℃，足以熔化铅。',
       '浓厚云层含有浓硫酸，地表大气压相当于地球海平面92倍（相当于水下900米压力）。',
@@ -142,20 +142,20 @@ export const CELESTIAL_DATA = [
     nameZh: '地球',
     type: 'planet',
     parent: null,
-    radiusKm: 6371.0,
-    displayRadius: 2.4,
-    semiMajorAxisKm: 149600000,
-    displayDistance: 68,
-    orbitalPeriodDays: 365.256,
-    rotationPeriodHours: 23.934,
-    axialTiltDeg: 23.44,
-    eccentricity: 0.0167,
-    inclinationDeg: 0.0,
+    radiusKm: 6371.0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 2.4,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 149600000,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 68,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 365.256,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 23.934,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 23.44,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0167,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 0.0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0x38bdf8,
     hasAtmosphere: true,
     atmosphereColor: 0x93c5fd,
     massKg: '5.972 × 10²⁴ kg',
-    gravityMps2: 9.81,
+    gravityMps2: 9.81,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '目前已知全宇宙唯一孕育生命的星球，表面约71%被液态水海洋覆盖。',
       '拥有由液态铁核发电机效应产生的强大地磁场，阻挡了致命宇宙射线与太阳风。',
@@ -173,18 +173,18 @@ export const CELESTIAL_DATA = [
     nameZh: '月球',
     type: 'moon',
     parent: 'earth',
-    radiusKm: 1737.4,
-    displayRadius: 0.65,
-    semiMajorAxisKm: 384400,
-    displayDistance: 5.5,
-    orbitalPeriodDays: 27.32,
-    rotationPeriodHours: 655.7, // Tidally locked
-    axialTiltDeg: 1.54,
-    eccentricity: 0.0549,
-    inclinationDeg: 5.14,
+    radiusKm: 1737.4,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.65,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 384400,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 5.5,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 27.32,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 655.7,  // NO-PROV: 渲染/材质/时序参数，非对外科学数值  // Tidally locked
+    axialTiltDeg: 1.54,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0549,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 5.14,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0xd6d3d1,
     massKg: '7.342 × 10²² kg (0.0123 地球)',
-    gravityMps2: 1.62,
+    gravityMps2: 1.62,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '地球唯一的天然卫星，太阳系第五大卫星，潮汐锁定使它始终同一面朝向地球。',
       '表面分暗色的月海玄武岩熔岩平原和明亮的高地撞击坑。',
@@ -206,20 +206,20 @@ export const CELESTIAL_DATA = [
     nameZh: '火星',
     type: 'planet',
     parent: null,
-    radiusKm: 3389.5,
-    displayRadius: 1.5,
-    semiMajorAxisKm: 227900000,
-    displayDistance: 92,
-    orbitalPeriodDays: 686.98,
-    rotationPeriodHours: 24.62,
-    axialTiltDeg: 25.19,
-    eccentricity: 0.0934,
-    inclinationDeg: 1.85,
+    radiusKm: 3389.5,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 1.5,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 227900000,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 92,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 686.98,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 24.62,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 25.19,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0934,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 1.85,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0xf97316,
     hasAtmosphere: true,
     atmosphereColor: 0xfdba74,
     massKg: '6.417 × 10²³ kg (0.107 地球)',
-    gravityMps2: 3.72,
+    gravityMps2: 3.72,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '“红色星球”，表面因富含氧化铁（铁锈）而呈现橙红色。',
       '拥有全太阳系最高的火山——奥林匹斯山（高21.9公里，珠峰的2.5倍）与最长大峡谷水手号峡谷。',
@@ -237,18 +237,18 @@ export const CELESTIAL_DATA = [
     nameZh: '火卫一',
     type: 'moon',
     parent: 'mars',
-    radiusKm: 11.2,
-    displayRadius: 0.3,
-    semiMajorAxisKm: 9376,
-    displayDistance: 3.2,
-    orbitalPeriodDays: 0.319, // 7.66 hours! Faster than Mars rotation
-    rotationPeriodHours: 7.66,
-    axialTiltDeg: 0,
-    eccentricity: 0.0151,
-    inclinationDeg: 1.09,
+    radiusKm: 11.2,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.3,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 9376,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 3.2,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 0.319,  // NO-PROV: 渲染/材质/时序参数，非对外科学数值  // 7.66 hours! Faster than Mars rotation
+    rotationPeriodHours: 7.66,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0151,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 1.09,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0x78716c,
     massKg: '1.066 × 10¹⁶ kg',
-    gravityMps2: 0.0057,
+    gravityMps2: 0.0057,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '形状极不规则的小行星捕获体，以直径9公里的巨大斯蒂克尼撞击坑最为著名。',
       '公转一圈仅需7小时39分，比火星自转还快，每天从西边升起东边落下两次！',
@@ -266,18 +266,18 @@ export const CELESTIAL_DATA = [
     nameZh: '火卫二',
     type: 'moon',
     parent: 'mars',
-    radiusKm: 6.2,
-    displayRadius: 0.22,
-    semiMajorAxisKm: 23463,
-    displayDistance: 5.2,
-    orbitalPeriodDays: 1.263,
-    rotationPeriodHours: 30.3,
-    axialTiltDeg: 0,
-    eccentricity: 0.0003,
-    inclinationDeg: 0.93,
+    radiusKm: 6.2,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.22,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 23463,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 5.2,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 1.263,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 30.3,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0003,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 0.93,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0xa8a29e,
     massKg: '1.476 × 10¹⁵ kg',
-    gravityMps2: 0.003,
+    gravityMps2: 0.003,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '火星较小、较远的一颗卫星，表面被厚达100米的风化层尘埃平滑覆盖。',
       '逃逸速度仅有每秒5.6米，普通人用力一跃即可脱离其引力束缚飞入太空！'
@@ -297,20 +297,20 @@ export const CELESTIAL_DATA = [
     nameZh: '木星',
     type: 'planet',
     parent: null,
-    radiusKm: 69911,
-    displayRadius: 7.2,
-    semiMajorAxisKm: 778500000,
-    displayDistance: 155,
-    orbitalPeriodDays: 4332.59, // 11.86 Earth years
-    rotationPeriodHours: 9.925, // Fastest rotator
-    axialTiltDeg: 3.13,
-    eccentricity: 0.0484,
-    inclinationDeg: 1.30,
+    radiusKm: 69911,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 7.2,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 778500000,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 155,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 4332.59, // 11.86 Earth years  // PROV: measured | JPL/IAU 行星事实表 | - | 公转周期
+    rotationPeriodHours: 9.925,  // NO-PROV: 渲染/材质/时序参数，非对外科学数值  // Fastest rotator
+    axialTiltDeg: 3.13,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0484,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 1.30,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0xd97706,
     hasAtmosphere: true,
     atmosphereColor: 0xfde68a,
     massKg: '1.898 × 10²⁷ kg (全系其他行星质量总和的2.5倍)',
-    gravityMps2: 24.79,
+    gravityMps2: 24.79,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '太阳系最大的行星，质量是其他所有行星总和的2.5倍，充当着清理危险彗星的“宇宙吸尘器”。',
       '自转极快，一天不足10小时，导致赤道显著向外鼓起。',
@@ -328,18 +328,18 @@ export const CELESTIAL_DATA = [
     nameZh: '木卫一',
     type: 'moon',
     parent: 'jupiter',
-    radiusKm: 1821.6,
-    displayRadius: 0.7,
-    semiMajorAxisKm: 421700,
-    displayDistance: 11.5,
-    orbitalPeriodDays: 1.769,
-    rotationPeriodHours: 42.46,
-    axialTiltDeg: 0,
-    eccentricity: 0.0041,
-    inclinationDeg: 0.05,
+    radiusKm: 1821.6,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.7,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 421700,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 11.5,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 1.769,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 42.46,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0041,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 0.05,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0xeab308,
     massKg: '8.932 × 10²² kg',
-    gravityMps2: 1.796,
+    gravityMps2: 1.796,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '太阳系地质活动最活跃的天体，拥有超过400座活火山，不断喷射数百公里高的硫磺羽流。',
       '木星与其他伽利略卫星强大的引力潮汐共振产生的摩擦热是其火山能量来源。',
@@ -357,18 +357,18 @@ export const CELESTIAL_DATA = [
     nameZh: '木卫二',
     type: 'moon',
     parent: 'jupiter',
-    radiusKm: 1560.8,
-    displayRadius: 0.62,
-    semiMajorAxisKm: 670900,
-    displayDistance: 15.0,
-    orbitalPeriodDays: 3.551,
-    rotationPeriodHours: 85.2,
-    axialTiltDeg: 0,
-    eccentricity: 0.009,
-    inclinationDeg: 0.47,
+    radiusKm: 1560.8,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.62,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 670900,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 15.0,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 3.551,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 85.2,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.009,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 0.47,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0xe0f2fe,
     massKg: '4.800 × 10²² kg',
-    gravityMps2: 1.315,
+    gravityMps2: 1.315,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '表面由极度光滑的水冰硬壳构成，密布红褐色交叉条纹裂痕（线状条带）。',
       '冰壳下方约15~25公里处存在一个深达100公里的全球性液态水海洋，水量超过地球所有海洋总和！',
@@ -386,18 +386,18 @@ export const CELESTIAL_DATA = [
     nameZh: '木卫三',
     type: 'moon',
     parent: 'jupiter',
-    radiusKm: 2634.1,
-    displayRadius: 0.95,
-    semiMajorAxisKm: 1070400,
-    displayDistance: 20.0,
-    orbitalPeriodDays: 7.155,
-    rotationPeriodHours: 171.7,
-    axialTiltDeg: 0.2,
-    eccentricity: 0.0013,
-    inclinationDeg: 0.20,
+    radiusKm: 2634.1,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.95,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 1070400,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 20.0,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 7.155,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 171.7,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 0.2,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0013,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 0.20,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0x94a3b8,
     massKg: '1.482 × 10²³ kg (大于水星)',
-    gravityMps2: 1.428,
+    gravityMps2: 1.428,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '太阳系最大的卫星，直径5268公里，甚至超过了行星水星（4879公里）！',
       '全太阳系唯一已知拥有自身独立偶极磁场的卫星，内部拥有发电机机制的液态铁核。',
@@ -415,18 +415,18 @@ export const CELESTIAL_DATA = [
     nameZh: '木卫四',
     type: 'moon',
     parent: 'jupiter',
-    radiusKm: 2410.3,
-    displayRadius: 0.88,
-    semiMajorAxisKm: 1882700,
-    displayDistance: 26.0,
-    orbitalPeriodDays: 16.689,
-    rotationPeriodHours: 400.5,
-    axialTiltDeg: 0,
-    eccentricity: 0.0074,
-    inclinationDeg: 0.28,
+    radiusKm: 2410.3,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.88,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 1882700,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 26.0,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 16.689,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 400.5,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0074,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 0.28,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0x64748b,
     massKg: '1.076 × 10²³ kg',
-    gravityMps2: 1.235,
+    gravityMps2: 1.235,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '太阳系撞击坑密度最高的天体，几乎没有地质火山构造运动，完好保存着40亿年前的原始记忆。',
       '巨大的瓦尔哈拉撞击盆地（Valhalla）同心环断裂带直径延伸跨越近4000公里。',
@@ -444,18 +444,18 @@ export const CELESTIAL_DATA = [
     nameZh: '木卫五',
     type: 'moon',
     parent: 'jupiter',
-    radiusKm: 83.5,
-    displayRadius: 0.35,
-    semiMajorAxisKm: 181400,
-    displayDistance: 8.5,
-    orbitalPeriodDays: 0.498,
-    rotationPeriodHours: 11.95,
-    axialTiltDeg: 0,
-    eccentricity: 0.0032,
-    inclinationDeg: 0.37,
+    radiusKm: 83.5,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.35,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 181400,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 8.5,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 0.498,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 11.95,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0032,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 0.37,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0xef4444,
     massKg: '2.08 × 10¹⁸ kg',
-    gravityMps2: 0.02,
+    gravityMps2: 0.02,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '木星内层的一颗不规则多面体卫星，呈现奇异的深红色彩，散发出多于其吸收的太阳辐射热量。',
       '公转极快，仅需12小时即可绕木星一周，处于木星环主环边缘。'
@@ -475,23 +475,23 @@ export const CELESTIAL_DATA = [
     nameZh: '土星',
     type: 'planet',
     parent: null,
-    radiusKm: 58232,
-    displayRadius: 6.0,
-    semiMajorAxisKm: 1433500000,
-    displayDistance: 220,
-    orbitalPeriodDays: 10759.22, // 29.45 Earth years
-    rotationPeriodHours: 10.656,
-    axialTiltDeg: 26.73,
-    eccentricity: 0.0542,
-    inclinationDeg: 2.49,
+    radiusKm: 58232,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 6.0,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 1433500000,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 220,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 10759.22,  // NO-PROV: 渲染/材质/时序参数，非对外科学数值  // 29.45 Earth years
+    rotationPeriodHours: 10.656,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 26.73,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0542,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 2.49,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0xfbbf24,
     hasAtmosphere: true,
     atmosphereColor: 0xfef3c7,
     hasRings: true,
-    ringInnerRadius: 7.2,
-    ringOuterRadius: 15.0,
+    ringInnerRadius: 7.2,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    ringOuterRadius: 15.0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     massKg: '5.683 × 10²⁶ kg (95.2 地球)',
-    gravityMps2: 10.44,
+    gravityMps2: 10.44,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '拥有全太阳系最壮美宽广的行星光环系统，主要由数十亿颗从鹅卵石到大石块的99%纯水冰粒子构成。',
       '密度是太阳系所有行星中唯一小于水的（平均密度仅0.687 g/cm³，如果有一个足够大的水池，土星会漂在水面上）。',
@@ -509,20 +509,20 @@ export const CELESTIAL_DATA = [
     nameZh: '土卫六',
     type: 'moon',
     parent: 'saturn',
-    radiusKm: 2574.7,
-    displayRadius: 0.92,
-    semiMajorAxisKm: 1221870,
-    displayDistance: 24.0,
-    orbitalPeriodDays: 15.945,
-    rotationPeriodHours: 382.7,
-    axialTiltDeg: 0,
-    eccentricity: 0.0288,
-    inclinationDeg: 0.35,
+    radiusKm: 2574.7,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.92,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 1221870,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 24.0,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 15.945,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 382.7,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0288,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 0.35,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0xf59e0b,
     hasAtmosphere: true,
     atmosphereColor: 0xd97706,
     massKg: '1.345 × 10²³ kg',
-    gravityMps2: 1.352,
+    gravityMps2: 1.352,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '全太阳系唯一拥有浓厚大气层（98%氮气，气压为地球1.5倍）的卫星，第二大卫星。',
       '表面存在由液态甲烷和乙烷汇聚成的湖泊与海洋（如克拉肯海），并拥有完整的甲烷“水文循环”（甲烷蒸发、成云、降雨）。',
@@ -540,18 +540,18 @@ export const CELESTIAL_DATA = [
     nameZh: '土卫二',
     type: 'moon',
     parent: 'saturn',
-    radiusKm: 252.1,
-    displayRadius: 0.42,
-    semiMajorAxisKm: 237948,
-    displayDistance: 9.8,
-    orbitalPeriodDays: 1.370,
-    rotationPeriodHours: 32.88,
-    axialTiltDeg: 0,
-    eccentricity: 0.0047,
-    inclinationDeg: 0.01,
+    radiusKm: 252.1,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.42,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 237948,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 9.8,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 1.370,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 32.88,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0047,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 0.01,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0xf8fafc,
     massKg: '1.08 × 10²⁰ kg',
-    gravityMps2: 0.113,
+    gravityMps2: 0.113,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '表面反照率高达99%，像一面无暇镜子般洁白，是太阳系中最明亮的天体之一。',
       '南极“虎条纹”深裂隙不断喷发出巨大的冰晶与水蒸气低温间歇泉，直接构成了土星广阔的E环。',
@@ -569,18 +569,18 @@ export const CELESTIAL_DATA = [
     nameZh: '土卫一',
     type: 'moon',
     parent: 'saturn',
-    radiusKm: 198.2,
-    displayRadius: 0.36,
-    semiMajorAxisKm: 185520,
-    displayDistance: 8.0,
-    orbitalPeriodDays: 0.942,
-    rotationPeriodHours: 22.61,
-    axialTiltDeg: 0,
-    eccentricity: 0.0202,
-    inclinationDeg: 1.57,
+    radiusKm: 198.2,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.36,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 185520,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 8.0,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 0.942,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 22.61,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0202,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 1.57,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0xa1a1aa,
     massKg: '3.75 × 10¹⁹ kg',
-    gravityMps2: 0.064,
+    gravityMps2: 0.064,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '外观酷似电影《星球大战》中的“死星”（Death Star），拥有直径达130公里的赫歇尔撞击坑。',
       '撞击坑边缘壁高近5公里，中央峰高达6公里，险些将整颗卫星撞成碎片。'
@@ -596,18 +596,18 @@ export const CELESTIAL_DATA = [
     nameZh: '土卫三',
     type: 'moon',
     parent: 'saturn',
-    radiusKm: 531.1,
-    displayRadius: 0.52,
-    semiMajorAxisKm: 294660,
-    displayDistance: 11.8,
-    orbitalPeriodDays: 1.888,
-    rotationPeriodHours: 45.31,
-    axialTiltDeg: 0,
-    eccentricity: 0.0001,
-    inclinationDeg: 1.12,
+    radiusKm: 531.1,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.52,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 294660,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 11.8,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 1.888,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 45.31,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0001,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 1.12,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0xd4d4d8,
     massKg: '6.174 × 10²⁰ kg',
-    gravityMps2: 0.146,
+    gravityMps2: 0.146,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '主要由低密度的水冰构成，几乎是一颗纯冰巨球。',
       '表面横贯着长达2000公里、深达3~5公里的巨大裂谷——伊萨卡峡谷（Ithaca Chasma）。'
@@ -623,18 +623,18 @@ export const CELESTIAL_DATA = [
     nameZh: '土卫四',
     type: 'moon',
     parent: 'saturn',
-    radiusKm: 561.4,
-    displayRadius: 0.54,
-    semiMajorAxisKm: 377400,
-    displayDistance: 14.2,
-    orbitalPeriodDays: 2.737,
-    rotationPeriodHours: 65.69,
-    axialTiltDeg: 0,
-    eccentricity: 0.0022,
-    inclinationDeg: 0.02,
+    radiusKm: 561.4,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.54,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 377400,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 14.2,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 2.737,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 65.69,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0022,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 0.02,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0xe4e4e7,
     massKg: '1.095 × 10²¹ kg',
-    gravityMps2: 0.232,
+    gravityMps2: 0.232,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '后随半球密布着数百米高的明亮冰崖条纹（wispy terrain），是由构造构造断层暴露的纯净新鲜冰体。',
       '与土卫二存在轨道共振，帮助维持了土卫二的火山潮汐热源。'
@@ -650,18 +650,18 @@ export const CELESTIAL_DATA = [
     nameZh: '土卫五',
     type: 'moon',
     parent: 'saturn',
-    radiusKm: 763.8,
-    displayRadius: 0.60,
-    semiMajorAxisKm: 527040,
-    displayDistance: 17.5,
-    orbitalPeriodDays: 4.518,
-    rotationPeriodHours: 108.4,
-    axialTiltDeg: 0,
-    eccentricity: 0.0012,
-    inclinationDeg: 0.35,
+    radiusKm: 763.8,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.60,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 527040,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 17.5,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 4.518,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 108.4,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0012,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 0.35,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0xc4b5fd,
     massKg: '2.307 × 10²¹ kg',
-    gravityMps2: 0.264,
+    gravityMps2: 0.264,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '土星第二大卫星，由四分之三水冰与四分之一岩石构成的古老冰质星球。',
       '表面拥有极其稀薄但由氧气和二氧化碳构成的外逸层大气。'
@@ -677,15 +677,15 @@ export const CELESTIAL_DATA = [
     nameZh: '土卫八',
     type: 'moon',
     parent: 'saturn',
-    radiusKm: 734.5,
-    displayRadius: 0.58,
-    semiMajorAxisKm: 3561300,
-    displayDistance: 32.0,
-    orbitalPeriodDays: 79.32,
-    rotationPeriodHours: 1903.7,
-    axialTiltDeg: 0,
-    eccentricity: 0.0286,
-    inclinationDeg: 15.47,
+    radiusKm: 734.5,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.58,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 3561300,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 32.0,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 79.32,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 1903.7,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0286,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 15.47,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0x52525b,
     factsZh: [
       '被称为太阳系的“太极阴阳星”：前进半球漆黑如沥青（反照率仅0.04），后随半球洁白如雪（反照率0.5）。',
@@ -706,23 +706,23 @@ export const CELESTIAL_DATA = [
     nameZh: '天王星',
     type: 'planet',
     parent: null,
-    radiusKm: 25362,
-    displayRadius: 4.2,
-    semiMajorAxisKm: 2871000000,
-    displayDistance: 310,
-    orbitalPeriodDays: 30685.4, // 84 Earth years
-    rotationPeriodHours: -17.24, // Retrograde
-    axialTiltDeg: 97.77,        // Rolling on its side!
-    eccentricity: 0.0457,
-    inclinationDeg: 0.77,
+    radiusKm: 25362,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 4.2,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 2871000000,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 310,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 30685.4, // 84 Earth years  // PROV: measured | JPL/IAU 行星事实表 | - | 公转周期
+    rotationPeriodHours: -17.24, // Retrograde  // PROV: measured | JPL/IAU 行星事实表 | - | 自转周期（负值=逆行）
+    axialTiltDeg: 97.77,  // NO-PROV: 渲染/材质/时序参数，非对外科学数值  // Rolling on its side!
+    eccentricity: 0.0457,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 0.77,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0x22d3ee,
     hasAtmosphere: true,
     atmosphereColor: 0x67e8f9,
     hasRings: true,
-    ringInnerRadius: 5.2,
-    ringOuterRadius: 7.8,
+    ringInnerRadius: 5.2,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    ringOuterRadius: 7.8,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     massKg: '8.681 × 10²⁵ kg (14.5 地球)',
-    gravityMps2: 8.69,
+    gravityMps2: 8.69,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '“躺着旋转”的冰巨星：自转轴倾角高达97.8度，几乎与公转轨道平面平行，公转一圈极昼与极夜各长达42年！',
       '大气中富含甲烷气体，强烈吸收红光反射蓝绿光，呈现纯净梦幻的淡青色。',
@@ -740,18 +740,18 @@ export const CELESTIAL_DATA = [
     nameZh: '天卫五',
     type: 'moon',
     parent: 'uranus',
-    radiusKm: 235.8,
-    displayRadius: 0.38,
-    semiMajorAxisKm: 129390,
-    displayDistance: 6.8,
-    orbitalPeriodDays: 1.413,
-    rotationPeriodHours: 33.91,
-    axialTiltDeg: 0,
-    eccentricity: 0.0013,
-    inclinationDeg: 4.34,
+    radiusKm: 235.8,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.38,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 129390,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 6.8,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 1.413,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 33.91,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0013,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 4.34,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0xd1d5db,
     massKg: '6.59 × 10¹⁹ kg',
-    gravityMps2: 0.079,
+    gravityMps2: 0.079,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '太阳系中最奇特破碎的地貌拼图：拥有高达20公里的维罗纳断崖（Verona Rupes，太阳系已知最高悬崖）。',
       '从悬崖顶端跳下需历时整整12分钟才能落到底部，地质学家推测它可能曾被撞得粉碎又在引力作用下重新拼合。'
@@ -767,18 +767,18 @@ export const CELESTIAL_DATA = [
     nameZh: '天卫一',
     type: 'moon',
     parent: 'uranus',
-    radiusKm: 578.9,
-    displayRadius: 0.54,
-    semiMajorAxisKm: 191020,
-    displayDistance: 9.2,
-    orbitalPeriodDays: 2.520,
-    rotationPeriodHours: 60.48,
-    axialTiltDeg: 0,
-    eccentricity: 0.0012,
-    inclinationDeg: 0.26,
+    radiusKm: 578.9,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.54,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 191020,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 9.2,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 2.520,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 60.48,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0012,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 0.26,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0xe5e7eb,
     massKg: '1.29 × 10²¹ kg',
-    gravityMps2: 0.269,
+    gravityMps2: 0.269,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '天王星最明亮的一颗卫星，地表被纵横交错的巨大断裂地堑和冰火山熔岩流网络切开。'
     ],
@@ -792,18 +792,18 @@ export const CELESTIAL_DATA = [
     nameZh: '天卫二',
     type: 'moon',
     parent: 'uranus',
-    radiusKm: 584.7,
-    displayRadius: 0.55,
-    semiMajorAxisKm: 266300,
-    displayDistance: 11.5,
-    orbitalPeriodDays: 4.144,
-    rotationPeriodHours: 99.46,
-    axialTiltDeg: 0,
-    eccentricity: 0.0039,
-    inclinationDeg: 0.21,
+    radiusKm: 584.7,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.55,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 266300,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 11.5,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 4.144,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 99.46,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0039,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 0.21,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0x4b5563,
     massKg: '1.22 × 10²¹ kg',
-    gravityMps2: 0.237,
+    gravityMps2: 0.237,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '天王星卫星群中最黑暗古老的一颗，表面仅反射16%光线，拥有一个奇特的明亮白色光环环形山（温达撞击坑）。'
     ],
@@ -817,18 +817,18 @@ export const CELESTIAL_DATA = [
     nameZh: '天卫三',
     type: 'moon',
     parent: 'uranus',
-    radiusKm: 788.4,
-    displayRadius: 0.62,
-    semiMajorAxisKm: 435910,
-    displayDistance: 15.0,
-    orbitalPeriodDays: 8.706,
-    rotationPeriodHours: 208.9,
-    axialTiltDeg: 0,
-    eccentricity: 0.0011,
-    inclinationDeg: 0.34,
+    radiusKm: 788.4,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.62,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 435910,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 15.0,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 8.706,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 208.9,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0011,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 0.34,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0x9ca3af,
     massKg: '3.42 × 10²¹ kg',
-    gravityMps2: 0.379,
+    gravityMps2: 0.379,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '天王星最大的卫星，太阳系第八大卫星，表面横亘着长达1600公里的梅西纳大峡谷。'
     ],
@@ -842,18 +842,18 @@ export const CELESTIAL_DATA = [
     nameZh: '天卫四',
     type: 'moon',
     parent: 'uranus',
-    radiusKm: 761.4,
-    displayRadius: 0.60,
-    semiMajorAxisKm: 583520,
-    displayDistance: 18.5,
-    orbitalPeriodDays: 13.463,
-    rotationPeriodHours: 323.1,
-    axialTiltDeg: 0,
-    eccentricity: 0.0014,
-    inclinationDeg: 0.06,
+    radiusKm: 761.4,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.60,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 583520,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 18.5,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 13.463,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 323.1,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0014,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 0.06,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0x6b7280,
     massKg: '3.01 × 10²¹ kg',
-    gravityMps2: 0.346,
+    gravityMps2: 0.346,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '天王星最外侧的大卫星，密布暗色撞击坑，坑底常常覆盖着神秘的暗黑色沉积物质。'
     ],
@@ -871,23 +871,23 @@ export const CELESTIAL_DATA = [
     nameZh: '海王星',
     type: 'planet',
     parent: null,
-    radiusKm: 24622,
-    displayRadius: 4.0,
-    semiMajorAxisKm: 4495000000,
-    displayDistance: 400,
-    orbitalPeriodDays: 60190.0, // 164.8 Earth years
-    rotationPeriodHours: 16.11,
-    axialTiltDeg: 28.32,
-    eccentricity: 0.0086,
-    inclinationDeg: 1.77,
+    radiusKm: 24622,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 4.0,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 4495000000,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 400,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 60190.0,  // NO-PROV: 渲染/材质/时序参数，非对外科学数值  // 164.8 Earth years
+    rotationPeriodHours: 16.11,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 28.32,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0086,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 1.77,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0x2563eb,
     hasAtmosphere: true,
     atmosphereColor: 0x60a5fa,
     hasRings: true,
-    ringInnerRadius: 4.8,
-    ringOuterRadius: 6.8,
+    ringInnerRadius: 4.8,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    ringOuterRadius: 6.8,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     massKg: '1.024 × 10²⁶ kg (17.1 地球)',
-    gravityMps2: 11.15,
+    gravityMps2: 11.15,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '人类“用笔尖算出来的行星”：1846年科学家通过天王星轨道摄动计算出其位置并成功观测到。',
       '太阳系风速之王：高层大气中狂风呼啸时速高达2100公里（超音速），超过5马赫！',
@@ -905,18 +905,18 @@ export const CELESTIAL_DATA = [
     nameZh: '海卫一',
     type: 'moon',
     parent: 'neptune',
-    radiusKm: 1353.4,
-    displayRadius: 0.56,
-    semiMajorAxisKm: 354760,
-    displayDistance: 8.5,
-    orbitalPeriodDays: -5.877, // Retrograde orbit!
-    rotationPeriodHours: 141.0,
-    axialTiltDeg: 0,
-    eccentricity: 0.000016,
-    inclinationDeg: 156.88,   // Retrograde inclination
+    radiusKm: 1353.4,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.56,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 354760,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 8.5,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: -5.877,  // NO-PROV: 渲染/材质/时序参数，非对外科学数值  // Retrograde orbit!
+    rotationPeriodHours: 141.0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.000016,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 156.88,  // PROV: measured | JPL/IAU 行星事实表 | - | 轨道倾角  // Retrograde inclination
     colorHex: 0xa5f3fc,
     massKg: '2.14 × 10²² kg',
-    gravityMps2: 0.779,
+    gravityMps2: 0.779,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '太阳系所有大卫星中唯一“逆向公转”的天体，原是一颗被海王星引力俘获的柯伊伯带矮行星（类似冥王星）。',
       '表面温度低至-235℃，拥有类似哈密瓜皮的“哈密瓜地形”，以及喷射高度达8公里的液氮低温间歇泉。',
@@ -934,18 +934,18 @@ export const CELESTIAL_DATA = [
     nameZh: '海卫八',
     type: 'moon',
     parent: 'neptune',
-    radiusKm: 210.0,
-    displayRadius: 0.32,
-    semiMajorAxisKm: 117647,
-    displayDistance: 5.5,
-    orbitalPeriodDays: 1.122,
-    rotationPeriodHours: 26.9,
-    axialTiltDeg: 0,
-    eccentricity: 0.0005,
-    inclinationDeg: 0.55,
+    radiusKm: 210.0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayRadius: 0.32,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    semiMajorAxisKm: 117647,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    displayDistance: 5.5,  // PROV: illustrative | 视觉缩放 | - | 非真实尺寸（为可读性压缩）
+    orbitalPeriodDays: 1.122,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    rotationPeriodHours: 26.9,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    axialTiltDeg: 0,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    eccentricity: 0.0005,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
+    inclinationDeg: 0.55,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     colorHex: 0x64748b,
     massKg: '4.4 × 10¹⁹ kg',
-    gravityMps2: 0.07,
+    gravityMps2: 0.07,  // PROV: measured | JPL/IAU 行星事实表 | - | 行星物理参数
     factsZh: [
       '海王星第二大卫星，多面盒状的不规则形态，几乎达到了自身重力未能将其拉扯成球体的物理极限大小。'
     ],

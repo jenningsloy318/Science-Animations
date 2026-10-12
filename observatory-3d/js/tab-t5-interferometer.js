@@ -5,9 +5,9 @@
 
 APP.Tabs = APP.Tabs || {};
 
-const LAM_ALMA = 1.0e-3;             // ALMA 估算波长 1 mm
-const LAM_EHT = 1.3e-3;              // EHT 波长 1.3 mm
-const M87_RING_UAS = 42;             // M87 阴影环直径 μas（观测值）
+const LAM_ALMA = 1.0e-3;             // ALMA 估算波长 1 mm  // PROV: measured | ALMA Band 1 | - | 1 mm
+const LAM_EHT = 1.3e-3;              // EHT 波长 1.3 mm  // PROV: measured | EHT 230 GHz | 2019 | 1.3 mm
+const M87_RING_UAS = 42;             // M87 阴影环直径 μas（观测值）  // PROV: measured | EHT 论文 I | 2019 | M87* 环 42 µas
 
 // 基线档位（规格拍③）
 const BLINES = [
@@ -143,7 +143,7 @@ APP.Tabs['t5-interferometer'] = {
   layout() {
     const st = this.st; if (!st) return;
     // 可视 footprint 随 B 对数压缩（真实尺度差 10⁵ 倍，无法线性画）
-    const foot = 1.6 + 3.4 * Math.log10(Math.max(this.bl.B, 150) / 150) / Math.log10(1.07e7 / 150) * 1.0;
+    const foot = 1.6 + 3.4 * Math.log10(Math.max(this.bl.B, 150) / 150) / Math.log10(1.07e7 / 150) * 1.0;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
     const f = Math.min(5.2, foot);
     st.ants.forEach((a, i) => {
       const p = ANT_POS[i];

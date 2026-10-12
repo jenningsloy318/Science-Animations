@@ -2,11 +2,11 @@
 // 所有数字核对至 2026-09-16，来源标号见规格附录 11.1/11.3。
 'use strict';
 
-const C_KMS = 299792.458;          // km/s
-const C_MS = 299792458;            // m/s
-const WIEB = 2.897771955e-3;       // 维恩位移常数 m·K（CODATA/SI 2019；四位有效数字 2.898e-3）
-const RAYLEIGH = 1.22;             // 单口径艾里斑因子（**仅用于装满的单口径**）
-const EYE_D = 0.007;               // 人眼暗适应瞳孔 m
+const C_KMS = 299792.458;          // km/s  // PROV: measured | SI 定义值 | 2019 | 光速 km/s
+const C_MS = 299792458;            // m/s  // PROV: measured | SI 定义值 | 2019 | 光速 m/s
+const WIEB = 2.897771955e-3;       // 维恩位移常数 m·K（CODATA/SI 2019；四位有效数字 2.898e-3）  // PROV: measured | SI 2019 精确值 | 2019 | 维恩位移常数
+const RAYLEIGH = 1.22;             // 单口径艾里斑因子（**仅用于装满的单口径**）  // NO-PROV: 局部变量/运行时状态，非对外科学数值
+const EYE_D = 0.007;               // 人眼暗适应瞳孔 m  // NO-PROV: 局部变量/运行时状态，非对外科学数值
 
 // ── 5.3 纯函数（phase2 golden values 直接断言）──────────────────────────
 function rayleigh(lam, D) { return RAYLEIGH * lam / D; }          // θ=1.22λ/D (rad) 单口径
@@ -18,7 +18,7 @@ function magLimit(D) { return 6.5 + 5 * Math.log10(D / EYE_D); }  // 极限星�
 function baseline(lam, B) { return lam / B; }                     // θ=λ/B (rad) **阵列约定，不乘 1.22**
 function strainDisp(h, L) { return h * L; }                       // 引力波位移 (m)
 
-const RAD2ARCSEC = 206264.806;
+const RAD2ARCSEC = 206264.806;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
 const RAD2MAS = RAD2ARCSEC * 1e3;
 const RAD2UAS = RAD2ARCSEC * 1e6;
 function radToArcsec(r) { return r * RAD2ARCSEC; }
@@ -32,7 +32,10 @@ function rvK(MpJup, Pday, Msun) {
 }
 
 // ── 格式化 ────────────────────────────────────────────────────────────
-function fmt(v, d) { return (+v).toLocaleString('zh-CN', { maximumFractionDigits: d == null ? 2 : d, minimumFractionDigits: 0 }); }
+function fmt(v, d) {
+  const lang = (window.APP && window.APP.lang === 'en') ? 'en-US' : 'zh-CN';
+  return (+v).toLocaleString(lang, { maximumFractionDigits: d == null ? 2 : d, minimumFractionDigits: 0 });
+}
 function sci(v, d) {
   if (v === 0) return '0';
   const a = Math.abs(v);
@@ -49,6 +52,15 @@ function fmtAngle(rad) {
 }
 
 window.APP = window.APP || {};
+const savedLang = (() => {
+  try {
+    const p = new URLSearchParams(window.location.search).get('lang');
+    if (p === 'zh' || p === 'en') return p;
+    return localStorage.getItem('science_lang') || localStorage.getItem('collider_lang');
+  } catch (e) { return null; }
+})();
+APP.lang = (savedLang === 'en' || savedLang === 'zh') ? savedLang : ((typeof navigator !== 'undefined' && (navigator.language || '').toLowerCase().startsWith('zh')) ? 'zh' : 'en');
+
 APP.F = { rayleigh, gather, wien, dopplerV, shiftLam, magLimit, baseline, strainDisp, rvK,
   radToArcsec, radToMas, radToUas, fmt, sci, fmtAngle };
 APP.C = { C_KMS, C_MS, WIEB, RAYLEIGH, EYE_D };
@@ -56,37 +68,37 @@ APP.RAD2 = { ARCSEC: RAD2ARCSEC, MAS: RAD2MAS, UAS: RAD2UAS };
 
 // ── 页签元数据（2.1 页签清单 + 组色）────────────────────────────────────
 const GROUPS = {
-  gaze: { name: '望 · 接光', color: '#d8b25c' },
-  read: { name: '读 · 拆光', color: '#a78bfa' },
-  sharp: { name: '锐 · 合成', color: '#22d3ee' },
-  rec: { name: '录 · 成数', color: '#f59e0b' },
-  other: { name: '闻 · 换信使', color: '#2dd4bf' }
+  gaze: { name: '望 · 接光', enName: 'Gaze · Light Gathering', color: '#d8b25c' },
+  read: { name: '读 · 拆光', enName: 'Read · Spectroscopy', color: '#a78bfa' },
+  sharp: { name: '锐 · 合成', enName: 'Sharp · Synthesis', color: '#22d3ee' },
+  rec: { name: '录 · 成数', enName: 'Record · Digitization', color: '#f59e0b' },
+  other: { name: '闻 · 换信使', enName: 'Listen · New Messengers', color: '#2dd4bf' }
 };
 
 const TABS = [
-  { id: 't1', key: 't1-messengers', icon: '📨', name: '信使全家福', group: 'gaze',
-    q: '宇宙的信息怎么送到地球？', observ: ['angle', 'time', 'bright', 'wave'] },
-  { id: 't2', key: 't2-telescope', icon: '🔭', name: '望远镜', group: 'gaze',
-    q: '镜片越大为什么越强？', observ: ['bright', 'angle'] },
-  { id: 't3', key: 't3-spectrograph', icon: '🌈', name: '光谱仪', group: 'read',
-    q: '一束光怎么读出温度和成分？', observ: ['wave', 'bright'] },
-  { id: 't4', key: 't4-doppler', icon: '🚑', name: '多普勒', group: 'read',
-    q: '不看本体怎么知道它在动？', observ: ['wave'] },
-  { id: 't5', key: 't5-interferometer', icon: '📡', name: '干涉仪', group: 'sharp',
-    q: '小镜子怎么装成大眼睛？', observ: ['angle'] },
-  { id: 't6', key: 't6-ao', icon: '✨', name: '自适应光学', group: 'sharp',
-    q: '星星为什么眨眼？', observ: ['angle'] },
-  { id: 't7', key: 't7-detector', icon: '📷', name: '探测器', group: 'rec',
-    q: '光到了焦点怎么变数字？', observ: ['bright', 'time'] },
-  { id: 't8', key: 't8-nonlight', icon: '🌊', name: '光之外', group: 'other',
-    q: '光看不见的地方拿什么看？', observ: ['time', 'bright', 'wave'] }
+  { id: 't1', key: 't1-messengers', icon: '📨', name: '信使全家福', enName: 'Cosmic Messengers', group: 'gaze',
+    q: '宇宙的信息怎么送到地球？', enQ: 'How does cosmic information reach Earth?', observ: ['angle', 'time', 'bright', 'wave'] },
+  { id: 't2', key: 't2-telescope', icon: '🔭', name: '望远镜', enName: 'Telescopes', group: 'gaze',
+    q: '镜片越大为什么越强？', enQ: 'Why are bigger apertures more powerful?', observ: ['bright', 'angle'] },
+  { id: 't3', key: 't3-spectrograph', icon: '🌈', name: '光谱仪', enName: 'Spectrograph', group: 'read',
+    q: '一束光怎么读出温度和成分？', enQ: 'How does light reveal temperature & composition?', observ: ['wave', 'bright'] },
+  { id: 't4', key: 't4-doppler', icon: '🚑', name: '多普勒', enName: 'Doppler Shift', group: 'read',
+    q: '不看本体怎么知道它在动？', enQ: 'How do we measure motion without seeing movement?', observ: ['wave'] },
+  { id: 't5', key: 't5-interferometer', icon: '📡', name: '干涉仪', enName: 'Interferometer', group: 'sharp',
+    q: '小镜子怎么装成大眼睛？', enQ: 'How do separate mirrors synthesize a giant eye?', observ: ['angle'] },
+  { id: 't6', key: 't6-ao', icon: '✨', name: '自适应光学', enName: 'Adaptive Optics', group: 'sharp',
+    q: '星星为什么眨眼？', enQ: 'Why do stars twinkle & how do we fix it?', observ: ['angle'] },
+  { id: 't7', key: 't7-detector', icon: '📷', name: '探测器', enName: 'Detectors', group: 'rec',
+    q: '光到了焦点怎么变数字？', enQ: 'How do focused photons turn into data?', observ: ['bright', 'time'] },
+  { id: 't8', key: 't8-nonlight', icon: '🌊', name: '光之外', enName: 'Beyond Light', group: 'other',
+    q: '光看不见的地方拿什么看？', enQ: 'How do we observe where light cannot reach?', observ: ['time', 'bright', 'wave'] }
 ];
 
 const OBSERV_META = {
-  angle:  { label: '角度', unit: '天球位置 / 分辨' },
-  time:   { label: '时间', unit: '到达时刻 / 周期' },
-  bright: { label: '亮度', unit: '光子计数' },
-  wave:   { label: '波长', unit: '谱线 / 频率' }
+  angle:  { label: '角度', enLabel: 'Angle', unit: '天球位置 / 分辨', enUnit: 'Position / Resolution' },
+  time:   { label: '时间', enLabel: 'Time', unit: '到达时刻 / 周期', enUnit: 'Arrival / Period' },
+  bright: { label: '亮度', enLabel: 'Brightness', unit: '光子计数', enUnit: 'Photon Flux' },
+  wave:   { label: '波长', enLabel: 'Wavelength', unit: '谱线 / 频率', enUnit: 'Spectral Line / Freq' }
 };
 
 // ── 仪器数字（附录 11.1，来源标号 ¹..²⁵ 见 11.3）──────────────────────

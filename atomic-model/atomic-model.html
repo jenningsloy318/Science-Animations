@@ -5,6 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>原子模型 · 3D Interactive Atomic Model</title>
 <meta name="description" content="Interactive 3D atomic model showing electron transitions, ionization, and the difference between excitation and ion formation.">
+<script>
+  (function() {
+    try {
+      var p = new URLSearchParams(window.location.search).get('lang');
+      var s = (p === 'zh' || p === 'en') ? p : null;
+      if (!s) s = localStorage.getItem('science_lang');
+      if (!s && navigator.language) s = navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+      var lang = (s === 'en' ? 'en' : 'zh');
+      document.documentElement.lang = (lang === 'zh' ? 'zh-CN' : 'en');
+      document.documentElement.classList.add('i18n-loading');
+    } catch(e) {}
+  })();
+</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -341,18 +354,73 @@
 }
 #homeBtn:active { transform: translateY(0); }
 
+/* ── language switcher pill ── */
+.lang-switch {
+  position: fixed;
+  top: 14px;
+  left: 124px;
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 19px;
+  padding: 3px;
+  height: 38px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.lang-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 0 10px;
+  height: 30px;
+  font-size: 0.78rem;
+  font-family: inherit;
+  font-weight: 500;
+  border-radius: 15px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  line-height: 1;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lang-btn:hover {
+  color: #f1f5f9;
+}
+
+.lang-btn.active {
+  background: rgba(251, 191, 36, 0.16);
+  color: #fbbf24;
+  font-weight: 600;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.25);
+}
+
+.i18n-loading [data-i18n] {
+  visibility: hidden;
+}
+
 </style>
 </head>
 <body>
 
-  <!-- Back to home (shared) -->
-  <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
-
+  <!-- Back to home & language switcher (shared) -->
+  <a id="homeBtn" href="../index.html" title="返回首页 Back to home" data-i18n="nav.home">🏠 首页</a>
+  <div class="lang-switch" role="group" aria-label="Language Switcher">
+    <button id="btnLangZh" class="lang-btn" data-lang-btn="zh">🇨🇳 中文</button>
+    <button id="btnLangEn" class="lang-btn" data-lang-btn="en">🇬🇧 EN</button>
+  </div>
 
 <!-- ── Header ── -->
 <header>
-  <h1>原子模型 · Atomic Model</h1>
-  <div class="subtitle">3D 交互式 — 电子跃迁 vs 电离 · 光子的吸收与发射</div>
+  <h1 data-i18n="atom.title">原子模型 · Atomic Model</h1>
+  <div class="subtitle" data-i18n="atom.sub">3D 交互式 — 电子跃迁 vs 电离 · 光子的吸收与发射</div>
 </header>
 
 <!-- ── 3D Stage ── -->
@@ -363,74 +431,80 @@
 
 <!-- ── Photon Info Badge (left) ── -->
 <div id="photonBadge">
-  <h4>💡 光子信息 Photon</h4>
-  <div class="photon-row"><span class="plabel">方向</span><span class="pval" id="pDir">—</span></div>
-  <div class="photon-row"><span class="plabel">能量 E</span><span class="pval" id="pEnergy">—</span></div>
-  <div class="photon-row"><span class="plabel">跃迁</span><span class="pval" id="pTransition">—</span></div>
-  <div class="photon-row"><span class="plabel">颜色</span><span class="pval" id="pColor">—</span></div>
+  <h4 data-i18n="atom.photon_info">💡 光子信息 Photon</h4>
+  <div class="photon-row"><span class="plabel" data-i18n="atom.p_dir">方向</span><span class="pval" id="pDir">—</span></div>
+  <div class="photon-row"><span class="plabel" data-i18n="atom.p_energy">能量 E</span><span class="pval" id="pEnergy">—</span></div>
+  <div class="photon-row"><span class="plabel" data-i18n="atom.p_trans">跃迁</span><span class="pval" id="pTransition">—</span></div>
+  <div class="photon-row"><span class="plabel" data-i18n="atom.p_color">颜色</span><span class="pval" id="pColor">—</span></div>
   <div id="photonSwatch" class="photon-color-swatch"></div>
 </div>
 
 <!-- ── Info Panel ── -->
 <div id="infoPanel">
-  <h3>⚛️ 原子状态</h3>
-  <div class="info-row"><span class="label">元素</span><span class="value" id="infoElement">Li 锂</span></div>
-  <div class="info-row"><span class="label">质子 Protons</span><span class="value" id="infoProtons">3</span></div>
-  <div class="info-row"><span class="label">中子 Neutrons</span><span class="value" id="infoNeutrons">4</span></div>
-  <div class="info-row"><span class="label">电子 Electrons</span><span class="value" id="infoElectrons">3</span></div>
-  <div class="info-row"><span class="label">净电荷 Charge</span><span class="value neutral" id="infoCharge">0</span></div>
-  <div class="info-row"><span class="label">状态 State</span><span class="value neutral" id="infoState">基态 Ground</span></div>
+  <h3 data-i18n="atom.state_title">⚛️ 原子状态</h3>
+  <div class="info-row"><span class="label" data-i18n="atom.elem">元素</span><span class="value" id="infoElement">Li 锂</span></div>
+  <div class="info-row"><span class="label" data-i18n="atom.protons">质子 Protons</span><span class="value" id="infoProtons">3</span></div>
+  <div class="info-row"><span class="label" data-i18n="atom.neutrons">中子 Neutrons</span><span class="value" id="infoNeutrons">4</span></div>
+  <div class="info-row"><span class="label" data-i18n="atom.electrons">电子 Electrons</span><span class="value" id="infoElectrons">3</span></div>
+  <div class="info-row"><span class="label" data-i18n="atom.charge">净电荷 Charge</span><span class="value neutral" id="infoCharge">0</span></div>
+  <div class="info-row"><span class="label" data-i18n="atom.state">状态 State</span><span class="value neutral" id="infoState">基态 Ground</span></div>
   <div id="equation"></div>
 </div>
 
 <!-- ── Energy Level Diagram ── -->
 <div id="energyDiagram">
-  <h4>能级图 Energy Levels</h4>
+  <h4 data-i18n="atom.energy_levels">能级图 Energy Levels</h4>
   <canvas id="energyCanvas" class="energy-canvas"></canvas>
 </div>
 
 <!-- ── Shell Distribution Diagram ── -->
 <div id="shellDiagram">
-  <h4>电子层分布 Shell Distribution</h4>
+  <h4 data-i18n="atom.shell_dist">电子层分布 Shell Distribution</h4>
   <canvas id="shellCanvas" class="shell-canvas"></canvas>
 </div>
 
 <!-- ── Bottom Bar ── -->
 <div id="bottomBar">
   <div class="row">
-    <span style="font-size:0.72rem;color:#94a3b8;align-self:center;">模型:</span>
-    <button class="ctrl-btn model-btn active" id="btnModelBohr" title="玻尔 1913: 电子在确定轨道上（简化但直观）">⚙️ 玻尔轨道</button>
-    <button class="ctrl-btn model-btn" id="btnModelCloud" title="量子力学: 电子是概率云——原子的真实画像">☁️ 电子云</button>
+    <span style="font-size:0.72rem;color:#94a3b8;align-self:center;" data-i18n="atom.model_label">模型:</span>
+    <button class="ctrl-btn model-btn active" id="btnModelBohr" title="玻尔 1913: 电子在确定轨道上（简化但直观）" data-i18n="atom.bohr_orbit">⚙️ 玻尔轨道</button>
+    <button class="ctrl-btn model-btn" id="btnModelCloud" title="量子力学: 电子是概率云——原子的真实画像" data-i18n="atom.electron_cloud">☁️ 电子云</button>
     <div class="separator"></div>
-    <span style="font-size:0.7rem;color:#64748b;align-self:center;" id="modelNote">氢的谱线/能级为里德伯公式真实值 · 多电子为示意</span>
+    <span style="font-size:0.7rem;color:#64748b;align-self:center;" id="modelNote" data-i18n="atom.model_note">氢的谱线/能级为里德伯公式真实值 · 多电子为示意</span>
   </div>
   <div class="row" id="elemRow"></div>
   <div class="row">
-    <button class="ctrl-btn absorb" id="btnAbsorb" title="光子飞入原子 → 被电子吸收 → 电子跳到高能级">
+    <button class="ctrl-btn absorb" id="btnAbsorb" title="光子飞入原子 → 被电子吸收 → 电子跳到高能级" data-i18n-html="atom.absorb_btn">
       ☀️ 吸收光子<br><span class="dir-hint">光子 → 原子 (飞入)</span>
     </button>
-    <button class="ctrl-btn release" id="btnRelease" title="电子掉回低能级 → 产生新光子 → 光子飞出原子" disabled>
+    <button class="ctrl-btn release" id="btnRelease" title="电子掉回低能级 → 产生新光子 → 光子飞出原子" disabled data-i18n-html="atom.release_btn">
       💫 释放光子<br><span class="dir-hint">原子 → 光子 (飞出)</span>
     </button>
     <div class="separator"></div>
-    <button class="ctrl-btn ionize-pos" id="btnLoseE" title="电子被完全打飞，离开原子">⚡ 失去电子 (电离)</button>
-    <button class="ctrl-btn ionize-neg" id="btnGainE" title="原子捕获一个自由电子">⚡ 获得电子</button>
+    <button class="ctrl-btn ionize-pos" id="btnLoseE" title="电子被完全打飞，离开原子" data-i18n="atom.lose_e">⚡ 失去电子 (电离)</button>
+    <button class="ctrl-btn ionize-neg" id="btnGainE" title="原子捕获一个自由电子" data-i18n="atom.gain_e">⚡ 获得电子</button>
     <div class="separator"></div>
-    <button class="ctrl-btn reset-btn" id="btnReset">↺ 重置</button>
-    <button class="ctrl-btn" id="btnPhotonInfo">💡 光子是什么?</button>
-    <button class="ctrl-btn" id="btnCompare">📊 对比表</button>
+    <button class="ctrl-btn reset-btn" id="btnReset" data-i18n="atom.reset">↺ 重置</button>
+    <button class="ctrl-btn" id="btnPhotonInfo" data-i18n="atom.what_is_photon">💡 光子是什么?</button>
+    <button class="ctrl-btn" id="btnCompare" data-i18n="atom.compare_btn">📊 对比表</button>
   </div>
 </div>
 
 <!-- ── Comparison Panel ── -->
 <div id="compPanel">
   <div class="panel-header">
-    <h3>📊 电子跃迁 vs 电离 — 对比表</h3>
+    <h3 data-i18n="atom.comp_title">📊 电子跃迁 vs 电离 — 对比表</h3>
     <button class="close-btn" id="closeComp">✕</button>
   </div>
   <table class="comp-table">
     <thead>
-      <tr><th>情况</th><th>光子方向</th><th>电子去向</th><th>原子变化</th><th>离子?</th></tr>
+      <tr>
+        <th data-i18n="atom.th_case">情况</th>
+        <th data-i18n="atom.th_photon">光子方向</th>
+        <th data-i18n="atom.th_electron">电子去向</th>
+        <th data-i18n="atom.th_atom">原子变化</th>
+        <th data-i18n="atom.th_ion">离子?</th>
+      </tr>
     </thead>
     <tbody>
       <tr class="highlight">
@@ -22120,13 +22194,396 @@
     }
   };
 
+  // ../common/js/i18n.js
+  var MemoryStorage = {
+    _data: {},
+    getItem(key) {
+      return Object.prototype.hasOwnProperty.call(this._data, key) ? this._data[key] : null;
+    },
+    setItem(key, val) {
+      this._data[key] = String(val);
+    },
+    removeItem(key) {
+      delete this._data[key];
+    },
+    clear() {
+      this._data = {};
+    }
+  };
+  function getSafeStorage() {
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        const testKey = "__i18n_test__";
+        window.localStorage.setItem(testKey, "1");
+        window.localStorage.removeItem(testKey);
+        return window.localStorage;
+      }
+    } catch (e) {
+    }
+    return MemoryStorage;
+  }
+  var ScienceI18n = class {
+    constructor(options = {}) {
+      this.storage = options.storage || getSafeStorage();
+      this.storageKey = options.storageKey || "science_lang";
+      this.legacyKey = options.legacyKey || "collider_lang";
+      this.dict = options.dict || {};
+      this.listeners = /* @__PURE__ */ new Set();
+      this.currentLang = this.resolveInitialLang(options.defaultLang);
+      this.lang = this.currentLang;
+      if (options.onLangChange) {
+        this.subscribe(options.onLangChange);
+      }
+      if (typeof window !== "undefined") {
+        window.addEventListener("popstate", () => {
+          const newLang = this.resolveInitialLang();
+          if (newLang !== this.currentLang) {
+            this.setLanguage(newLang, { fromPopState: true });
+          }
+        });
+        window.addEventListener("storage", (e) => {
+          if (e.key === this.storageKey && (e.newValue === "zh" || e.newValue === "en")) {
+            if (e.newValue !== this.currentLang) {
+              this.setLanguage(e.newValue, { fromStorage: true });
+            }
+          }
+        });
+      }
+    }
+    resolveInitialLang(defaultLang) {
+      if (typeof window !== "undefined" && window.location) {
+        try {
+          const search = window.location.search;
+          if (search) {
+            const params = new URLSearchParams(search);
+            const urlLang = params.get("lang");
+            if (urlLang === "zh" || urlLang === "en") {
+              this.persist(urlLang);
+              return urlLang;
+            }
+          }
+          const hash = window.location.hash;
+          if (hash) {
+            const match = hash.match(/[?&#]lang=(zh|en)/i);
+            if (match && (match[1] === "zh" || match[1] === "en")) {
+              const hashLang = match[1].toLowerCase();
+              this.persist(hashLang);
+              return hashLang;
+            }
+          }
+        } catch (e) {
+        }
+      }
+      try {
+        const saved = this.storage.getItem(this.storageKey);
+        if (saved === "zh" || saved === "en") return saved;
+      } catch (e) {
+      }
+      if (this.legacyKey) {
+        try {
+          const leg = this.storage.getItem(this.legacyKey);
+          if (leg === "zh" || leg === "en") {
+            this.persist(leg);
+            return leg;
+          }
+        } catch (e) {
+        }
+      }
+      if (defaultLang === "zh" || defaultLang === "en") {
+        return defaultLang;
+      }
+      if (typeof navigator !== "undefined") {
+        const nav = (navigator.language || navigator.userLanguage || "").toLowerCase();
+        if (nav.startsWith("zh")) return "zh";
+      }
+      return "zh";
+    }
+    persist(lang) {
+      try {
+        this.storage.setItem(this.storageKey, lang);
+        if (this.legacyKey) {
+          this.storage.setItem(this.legacyKey, lang);
+        }
+      } catch (e) {
+      }
+    }
+    setLanguage(lang, options = {}) {
+      if (lang !== "zh" && lang !== "en") return;
+      const changed = this.currentLang !== lang;
+      this.currentLang = lang;
+      this.lang = lang;
+      if (!options.fromStorage) {
+        this.persist(lang);
+      }
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        try {
+          window.speechSynthesis.cancel();
+        } catch (e) {
+        }
+      }
+      if (!options.fromPopState && typeof window !== "undefined" && window.history && window.location) {
+        try {
+          const url = new URL(window.location.href);
+          if (url.searchParams.get("lang") !== lang) {
+            url.searchParams.set("lang", lang);
+            window.history.replaceState(null, "", url.toString());
+          }
+        } catch (e) {
+          try {
+            const search = window.location.search;
+            const params = new URLSearchParams(search);
+            params.set("lang", lang);
+            const newSearch = "?" + params.toString();
+            if (newSearch !== window.location.search) {
+              window.history.replaceState(null, "", window.location.pathname + newSearch + window.location.hash);
+            }
+          } catch (e2) {
+          }
+        }
+      }
+      this.applyToDOM();
+      if (changed) {
+        for (const listener of this.listeners) {
+          try {
+            listener(lang);
+          } catch (err) {
+            console.error("[i18n] listener error:", err);
+          }
+        }
+      }
+    }
+    setLang(lang, options) {
+      this.setLanguage(lang, options);
+    }
+    subscribe(fn) {
+      if (typeof fn === "function") {
+        this.listeners.add(fn);
+        return () => this.listeners.delete(fn);
+      }
+      return () => {
+      };
+    }
+    loadDict(dict) {
+      if (dict && typeof dict === "object") {
+        Object.assign(this.dict, dict);
+        this.applyToDOM();
+      }
+    }
+    /**
+     * Translate key with optional params interpolation: t('greeting', { name: 'Alice' })
+     * Fallback resolution: key in current lang -> key in 'zh' -> fallback string -> key name
+     */
+    t(key, paramsOrFallback, maybeFallback) {
+      let params = null;
+      let fallback = "";
+      if (paramsOrFallback && typeof paramsOrFallback === "object") {
+        params = paramsOrFallback;
+        fallback = typeof maybeFallback === "string" ? maybeFallback : "";
+      } else if (typeof paramsOrFallback === "string") {
+        fallback = paramsOrFallback;
+      }
+      const entry = this.dict[key];
+      let val = "";
+      if (entry) {
+        if (typeof entry === "string") {
+          val = entry;
+        } else {
+          val = entry[this.currentLang] || entry.zh || entry.en || fallback || key;
+        }
+      } else {
+        val = fallback || key;
+      }
+      if (params && typeof val === "string") {
+        val = val.replace(/{(\w+)}/g, (_, k) => {
+          return Object.prototype.hasOwnProperty.call(params, k) ? params[k] : `{${k}}`;
+        });
+      }
+      return val;
+    }
+    formatNumber(num, options = {}) {
+      const locale = this.currentLang === "zh" ? "zh-CN" : "en-US";
+      return Number(num).toLocaleString(locale, options);
+    }
+    formatDays(days) {
+      const num = this.formatNumber(days);
+      return this.currentLang === "zh" ? `${num} \u5929` : `${num} days`;
+    }
+    applyToDOM(root = typeof document !== "undefined" ? document : null) {
+      if (!root) return;
+      if (typeof document !== "undefined" && document.documentElement) {
+        document.documentElement.lang = this.currentLang === "zh" ? "zh-CN" : "en";
+        document.documentElement.classList.remove("i18n-loading");
+      }
+      const langBtns = root.querySelectorAll ? root.querySelectorAll("[data-lang-btn], [data-lang]") : [];
+      langBtns.forEach((btn) => {
+        const targetLang = btn.dataset.langBtn || btn.dataset.lang;
+        const isActive = targetLang === this.currentLang;
+        btn.classList.toggle("active", isActive);
+        btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
+      const textEls = root.querySelectorAll ? root.querySelectorAll("[data-i18n]") : [];
+      textEls.forEach((el) => {
+        const key = el.getAttribute("data-i18n");
+        if (key) {
+          const text = this.t(key);
+          if (text !== void 0 && text !== null) {
+            el.textContent = text;
+          }
+        }
+      });
+      const htmlEls = root.querySelectorAll ? root.querySelectorAll("[data-i18n-html]") : [];
+      htmlEls.forEach((el) => {
+        const key = el.getAttribute("data-i18n-html");
+        if (key) {
+          const html = this.t(key);
+          if (html !== void 0 && html !== null) {
+            el.innerHTML = html;
+          }
+        }
+      });
+      const titleEls = root.querySelectorAll ? root.querySelectorAll("[data-i18n-title]") : [];
+      titleEls.forEach((el) => {
+        const key = el.getAttribute("data-i18n-title");
+        if (key) {
+          el.setAttribute("title", this.t(key));
+        }
+      });
+      const ariaEls = root.querySelectorAll ? root.querySelectorAll("[data-i18n-aria]") : [];
+      ariaEls.forEach((el) => {
+        const key = el.getAttribute("data-i18n-aria");
+        if (key) {
+          el.setAttribute("aria-label", this.t(key));
+        }
+      });
+      const placeholderEls = root.querySelectorAll ? root.querySelectorAll("[data-i18n-placeholder]") : [];
+      placeholderEls.forEach((el) => {
+        const key = el.getAttribute("data-i18n-placeholder");
+        if (key) {
+          el.setAttribute("placeholder", this.t(key));
+        }
+      });
+      const homeBtns = root.querySelectorAll ? root.querySelectorAll("#homeBtn, .home-btn, a[data-home-link]") : [];
+      homeBtns.forEach((btn) => {
+        const baseHref = btn.getAttribute("data-base-href") || btn.getAttribute("href") || "../index.html";
+        const cleanHref = baseHref.split("?")[0].split("#")[0];
+        btn.setAttribute("data-base-href", cleanHref);
+        btn.setAttribute("href", `${cleanHref}?lang=${this.currentLang}`);
+      });
+    }
+    // Bind a newly created dynamic DOM container (e.g. in motion-parallax dynamic views)
+    bind(container) {
+      if (container) {
+        this.applyToDOM(container);
+      }
+    }
+    /**
+     * Helper: Update Three.js TextSprite texture without GPU memory leak
+     * Keeps base height constant (H_BASE) and scales width by canvas aspect ratio.
+     */
+    updateTextSprite(sprite, text, options = {}) {
+      if (!sprite || !sprite.material || !sprite.material.map) return;
+      const canvas = sprite.material.map.image;
+      if (!canvas || !canvas.getContext) return;
+      const ctx = canvas.getContext("2d");
+      const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+      const fontSize = (options.fontSize || 24) * dpr;
+      const fontFace = options.fontFace || '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      const color = options.color || "#ffffff";
+      const bgColor = options.bgColor || "transparent";
+      ctx.font = `${options.fontWeight || "normal"} ${fontSize}px ${fontFace}`;
+      const metrics = ctx.measureText(text);
+      const textWidth = metrics.width;
+      const textHeight = fontSize * 1.3;
+      const padding = (options.padding || 8) * dpr;
+      const neededW = Math.max(64, Math.ceil(textWidth + padding * 2));
+      const neededH = Math.max(32, Math.ceil(textHeight + padding * 2));
+      if (canvas.width !== neededW || canvas.height !== neededH) {
+        canvas.width = neededW;
+        canvas.height = neededH;
+      }
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (bgColor !== "transparent") {
+        ctx.fillStyle = bgColor;
+        if (options.borderRadius) {
+          const r = options.borderRadius * dpr;
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(0, 0, canvas.width, canvas.height, r);
+          } else {
+            ctx.rect(0, 0, canvas.width, canvas.height);
+          }
+          ctx.fill();
+        } else {
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+      ctx.font = `${options.fontWeight || "normal"} ${fontSize}px ${fontFace}`;
+      ctx.fillStyle = color;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+      sprite.material.map.needsUpdate = true;
+      const baseH = options.baseHeight || sprite.userData.baseHeight || 1;
+      sprite.userData.baseHeight = baseH;
+      const aspect2 = canvas.width / canvas.height;
+      sprite.scale.set(baseH * aspect2, baseH, 1);
+    }
+  };
+  var i18n = new ScienceI18n();
+  if (typeof window !== "undefined") {
+    window.ScienceI18n = ScienceI18n;
+    window.scienceI18n = i18n;
+  }
+
   // js/main.js
+  var atomDict = {
+    "nav.home": { zh: "\u{1F3E0} \u9996\u9875", en: "\u{1F3E0} Home" },
+    "nav.home_tip": { zh: "\u8FD4\u56DE\u9996\u9875 Back to home", en: "Return to home portal" },
+    "atom.title": { zh: "\u539F\u5B50\u6A21\u578B \xB7 Atomic Model", en: "Atomic Model \xB7 3D" },
+    "atom.sub": { zh: "3D \u4EA4\u4E92\u5F0F \u2014 \u7535\u5B50\u8DC3\u8FC1 vs \u7535\u79BB \xB7 \u5149\u5B50\u7684\u5438\u6536\u4E0E\u53D1\u5C04", en: "3D Interactive \u2014 Electron Transitions vs Ionization \xB7 Photon Absorption & Emission" },
+    "atom.photon_info": { zh: "\u{1F4A1} \u5149\u5B50\u4FE1\u606F Photon", en: "\u{1F4A1} Photon Info" },
+    "atom.p_dir": { zh: "\u65B9\u5411", en: "Direction" },
+    "atom.p_energy": { zh: "\u80FD\u91CF E", en: "Energy E" },
+    "atom.p_trans": { zh: "\u8DC3\u8FC1", en: "Transition" },
+    "atom.p_color": { zh: "\u989C\u8272", en: "Color" },
+    "atom.state_title": { zh: "\u269B\uFE0F \u539F\u5B50\u72B6\u6001", en: "\u269B\uFE0F Atomic State" },
+    "atom.elem": { zh: "\u5143\u7D20", en: "Element" },
+    "atom.protons": { zh: "\u8D28\u5B50 Protons", en: "Protons" },
+    "atom.neutrons": { zh: "\u4E2D\u5B50 Neutrons", en: "Neutrons" },
+    "atom.electrons": { zh: "\u7535\u5B50 Electrons", en: "Electrons" },
+    "atom.charge": { zh: "\u51C0\u7535\u8377 Charge", en: "Net Charge" },
+    "atom.state": { zh: "\u72B6\u6001 State", en: "State" },
+    "atom.ground": { zh: "\u57FA\u6001 Ground", en: "Ground State" },
+    "atom.excited": { zh: "\u6FC0\u53D1\u6001 Excited \u2728", en: "Excited State \u2728" },
+    "atom.cation": { zh: "\u6B63\u79BB\u5B50 Cation \u2295", en: "Cation (+)" },
+    "atom.anion": { zh: "\u8D1F\u79BB\u5B50 Anion \u2296", en: "Anion (-)" },
+    "atom.energy_levels": { zh: "\u80FD\u7EA7\u56FE Energy Levels", en: "Energy Levels" },
+    "atom.shell_dist": { zh: "\u7535\u5B50\u5C42\u5206\u5E03 Shell Distribution", en: "Shell Distribution" },
+    "atom.model_label": { zh: "\u6A21\u578B:", en: "Model:" },
+    "atom.bohr_orbit": { zh: "\u2699\uFE0F \u73BB\u5C14\u8F68\u9053", en: "\u2699\uFE0F Bohr Orbit" },
+    "atom.electron_cloud": { zh: "\u2601\uFE0F \u7535\u5B50\u4E91", en: "\u2601\uFE0F Electron Cloud" },
+    "atom.model_note": { zh: "\u6C22\u7684\u8C31\u7EBF/\u80FD\u7EA7\u4E3A\u91CC\u5FB7\u4F2F\u516C\u5F0F\u771F\u5B9E\u503C \xB7 \u591A\u7535\u5B50\u4E3A\u793A\u610F", en: "Hydrogen lines/levels follow exact Rydberg formula \xB7 Multi-e\u207B schematic" },
+    "atom.absorb_btn": { zh: '\u2600\uFE0F \u5438\u6536\u5149\u5B50<br><span class="dir-hint">\u5149\u5B50 \u2192 \u539F\u5B50 (\u98DE\u5165)</span>', en: '\u2600\uFE0F Absorb Photon<br><span class="dir-hint">Photon \u2192 Atom (In)</span>' },
+    "atom.release_btn": { zh: '\u{1F4AB} \u91CA\u653E\u5149\u5B50<br><span class="dir-hint">\u539F\u5B50 \u2192 \u5149\u5B50 (\u98DE\u51FA)</span>', en: '\u{1F4AB} Emit Photon<br><span class="dir-hint">Atom \u2192 Photon (Out)</span>' },
+    "atom.lose_e": { zh: "\u26A1 \u5931\u53BB\u7535\u5B50 (\u7535\u79BB)", en: "\u26A1 Lose e\u207B (Ionize)" },
+    "atom.gain_e": { zh: "\u26A1 \u83B7\u5F97\u7535\u5B50", en: "\u26A1 Gain e\u207B" },
+    "atom.reset": { zh: "\u21BA \u91CD\u7F6E", en: "\u21BA Reset" },
+    "atom.what_is_photon": { zh: "\u{1F4A1} \u5149\u5B50\u662F\u4EC0\u4E48?", en: "\u{1F4A1} What is Photon?" },
+    "atom.compare_btn": { zh: "\u{1F4CA} \u5BF9\u6BD4\u8868", en: "\u{1F4CA} Comparison" },
+    "atom.comp_title": { zh: "\u{1F4CA} \u7535\u5B50\u8DC3\u8FC1 vs \u7535\u79BB \u2014 \u5BF9\u6BD4\u8868", en: "\u{1F4CA} Transitions vs Ionization Table" },
+    "atom.th_case": { zh: "\u60C5\u51B5", en: "Case" },
+    "atom.th_photon": { zh: "\u5149\u5B50\u65B9\u5411", en: "Photon Flow" },
+    "atom.th_electron": { zh: "\u7535\u5B50\u53BB\u5411", en: "Electron Motion" },
+    "atom.th_atom": { zh: "\u539F\u5B50\u53D8\u5316", en: "Atomic State" },
+    "atom.th_ion": { zh: "\u79BB\u5B50?", en: "Ionized?" }
+  };
+  i18n.loadDict(atomDict);
   var ELEMENTS = {
-    H: { symbol: "H", name: "\u6C22 Hydrogen", Z: 1, N: 0, shells: [1] },
-    He: { symbol: "He", name: "\u6C26 Helium", Z: 2, N: 2, shells: [2] },
-    O: { symbol: "O", name: "\u6C27 Oxygen", Z: 8, N: 8, shells: [2, 6] },
-    Si: { symbol: "Si", name: "\u7845 Silicon", Z: 14, N: 14, shells: [2, 8, 4] },
-    Fe: { symbol: "Fe", name: "\u94C1 Iron", Z: 26, N: 30, shells: [2, 8, 14, 2] }
+    H: { symbol: "H", nameZh: "\u6C22 Hydrogen", nameEn: "Hydrogen", name: "\u6C22 Hydrogen", Z: 1, N: 0, shells: [1] },
+    He: { symbol: "He", nameZh: "\u6C26 Helium", nameEn: "Helium", name: "\u6C26 Helium", Z: 2, N: 2, shells: [2] },
+    O: { symbol: "O", nameZh: "\u6C27 Oxygen", nameEn: "Oxygen", name: "\u6C27 Oxygen", Z: 8, N: 8, shells: [2, 6] },
+    Si: { symbol: "Si", nameZh: "\u7845 Silicon", nameEn: "Silicon", name: "\u7845 Silicon", Z: 14, N: 14, shells: [2, 8, 4] },
+    Fe: { symbol: "Fe", nameZh: "\u94C1 Iron", nameEn: "Iron", name: "\u94C1 Iron", Z: 26, N: 30, shells: [2, 8, 14, 2] }
   };
   var SHELL_NAMES = ["K", "L", "M", "N"];
   var SHELL_MAX = [2, 8, 18, 32];
@@ -22487,7 +22944,7 @@
   var trailParticles = [];
   function animate() {
     requestAnimationFrame(animate);
-    const dt = clock.getDelta();
+    const dt = Math.min(clock.getDelta(), 0.05);
     const t = clock.getElapsedTime();
     for (const ed of electronData) {
       ed.angle += ed.speed * dt;
@@ -23160,7 +23617,8 @@
     const totalE = electronData.length;
     const charge = elem.Z - totalE;
     updateShellColors();
-    document.getElementById("infoElement").textContent = `${elem.symbol} ${elem.name}`;
+    const elemName = i18n.currentLang === "zh" ? elem.nameZh || elem.name : elem.nameEn || elem.name;
+    document.getElementById("infoElement").textContent = `${elem.symbol} ${elemName}`;
     document.getElementById("infoProtons").textContent = elem.Z;
     document.getElementById("infoNeutrons").textContent = elem.N;
     document.getElementById("infoElectrons").textContent = totalE;
@@ -23170,16 +23628,16 @@
     const stateEl = document.getElementById("infoState");
     let stateText, stateClass;
     if (atomState === "excited") {
-      stateText = "\u6FC0\u53D1\u6001 Excited \u2728";
+      stateText = i18n.t("atom.excited");
       stateClass = "excited";
     } else if (atomState === "cation") {
-      stateText = "\u6B63\u79BB\u5B50 Cation \u2295";
+      stateText = i18n.t("atom.cation");
       stateClass = "positive";
     } else if (atomState === "anion") {
-      stateText = "\u8D1F\u79BB\u5B50 Anion \u2296";
+      stateText = i18n.t("atom.anion");
       stateClass = "negative";
     } else {
-      stateText = "\u57FA\u6001 Ground";
+      stateText = i18n.t("atom.ground");
       stateClass = "neutral";
     }
     stateEl.textContent = stateText;
@@ -23444,7 +23902,7 @@
       const btn = document.createElement("button");
       btn.className = "elem-btn" + (key === currentElement ? " active" : "");
       btn.textContent = key;
-      btn.title = ELEMENTS[key].name;
+      btn.title = i18n.currentLang === "zh" ? ELEMENTS[key].nameZh || ELEMENTS[key].name : ELEMENTS[key].nameEn || ELEMENTS[key].name;
       btn.addEventListener("click", () => {
         if (animating) return;
         buildAtom(key);
@@ -23473,6 +23931,14 @@
   });
   document.getElementById("closePhotonInfo").addEventListener("click", () => {
     document.getElementById("photonExplainer").classList.remove("show");
+  });
+  document.getElementById("btnLangZh")?.addEventListener("click", () => i18n.setLanguage("zh"));
+  document.getElementById("btnLangEn")?.addEventListener("click", () => i18n.setLanguage("en"));
+  i18n.subscribe(() => {
+    buildElementButtons();
+    updateInfoPanel();
+    drawEnergyDiagram();
+    drawShellDistribution();
   });
   window.addEventListener("resize", () => {
     camera.aspect = innerWidth / innerHeight;

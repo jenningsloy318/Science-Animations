@@ -78,11 +78,51 @@ canvas {
   transform: translateY(-1px);
 }
 
+/* ── Floating Language Switcher ── */
+.lang-switch {
+  position: fixed;
+  top: 14px;
+  left: 122px;
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  padding: 2px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.lang-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.lang-btn:hover {
+  color: #ffffff;
+}
+
+.lang-btn.active {
+  background: rgba(56, 189, 248, 0.25);
+  color: var(--accent-cyan);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+}
+
 /* ── Top Header Bar ── */
 #top-header {
   position: absolute;
   top: 14px;
-  left: 170px;
+  left: 236px;
   z-index: 20;
   pointer-events: none;
   display: flex;

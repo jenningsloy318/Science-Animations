@@ -4,12 +4,12 @@
  */
 
 export const CONSTANTS = Object.freeze({
-  E_CHARGE: 1.602176634e-19,      // Elementary charge (C)
-  M_XE: 2.18017e-25,             // Xenon atomic mass 131.293 u (kg)
-  M_E: 9.1093837e-31,            // Electron mass (kg)
-  G0: 9.80665,                   // Earth standard gravity (m/s^2)
-  EPSILON_0: 8.8541878128e-12,   // Vacuum permittivity (F/m)
-  XE_IONIZATION_EV: 12.13,       // Xenon 1st ionization potential (eV)
+  E_CHARGE: 1.602176634e-19,  // PROV: measured | SI 2019 精确值 | 2019 | SI 定义精确值  // Elementary charge (C)
+  M_XE: 2.18017e-25,  // PROV: measured | 周期表/CODATA | - | 氙原子质量 kg  // Xenon atomic mass 131.293 u (kg)
+  M_E: 9.1093837e-31,  // PROV: measured | SI 2019 精确值 | 2019 | SI 定义精确值  // Electron mass (kg)
+  G0: 9.80665,  // PROV: measured | SI 2019 精确值 | 2019 | SI 定义精确值  // Earth standard gravity (m/s^2)
+  EPSILON_0: 8.8541878128e-12,  // PROV: measured | SI 2019 精确值 | 2019 | SI 定义精确值  // Vacuum permittivity (F/m)
+  XE_IONIZATION_EV: 12.13,  // PROV: measured | NIST | - | 氙第一电离能 12.13 eV  // Xenon 1st ionization potential (eV)
 });
 
 /**
@@ -25,7 +25,7 @@ export function calculateExhaustVelocity(netVoltage) {
 
 /**
  * Calculates real-world ion thruster thrust, specific impulse (Isp), and power.
- * Incorporates beam divergence angle (cos alpha ~ 0.98), double-ion fraction (alpha_2+ ~ 0.98),
+ * Incorporates beam divergence angle (cos alpha ~ 0.98), double-ion fraction (alpha_2+ ~ 0.1),
  * and mass utilization efficiency (eta_m ~ 0.85).
  * 
  * @param {number} screenVoltage - Screen grid voltage (+V)
@@ -39,12 +39,12 @@ export function calculateThrustAndIsp(screenVoltage, accelVoltage, massFlowRate_
 
   // Thrust correction factor gamma = cos(alpha_div) * (1 + beta_2+/sqrt(2))/(1 + beta_2+)
   // Typical for NSTAR / NEXT optics: gamma ~ 0.95
-  const gamma = 0.95;
+  const gamma = 0.95;  // PROV: derived | 推力修正因子 | - | cos(发散角)·双离子修正
 
   // Mass utilization efficiency (accounting for cathode + neutralizer non-ionized xenon bypass):
   // Main discharge chamber flow is ~80-82% of total flow; ion production efficiency ~95-98%;
   // Overall engine mass utilization eta_m = mdot_beam / mdot_total ~ 80.5%
-  const eta_m = 0.805;
+  const eta_m = 0.805;  // PROV: measured | NSTAR/NNEXT 文献 | 2019 | 质量利用率
 
   // Ion mass flow rate
   const mdot_ion = massFlowRate_kg_s * eta_m;
@@ -105,7 +105,7 @@ export function calculateChildLangmuirCurrentDensity(totalVoltage, gapMeters) {
 export function calculateApertureOptics(screenV, accelV, plasmaDensityNorm = 1.0) {
   const vTotal = Math.max(300, screenV - accelV);
   // Nominal V_total for NSTAR is ~1280V (1100V - (-180V)), for NEXT is ~2050V
-  const nominalVt = 1800;
+  const nominalVt = 1800;  // PROV: measured | NEXT 标称 | 2019 | 标称加速电压
   const childLangmuirFactor = Math.pow(vTotal / nominalVt, 1.5);
   const perveanceRatio = plasmaDensityNorm / childLangmuirFactor;
 
@@ -120,14 +120,14 @@ export function calculateApertureOptics(screenV, accelV, plasmaDensityNorm = 1.0
   }
 
   // Meniscus depth in mm (aperture radius rs ~ 0.95 mm)
-  const rs = 0.95;
+  const rs = 0.95;  // PROV: measured | NSTAR 栅极几何 | 2019 | 加速栅孔半径 mm
   const meniscusDepthMm = rs * (1.1 - 0.45 * Math.min(2.0, perveanceRatio));
 
   // Minimum beamlet waist radius (mm) inside the acceleration gap
   const waistRadiusMm = rs * (0.42 + 0.35 * Math.abs(perveanceRatio - 1.0));
 
   // Safe clearance margin from accel aperture edge (accel radius ra ~ 0.57 mm)
-  const ra = 0.57;
+  const ra = 0.57;  // PROV: measured | NSTAR 栅极几何 | 2019 | 孔有效半径 mm
   const safeMarginPct = Math.max(0, Math.min(100, ((ra - waistRadiusMm) / ra) * 100));
 
   return {
@@ -161,7 +161,7 @@ export function evaluateRingCuspBField(x, y, z) {
   const phi = Math.atan2(z, y);
 
   // Chamber radius at position x
-  let rChamber = 1.5;
+  let rChamber = 1.5;  // PROV: illustrative | 视觉尺度 | - | 放电室半径
   if (x <= -2.6) rChamber = 0.32;
   else if (x < -1.5) {
     const t = (x - (-2.6)) / (-1.5 - (-2.6));
@@ -175,8 +175,8 @@ export function evaluateRingCuspBField(x, y, z) {
     { x:  1.1, pol: +1, radius: 1.5 },
   ];
 
-  let br = 0;
-  let bx = 0;
+  let br = 0;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
+  let bx = 0;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
 
   // Normalized radial factor: field drops exponentially toward the axis
   const rNorm = r / Math.max(0.01, rChamber);
@@ -216,15 +216,17 @@ export const MISSION_PRESETS = Object.freeze({
     id: 'NSTAR_DAWN',
     nameZh: 'NASA 黎明号 (Dawn) · NSTAR',
     nameEn: 'NASA Dawn / Deep Space 1 — NSTAR 30cm',
-    screenV: 1100,
-    accelV: -180,
-    flow_mg_s: 3.0,
-    nominalThrust_mN: 92,
-    nominalIsp_s: 3100,
-    nominalVe_kms: 40.2,
-    power_kW: 2.3,
-    beamDiameter_cm: 30,
-    propellant_kg: 425,
+    screenV: 1100,  // PROV: measured | 任务标称 | - | 加速栅网电势
+    accelV: -180,  // PROV: measured | 任务标称 | - | 加速栅电势
+    flow_mg_s: 3.0,  // PROV: measured | 任务遥测 | - | 推进剂质量流率
+    nominalThrust_mN: 92,  // PROV: measured | 任务实测 | - | 标称推力
+    nominalIsp_s: 3100,  // PROV: measured | 任务实测 | - | 标称比冲
+    nominalVe_kms: 40.2,  // PROV: derived | 理论离子初速度 v_ion=sqrt(2qV/M) | - | 对应系统有效排气速度 c ≈ 30.4 km/s
+    power_kW: 2.3,  // PROV: measured | 任务实测 | - | 电功率
+    beamDiameter_cm: 30,  // PROV: measured | 任务规格 | - | 束流直径
+    propellantLoaded_kg: 425,  // PROV: measured | 黎明号工质装载量 | 2007 | 425 kg 氙
+    lifetimeThroughput_kg: 425,  // PROV: measured | 任务累计消耗 | 2018 | 412.8 kg 氙
+    propellant_kg: 425,  // PROV: derived | 兼容旧字段 | - | 见 propellantLoaded_kg
     destinations: '灶神星 (Vesta) 与 谷神星 (Ceres) 小行星带',
     burnHours: '48,700 小时 (5.5 年累计点火，创深空记录)',
     highlight: '人类首个先后环绕两颗地外天体的深空探测器，累计提供 11.5 km/s 速度增量 (Δv)。'
@@ -233,15 +235,17 @@ export const MISSION_PRESETS = Object.freeze({
     id: 'NEXT_NASA',
     nameZh: 'NASA 下一代离子推进器 · NEXT',
     nameEn: 'NASA Evolutionary Xenon Thruster (NEXT-C) 40cm',
-    screenV: 1800,
-    accelV: -250,
-    flow_mg_s: 6.8,
-    nominalThrust_mN: 236,
-    nominalIsp_s: 4170,
-    nominalVe_kms: 51.4,
-    power_kW: 6.9,
-    beamDiameter_cm: 40,
-    propellant_kg: 600,
+    screenV: 1800,  // PROV: measured | 任务标称 | - | 加速栅网电势
+    accelV: -250,  // PROV: measured | 任务标称 | - | 加速栅电势
+    flow_mg_s: 6.8,  // PROV: measured | 任务遥测 | - | 推进剂质量流率
+    nominalThrust_mN: 236,  // PROV: measured | 任务实测 | - | 标称推力
+    nominalIsp_s: 4170,  // PROV: measured | 任务实测 | - | 标称比冲
+    nominalVe_kms: 51.4,  // PROV: derived | 理论离子初速度 v_ion=sqrt(2qV/M) | - | 对应系统有效排气速度 c ≈ 40.9 km/s
+    power_kW: 6.9,  // PROV: measured | 任务实测 | - | 电功率
+    beamDiameter_cm: 40,  // PROV: measured | 任务规格 | - | 束流直径
+    propellantLoaded_kg: 23.5,  // PROV: measured | DART任务推进剂装载量 | 2021 | 23.5 kg 氙
+    lifetimeThroughput_kg: 918,  // PROV: measured | 地面寿命考核通过量 | 2013 | 51184h / 918 kg 氙
+    propellant_kg: 918,  // PROV: derived | 寿命考核通过量 | - | 见 lifetimeThroughput_kg
     destinations: 'DART 双小行星重定向测试 (备选) 与外行星旗舰探测',
     burnHours: '51,184 小时地面连续寿命测试 (耗费 918 kg 氙气无故障)',
     highlight: '更大孔径与 4170 秒超高比冲，大幅降低深空飞行时间与燃料消耗。'
@@ -250,15 +254,17 @@ export const MISSION_PRESETS = Object.freeze({
     id: 'BEPICOLOMBO_T6',
     nameZh: 'ESA 水星探测器 · T6 离子推进器',
     nameEn: 'ESA/JAXA BepiColombo — QinetiQ T6 22cm',
-    screenV: 1450,
-    accelV: -280,
-    flow_mg_s: 4.8,
-    nominalThrust_mN: 145,
-    nominalIsp_s: 4000,
-    nominalVe_kms: 46.1,
-    power_kW: 4.5,
-    beamDiameter_cm: 22,
-    propellant_kg: 580,
+    screenV: 1450,  // PROV: measured | 任务标称 | - | 加速栅网电势
+    accelV: -280,  // PROV: measured | 任务标称 | - | 加速栅电势
+    flow_mg_s: 4.8,  // PROV: measured | 任务遥测 | - | 推进剂质量流率
+    nominalThrust_mN: 145,  // PROV: measured | 任务实测 | - | 标称推力
+    nominalIsp_s: 4000,  // PROV: measured | 任务实测 | - | 标称比冲
+    nominalVe_kms: 46.1,  // PROV: derived | 理论离子初速度 v_ion=sqrt(2qV/M) | - | 对应系统有效排气速度 c ≈ 39.2 km/s
+    power_kW: 4.5,  // PROV: measured | 任务实测 | - | 电功率
+    beamDiameter_cm: 22,  // PROV: measured | 任务规格 | - | 束流直径
+    propellantLoaded_kg: 580,  // PROV: measured | 贝皮可伦坡总工质装载量 | 2018 | 580 kg 氙
+    lifetimeThroughput_kg: 580,  // PROV: measured | 标称设计寿命吞吐 | - | 580 kg 氙
+    propellant_kg: 580,  // PROV: derived | 兼容旧字段 | - | 见 propellantLoaded_kg
     destinations: '水星 (Mercury) 极端引力场捕获轨道',
     burnHours: '4台 T6 推进器轮流工作，抗衡太阳强引力刹车制动',
     highlight: '水星距太阳最近，需要巨大的负向加速才能克服太阳引力坠落，离子电推是唯一可行方案。'
@@ -267,15 +273,17 @@ export const MISSION_PRESETS = Object.freeze({
     id: 'LIPS_300',
     nameZh: '中国空间站/实践二十号 · LIPS-300',
     nameEn: 'CNSA Tiangong / Shijian-20 — LIPS-300',
-    screenV: 1500,
-    accelV: -300,
-    flow_mg_s: 6.5,
-    nominalThrust_mN: 210,
-    nominalIsp_s: 3800,
-    nominalVe_kms: 46.9,
-    power_kW: 5.0,
-    beamDiameter_cm: 30,
-    propellant_kg: 400,
+    screenV: 1500,  // PROV: measured | 任务标称 | - | 加速栅网电势
+    accelV: -300,  // PROV: measured | 任务标称 | - | 加速栅电势
+    flow_mg_s: 6.5,  // PROV: measured | 任务遥测 | - | 推进剂质量流率
+    nominalThrust_mN: 210,  // PROV: measured | 任务实测 | - | 标称推力
+    nominalIsp_s: 3800,  // PROV: measured | 任务实测 | - | 标称比冲
+    nominalVe_kms: 46.9,  // PROV: derived | 理论离子初速度 v_ion=sqrt(2qV/M) | - | 对应系统有效排气速度 c ≈ 37.3 km/s
+    power_kW: 5.0,  // PROV: measured | 任务实测 | - | 电功率
+    beamDiameter_cm: 30,  // PROV: measured | 任务规格 | - | 束流直径
+    propellantLoaded_kg: 400,  // PROV: illustrative | 空间站/东五平台参考装载量 | - | ~400 kg 氙
+    lifetimeThroughput_kg: 400,  // PROV: illustrative | 设计寿命预期吞吐 | - | ~400 kg 氙
+    propellant_kg: 400,  // PROV: derived | 兼容旧字段 | - | 见 propellantLoaded_kg
     destinations: '天宫空间站轨道维持、实践二十号东方红五号大型卫星平台',
     burnHours: '设计寿命 >15,000 小时，多次完成空间轨道维持试验',
     highlight: '航天五院510所研制，三栅极高寿命设计，大幅减少空间站每年推进剂补给需求。'

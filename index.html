@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,6 +11,23 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+  <script>
+    (function() {
+      try {
+        var p = new URLSearchParams(window.location.search).get('lang');
+        var s = (p === 'zh' || p === 'en') ? p : null;
+        if (!s) {
+          s = localStorage.getItem('science_lang') || localStorage.getItem('collider_lang');
+        }
+        if (!s && navigator.language) {
+          s = navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+        }
+        var lang = (s === 'en' ? 'en' : 'zh');
+        document.documentElement.lang = (lang === 'zh' ? 'zh-CN' : 'en');
+        document.documentElement.classList.add('i18n-loading');
+      } catch(e) {}
+    })();
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -46,11 +63,58 @@
 
     header {
       position: relative;
-      z-index: 1;
+      z-index: 2;
       width: 100%;
       max-width: 900px;
       padding: 3.5rem 1.5rem 1rem;
       text-align: center;
+    }
+
+    /* ── language switcher pill ── */
+    .lang-switch {
+      position: absolute;
+      top: 1.25rem;
+      right: 1.5rem;
+      z-index: 10;
+      display: inline-flex;
+      align-items: center;
+      background: rgba(13, 18, 33, 0.85);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 9999px;
+      padding: 3px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 4px 18px rgba(0, 0, 0, 0.45);
+    }
+
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      padding: 0.35rem 0.85rem;
+      font-size: 0.82rem;
+      font-family: inherit;
+      font-weight: 500;
+      border-radius: 9999px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      line-height: 1;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      min-height: 32px;
+    }
+
+    .lang-btn:hover {
+      color: #f1f5f9;
+    }
+
+    .lang-btn.active {
+      background: rgba(251, 191, 36, 0.15);
+      color: #fbbf24;
+      font-weight: 600;
+      box-shadow: 0 0 12px rgba(251, 191, 36, 0.25);
     }
 
     h1 {
@@ -66,9 +130,9 @@
       font-size: clamp(0.95rem, 2vw, 1.1rem);
       font-weight: 300;
       color: #94a3b8;
-      max-width: 520px;
+      max-width: 540px;
       margin: 0 auto;
-      line-height: 1.5;
+      line-height: 1.55;
     }
 
     /* ── card grid ── */
@@ -81,6 +145,23 @@
       width: 100%;
       max-width: 1400px;
       padding: 2rem 1.5rem 4rem;
+    }
+
+    @media (max-width: 1200px) {
+      .grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .grid { grid-template-columns: 1fr; }
+      .lang-switch {
+        position: static;
+        margin: 0 auto 1.25rem;
+      }
+      header {
+        padding-top: 1.75rem;
+      }
     }
 
     .card {
@@ -174,6 +255,9 @@
       font-weight: 700;
       letter-spacing: -0.01em;
       color: #f1f5f9;
+      overflow-wrap: break-word;
+      word-break: normal;
+      hyphens: auto;
     }
 
     .card__desc {
@@ -181,6 +265,9 @@
       font-weight: 300;
       color: #94a3b8;
       line-height: 1.55;
+      overflow-wrap: break-word;
+      word-break: normal;
+      hyphens: auto;
     }
 
     .card__arrow {
@@ -207,128 +294,294 @@
       color: #475569;
       font-weight: 300;
     }
+
+    /* Zero-FOUT shielding */
+    .i18n-loading [data-i18n] {
+      visibility: hidden;
+    }
   </style>
 </head>
 <body>
   <header>
-    <h1>Science Animations</h1>
-    <p>Interactive simulations that bring physics and engineering to life — built for curious minds.</p>
+    <div class="lang-switch" role="group" aria-label="Language Switcher">
+      <button id="btnLangZh" class="lang-btn" data-lang-btn="zh">🇨🇳 中文</button>
+      <button id="btnLangEn" class="lang-btn" data-lang-btn="en">🇬🇧 EN</button>
+    </div>
+    <h1 data-i18n="portal.title">科学可视化动画库</h1>
+    <p data-i18n="portal.desc">生动逼真的 3D 物理与工程交互仿真 — 为好奇心与探索而建</p>
   </header>
 
   <div class="grid">
     <a class="card card--slingshot" href="gravity-slingshot/" id="link-gravity-slingshot">
       <div class="card__icon">🪐</div>
-      <div class="card__title">Gravity Slingshot</div>
-      <div class="card__desc">Fly through the solar system and see how spacecraft use planetary gravity to accelerate — no fuel needed.</div>
-      <span class="card__arrow">Open →</span>
+      <div class="card__title" data-i18n="card.slingshot.title">Gravity Slingshot</div>
+      <div class="card__desc" data-i18n="card.slingshot.desc">Fly through the solar system and see how spacecraft use planetary gravity to accelerate — no fuel needed.</div>
+      <span class="card__arrow" data-i18n="portal.card_open">Open →</span>
     </a>
 
     <a class="card card--car" href="how-cars-work/" id="link-how-cars-work">
       <div class="card__icon">🚗</div>
-      <div class="card__title">How Cars Work</div>
-      <div class="card__desc">A full 3D powertrain simulation — watch the engine, transmission, and wheels work together.</div>
-      <span class="card__arrow">Open →</span>
+      <div class="card__title" data-i18n="card.car.title">How Cars Work</div>
+      <div class="card__desc" data-i18n="card.car.desc">A full 3D powertrain simulation — watch the engine, transmission, and wheels work together.</div>
+      <span class="card__arrow" data-i18n="portal.card_open">Open →</span>
     </a>
 
     <a class="card card--ion3d" href="ion-thruster-3d/" id="link-ion-thruster-3d">
       <div class="card__icon">🛰️</div>
-      <div class="card__title">Ion Thruster 3D 离子推进器</div>
-      <div class="card__desc">NASA NSTAR / NEXT 栅格离子推进器 3D 仿真 — 探索环形尖点磁场、单孔微观离子光学透镜、两轴常平架推力矢量与真实深空任务预设。</div>
-      <span class="card__arrow">Open →</span>
+      <div class="card__title" data-i18n="card.ion3d.title">Ion Thruster 3D 离子推进器</div>
+      <div class="card__desc" data-i18n="card.ion3d.desc">NASA NSTAR / NEXT 栅格离子推进器 3D 仿真 — 探索环形尖点磁场、单孔微观离子光学透镜、两轴常平架推力矢量与真实深空任务预设。</div>
+      <span class="card__arrow" data-i18n="portal.card_open">Open →</span>
     </a>
 
     <a class="card card--atom" href="atomic-model/" id="link-atomic-model">
       <div class="card__icon">⚛️</div>
-      <div class="card__title">Atomic Model 原子模型</div>
-      <div class="card__desc">Explore atoms in 3D — watch electrons orbit, trigger energy transitions, and see how ions form when electrons are lost or gained.</div>
-      <span class="card__arrow">Open →</span>
+      <div class="card__title" data-i18n="card.atom.title">Atomic Model 原子模型</div>
+      <div class="card__desc" data-i18n="card.atom.desc">Explore atoms in 3D — watch electrons orbit, trigger energy transitions, and see how ions form when electrons are lost or gained.</div>
+      <span class="card__arrow" data-i18n="portal.card_open">Open →</span>
     </a>
 
     <!-- Nuclear Fusion card (SCENARIO-003/SCENARIO-004, AC-02) -->
     <a class="card card--fusion" href="nuclear-fusion-3d/" id="link-nuclear-fusion-3d">
       <div class="card__icon">☀️</div>
-      <div class="card__title">Nuclear Fusion 核聚变</div>
-      <div class="card__desc">Watch deuterium and tritium atoms heat into plasma, collide against repulsion, fuse into helium, and release the Sun's power through E=mc².</div>
-      <span class="card__arrow">Open →</span>
+      <div class="card__title" data-i18n="card.fusion.title">Nuclear Fusion 核聚变</div>
+      <div class="card__desc" data-i18n="card.fusion.desc">Watch deuterium and tritium atoms heat into plasma, collide against repulsion, fuse into helium, and release the Sun's power through E=mc².</div>
+      <span class="card__arrow" data-i18n="portal.card_open">Open →</span>
     </a>
 
     <a class="card card--solar" href="solar-cell/" id="link-solar-cell">
       <div class="card__icon">☀️</div>
-      <div class="card__title">Solar Cell 太阳能电池</div>
-      <div class="card__desc">A 5-chapter interactive journey — silicon atoms, doping, PN junctions, the life of a photon, and the real efficiency budget: how 1000 W/m² becomes a certified 27.81% record.</div>
-      <span class="card__arrow">Open →</span>
+      <div class="card__title" data-i18n="card.solar.title">Solar Cell 太阳能电池</div>
+      <div class="card__desc" data-i18n="card.solar.desc">A 5-chapter interactive journey — silicon atoms, doping, PN junctions, the life of a photon, and the real efficiency budget: how 1000 W/m² becomes a certified 28.29% record.</div>
+      <span class="card__arrow" data-i18n="portal.card_open">Open →</span>
     </a>
 
     <!-- Nuclear Fission card (SCENARIO-024, AC-09) -->
     <a class="card card--fission" href="nuclear-fission-3d/" id="link-nuclear-fission-3d">
       <div class="card__icon">☢️</div>
-      <div class="card__title">Nuclear Fission 核裂变</div>
-      <div class="card__desc">Fire a neutron at a uranium-235 nucleus and watch it split into two fragments, spark a chain reaction, and release energy through E=mc².</div>
-      <span class="card__arrow">Open →</span>
+      <div class="card__title" data-i18n="card.fission.title">Nuclear Fission 核裂变</div>
+      <div class="card__desc" data-i18n="card.fission.desc">Fire a neutron at a uranium-235 nucleus and watch it split into two fragments, spark a chain reaction, and release energy through E=mc².</div>
+      <span class="card__arrow" data-i18n="portal.card_open">Open →</span>
     </a>
 
-    <!-- Black Hole card -->
     <a class="card card--blackhole" href="black-hole/" id="link-black-hole">
       <div class="card__icon">🕳️</div>
-      <div class="card__title">Black Hole 黑洞 Gargantua</div>
-      <div class="card__desc">Real-time Schwarzschild geodesic ray tracer — every pixel integrates a light ray through curved spacetime. Drag to orbit a Gargantua-style black hole: event-horizon shadow, photon ring, lensed accretion disk, Doppler beaming. Toggle lensing/Doppler to see what gravity really does.</div>
-      <span class="card__arrow">Open →</span>
+      <div class="card__title" data-i18n="card.blackhole.title">Black Hole 黑洞 Gargantua</div>
+      <div class="card__desc" data-i18n="card.blackhole.desc">Real-time Schwarzschild geodesic ray tracer — every pixel integrates a light ray through curved spacetime. Drag to orbit a Gargantua-style black hole: event-horizon shadow, photon ring, lensed accretion disk, Doppler beaming. Toggle lensing/Doppler to see what gravity really does.</div>
+      <span class="card__arrow" data-i18n="portal.card_open">Open →</span>
     </a>
 
-    <!-- Rotating Earth card -->
     <a class="card card--earth" href="rotating-earth/" id="link-rotating-earth">
       <div class="card__icon">🌍</div>
-      <div class="card__title">Rotating Earth 地球自转</div>
-      <div class="card__desc">A gorgeous 5-second 3D Earth rotation viewed from space — featuring 23.44° axial tilt, Rayleigh atmospheric glow, and city lights.</div>
-      <span class="card__arrow">Open →</span>
+      <div class="card__title" data-i18n="card.earth.title">Rotating Earth 地球自转</div>
+      <div class="card__desc" data-i18n="card.earth.desc">A gorgeous 5-second 3D Earth rotation viewed from space — featuring 23.44° axial tilt, Rayleigh atmospheric glow, and city lights.</div>
+      <span class="card__arrow" data-i18n="portal.card_open">Open →</span>
     </a>
 
-    <!-- Particle Collider card -->
     <a class="card card--collider" href="particle-collider/" id="link-particle-collider">
       <div class="card__icon">🔬</div>
-      <div class="card__title">Particle Collider 粒子对撞机</div>
-      <div class="card__desc">Explore an LHC &amp; ATLAS-inspired 3D detector — disassemble ~37,000 parts layer by layer, watch counter-rotating beams, and trigger synthetic collision events.</div>
-      <span class="card__arrow">Open →</span>
+      <div class="card__title" data-i18n="card.collider.title">Particle Collider 粒子对撞机</div>
+      <div class="card__desc" data-i18n="card.collider.desc">Explore an LHC &amp; ATLAS-inspired 3D detector — disassemble ~37,000 parts layer by layer, watch counter-rotating beams, and trigger synthetic collision events.</div>
+      <span class="card__arrow" data-i18n="portal.card_open">Open →</span>
     </a>
 
-    <!-- Solar System Explorer card -->
     <a class="card card--solarsystem" href="solar-system/" id="link-solar-system">
       <div class="card__icon">🪐</div>
-      <div class="card__title">Solar System Explorer 太阳系探索者</div>
-      <div class="card__desc">Interactive 3D solar system featuring the Sun, 8 planets, and 22 moons. Smooth orbital camera tracking, time acceleration, and Hohmann transfer spaceflight trajectory planner.</div>
-      <span class="card__arrow">Open →</span>
+      <div class="card__title" data-i18n="card.solarsystem.title">Solar System Explorer 太阳系探索者</div>
+      <div class="card__desc" data-i18n="card.solarsystem.desc">Interactive 3D solar system featuring the Sun, 8 planets, and 22 moons. Smooth orbital camera tracking, time acceleration, and Hohmann transfer spaceflight trajectory planner.</div>
+      <span class="card__arrow" data-i18n="portal.card_open">Open →</span>
     </a>
 
-    <!-- Observatory 3D card -->
     <a class="card card--observatory" href="observatory-3d/" id="link-observatory-3d">
       <div class="card__icon">🔭</div>
-      <div class="card__title">Observatory 观天仪器</div>
-      <div class="card__desc">How we observe the universe — 8 interactive 3D instruments: telescope optics, spectrograph, Doppler shift, interferometer, adaptive optics, detectors, and gravitational waves. Every tab shows the full data pipeline from raw reading to real published result.</div>
-      <span class="card__arrow">Open →</span>
+      <div class="card__title" data-i18n="card.observatory.title">Observatory 观天仪器</div>
+      <div class="card__desc" data-i18n="card.observatory.desc">How we observe the universe — 8 interactive 3D instruments: telescope optics, spectrograph, Doppler shift, interferometer, adaptive optics, detectors, and gravitational waves. Every tab shows the full data pipeline from raw reading to real published result.</div>
+      <span class="card__arrow" data-i18n="portal.card_open">Open →</span>
     </a>
 
-    <!-- Motion Parallax card -->
     <a class="card card--parallax" href="motion-parallax/" id="link-motion-parallax">
       <div class="card__icon">🚙</div>
-      <div class="card__title">Motion Parallax 运动视差</div>
-      <div class="card__desc">为什么近物跑得快，远物跑得慢？坐进驾驶位看真实的 3D 透视：感知角速度 ω ≈ v/d，俯视扫角几何，以及同一几何如何量出恒星距离。</div>
-      <span class="card__arrow">Open →</span>
+      <div class="card__title" data-i18n="card.parallax.title">Motion Parallax 运动视差</div>
+      <div class="card__desc" data-i18n="card.parallax.desc">为什么近物跑得快，远物跑得慢？坐进驾驶位看真实的 3D 透视：感知角速度 ω ≈ v/d，俯视扫角几何，以及同一几何如何量出恒星距离。</div>
+      <span class="card__arrow" data-i18n="portal.card_open">Open →</span>
     </a>
 
     <a class="card card--uphill" href="uphill-roller/" id="link-uphill-roller">
       <div class="card__icon">⛰️</div>
-      <div class="card__title">Uphill Roller 锥体上滚</div>
-      <div class="card__desc">双锥体沿 V 型轨道“向上”滚 —— 其实是重心在下降。1694 年 Leybourn 的经典错觉：调 α/β/γ 三个角，验证 tanα &lt; tanβ·tanγ。</div>
-      <span class="card__arrow">Open →</span>
+      <div class="card__title" data-i18n="card.uphill.title">Uphill Roller 锥体上滚</div>
+      <div class="card__desc" data-i18n="card.uphill.desc">双锥体沿 V 型轨道“向上”滚 —— 其实是重心在下降。1694 年 Leybourn 的经典错觉：调 α/β/γ 三个角，验证 tanα &lt; tanβ·tanγ。</div>
+      <span class="card__arrow" data-i18n="portal.card_open">Open →</span>
     </a>
 
     <a class="card card--photo" href="photosynthesis/" id="link-photosynthesis">
       <div class="card__icon">🌿</div>
-      <div class="card__title">Photosynthesis 光合作用</div>
-      <div class="card__desc">从叶片到类囊体膜：看光子打出的电子沿 Z 链流动，Kok 循环吐出 O₂，ATP 合酶旋转拼电池，卡尔文循环把 CO₂ 拼成糖。</div>
-      <span class="card__arrow">Open →</span>
+      <div class="card__title" data-i18n="card.photo.title">Photosynthesis 光合作用</div>
+      <div class="card__desc" data-i18n="card.photo.desc">从叶片到类囊体膜：看光子打出的电子沿 Z 链流动，Kok 循环吐出 O₂，ATP 合酶旋转拼电池，卡尔文循环把 CO₂ 拼成糖。</div>
+      <span class="card__arrow" data-i18n="portal.card_open">Open →</span>
     </a>
+  </div>
 
-  <footer>Built for fun &amp; learning</footer>
+  <footer data-i18n="portal.footer">Built for fun &amp; learning</footer>
+
+  <script type="module">
+    import { i18n } from './common/js/i18n.js';
+
+    const portalDict = {
+      'portal.title': {
+        zh: '科学可视化动画库',
+        en: 'Science Animations'
+      },
+      'portal.desc': {
+        zh: '生动逼真的 3D 物理与工程交互仿真 — 为好奇心与探索而建',
+        en: 'Interactive simulations that bring physics and engineering to life — built for curious minds.'
+      },
+      'portal.card_open': {
+        zh: '开启仿真 →',
+        en: 'Open →'
+      },
+      'portal.footer': {
+        zh: '专为热爱科学与探索的心灵打造',
+        en: 'Built for fun & learning'
+      },
+      'card.slingshot.title': {
+        zh: '引力弹弓航行模拟',
+        en: 'Gravity Slingshot'
+      },
+      'card.slingshot.desc': {
+        zh: '漫游太阳系：看航天器如何利用行星引力实现无动力加速突破深空',
+        en: 'Fly through the solar system and see how spacecraft use planetary gravity to accelerate — no fuel needed.'
+      },
+      'card.car.title': {
+        zh: '汽车是怎么跑起来的？',
+        en: 'How Cars Work'
+      },
+      'card.car.desc': {
+        zh: '3D 动力传动全景机械透视：发动机四冲程、变速箱离合器、差速器与油电对比',
+        en: 'A full 3D powertrain simulation — watch the engine, transmission, and wheels work together.'
+      },
+      'card.ion3d.title': {
+        zh: '离子推进器 3D',
+        en: 'Ion Thruster 3D'
+      },
+      'card.ion3d.desc': {
+        zh: 'NASA 栅格离子推进器仿真：探索环形磁阱、微观离子光学透镜与深空常平架推力矢量',
+        en: 'NASA NSTAR / NEXT gridded ion engine: explore ring cusp magnetics, ion optics, and 2-axis gimbal TVC.'
+      },
+      'card.atom.title': {
+        zh: '原子模型与能级跃迁',
+        en: 'Atomic Model'
+      },
+      'card.atom.desc': {
+        zh: '3D 探索原子结构：看电子轨道跃迁、光子吸收与发射，分清激发与电离',
+        en: 'Explore atoms in 3D: watch electron transitions, photon absorption/emission, and ionization.'
+      },
+      'card.fusion.title': {
+        zh: '核聚变 3D 交互动画',
+        en: 'Nuclear Fusion'
+      },
+      'card.fusion.desc': {
+        zh: '看氘氚离子克服库仑斥力相撞聚变成氦，释放恒星能量 E=mc²',
+        en: 'Watch deuterium and tritium heat into plasma, collide against repulsion, fuse into helium, and release energy via E=mc².'
+      },
+      'card.solar.title': {
+        zh: '太阳能电池：光子到电流',
+        en: 'Solar Cell'
+      },
+      'card.solar.desc': {
+        zh: '5章微观探索：晶格、掺杂、PN结滑梯、光子一生与 28.29% 效率天平与叠层未来',
+        en: 'A 5-chapter interactive journey: crystal lattice, doping, PN junction slide, photon life, and the 28.29% efficiency budget.'
+      },
+      'card.fission.title': {
+        zh: '核裂变 3D 交互动画',
+        en: 'Nuclear Fission'
+      },
+      'card.fission.desc': {
+        zh: '轰击铀-235 原子核：三幕看懂不对称分裂、链式反应、慢化剂与 200 MeV 能量分配',
+        en: 'Fire a neutron at U-235 and watch asymmetric split, chain reactions, moderation, and 200 MeV energy partition.'
+      },
+      'card.blackhole.title': {
+        zh: '相对论黑洞与引力透镜',
+        en: 'Black Hole Gargantua'
+      },
+      'card.blackhole.desc': {
+        zh: '实时相对论测地线光线追踪：视界阴影、光子球层、弯曲吸积盘与多普勒聚束',
+        en: 'Real-time geodesic ray tracer: event horizon shadow, photon ring, lensed accretion disk, and Doppler beaming.'
+      },
+      'card.earth.title': {
+        zh: '旋转地球与实时昼夜',
+        en: 'Rotating Earth'
+      },
+      'card.earth.desc': {
+        zh: '太空视角 3D 地球自转：23.44° 黄赤交角、瑞利大气辉光、城市夜光与二十四节气',
+        en: '3D Earth rotation from space featuring 23.44° axial tilt, Rayleigh atmospheric glow, and city lights.'
+      },
+      'card.collider.title': {
+        zh: '粒子对撞机探秘',
+        en: 'Particle Collider'
+      },
+      'card.collider.desc': {
+        zh: '探索微观神机：逐层拆解 37,000 个探测器部件、逆向双束对撞与合成物理反应',
+        en: 'Explore an LHC & ATLAS-inspired detector: disassemble 37,000 parts, watch counter-rotating beams, and trigger collision events.'
+      },
+      'card.solarsystem.title': {
+        zh: '太阳系探索者',
+        en: 'Solar System Explorer'
+      },
+      'card.solarsystem.desc': {
+        zh: '太阳与 8 大行星 22 颗卫星全景三维轨道漫游，支持霍曼转移轨道规划',
+        en: 'Interactive 3D solar system with Sun, 8 planets, 22 moons, and Hohmann transfer orbit flight planner.'
+      },
+      'card.observatory.title': {
+        zh: '观天仪器：如何观测宇宙',
+        en: 'Observatory 3D'
+      },
+      'card.observatory.desc': {
+        zh: '8 大现代天文观测仪器全景：光学折反射、光谱仪、多普勒红移、干涉仪与引力波',
+        en: 'How we observe the universe: 8 interactive 3D instruments showing raw readings to published science results.'
+      },
+      'card.parallax.title': {
+        zh: '运动视差几何全解',
+        en: 'Motion Parallax'
+      },
+      'card.parallax.desc': {
+        zh: '为什么近快远慢？驾驶位透视 ω ≈ v/d、俯视扫角与同一几何测定恒星距离',
+        en: 'Why near objects move faster than far ones: perspective view, angular sweep geometry, and stellar parallax distance ladder.'
+      },
+      'card.uphill.title': {
+        zh: '锥体上滚视觉错觉',
+        en: 'Uphill Roller'
+      },
+      'card.uphill.desc': {
+        zh: '双锥体沿 V 轨神奇向上爬坡 —— 几何解析重心真实下降，验证经典错觉力学条件',
+        en: 'Double cone rolling uphill on V-tracks illusion: geometric proof that center of mass actually descends.'
+      },
+      'card.photo.title': {
+        zh: '光合作用：叶片能量工厂',
+        en: 'Photosynthesis'
+      },
+      'card.photo.desc': {
+        zh: '从叶片到类囊体膜：看光子打出的电子沿 Z 链流动，Kok 循环吐出 O₂，ATP 合酶旋转拼电池，卡尔文循环把 CO₂ 拼成糖',
+        en: 'From leaf to thylakoid membrane: watch Z-scheme electron flow, Kok oxygen cycle, ATP synthase rotor, and Calvin cycle.'
+      }
+    };
+
+    function updateCardLinks(lang) {
+      document.querySelectorAll('.grid a.card').forEach(card => {
+        const rawHref = card.getAttribute('data-base-href') || card.getAttribute('href');
+        const cleanHref = rawHref.split('?')[0].split('#')[0];
+        card.setAttribute('data-base-href', cleanHref);
+        card.setAttribute('href', `${cleanHref}?lang=${lang}`);
+      });
+    }
+
+    i18n.loadDict(portalDict);
+    updateCardLinks(i18n.currentLang);
+
+    i18n.subscribe((lang) => {
+      updateCardLinks(lang);
+    });
+
+    document.getElementById('btnLangZh')?.addEventListener('click', () => i18n.setLanguage('zh'));
+    document.getElementById('btnLangEn')?.addEventListener('click', () => i18n.setLanguage('en'));
+  </script>
 </body>
 </html>

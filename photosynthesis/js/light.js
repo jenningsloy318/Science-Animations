@@ -14,8 +14,9 @@
 // ═══════════════════════════════════════════════════════
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { makeLabel, makeGlowDot, makeSphere } from './sprite.js';
+import { makeLabel, makeGlowDot, makeSphere, updateLabel } from './sprite.js';
 import { KOK_STATES, H_PER_ATP, CALVIN } from './facts.js';
+import { i18n } from '../../common/js/i18n.js';
 
 const C = {
   photon: 0xffd54a, electron: 0x38bdf8, hplus: 0xf43f5e, o2: 0xf8fafc,
@@ -73,18 +74,20 @@ export function buildLight() {
   const leaderLines = [];
   const clickables = [];
 
-  function addLabel(text, color, x, y, k = 1) {
-    const l = makeLabel(text, color);
+  function addLabel(key, color, x, y, k = 1) {
+    const l = makeLabel(i18n.t(key), color);
     l.scale.multiplyScalar(k * 0.95);
+    l.userData.scaleScalar = k * 0.95;
     l.userData.baseScale = l.scale.clone();
+    l.userData.i18nKey = key;
     l.position.set(x, y, 0.2);
     scene.add(l);
     labels.push(l);
     return l;
   }
 
-  function addComponentLabel(text, color, lx, ly, tx, ty, k = 0.85) {
-    const l = addLabel(text, color, lx, ly, k);
+  function addComponentLabel(key, color, lx, ly, tx, ty, k = 0.85) {
+    const l = addLabel(key, color, lx, ly, k);
     const line = new THREE.Line(
       new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(lx, ly - 0.5, 0.1), new THREE.Vector3(tx, ty, 0.1)]),
       new THREE.LineBasicMaterial({ color: 0x94a3b8, transparent: true, opacity: 0.45 })
@@ -127,7 +130,7 @@ export function buildLight() {
   envelopeLine.position.set(0.5, 0.8, -2.6);
   scene.add(envelopeLine);
 
-  addLabel('🍃 叶绿体内部微宇宙 (Chloroplast Matrix · 统一生命机器)', '#10b981', 0.5, 11.2, 1.15);
+  addLabel('photo.lbl_chloro_matrix', '#10b981', 0.5, 11.2, 1.15);
 
   // 基质流动微粒（Stroma Liquid Drift：40个微光星尘，赋予液相生命质感）
   const stromaDust = [];
@@ -161,8 +164,8 @@ export function buildLight() {
   lightZoneBackdrop.position.set(lumenCenterX, 0.8, -1.8);
   scene.add(lightZoneBackdrop);
 
-  addLabel('🏭 过程 ① · 光反应发电工场 (类囊体膜系统)', '#38bdf8', lumenCenterX, 6.1, 1.05);
-  addLabel('水裂发放氧 · 质子水库大坝 · 纳米水轮机压制满电电池', '#94a3b8', lumenCenterX, 5.5, 0.75);
+  addLabel('photo.lbl_light_zone', '#38bdf8', lumenCenterX, 6.1, 1.05);
+  addLabel('photo.lbl_light_zone_sub', '#94a3b8', lumenCenterX, 5.5, 0.75);
 
   // 腔：深蓝高压质子水库（半透明发光水箱）
   const lumenBox = new THREE.Mesh(
@@ -181,7 +184,7 @@ export function buildLight() {
   lineBox.position.copy(lumenBox.position);
   scene.add(lineBox);
 
-  addLabel('类囊体腔 · 质子水库 (高压蓄水大坝 · 充盈 H⁺)', '#7dd3fc', lumenCenterX, -4.3, 0.88);
+  addLabel('photo.lbl_lumen_dam', '#7dd3fc', lumenCenterX, -4.3, 0.88);
 
   // 腔内 H⁺ 流向 ATP 合酶水轮机的导流箭头线
   const flowTrack = new THREE.Mesh(
@@ -195,7 +198,7 @@ export function buildLight() {
   flowHead.rotation.z = -Math.PI / 2;
   flowHead.position.set(1.4, -1.8, 0.4);
   scene.add(flowHead);
-  addLabel('H⁺ 顺水势冲向水轮机 →', '#f43f5e', -1.2, -2.5, 0.85);
+  addLabel('photo.lbl_hplus_flow', '#f43f5e', -1.2, -2.5, 0.85);
 
   // ── 类囊体膜双分子层 ──
   const membrane = new THREE.Group();
@@ -221,7 +224,7 @@ export function buildLight() {
   // ═══════════════════════════════════════════════════════
   // 2. 膜上蛋白质发电机（光反应）
   // ═══════════════════════════════════════════════════════
-  function makeProtein(x, y, w, h, d, color, name, desc) {
+  function makeProtein(x, y, w, h, d, color, key) {
     const geo = new THREE.CylinderGeometry(w / 2, w / 2, h, 20);
     const mat = new THREE.MeshStandardMaterial({
       color, roughness: 0.35, metalness: 0.15,
@@ -231,17 +234,15 @@ export function buildLight() {
     m.scale.set(1, 1, d / w);
     m.position.set(x, y, 0);
     scene.add(m);
-    m.userData = { name, desc };
-    clickables.push({ mesh: m, name, desc });
+    m.userData = { key };
+    clickables.push({ mesh: m, key });
     return m;
   }
 
   // ① PSII (光系统 II)
   const psiiX = -12.2;
-  const psii = makeProtein(psiiX, 0.2, 2.6, 2.4, 2.2, C.psii,
-    '光系统 II (PSII / P680)',
-    '【阳光电梯 1 号 + 拆水放氧】叶绿素吸收光子，将电子顶上高能态；底部锰簇（OEC）从水里夺走电子补位，水被拆开释放 O₂ 和 H⁺！');
-  addComponentLabel('① PSII · 拆水放氧', '#34d399', psiiX, 4.4, psiiX, 1.4);
+  const psii = makeProtein(psiiX, 0.2, 2.6, 2.4, 2.2, C.psii, 'psii');
+  addComponentLabel('photo.lbl_psii', '#34d399', psiiX, 4.4, psiiX, 1.4);
 
   // PSII 顶部的天线叶绿素发光环
   const chlRing = new THREE.Group();
@@ -266,14 +267,12 @@ export function buildLight() {
   const ca = makeSphere(0.16, 0xf97316, { ei: 0.5 });
   ca.position.set(0, 0, 0.15);
   oecGroup.add(ca);
-  addLabel('OEC 锰簇 (拆水刀)', '#c4b5fd', psiiX - 1.6, -1.3, 0.75);
+  addLabel('photo.lbl_oec', '#c4b5fd', psiiX - 1.6, -1.3, 0.75);
 
   // ② 细胞色素 b6f 质子泵
   const b6fX = -7.4;
-  const b6f = makeProtein(b6fX, 0.1, 2.1, 2.2, 1.9, C.b6f,
-    '细胞色素 b6f 复合体',
-    '【质子抽水泵】电子像滑梯滑经它时，它利用电子下坡的能量，将基质中的 H⁺ 强行泵进类囊体腔，造出大坝水压！');
-  addComponentLabel('② b6f · 泵 H⁺ 入大坝', '#fb923c', b6fX, 4.4, b6fX, 1.2);
+  const b6f = makeProtein(b6fX, 0.1, 2.1, 2.2, 1.9, C.b6f, 'b6f');
+  addComponentLabel('photo.lbl_b6f', '#fb923c', b6fX, 4.4, b6fX, 1.2);
 
   // b6f 内部的泵吸通道光束
   const b6fShaft = new THREE.Mesh(
@@ -285,17 +284,13 @@ export function buildLight() {
 
   // ③ PSI (光系统 I)
   const psiX = -3.2;
-  const psi = makeProtein(psiX, 0.2, 2.4, 2.3, 2.0, C.psi,
-    '光系统 I (PSI / P700)',
-    '【阳光电梯 2 号】到达这里的电子已经疲惫没劲了；第二个光子打入，将电子再次顶上极高能态，准备送去装包！');
-  addComponentLabel('③ PSI · 二次充能', '#34d399', -3.6, 4.6, psiX, 1.4, 0.82);
+  const psi = makeProtein(psiX, 0.2, 2.4, 2.3, 2.0, C.psi, 'psi');
+  addComponentLabel('photo.lbl_psi', '#34d399', -3.6, 4.6, psiX, 1.4, 0.82);
 
   // ④ FNR 酶 (NADP⁺ 还原酶)
   const fnrX = -0.7;
-  const fnr = makeProtein(fnrX, 2.1, 1.4, 1.4, 1.3, C.fnr,
-    'FNR (铁氧还蛋白-NADP⁺ 还原酶)',
-    '【电池打包车间】把从 PSI 送来的 2 个高能电子与 H⁺ 装进 NADP⁺，封装成满电化学电池 NADPH！');
-  addComponentLabel('④ FNR · 封装 NADPH', '#c084fc', -0.7, 3.6, fnrX, 2.8, 0.80);
+  const fnr = makeProtein(fnrX, 2.1, 1.4, 1.4, 1.3, C.fnr, 'fnr');
+  addComponentLabel('photo.lbl_fnr', '#c084fc', -0.7, 3.6, fnrX, 2.8, 0.80);
 
   // ⑤ ATP 合酶水轮发电机（菠菜 c14 环 + 催化球头）
   const atpX = 1.3;
@@ -341,11 +336,9 @@ export function buildLight() {
     lobe.position.set(Math.cos(a) * 0.35, 0, Math.sin(a) * 0.35);
     knob.add(lobe);
   }
-  clickables.push({
-    mesh: knob, name: 'ATP 合酶 (分子水轮发电机)',
-    desc: '【水轮发电机】类囊体腔内高压 H⁺ 喷涌而出推着 c 环高速旋转，带动转轴在球头里咔哒组装 ADP + Pi → ATP 满电电池！',
-  });
-  addComponentLabel('⑤ ATP 合酶 · 旋转发电', '#fbbf24', 1.4, 5.1, atpX, 2.3, 0.82);
+  knob.userData = { key: 'atp' };
+  clickables.push({ mesh: knob, key: 'atp' });
+  addComponentLabel('photo.lbl_atp_synth', '#fbbf24', 1.4, 5.1, atpX, 2.3, 0.82);
 
   // ── 电子输送管道（可见过山车轨道）──
   const pipeCurve = new THREE.CatmullRomCurve3([
@@ -389,37 +382,80 @@ export function buildLight() {
 
   // ═══════════════════════════════════════════════════════
   // 3. 唯一的穿梭纽带：能量与原料城际穿梭专线 (The Shuttle Highway)
+  // 独立双前送管道：第 ④ 步 NADPH 专线 + 第 ⑤ 步 ATP 专线
   // ═══════════════════════════════════════════════════════
   const highwayGroup = new THREE.Group();
   scene.add(highwayGroup);
 
-  // 送电通道（上方 · 金色立体磁浮导光管）
-  const forwardCurve = new THREE.LineCurve3(HIGHWAY_START, HIGHWAY_END);
-  const forwardTube = new THREE.Mesh(
-    new THREE.TubeGeometry(forwardCurve, 32, 0.09, 8, false),
+  // ── 管道 1：第 ④ 步输出 · NADPH 还原力管道（紫色高科光导管 · 来自 FNR）──
+  const nadphCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(fnrX, 2.6, 0),
+    new THREE.Vector3(fnrX + 0.8, 3.9, 0),
+    new THREE.Vector3(5.0, 3.9, 0),
+    new THREE.Vector3(9.4, 3.9, 0),
+  ]);
+  const nadphTube = new THREE.Mesh(
+    new THREE.TubeGeometry(nadphCurve, 40, 0.085, 10, false),
     new THREE.MeshStandardMaterial({
-      color: 0xf59e0b, roughness: 0.3, emissive: 0xd97706, emissiveIntensity: 0.7,
-      transparent: true, opacity: 0.65,
+      color: 0xc084fc, roughness: 0.25, emissive: 0x9333ea, emissiveIntensity: 0.85,
+      transparent: true, opacity: 0.75,
     })
   );
-  highwayGroup.add(forwardTube);
+  highwayGroup.add(nadphTube);
+  nadphTube.userData = { key: 'fnr' };
+  clickables.push({ mesh: nadphTube, key: 'fnr' });
 
-  // 上行高能箭头
-  [0.25, 0.55, 0.85].forEach(u => {
-    const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.42, 8), new THREE.MeshBasicMaterial({ color: 0xfde047 }));
+  // NADPH 管道定向高能箭头 (紫色)
+  [0.32, 0.62, 0.90].forEach(u => {
+    const arrow = new THREE.Mesh(
+      new THREE.ConeGeometry(0.16, 0.38, 8),
+      new THREE.MeshBasicMaterial({ color: 0xd8b4fe })
+    );
     arrow.rotation.z = -Math.PI / 2;
-    arrow.position.set(HIGHWAY_START.x + (HIGHWAY_END.x - HIGHWAY_START.x) * u, HIGHWAY_START.y, 0);
+    const pt = nadphCurve.getPointAt(u);
+    arrow.position.set(pt.x, pt.y, 0);
     highwayGroup.add(arrow);
   });
-  addLabel('⚡ 满电前送 (3 ATP + 2 NADPH) →', '#fcd34d', 5.35, 3.6, 0.78);
+  addLabel('photo.lbl_pipe_nadph', '#c084fc', 5.35, 4.45, 0.76);
+
+  // ── 管道 2：第 ⑤ 步输出 · ATP 能量管道（金黄色高科导管 · 来自 ATP 合酶）──
+  const atpCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(atpX, 2.1, 0),
+    new THREE.Vector3(atpX + 0.6, 2.4, 0),
+    new THREE.Vector3(5.0, 2.4, 0),
+    new THREE.Vector3(9.4, 2.4, 0),
+  ]);
+  const atpTube = new THREE.Mesh(
+    new THREE.TubeGeometry(atpCurve, 40, 0.085, 10, false),
+    new THREE.MeshStandardMaterial({
+      color: 0xf59e0b, roughness: 0.25, emissive: 0xd97706, emissiveIntensity: 0.85,
+      transparent: true, opacity: 0.75,
+    })
+  );
+  highwayGroup.add(atpTube);
+  atpTube.userData = { key: 'atp' };
+  clickables.push({ mesh: atpTube, key: 'atp' });
+
+  // ATP 管道定向高能箭头 (金黄色)
+  [0.32, 0.62, 0.90].forEach(u => {
+    const arrow = new THREE.Mesh(
+      new THREE.ConeGeometry(0.16, 0.38, 8),
+      new THREE.MeshBasicMaterial({ color: 0xfde047 })
+    );
+    arrow.rotation.z = -Math.PI / 2;
+    const pt = atpCurve.getPointAt(u);
+    arrow.position.set(pt.x, pt.y, 0);
+    highwayGroup.add(arrow);
+  });
+  addLabel('photo.lbl_pipe_atp', '#fcd34d', 5.35, 2.95, 0.76);
 
   // 中央穿梭专线标识（立体悬浮徽章）
-  addLabel('⇄ 能量与原料穿梭专线 ⇄', '#ffd54a', 5.35, 0.6, 0.86);
+  addLabel('photo.lbl_highway_shuttle', '#ffd54a', 5.35, 0.7, 0.84);
 
   // 回充通道（下方 · 青灰立体闭环回路导管）
   const returnCurve = new THREE.LineCurve3(RETURN_START, RETURN_END);
   const returnTube = new THREE.Mesh(
-    new THREE.TubeGeometry(returnCurve, 32, 0.09, 8, false),
+    new THREE.TubeGeometry(returnCurve, 32, 0.085, 8, false),
     new THREE.MeshStandardMaterial({
       color: 0x94a3b8, roughness: 0.4, emissive: 0x475569, emissiveIntensity: 0.4,
       transparent: true, opacity: 0.65,
@@ -429,12 +465,12 @@ export function buildLight() {
 
   // 下行回充箭头
   [0.25, 0.55, 0.85].forEach(u => {
-    const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.42, 8), new THREE.MeshBasicMaterial({ color: 0xcbd5e1 }));
+    const arrow = new THREE.Mesh(new THREE.ConeGeometry(0.16, 0.38, 8), new THREE.MeshBasicMaterial({ color: 0xcbd5e1 }));
     arrow.rotation.z = Math.PI / 2;
     arrow.position.set(RETURN_START.x + (RETURN_END.x - RETURN_START.x) * u, RETURN_START.y, 0);
     highwayGroup.add(arrow);
   });
-  addLabel('← 🪫 空电回充 (3 ADP + 2 NADP⁺)', '#cbd5e1', 5.35, -1.2, 0.78);
+  addLabel('photo.lbl_highway_return', '#cbd5e1', 5.35, -1.1, 0.76);
 
   // ═══════════════════════════════════════════════════════
   // 4. 车间 ②：碳反应拼糖工场（叶绿体基质液相）
@@ -447,8 +483,8 @@ export function buildLight() {
   calvinZoneBackdrop.position.set(RING_C.x, 0.8, -1.8);
   scene.add(calvinZoneBackdrop);
 
-  addLabel('🍬 过程 ② · 碳反应拼糖工场 (叶绿体基质)', '#4ade80', RING_C.x, 6.1, 1.05);
-  addLabel('RuBisCO 抓碳 · 注入氢能 · 组装产出糖', '#86efac', RING_C.x, 5.5, 0.75);
+  addLabel('photo.lbl_calvin_zone', '#4ade80', RING_C.x, 6.1, 1.05);
+  addLabel('photo.lbl_calvin_zone_sub', '#86efac', RING_C.x, 5.5, 0.75);
 
   const calvinGroup = new THREE.Group();
   calvinGroup.position.copy(RING_C);
@@ -478,13 +514,15 @@ export function buildLight() {
   );
   rubiscoMesh.position.copy(posFix);
   calvinGroup.add(rubiscoMesh);
-  clickables.push({
-    mesh: rubiscoMesh, name: 'RuBisCO (核酮糖二磷酸羧化酶)',
-    desc: '【抓碳机械手】地球上最多的酶！负责从空气中抓住只有 1 个碳的 CO₂，强行扣在 5 碳抓手 RuBP 上，拉开拼糖序幕！',
-  });
-  const lblFix = makeLabel('① 抓碳固定 (RuBisCO)', '#86efac', 38);
+  rubiscoMesh.userData = { key: 'rubisco' };
+  clickables.push({ mesh: rubiscoMesh, key: 'rubisco' });
+  const lblFix = makeLabel(i18n.t('photo.lbl_calvin_fix'), '#86efac', 38);
   lblFix.position.set(posFix.x, posFix.y + 1.25, 0);
   lblFix.scale.multiplyScalar(0.78);
+  lblFix.userData.scaleScalar = 0.78;
+  lblFix.userData.baseScale = lblFix.scale.clone();
+  lblFix.userData.i18nKey = 'photo.lbl_calvin_fix';
+  labels.push(lblFix);
   calvinGroup.add(lblFix);
   stations.push({ pad: rubiscoMesh, label: lblFix });
 
@@ -499,13 +537,15 @@ export function buildLight() {
   );
   redPad.position.copy(posRed);
   calvinGroup.add(redPad);
-  clickables.push({
-    mesh: redPad, name: '还原工位 (能量与电子注入)',
-    desc: '【电池花在这里！】3-PGA 吸收 ATP 提供的能量磷酸，并吞下 NADPH 送来的高能电子与氢，蜕变为甜美的高能糖砖 G3P！',
-  });
-  const lblRed = makeLabel('② 充能还原 (注入能量)', '#c084fc', 38);
+  redPad.userData = { key: 'red' };
+  clickables.push({ mesh: redPad, key: 'red' });
+  const lblRed = makeLabel(i18n.t('photo.lbl_calvin_red'), '#c084fc', 38);
   lblRed.position.set(posRed.x, -3.5, 0);
   lblRed.scale.multiplyScalar(0.78);
+  lblRed.userData.scaleScalar = 0.78;
+  lblRed.userData.baseScale = lblRed.scale.clone();
+  lblRed.userData.i18nKey = 'photo.lbl_calvin_red';
+  labels.push(lblRed);
   calvinGroup.add(lblRed);
   stations.push({ pad: redPad, label: lblRed });
 
@@ -520,13 +560,15 @@ export function buildLight() {
   );
   regPad.position.copy(posReg);
   calvinGroup.add(regPad);
-  clickables.push({
-    mesh: regPad, name: '再生与出糖工位',
-    desc: '【1 块出厂，5 块回炉】3 圈积攒 6 块 G3P，其中 1 块作为纯收入离开车间去造葡萄糖；剩余 5 块在 ATP 支持下重新拼回 3 个 RuBP 抓手！',
-  });
-  const lblReg = makeLabel('③ 抓手再生 (RuBP)', '#7dd3fc', 38);
+  regPad.userData = { key: 'reg' };
+  clickables.push({ mesh: regPad, key: 'reg' });
+  const lblReg = makeLabel(i18n.t('photo.lbl_calvin_reg'), '#7dd3fc', 38);
   lblReg.position.set(posReg.x, -3.5, 0);
   lblReg.scale.multiplyScalar(0.78);
+  lblReg.userData.scaleScalar = 0.78;
+  lblReg.userData.baseScale = lblReg.scale.clone();
+  lblReg.userData.i18nKey = 'photo.lbl_calvin_reg';
+  labels.push(lblReg);
   calvinGroup.add(lblReg);
   stations.push({ pad: regPad, label: lblReg });
 
@@ -542,7 +584,7 @@ export function buildLight() {
   sugarPile.position.set(sugarExitPos.x, sugarExitPos.y - 1.6, 0);
   scene.add(sugarPile);
 
-  addLabel('🍬 纯赚 1 块糖出厂 (G3P)', '#facc15', RING_C.x, sugarExitPos.y - 2.6, 0.82);
+  addLabel('photo.lbl_sugar_exit', '#facc15', RING_C.x, sugarExitPos.y - 2.6, 0.82);
 
   // ══════════════════════════════════════════════════════       
   // 5. 实体积木造型生成器（CO₂, RuBP, 3-PGA, G3P, 电池）
@@ -750,10 +792,11 @@ export function buildLight() {
     }
   }
 
-  // 飞行片辅助函数
+  // 飞行片辅助函数（支持单个目标或多级路径导航）
   function fly(mesh, target, speed, onArrive) {
     scene.add(mesh);
-    state.fliers.push({ mesh, target, speed, onArrive });
+    const waypoints = Array.isArray(target) ? target.slice() : [target];
+    state.fliers.push({ mesh, waypoints, target: waypoints[0], speed, onArrive });
   }
 
   // ── 光反应事件调度 ──
@@ -822,12 +865,32 @@ export function buildLight() {
     });
   }
 
+  // ── 实验与状态解说信息管理 ──
+  const expCouplingMsg = document.getElementById('expCouplingMsg');
+  let expMsgKind = 'init';
+
+  function updateExpCouplingMsg(kind) {
+    expMsgKind = kind;
+    if (!expCouplingMsg) return;
+    if (kind === 'depleted') {
+      expCouplingMsg.innerHTML = i18n.t('photo.exp_msg_depleted');
+    } else if (kind === 'dark_run') {
+      expCouplingMsg.innerHTML = i18n.t('photo.exp_msg_dark_run', { atp: state.bat.atp, nadph: state.bat.nadph });
+    } else if (kind === 'sun_off') {
+      expCouplingMsg.innerHTML = i18n.t('photo.exp_msg_sun_off', { atp: state.bat.atp, nadph: state.bat.nadph });
+    } else if (kind === 'sun_restored') {
+      expCouplingMsg.innerHTML = i18n.t('photo.exp_msg_sun_restored');
+    } else {
+      expCouplingMsg.innerHTML = i18n.t('photo.exp_msg_init');
+    }
+  }
+
   // ── 卡尔文循环调度 ──
   function triggerCalvinCycle() {
     // 检查是否有足够的 ATP 与 NADPH 电池
     if (state.bat.atp < CALVIN.atpPerCO2 || state.bat.nadph < CALVIN.nadphPerCO2) {
-      if (state.sunCutoff && expCouplingMsg) {
-        expCouplingMsg.innerHTML = '<b style="color:#f43f5e">🪫 存量电池耗尽！</b>过程 ② 拼糖厂因缺电停工。<br><b>揭示本质：</b>两厂物理独立，但因电池纽带生死与共！点“重新打开太阳”复工。';
+      if (state.sunCutoff) {
+        updateExpCouplingMsg('depleted');
       }
       return; // 缺电，循环等待！
     }
@@ -835,8 +898,8 @@ export function buildLight() {
     state.bat.atp -= CALVIN.atpPerCO2;
     state.bat.nadph -= CALVIN.nadphPerCO2;
 
-    if (state.sunCutoff && expCouplingMsg) {
-      expCouplingMsg.innerHTML = '<b>🌑 暗室拼糖中：</b>消耗存量电池！剩余 <b style="color:var(--orange)">' + state.bat.atp + ' ATP</b> / <b style="color:var(--violet)">' + state.bat.nadph + ' NADPH</b>（印证：拼糖过程不吃光，吃电池即可独立运行）...';
+    if (state.sunCutoff) {
+      updateExpCouplingMsg('dark_run');
     }
 
     state.turns++;
@@ -908,13 +971,35 @@ export function buildLight() {
   const inspMetaphor = document.getElementById('inspMetaphor');
   const inspDesc = document.getElementById('inspDesc');
   const inspIO = document.getElementById('inspIO');
+  const inspInLabel = document.getElementById('inspInLabel');
+  const inspInVal = document.getElementById('inspInVal');
+  const inspOutLabel = document.getElementById('inspOutLabel');
+  const inspOutVal = document.getElementById('inspOutVal');
 
-  function inspectComponent(name, desc) {
+  let activeInspectorKey = null;
+
+  function inspectComponent(key) {
+    activeInspectorKey = key;
     if (!inspTitle) return;
-    inspTitle.textContent = name;
-    inspTag.textContent = '💡 点击查看档案';
-    inspMetaphor.textContent = desc.split('】')[0] ? desc.split('】')[0] + '】' : '';
-    inspDesc.textContent = desc.includes('】') ? desc.split('】')[1] : desc;
+    if (!key) {
+      inspTitle.textContent = i18n.t('photo.insp_default_title');
+      inspTag.textContent = i18n.t('photo.insp_default_tag');
+      inspMetaphor.textContent = '';
+      inspDesc.textContent = i18n.t('photo.insp_default_desc');
+      if (inspIO) inspIO.style.display = 'none';
+      return;
+    }
+    inspTitle.textContent = i18n.t(`photo.comp_${key}_name`);
+    inspTag.textContent = i18n.t('photo.insp_click_tag');
+    inspMetaphor.textContent = i18n.t(`photo.comp_${key}_metaphor`);
+    inspDesc.textContent = i18n.t(`photo.comp_${key}_desc`);
+    if (inspIO && inspInVal && inspOutVal) {
+      inspIO.style.display = 'block';
+      if (inspInLabel) inspInLabel.textContent = i18n.t('photo.insp_in_label');
+      if (inspOutLabel) inspOutLabel.textContent = i18n.t('photo.insp_out_label');
+      inspInVal.textContent = i18n.t(`photo.comp_${key}_in`);
+      inspOutVal.textContent = i18n.t(`photo.comp_${key}_out`);
+    }
   }
 
   // 点击检测
@@ -932,10 +1017,10 @@ export function buildLight() {
     const hit = raycaster.intersectObjects(clickables.map(c => c.mesh), true)[0];
     if (hit) {
       let targetObj = hit.object;
-      while (targetObj && !targetObj.userData.name && targetObj.parent) targetObj = targetObj.parent;
-      const found = clickables.find(c => c.mesh === targetObj || c.mesh === hit.object);
+      while (targetObj && !targetObj.userData?.key && targetObj.parent) targetObj = targetObj.parent;
+      const found = clickables.find(c => c.mesh === targetObj || c.mesh === hit.object || (targetObj?.userData && targetObj.userData.key === c.key));
       if (found) {
-        inspectComponent(found.name, found.desc);
+        inspectComponent(found.key);
       }
     }
   });
@@ -944,11 +1029,11 @@ export function buildLight() {
   const zCanvas = document.getElementById('zscheme');
   const zCtx = zCanvas ? zCanvas.getContext('2d') : null;
   const Z_NODES = [
-    { x: 0.08, y: 0.78, label: '水 (H₂O)', col: '#38bdf8' },
-    { x: 0.18, y: 0.18, label: '☀️ 电梯 1 (P680*)', col: '#facc15' },
-    { x: 0.42, y: 0.58, label: 'b6f (泵 H⁺)', col: '#fb923c' },
-    { x: 0.65, y: 0.18, label: '☀️ 电梯 2 (P700*)', col: '#facc15' },
-    { x: 0.90, y: 0.78, label: '📦 NADPH', col: '#c084fc' },
+    { x: 0.08, y: 0.78, key: 'photo.z_node_0', col: '#38bdf8' },
+    { x: 0.18, y: 0.18, key: 'photo.z_node_1', col: '#facc15' },
+    { x: 0.42, y: 0.58, key: 'photo.z_node_2', col: '#fb923c' },
+    { x: 0.65, y: 0.18, key: 'photo.z_node_3', col: '#facc15' },
+    { x: 0.90, y: 0.78, key: 'photo.z_node_4', col: '#c084fc' },
   ];
 
   function drawZScheme(electronProgress) {
@@ -961,11 +1046,11 @@ export function buildLight() {
     // 标题与能量坐标轴
     zCtx.font = 'bold 12px "PingFang SC", sans-serif';
     zCtx.fillStyle = '#9ff0b5';
-    zCtx.fillText('Z 方案：电子能量过山车 (两次充能)', 14, 12);
+    zCtx.fillText(i18n.t('photo.z_title'), 14, 12);
 
     zCtx.font = '10px "PingFang SC", sans-serif';
     zCtx.fillStyle = '#64748b';
-    zCtx.fillText('势能 ↑ (高能量)', 14, 28);
+    zCtx.fillText(i18n.t('photo.z_axis'), 14, 28);
 
     // 轨道曲线
     zCtx.strokeStyle = '#eab308';
@@ -987,16 +1072,17 @@ export function buildLight() {
       zCtx.arc(px, py, 4, 0, Math.PI * 2);
       zCtx.fill();
 
+      const label = i18n.t(pt.key);
       zCtx.fillStyle = pt.col;
       if (idx === Z_NODES.length - 1) {
         zCtx.textAlign = 'right';
-        zCtx.fillText(pt.label, px + 8, py - 10);
+        zCtx.fillText(label, px + 8, py - 10);
       } else if (idx === 0) {
         zCtx.textAlign = 'left';
-        zCtx.fillText(pt.label, px - 6, py + 14);
+        zCtx.fillText(label, px - 6, py + 14);
       } else {
         zCtx.textAlign = 'center';
-        zCtx.fillText(pt.label, px, py + (pt.y > 0.4 ? 14 : -10));
+        zCtx.fillText(label, px, py + (pt.y > 0.4 ? 14 : -10));
       }
     });
 
@@ -1029,26 +1115,22 @@ export function buildLight() {
     {
       cam: new THREE.Vector3(0.5, 0.6, 38.0),
       tar: new THREE.Vector3(0.5, 0.2, 0),
-      title: '① 全景叶绿体微宇宙 (宏观总揽 · 生命机器)',
-      text: '【置身叶绿体内部】左侧固态膜系统阳光充电放氧，右侧液态基质里吃电池拼糖，中间是源源不断的能量对流高铁。两厂分工明确、浑然一体！',
+      stepIdx: 1,
     },
     {
       cam: new THREE.Vector3(-7.5, 0.6, 20),
       tar: new THREE.Vector3(-7.5, 0.2, 0),
-      title: '② 过程 ① · 膜上发电大坝 (类囊体膜系统)',
-      text: '【独立硬件：固态膜机器】阳光打入 PSII 和 PSI，水分子在 OEC 刀口被切开发出氧气。下坡电子推动 b6f 泵建起质子大坝，高压质子冲刷纳米水轮机（ATP合酶）飞转压出满格电池！',
+      stepIdx: 2,
     },
     {
       cam: new THREE.Vector3(5.35, 0.6, 18),
       tar: new THREE.Vector3(5.35, 0.4, 0),
-      title: '③ 唯一纽带 · 能量与原料穿梭专线 (城际物流)',
-      text: '【两厂生死脐带】光反应绝不直接造糖，拼糖车间绝不直接吃光！两厂空间独立，全靠两条穿梭线连结：金色满电送去拼糖，青灰空电回膜充电！',
+      stepIdx: 3,
     },
     {
       cam: new THREE.Vector3(12.2, 0.6, 18),
       tar: new THREE.Vector3(12.2, 0.6, 0),
-      title: '④ 过程 ② · 碳反应拼糖工场 (叶绿体基质液相)',
-      text: '【独立软件：液相自催化循环】RuBisCO 抓取空气中的 CO₂，吞下送来的满电电池注入高能氢，拼装出 3碳糖 G3P！每 3 圈纯赚 1 块糖出厂，其余回炉再生抓手！',
+      stepIdx: 4,
     },
   ];
 
@@ -1056,10 +1138,11 @@ export function buildLight() {
     state.tourMode = true;
     state.tourStep = idx;
     state.speed = 0.8;
-    const info = TOUR_STEPS[idx - 1];
+    const title = i18n.t(`photo.light_tour_title_${idx}`);
+    const text = i18n.t(`photo.light_tour_desc_${idx}`);
     if (captionEl) {
       captionEl.style.display = 'block';
-      captionEl.innerHTML = `<b style="color:#ffd54a;font-size:20px">${info.title}</b><br><span style="font-size:16px">${info.text}</span>`;
+      captionEl.innerHTML = `<b style="color:#ffd54a;font-size:20px">${title}</b><br><span style="font-size:16px">${text}</span>`;
     }
     // 高亮导览按钮
     document.querySelectorAll('#tourStepList [data-tour]').forEach(b => {
@@ -1080,7 +1163,7 @@ export function buildLight() {
   if (bPause) {
     bPause.addEventListener('click', () => {
       state.paused = !state.paused;
-      bPause.textContent = state.paused ? '▶ 继续' : '⏸ 暂停';
+      bPause.textContent = state.paused ? i18n.t('photo.btn_resume') : i18n.t('photo.btn_pause');
       bPause.classList.toggle('on', state.paused);
     });
   }
@@ -1131,23 +1214,19 @@ export function buildLight() {
       if (state.sunCutoff) {
         state.lightRate = 0;
         sunLight.intensity = 0.15;
-        bCutLight.textContent = '☀️ 重新开启太阳';
+        bCutLight.textContent = i18n.t('photo.exp_btn_on');
         bCutLight.style.background = 'rgba(74,222,128,0.2)';
         bCutLight.style.borderColor = 'rgba(74,222,128,0.5)';
         bCutLight.style.color = '#86efac';
-        if (expCouplingMsg) {
-          expCouplingMsg.innerHTML = '<b>🌑 太阳已熄灭！</b>过程 ① 光反应断电停产。<br>此时过程 ② 拼糖厂有 <b style="color:var(--orange)">' + state.bat.atp + ' ATP</b> 与 <b style="color:var(--violet)">' + state.bat.nadph + ' NADPH</b> 存量电池，正在【独立】运转...';
-        }
+        updateExpCouplingMsg('sun_off');
       } else {
         state.lightRate = 1.0;
         sunLight.intensity = 1.8;
-        bCutLight.textContent = '🌑 关掉太阳';
+        bCutLight.textContent = i18n.t('photo.exp_btn_off');
         bCutLight.style.background = 'rgba(244,63,94,0.15)';
         bCutLight.style.borderColor = 'rgba(244,63,94,0.4)';
         bCutLight.style.color = '#fda4af';
-        if (expCouplingMsg) {
-          expCouplingMsg.innerHTML = '<b style="color:var(--green)">⚡ 阳光恢复！</b>光反应重新发电，电池送达，拼糖车间瞬间复工！';
-        }
+        updateExpCouplingMsg('sun_restored');
       }
     });
   }
@@ -1268,7 +1347,10 @@ export function buildLight() {
             fnr.material.emissiveIntensity = 0.9;
             const fullNADPH = makeNADPHMesh();
             fullNADPH.position.set(fnrX, 2.6, 0);
-            fly(fullNADPH, HIGHWAY_END.clone().add(new THREE.Vector3(0, 0.4, 0)), 2.8, () => {
+            fly(fullNADPH, [
+              new THREE.Vector3(fnrX + 0.8, 3.9, 0),
+              new THREE.Vector3(9.4, 3.9, 0)
+            ], 2.8, () => {
               scene.remove(fullNADPH);
               state.bat.nadph = Math.min(8, state.bat.nadph + 1);
             });
@@ -1295,10 +1377,13 @@ export function buildLight() {
       drainHFromLumen();
       state.counts.atp++;
       highlightStep(4);
-      // 产出一枚亮闪闪的 ATP 电池送上高速公路！
+      // 产出一枚亮闪闪的 ATP 电池送上专用金黄色 ATP 能量管道！
       const fullATP = makeATPMesh();
-      fullATP.position.set(atpX, 2.4, 0);
-      fly(fullATP, HIGHWAY_END.clone(), 3.0, () => {
+      fullATP.position.set(atpX, 2.1, 0);
+      fly(fullATP, [
+        new THREE.Vector3(atpX + 0.6, 2.4, 0),
+        new THREE.Vector3(9.4, 2.4, 0)
+      ], 3.0, () => {
         scene.remove(fullATP);
         state.bat.atp = Math.min(12, state.bat.atp + 1);
       });
@@ -1340,11 +1425,16 @@ export function buildLight() {
     for (let i = state.fliers.length - 1; i >= 0; i--) {
       const f = state.fliers[i];
       const dist = f.mesh.position.distanceTo(f.target);
-      if (dist < 0.25) {
-        f.onArrive?.();
-        scene.remove(f.mesh);
-        state.fliers.splice(i, 1);
-        continue;
+      if (dist < 0.28) {
+        if (f.waypoints && f.waypoints.length > 1) {
+          f.waypoints.shift();
+          f.target = f.waypoints[0];
+        } else {
+          f.onArrive?.();
+          scene.remove(f.mesh);
+          state.fliers.splice(i, 1);
+          continue;
+        }
       }
       f.mesh.position.lerp(f.target, Math.min(1, f.speed * dt));
     }
@@ -1386,12 +1476,35 @@ export function buildLight() {
     if (hudG3p) hudG3p.textContent = state.g3pCount;
   }
 
+  function onLangChange(lang) {
+    labels.forEach(l => {
+      if (l.userData.i18nKey) {
+        updateLabel(l, i18n.t(l.userData.i18nKey));
+      }
+    });
+    if (activeInspectorKey) {
+      inspectComponent(activeInspectorKey);
+    }
+    if (state.tourMode && state.tourStep) {
+      startTourStep(state.tourStep);
+    }
+    if (bCutLight) {
+      bCutLight.textContent = state.sunCutoff ? i18n.t('photo.exp_btn_on') : i18n.t('photo.exp_btn_off');
+    }
+    if (bPause) {
+      bPause.textContent = state.paused ? i18n.t('photo.btn_resume') : i18n.t('photo.btn_pause');
+    }
+    updateExpCouplingMsg(expMsgKind);
+    drawZScheme(state.zPos);
+  }
+
   return {
     scene,
     camera,
     controls,
     update,
     refreshHUD,
+    onLangChange,
     onShow() {
       // 切换到本视图时的初始化
       controls.enabled = true;

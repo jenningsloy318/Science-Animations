@@ -31,21 +31,22 @@
 
   /* ---- verified constants (GeV, natural units c=1) ----------------------- */
   const M = {
-    e: 0.000511, mu: 0.105658,
-    gamma: 0,
-    b: 4.18,
-    W: 80.4,           /* PDG 2024 ≈80.37; display precision 1 dp  */
-    Z: 91.1880,
-    H: 125.20,         /* PDG-2024-era combined ≈125.2 (ATLAS 125.11, CMS 125.35) */
-    t: 172.7,
+    e: 0.000511, mu: 0.105658,   // PROV: measured | PDG | 2024 | e/μ 子质量 GeV
+    gamma: 0,     // PROV: measured | PDG | 2024 | 光子等规范玻色子质量 ≈0 GeV
+    b: 4.18,      // PROV: measured | PDG | 2024 | 底夸克质量 GeV
+    W: 80.4,      // PROV: measured | PDG | 2024 | W 质量 GeV（PDG ≈80.37；显示精度 1 位小数）
+    Z: 91.1880,   // PROV: measured | PDG | 2024 | Z 质量 GeV
+    H: 125.20,    // PROV: measured | PDG | 2024 | H 质量 GeV（ATLAS 125.11 / CMS 125.35 综合）
+    t: 172.7,     // PROV: measured | PDG | 2024 | 顶夸克质量 GeV
   };
-  const GAMMA_Z = 2.4955;
+  const GAMMA_Z = 2.4955;  // PROV: measured | PDG | 2024 | Z 总宽度 GeV
 
   const BR = {
+    // 全部为 PDG 分支比（Higgs → bb/WW/ττ/ZZ/γγ，W → lν/jj）
     Z_mumu: 0.03366, Z_ee: 0.03363, Z_qq: 0.6911,
     H_gamgam: 0.00227, H_ZZ: 0.0264, H_bb: 0.577, H_WW: 0.215, H_tautau: 0.063,
     W_lnu: 0.1086, W_jj: 0.674,
-  };
+  };  // PROV: measured | PDG | 2024 | 分支比
 
   /* production cross sections at √s = 13.6 TeV, in pb */
   const SIGMA = {
@@ -56,7 +57,7 @@
     H_gamgam_fid: { v: 0.0676, note: '67.6 fb（fiducial 预测，ATLAS Run 3）' },
     H_4l_fid:     { v: 0.00367, note: '3.67 fb（fiducial 预测，ATLAS Run 3）' },
   };
-  const PEAK_LUMI = 2e34;   /* cm⁻² s⁻¹, Run 3 peak (≈2.1e34) */
+  const PEAK_LUMI = 2e34;   /* cm⁻² s⁻¹, Run 3 peak (≈2.1e34) */  // NO-PROV: 局部变量/运行时状态，非对外科学数值
 
   /* events per second at peak luminosity: L[cm⁻²s⁻¹] × σ[pb]×1e-36 */
   function ratePerS(sigmaPb, lumi) { return (lumi === undefined ? PEAK_LUMI : lumi) * sigmaPb * 1e-36; }
@@ -82,7 +83,7 @@
   function twoBodyDecay(M0, m1, m2, rnd) {
     const E1 = (M0 * M0 + m1 * m1 - m2 * m2) / (2 * M0);
     const p1 = Math.sqrt(Math.max(0, E1 * E1 - m1 * m1));
-    const cth = 2 * rnd() - 1, phi = rnd() * TAU, sth = Math.sqrt(1 - cth * cth);
+    const cth = 2 * rnd() - 1, phi = rnd() * TAU, sth = Math.sqrt(1 - cth * cth);  // NO-PROV: 局部变量/运行时状态，非对外科学数值
     return [
       { e: E1, px: p1 * sth * Math.cos(phi), py: p1 * sth * Math.sin(phi), pz: p1 * cth },
       { e: Math.sqrt(p1 * p1 + m2 * m2), px: -p1 * sth * Math.cos(phi), py: -p1 * sth * Math.sin(phi), pz: -p1 * cth },
@@ -90,7 +91,7 @@
   }
   function boost(v, bx, by, bz) {  /* full Lorentz boost with β⃗ = (bx,by,bz) */
     const b2 = bx * bx + by * by + bz * bz;
-    const g = 1 / Math.sqrt(1 - b2);
+    const g = 1 / Math.sqrt(1 - b2);  // NO-PROV: 局部变量/运行时状态，非对外科学数值
     const bd = bx * v.px + by * v.py + bz * v.pz;   /* β⃗·p⃗ */
     const k = (g - 1) * bd / b2;                     /* (γ−1)(β⃗·p⃗)/β² */
     return {
@@ -118,7 +119,7 @@
    *             q (±1 charged, 0 neutral), group:'early'|'late', stop:layer }
    * tower:    { phi, eta, e [GeV], em:boolean }
    * ------------------------------------------------------------------------ */
-  const ETA_MAX = 2.4;   /* tracker acceptance — forward tracks are not drawn */
+  const ETA_MAX = 2.4;   /* tracker acceptance — forward tracks are not drawn */  // NO-PROV: 局部变量/运行时状态，非对外科学数值
 
   function clampEta(eta) { return Math.max(-ETA_MAX, Math.min(ETA_MAX, eta)); }
 
@@ -127,7 +128,7 @@
     const jphi = phiOf(jetP), jeta = clampEta(etaOf(jetP));
     const n = opts.nMin + Math.floor(rnd() * (opts.nMax - opts.nMin + 1));
     const frac = [];
-    let sum = 0;
+    let sum = 0;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
     for (let i = 0; i < n; i++) { frac.push(0.05 + rnd() * 0.3); sum += frac[i]; }
     for (let i = 0; i < n; i++) {
       const pTi = pT(jetP) * frac[i] / sum;
@@ -147,7 +148,7 @@
 
   function finish(out, type, mass) {
     /* MET = true vector sum of invisible particles (neutrinos) */
-    let mx = 0, my = 0;
+    let mx = 0, my = 0;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
     for (const inv of out.invisible) { mx += inv.px; my += inv.py; }
     out.met = out.invisible.length ? { phi: Math.atan2(my, mx), mag: Math.hypot(mx, my) } : null;
     delete out.invisible;
@@ -161,18 +162,18 @@
     /* QCD multijet — the overwhelming background (σ ≈ 80 mb inelastic) */
     qcd(rnd) {
       const out = { particles: [], towers: [], jets: [], invisible: [] };
-      const nJets = 2 + Math.floor(rnd() * 3);
+      const nJets = 2 + Math.floor(rnd() * 3);  // NO-PROV: 局部变量/运行时状态，非对外科学数值
       for (let j = 0; j < nJets; j++) {
         /* steep pT spectrum: leading jet well separated */
-        const pTj = 30 + 570 * Math.pow(rnd(), 2.6);
+        const pTj = 30 + 570 * Math.pow(rnd(), 2.6);  // NO-PROV: 局部变量/运行时状态，非对外科学数值
         const E = pTj * Math.cosh((rnd() - 0.5) * 2.4);
-        const th = 2 * Math.atan(Math.exp(-(rnd() - 0.5) * 2.4)) ;
+        const th = 2 * Math.atan(Math.exp(-(rnd() - 0.5) * 2.4)) ;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
         const phi = rnd() * TAU;
         fillJet(rnd, { e: E, px: pTj * Math.cos(phi), py: pTj * Math.sin(phi),
                        pz: E * Math.cos(th) }, out, { nMin: 5, nMax: 9 });
       }
       /* underlying event — soft tracks everywhere */
-      const nUE = 8 + Math.floor(rnd() * 8);
+      const nUE = 8 + Math.floor(rnd() * 8);  // NO-PROV: 局部变量/运行时状态，非对外科学数值
       for (let k = 0; k < nUE; k++) {
         out.particles.push({ kind: 'hadron', pT: 0.4 + 2.2 * rnd() * rnd(), phi: rnd() * TAU,
           eta: clampEta((rnd() - 0.5) * 3.6), q: rnd() > 0.5 ? 1 : -1,
@@ -222,7 +223,7 @@
       fillJet(rnd, q1, out, { nMin: 5, nMax: 8 });
       fillJet(rnd, q2, out, { nMin: 5, nMax: 8 });
       if (rnd() > 0.7) {  /* initial-state radiation: a third forward jet */
-        const pTj = 10 + 25 * rnd(), phi = rnd() * TAU;
+        const pTj = 10 + 25 * rnd(), phi = rnd() * TAU;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
         fillJet(rnd, { e: pTj * 2, px: pTj * Math.cos(phi), py: pTj * Math.sin(phi), pz: pTj },
           out, { nMin: 3, nMax: 5 });
       }

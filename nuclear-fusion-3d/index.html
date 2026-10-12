@@ -5,26 +5,43 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>核聚变 3D 交互动画 · Nuclear Fusion</title>
+<script>
+  (function() {
+    try {
+      var p = new URLSearchParams(window.location.search).get('lang');
+      var s = (p === 'zh' || p === 'en') ? p : null;
+      if (!s) s = localStorage.getItem('science_lang');
+      if (!s && navigator.language) s = navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+      var lang = (s === 'en' ? 'en' : 'zh');
+      document.documentElement.lang = (lang === 'zh' ? 'zh-CN' : 'en');
+      document.documentElement.classList.add('i18n-loading');
+    } catch(e) {}
+  })();
+</script>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
   <!-- SCENARIO-001 (AC-01): back-to-home link -->
   <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
+  <div class="lang-switch" role="group" aria-label="Language Switcher">
+    <button id="btnLangZh" class="lang-btn active" data-lang-btn="zh">🇨🇳 中文</button>
+    <button id="btnLangEn" class="lang-btn" data-lang-btn="en">🇬🇧 EN</button>
+  </div>
 
 <!-- SCENARIO-001 (AC-01): #stage hosts the three.js canvas -->
 <div id="stage"></div>
 
 <header>
-  <h1>☀️ 核聚变 · 3D 交互动画</h1>
-  <p class="subtitle">氘（²H）+ 氚（³H）→ 氦-4 + 中子 + 能量 — 从原子结构到等离子体的聚变之旅</p>
+  <h1 data-i18n="fusion.title">☀️ 核聚变 · 3D 交互动画</h1>
+  <p class="subtitle" data-i18n="fusion.subtitle">氘（²H）+ 氚（³H）→ 氦-4 + 中子 + 能量 — 从原子结构到等离子体的聚变之旅</p>
 </header>
 
 <!-- SCENARIO-005 (AC-03): tool nav — 🎬 引导浏览 guided tour + 🔊 音效 + 🧪 反应切换 -->
 <nav id="tools">
   <button class="tool-btn" id="btnTour" title="引导浏览（分步讲解）">🎬</button>
-  <button class="tool-btn" id="btnSound" title="音效开关 Sound Toggle">🔊</button>
-  <button class="tool-btn" id="btnRxn" title="切换聚变反应类型 (D-T / D-D / p-11B)">⚛️</button>
+  <button class="tool-btn" id="btnSound" title="音效开关 Sound Toggle" data-i18n-title="fusion.btn_sound_tip">🔊</button>
+  <button class="tool-btn" id="btnRxn" title="切换聚变反应类型 (D-T / D-D / p-11B)" data-i18n-title="fusion.btn_rxn_tip">⚛️</button>
 </nav>
 
 <!-- 反应选择浮窗 -->
@@ -88,20 +105,20 @@
 <div id="bottomBar" class="ctrl-bar">
   <!-- SCENARIO-025 (AC-10): 每一幕可点击跳转 + 上一幕/下一幕 + 自动换幕开关 -->
   <div class="row" id="phaseTabs">
-    <button class="phase-tab" data-phase="atoms" title="跳到第 1 幕">① 原子结构</button>
-    <button class="phase-tab" data-phase="plasma" title="跳到第 2 幕">② 加热→等离子体</button>
-    <button class="phase-tab" data-phase="fusion" title="跳到第 3 幕">③ 聚变反应</button>
+    <button class="phase-tab" data-phase="atoms" title="跳到第 1 幕" data-i18n="fusion.tab_atoms">① 原子结构</button>
+    <button class="phase-tab" data-phase="plasma" title="跳到第 2 幕" data-i18n="fusion.tab_plasma">② 加热→等离子体</button>
+    <button class="phase-tab" data-phase="fusion" title="跳到第 3 幕" data-i18n="fusion.tab_fusion">③ 聚变反应</button>
     <span class="vsep"></span>
-    <button class="ctrl-btn" id="prevPhaseBtn">⏮ 上一幕</button>
-    <button class="ctrl-btn" id="nextPhaseBtn">下一幕 ⏭</button>
-    <button class="ctrl-btn" id="autoBtn" aria-pressed="true">🔁 自动换幕：开</button>
+    <button class="ctrl-btn" id="prevPhaseBtn" data-i18n="fusion.btn_prev">⏮ 上一幕</button>
+    <button class="ctrl-btn" id="nextPhaseBtn" data-i18n="fusion.btn_next">下一幕 ⏭</button>
+    <button class="ctrl-btn" id="autoBtn" aria-pressed="true" data-i18n="fusion.btn_auto_on">🔁 自动换幕：开</button>
   </div>
   <div class="row" id="phaseBar">
-    <span class="phase-tag">当前阶段</span>
-    <b id="phaseLabel">原子结构</b>
-    <button class="ctrl-btn" id="toggleBtn">⏸ 暂停</button>
-    <button class="ctrl-btn" id="resetBtn">🔄 重置</button>
-    <button class="ctrl-btn" id="camBtn">🎥 重置视角</button>
+    <span class="phase-tag" data-i18n="fusion.phase_tag">当前阶段</span>
+    <b id="phaseLabel" data-i18n="fusion.phase_atoms">原子结构</b>
+    <button class="ctrl-btn" id="toggleBtn" data-i18n="fusion.btn_pause">⏸ 暂停</button>
+    <button class="ctrl-btn" id="resetBtn" data-i18n="fusion.btn_reset">🔄 重置</button>
+    <button class="ctrl-btn" id="camBtn" data-i18n="fusion.btn_cam">🎥 重置视角</button>
   </div>
 </div>
 
@@ -110,10 +127,10 @@
   <div id="tourTitle"></div>
   <div id="tourText"></div>
   <div id="tourNav">
-    <button class="ctrl-btn" id="tourPrev">← 上一步</button>
+    <button class="ctrl-btn" id="tourPrev" data-i18n="fusion.tour_prev">← 上一步</button>
     <div class="dots-nav" id="tourDots"></div>
-    <button class="ctrl-btn" id="tourNext">下一步 →</button>
-    <button class="ctrl-btn" id="tourExit">退出</button>
+    <button class="ctrl-btn" id="tourNext" data-i18n="fusion.tour_next">下一步 →</button>
+    <button class="ctrl-btn" id="tourExit" data-i18n="fusion.tour_exit">退出</button>
   </div>
 </div>
 
@@ -152,7 +169,7 @@
   <p class="note">太阳发光发热，靠的就是这种聚变反应：一点点质量，换来巨大的能量。</p>
 </aside>
 
-<div id="hint">拖拽旋转 · 滚轮缩放 · 右键平移<br>①②③ 点击跳幕 · 🎬 引导浏览分步讲解</div>
+<div id="hint" data-i18n="fusion.hint">拖拽旋转 · 滚轮缩放 · 右键平移<br>①②③ 点击跳幕 · 🎬 引导浏览分步讲解</div>
 
 <!-- SCENARIO-001/SCENARIO-024 (AC-01/AC-09): console-error trap for the clean-load gate -->
 <script>

@@ -3,25 +3,45 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>离子推进器 · 3D 交互式工作原理</title>
+<title id="pageTitle">🚀 离子推进器 · 3D 交互式工作原理</title>
 <link rel="stylesheet" href="css/style.css">
+<script>
+  (function() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var lang = params.get('lang');
+      if (!lang) {
+        lang = localStorage.getItem('science_lang') ||
+               (navigator.language && navigator.language.startsWith('zh') ? 'zh' : 'en');
+      }
+      document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+      document.documentElement.classList.add('i18n-loading');
+    } catch(e) {}
+  })();
+</script>
 </head>
 <body>
 
   <!-- Back to home (shared) -->
-  <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
+  <a id="homeBtn" href="../index.html" title="返回首页 Back to home" onclick="event.preventDefault(); var l = (window.__ionThrusterApp && window.__ionThrusterApp.currentLang) || (localStorage.getItem('science_lang') || 'zh'); window.location.href='../index.html?lang=' + l;"><span id="homeIcon">🏠</span> <span id="homeTxt">首页</span></a>
+
+  <!-- Language switcher pill -->
+  <div class="lang-switch" role="group" aria-label="Language switcher">
+    <button class="lang-btn active" data-lang="zh" type="button">中</button>
+    <button class="lang-btn" data-lang="en" type="button">EN</button>
+  </div>
 
 <div id="stage"></div>
 
 <header>
-  <h1>🚀 离子推进器 · 3D 交互式工作原理</h1>
-  <p class="subtitle">参考 NASA NSTAR / NEXT / ESA T6 栅格离子推进器 — 真实深空探测电推进工程</p>
+  <h1 id="headerTitle">🚀 离子推进器 · 3D 交互式工作原理</h1>
+  <p class="subtitle" id="subTitle">参考 NASA NSTAR / NEXT / ESA T6 栅格离子推进器 — 真实深空探测电推进工程</p>
   <div id="missionBar">
-    <span class="mission-label">深空任务预设：</span>
-    <button class="mission-btn active" data-mission="NSTAR_DAWN">🛸 黎明号 NSTAR (30cm)</button>
-    <button class="mission-btn" data-mission="NEXT_NASA">🚀 NASA NEXT (40cm)</button>
-    <button class="mission-btn" data-mission="BEPICOLOMBO_T6">🪐 贝皮科伦坡 T6</button>
-    <button class="mission-btn" data-mission="LIPS_300">🇨🇳 天宫/实践 LIPS-300</button>
+    <span class="mission-label" id="missionLabel">深空任务预设：</span>
+    <button class="mission-btn active" data-mission="NSTAR_DAWN" id="btnM_NSTAR_DAWN">🛸 黎明号 NSTAR (30cm)</button>
+    <button class="mission-btn" data-mission="NEXT_NASA" id="btnM_NEXT_NASA">🚀 NASA NEXT (40cm)</button>
+    <button class="mission-btn" data-mission="BEPICOLOMBO_T6" id="btnM_BEPICOLOMBO_T6">🪐 贝皮科伦坡 T6</button>
+    <button class="mission-btn" data-mission="LIPS_300" id="btnM_LIPS_300">🇨🇳 天宫/实践 LIPS-300</button>
   </div>
 </header>
 
@@ -45,19 +65,19 @@
 <!-- 常平架推力矢量控制小部件 -->
 <div id="gimbalWidget">
   <h4>
-    <span>🎛️ 常平架推力矢量</span>
-    <span style="font-weight:normal;font-size:0.68rem;color:#94a3b8">Gimbal 2-Axis</span>
+    <span id="gimbalTitle">🎛️ 常平架推力矢量</span>
+    <span id="gimbalSub" style="font-weight:normal;font-size:0.68rem;color:#94a3b8">Gimbal 2-Axis</span>
   </h4>
   <div class="gimbal-row">
     <div class="gimbal-val-row">
-      <span>俯仰角 (Pitch):</span>
+      <span id="lblGimbalPitch">俯仰角 (Pitch):</span>
       <b id="gimbalPitchVal" style="color:#38bdf8">0.0°</b>
     </div>
     <input type="range" id="gimbalPitchSlider" min="-5" max="5" step="0.2" value="0">
   </div>
   <div class="gimbal-row">
     <div class="gimbal-val-row">
-      <span>偏航角 (Yaw):</span>
+      <span id="lblGimbalYaw">偏航角 (Yaw):</span>
       <b id="gimbalYawVal" style="color:#38bdf8">0.0°</b>
     </div>
     <input type="range" id="gimbalYawSlider" min="-5" max="5" step="0.2" value="0">
@@ -69,46 +89,46 @@
 
 <div id="bottomBar">
   <div class="row" id="stats">
-    <div>推力 <b id="sThrust">92 mN</b></div>
-    <div>比冲 <b id="sIsp">3100 s</b></div>
-    <div>排气速度 <b id="sVe">46.9 km/s</b></div>
-    <div>质量流量 <b id="sMdot">3.0 mg/s</b></div>
-    <div>束电流 <b id="sIb">1.76 A</b></div>
-    <div>总功率 <b id="sPow">2.3 kW</b></div>
-    <div>电气效率 <b id="sEff">68.5%</b></div>
+    <div><span id="lblThrust">推力</span> <b id="sThrust">92 mN</b></div>
+    <div><span id="lblIsp">比冲</span> <b id="sIsp">3100 s</b></div>
+    <div><span id="lblVe">排气速度</span> <b id="sVe">46.9 km/s</b></div>
+    <div><span id="lblMdot">质量流量</span> <b id="sMdot">3.0 mg/s</b></div>
+    <div><span id="lblIb">束电流</span> <b id="sIb">1.76 A</b></div>
+    <div><span id="lblPow">总功率</span> <b id="sPow">2.3 kW</b></div>
+    <div><span id="lblEff">电气效率</span> <b id="sEff">68.5%</b></div>
   </div>
   <div class="row">
     <button class="ctrl-btn" id="toggleBtn">⏸ 暂停</button>
     <button class="ctrl-btn" id="resetBtn">🔄 重置粒子</button>
     <button class="ctrl-btn" id="camBtn">🎥 重置视角</button>
     <div class="ctrl-group">
-      <span>屏栅电压 (屏极)</span>
+      <span id="lblScreenV">屏栅电压 (屏极)</span>
       <input type="range" id="voltageSlider" min="800" max="2500" step="50" value="1500">
       <span class="val" id="voltageVal">1500 V</span>
     </div>
     <div class="ctrl-group">
-      <span>加速极电压</span>
+      <span id="lblAccelV">加速极电压</span>
       <input type="range" id="accelSlider" min="-400" max="-100" step="10" value="-300">
       <span class="val" id="accelVal">-300 V</span>
     </div>
     <div class="ctrl-group">
-      <span>氙气流量</span>
+      <span id="lblFlow">氙气流量</span>
       <input type="range" id="flowSlider" min="1" max="8" step="0.5" value="4">
       <span class="val" id="flowVal">3.0 mg/s</span>
     </div>
     <div class="ctrl-group">
-      <span>时间流速</span>
+      <span id="lblTime">时间流速</span>
       <input type="range" id="timeSlider" min="0.2" max="3" step="0.1" value="1">
       <span class="val" id="timeVal">1.0×</span>
     </div>
   </div>
   <div class="row legend">
-    <div class="legend-item"><div class="dot" style="background:#94a3b8"></div>氙原子 (Xe⁰)</div>
-    <div class="legend-item"><div class="dot" style="background:#38bdf8;box-shadow:0 0 5px #38bdf8"></div>Xe⁺ 离子束</div>
-    <div class="legend-item"><div class="dot" style="background:#a855f7;box-shadow:0 0 5px #a855f7"></div>中和原子 (羽流)</div>
-    <div class="legend-item"><div class="dot" style="background:#f43f5e;box-shadow:0 0 4px #f43f5e"></div>阴极轰击电子</div>
-    <div class="legend-item"><div class="dot" style="background:#facc15;box-shadow:0 0 4px #facc15"></div>中和电子</div>
-    <div class="legend-item"><div class="dot" style="background:transparent;border:1.5px solid #22d3ee"></div>尖点磁力线</div>
+    <div class="legend-item"><div class="dot" style="background:#94a3b8"></div><span id="lgdAtom">氙原子 (Xe⁰)</span></div>
+    <div class="legend-item"><div class="dot" style="background:#38bdf8;box-shadow:0 0 5px #38bdf8"></div><span id="lgdIon">Xe⁺ 离子束</span></div>
+    <div class="legend-item"><div class="dot" style="background:#a855f7;box-shadow:0 0 5px #a855f7"></div><span id="lgdNeut">中和原子 (羽流)</span></div>
+    <div class="legend-item"><div class="dot" style="background:#f43f5e;box-shadow:0 0 4px #f43f5e"></div><span id="lgdCathode">阴极轰击电子</span></div>
+    <div class="legend-item"><div class="dot" style="background:#facc15;box-shadow:0 0 4px #facc15"></div><span id="lgdNeutE">中和电子</span></div>
+    <div class="legend-item"><div class="dot" style="background:transparent;border:1.5px solid #22d3ee"></div><span id="lgdMag">尖点磁力线</span></div>
   </div>
 </div>
 
@@ -136,7 +156,7 @@
   <div class="aperture-dialog">
     <div class="aperture-header">
       <h3>
-        <span>🔬 栅格单孔微观离子光学 · 等离子体鞘层凹透镜</span>
+        <span id="apertureTitle">🔬 栅格单孔微观离子光学 · 等离子体鞘层凹透镜</span>
       </h3>
       <button class="aperture-close" id="apertureClose">✕ 关闭</button>
     </div>
@@ -144,21 +164,21 @@
       <canvas id="apertureCanvas"></canvas>
       <div class="aperture-controls">
         <div class="ctrl-group">
-          <span>屏极电压:</span>
+          <span id="lblApScreenV">屏极电压:</span>
           <input type="range" id="apertureVSlider" min="800" max="2500" step="50" value="1500">
           <span class="val" id="apertureVVal">1500 V</span>
         </div>
         <div class="ctrl-group">
-          <span>等离子体密度:</span>
+          <span id="lblApDensity">等离子体密度:</span>
           <input type="range" id="apertureNSlider" min="0.4" max="2.0" step="0.05" value="1.0">
           <span class="val" id="apertureNVal">1.00×</span>
         </div>
         <button class="ctrl-btn active" id="apertureGridBtn">当前：三栅极 (Screen + Accel + Decel)</button>
       </div>
       <div class="aperture-stats">
-        <div>聚焦状态：<span class="regime-tag optimal" id="apertureRegimeTag">✅ 最佳匹配 (Optimal)</span></div>
-        <div>导流系数比 (Perveance Ratio)：<b id="aperturePervVal">1.00</b></div>
-        <div>孔壁安全间隙裕度：<b id="apertureMarginVal">26.3%</b></div>
+        <div><span id="lblApRegime">聚焦状态：</span><span class="regime-tag optimal" id="apertureRegimeTag">✅ 最佳匹配 (Optimal)</span></div>
+        <div><span id="lblApPerv">导流系数比 (Perveance Ratio)：</span><b id="aperturePervVal">1.00</b></div>
+        <div><span id="lblApMargin">孔壁安全间隙裕度：</span><b id="apertureMarginVal">26.3%</b></div>
       </div>
       <div class="aperture-expl" id="apertureDescText">
         最佳导流匹配：等离子体鞘层界面（Meniscus）受等离子体热压与电场拉力平衡形成凹面，天然构成凹面静电聚焦透镜，将提取的离子精准聚焦成细窄束腰（Beamlet Waist），穿过加速栅孔心而完全不碰伤栅极孔壁（避免溅射腐蚀）。
@@ -169,7 +189,7 @@
 
 <div id="hint">拖拽旋转 · 滚轮缩放 · 右键平移<br>点击任意部件查看详解 · 空格暂停 · Esc 退出模式</div>
 <div id="tooltip"></div>
-<div id="loading"><div><div class="spin"></div>正在构建 3D 场景…</div></div>
+<div id="loading"><div><div class="spin"></div><span id="loadingTxt">正在构建 3D 场景…</span></div></div>
 
 <script>
   window.__errs = [];

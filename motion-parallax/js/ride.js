@@ -161,7 +161,48 @@ export function buildRide(renderer) {
     new THREE.MeshBasicMaterial({ color: 0xf3ecd8, fog: false }));
   moon.renderOrder = -8; scene.add(moon);
 
-  // ── 视线扇 ──
+  // ── 视线扇与国际化定义 ──
+  const HERO_NAMES = {
+    tree: { zh: '大树', en: 'Tree' },
+    house: { zh: '房子', en: 'House' },
+    hill: { zh: '山丘', en: 'Hill' },
+    mountain: { zh: '高山', en: 'Mountain' },
+    moon: { zh: '月亮', en: 'Moon' },
+  };
+
+  const RIDE_I18N = {
+    zh: {
+      title: '你看到的速度 = 角速度<small>°/s，实时</small>',
+      note1: '大脑判断"快慢"用的是视线扫过的<b>角度变化率</b>，不是米/秒。齐平瞬间 ω 达到峰值 v/d。车速越快、离路越近，ω 越大。',
+      note2: '🏷 <b>这不是假动画</b>：画面是浏览器的真实透视渲染——"近快远慢"就是透视本身。🌙 月亮跟随相机，因为 384,400 km 处视差≈0。',
+      note3: '🌫 远处发黄是雾气（大气透视），另一种<b>静态</b>深度线索；运动视差是<b>动态</b>线索——动一动就有。',
+      note4: '👁 大树齐平时 ω 超过 ~100°/s——超过眼球平滑追踪上限，所以近处的东西你只能"扫过"，看不清（眼睛被迫跳动式扫视）。',
+      speedLbl: '车速 v',
+      pause: '⏸ 暂停',
+      resume: '▶ 继续',
+      fan: '👁 视线扇',
+      camDriver: '🎥 驾驶位',
+      camChase: '🎥 后跟随',
+      peaked: '齐平!',
+    },
+    en: {
+      title: 'Perceived Speed = Angular Velocity<small>°/s, Realtime</small>',
+      note1: 'The brain perceives speed as the <b>rate of change of sightline angle</b>, not m/s. Transit instant reaches peak ω = v/d. Faster vehicle and closer distance produce higher ω.',
+      note2: '🏷 <b>Authentic 3D perspective</b>: Rendered via real perspective matrix—"near fast, far slow" is true 3D geometry. 🌙 The moon tracks the camera because parallax at 384,400 km is practically 0.',
+      note3: '🌫 Distant haze is atmospheric perspective, a <b>static</b> depth cue; motion parallax is a <b>dynamic</b> cue active whenever you translate.',
+      note4: '👁 Tree transit ω exceeds ~100°/s—exceeding smooth eye pursuit limits, so close objects sweep past in a saccadic blur.',
+      speedLbl: 'Speed v',
+      pause: '⏸ Pause',
+      resume: '▶ Resume',
+      fan: '👁 Sight Fan',
+      camDriver: '🎥 Driver Seat',
+      camChase: '🎥 Chase Cam',
+      peaked: 'Aligned!',
+    },
+  };
+
+  let lang = 'zh';
+
   const HEROES = [
     { key: 'tree', name: '大树', d: 10, color: C.tree, obj: tree, lh: 7 },
     { key: 'house', name: '房子', d: 60, color: C.house, obj: house, lh: 9 },
@@ -315,7 +356,7 @@ export function buildRide(renderer) {
   });
   bar.querySelector('#btnPause').addEventListener('click', e => {
     state.paused = !state.paused;
-    e.target.textContent = state.paused ? '▶ 继续' : '⏸ 暂停';
+    e.target.textContent = state.paused ? RIDE_I18N[lang].resume : RIDE_I18N[lang].pause;
     e.target.classList.toggle('on', state.paused);
   });
   bar.querySelector('#btnFan').addEventListener('click', e => {
@@ -324,7 +365,7 @@ export function buildRide(renderer) {
   });
   bar.querySelector('#btnCam').addEventListener('click', e => {
     state.camMode = state.camMode === 'driver' ? 'chase' : 'driver';
-    e.target.textContent = state.camMode === 'driver' ? '🎥 驾驶位' : '🎥 后跟随';
+    e.target.textContent = state.camMode === 'driver' ? RIDE_I18N[lang].camDriver : RIDE_I18N[lang].camChase;
     e.target.classList.toggle('on', state.camMode === 'chase');
   });
 
@@ -370,8 +411,9 @@ export function buildRide(renderer) {
         h.peaked = nowPeaked;
         h.row.classList.toggle('peaked', nowPeaked);
         h.el.classList.toggle('peaked', nowPeaked);
-        if (nowPeaked) h.el.querySelector('.nm').textContent = `${h.name} 齐平!`;
-        else h.el.querySelector('.nm').textContent = h.name;
+        const localizedName = HERO_NAMES[h.key][lang] || h.name;
+        if (nowPeaked) h.el.querySelector('.nm').textContent = `${localizedName} ${RIDE_I18N[lang].peaked}`;
+        else h.el.querySelector('.nm').textContent = localizedName;
       }
       if (state.fan && !h.isMoon) {
         const pos = h.fan.geometry.attributes.position;
@@ -381,6 +423,36 @@ export function buildRide(renderer) {
       }
       placeLabel(h);
     }
+  }
+
+  function setLang(l) {
+    if (l !== 'zh' && l !== 'en') return;
+    lang = l;
+    const t = RIDE_I18N[lang];
+    panel.querySelector('h2').innerHTML = t.title;
+    const notes = panel.querySelectorAll('p.note');
+    if (notes[0]) notes[0].innerHTML = t.note1;
+    if (notes[1]) notes[1].innerHTML = t.note2;
+    if (notes[2]) notes[2].innerHTML = t.note3;
+    if (notes[3]) notes[3].innerHTML = t.note4;
+
+    bar.querySelector('.ctl label').textContent = t.speedLbl;
+    bar.querySelector('#btnPause').textContent = state.paused ? t.resume : t.pause;
+    bar.querySelector('#btnFan').textContent = t.fan;
+    bar.querySelector('#btnCam').textContent = state.camMode === 'driver' ? t.camDriver : t.camChase;
+
+    HEROES.forEach(h => {
+      const localizedName = HERO_NAMES[h.key][lang];
+      h.name = localizedName;
+      const nmEl = h.row.querySelector('.nm');
+      const distStr = h.d >= 1000 ? (h.d / 1000).toFixed(h.d >= 10000 ? 0 : 1) + ' km' : h.d + ' m';
+      nmEl.innerHTML = `${localizedName}<small>d = ${distStr}</small>`;
+      if (h.peaked) {
+        h.el.querySelector('.nm').textContent = `${localizedName} ${t.peaked}`;
+      } else {
+        h.el.querySelector('.nm').textContent = localizedName;
+      }
+    });
   }
 
   function onResize(w, h) {
@@ -398,5 +470,5 @@ export function buildRide(renderer) {
     };
   }
 
-  return { scene, camera, update, onResize, getInfo, state };
+  return { scene, camera, update, onResize, getInfo, state, setLang };
 }

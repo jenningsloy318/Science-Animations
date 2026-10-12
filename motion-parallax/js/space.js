@@ -122,7 +122,62 @@ export function buildSpace(renderer) {
   }));
   scene.add(trace);
 
-  // ── DOM 标签 ──
+  // ── 国际化与 DOM 标签 ──
+  const SPACE_I18N = {
+    zh: {
+      sun: '☀ 太阳',
+      earth: '🌍 地球',
+      star: '⭐ 61 Cygni（目标，近）',
+      ghost: '基线 2 AU（相隔 6 个月）',
+      marker: '背景星场 = "无穷远的远山"（视位置）',
+      title: '把几何放大到银河系<small>周年视差</small>',
+      formula: 'd(pc) = 1 / p(″)',
+      note1: '地球公转就是那辆"车"：6 个月前后地球位于基线两端（<b>2 AU ≈ 3 亿 km</b>）。近距离恒星相对背景星场会画出一个小椭圆——这就是<b>恒星视差</b>。',
+      note2: lyB => `1838 年贝塞尔测量 61 Cygni：p ≈ 0.31″（现代值 0.286″）→ 距离 ≈ <b>${lyB} 光年</b>。1 秒差距 = 视差 1″ 的距离 ≈ 3.26 光年。`,
+      note3: lyP => `最近的恒星比邻星 p = 0.77″ → ${lyP} 光年。<b>近 = 视差大 = 距离极近</b>——和大树跑得快是同一条几何！`,
+      note4: '⚖️ 场景里星距被压缩了 ~10¹⁵ 倍才能看见视差；真实 0.286″ 相当于 10 km 外一枚硬币的张角。伽利略当年试图测它而不得——仪器精度不够。',
+      facts: [
+        { fi: '🐔', ft: '鸽子/鸡点头', fd: '走路时头先"定住"再前伸——定住的那半拍就是纯平移，用运动视差测距（Friedman 1975, J. Exp. Biol.）。' },
+        { fi: '🐝', ft: '蜜蜂光流调速', fd: '蜜蜂保持视网膜流速恒定 → 离墙越近飞得越慢（v ∝ d 的逆用）；还靠积分光流"数"飞了多远（Srinivasan 等）。' },
+        { fi: '🎬', ft: '移动 vs 变焦', fd: '变焦把所有层等比放大（无视差）；摄影机移动才产生视差。希区柯克《迷魂记》的"眩晕镜头"就是两者反向叠加。' },
+        { fi: '🤖', ft: 'VR · SLAM', fd: '研究表明运动视差可产生与双目立体感相当的深度知觉——VR 必须 6DoF 追踪头部平移；自动驾驶/SLAM 用同一几何估距。' },
+      ],
+      speedLbl: '公转速度',
+      orbitOut: s => `1 圈 ≈ ${s} s`,
+      pause: '⏸ 暂停',
+      resume: '▶ 继续',
+      sight: '👁 视线',
+      trace: '〰 视位置轨迹',
+    },
+    en: {
+      sun: '☀ Sun',
+      earth: '🌍 Earth',
+      star: '⭐ 61 Cygni (Target, Near)',
+      ghost: 'Baseline 2 AU (6 Months Apart)',
+      marker: 'Background Stars = "Distant Mountains" (Apparent Pos)',
+      title: 'Extrapolating to the Cosmos<small>Stellar Parallax</small>',
+      formula: 'd(pc) = 1 / p(″)',
+      note1: 'Earth\'s orbit acts as the "vehicle": 6 months apart, Earth sits at opposite ends of the baseline (<b>2 AU ≈ 300 million km</b>). Nearby stars trace an apparent ellipse against background stars—this is <b>stellar parallax</b>.',
+      note2: lyB => `In 1838 Bessel measured 61 Cygni: p ≈ 0.31″ (modern 0.286″) → distance ≈ <b>${lyB} ly</b>. 1 parsec = distance with 1″ parallax ≈ 3.26 light years.`,
+      note3: lyP => `Closest star Proxima Centauri p = 0.77″ → ${lyP} ly. <b>Closer = larger parallax = shorter distance</b>—identical geometry to the roadside tree!`,
+      note4: '⚖️ Stellar distances are compressed ~10¹⁵× for visibility; actual 0.286″ corresponds to the angular size of a coin 10 km away. Galileo sought it in vain due to instrumentation limits.',
+      facts: [
+        { fi: '🐔', ft: 'Pigeon / Chicken Head Bobbing', fd: 'During walking, head holds still then thrusts forward—the hold phase produces pure translation to gauge distance via motion parallax (Friedman 1975).' },
+        { fi: '🐝', ft: 'Bee Optical Flow Speed Control', fd: 'Bees maintain constant retinal optic flow rate → flying slower when closer to obstacles (inverting v ∝ d); also integrate flow to estimate flight distance.' },
+        { fi: '🎬', ft: 'Dolly vs Zoom', fd: 'Zooming scales all layers uniformly (zero parallax); camera translation creates true parallax. Hitchcock\'s "Vertigo shot" combines both oppositely.' },
+        { fi: '🤖', ft: 'VR · SLAM', fd: 'Studies show motion parallax produces depth perception comparable to binocular stereopsis—VR requires 6DoF tracking; autonomous driving/SLAM uses identical geometry.' },
+      ],
+      speedLbl: 'Orbit Speed',
+      orbitOut: s => `1 orbit ≈ ${s} s`,
+      pause: '⏸ Pause',
+      resume: '▶ Resume',
+      sight: '👁 Sightline',
+      trace: '〰 Apparent Trail',
+    }
+  };
+
+  let lang = 'zh';
+
   const labelLayer = document.getElementById('labelLayer');
   const labels = [];
   function addLabel(text, color) {
@@ -132,10 +187,10 @@ export function buildSpace(renderer) {
     labelLayer.appendChild(el); labels.push(el); return el;
   }
   const L = {
-    sun: addLabel('☀ 太阳', '#ffd98a'), earth: addLabel('🌍 地球', '#7db8f0'),
-    star: addLabel('⭐ 61 Cygni（目标，近）', '#ffe9b0'),
-    ghost: addLabel('基线 2 AU（相隔 6 个月）', '#e8b84b'),
-    marker: addLabel('背景星场 = "无穷远的远山"（视位置）', '#fff1c4'),
+    sun: addLabel(SPACE_I18N.zh.sun, '#ffd98a'), earth: addLabel(SPACE_I18N.zh.earth, '#7db8f0'),
+    star: addLabel(SPACE_I18N.zh.star, '#ffe9b0'),
+    ghost: addLabel(SPACE_I18N.zh.ghost, '#e8b84b'),
+    marker: addLabel(SPACE_I18N.zh.marker, '#fff1c4'),
   };
 
   // ── 状态 ──
@@ -186,11 +241,12 @@ export function buildSpace(renderer) {
   const sV = bar.querySelector('#sV'), sVOut = bar.querySelector('#sVOut');
   sV.addEventListener('input', () => {
     state.perYear = +sV.value;
-    sVOut.textContent = `1 圈 ≈ ${(1 / state.perYear).toFixed(1)} s`;
+    const dur = (1 / state.perYear).toFixed(1);
+    sVOut.textContent = SPACE_I18N[lang].orbitOut(dur);
   });
   bar.querySelector('#sPause').addEventListener('click', e => {
     state.paused = !state.paused;
-    e.target.textContent = state.paused ? '▶ 继续' : '⏸ 暂停';
+    e.target.textContent = state.paused ? SPACE_I18N[lang].resume : SPACE_I18N[lang].pause;
     e.target.classList.toggle('on', state.paused);
   });
   bar.querySelector('#sSight').addEventListener('click', e => {
@@ -265,8 +321,41 @@ export function buildSpace(renderer) {
     put(L.marker, marker.position, -26);
   }
 
+  function setLang(l) {
+    if (l !== 'zh' && l !== 'en') return;
+    lang = l;
+    const t = SPACE_I18N[lang];
+    panel.querySelector('h2').innerHTML = t.title;
+    const notes = panel.querySelectorAll('p.note');
+    if (notes[0]) notes[0].innerHTML = t.note1;
+    if (notes[1]) notes[1].innerHTML = t.note2(lyB);
+    if (notes[2]) notes[2].innerHTML = t.note3(lyP);
+    if (notes[3]) notes[3].innerHTML = t.note4;
+
+    const factsEl = panel.querySelector('.facts');
+    if (factsEl && t.facts) {
+      factsEl.innerHTML = t.facts.map(f => `
+        <div class="fact"><div class="fi">${f.fi}</div><div class="ft">${f.ft}</div>
+          <div class="fd">${f.fd}</div></div>
+      `).join('');
+    }
+
+    bar.querySelector('.ctl label').textContent = t.speedLbl;
+    const dur = (1 / state.perYear).toFixed(1);
+    sVOut.textContent = t.orbitOut(dur);
+    bar.querySelector('#sPause').textContent = state.paused ? t.resume : t.pause;
+    bar.querySelector('#sSight').textContent = t.sight;
+    bar.querySelector('#sTrace').textContent = t.trace;
+
+    L.sun.querySelector('.nm').textContent = t.sun;
+    L.earth.querySelector('.nm').textContent = t.earth;
+    L.star.querySelector('.nm').textContent = t.star;
+    L.ghost.querySelector('.nm').textContent = t.ghost;
+    L.marker.querySelector('.nm').textContent = t.marker;
+  }
+
   function onResize(w, h) { camera.aspect = w / h; camera.updateProjectionMatrix(); }
   function getInfo() { return { view: 'space', theta: state.theta, paused: state.paused }; }
 
-  return { scene, camera, update, placeLabels, onResize, getInfo, state, controls };
+  return { scene, camera, update, placeLabels, onResize, getInfo, state, controls, setLang };
 }

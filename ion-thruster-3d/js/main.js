@@ -25,8 +25,10 @@ import {
 import {
   initApertureView,
   openApertureView,
-  closeApertureView
+  closeApertureView,
+  setApertureLanguage
 } from './aperture-view.js';
+import { THRUSTER_I18N } from './i18n.js';
 
 /* ================= 基础场景 ================= */
 const stage = document.getElementById('stage');
@@ -865,32 +867,35 @@ const busGroup = G('bus', new THREE.Vector3(-1.7, 0, 0));
 /* ================= 3D 悬浮标签 ================= */
 const labelsGroup = new THREE.Group();
 scene.add(labelsGroup);
+const labelElements = [];
 
-function makeLabel(text, pos, accent) {
+function makeLabel(key, pos, accent) {
   const div = document.createElement('div');
-  div.textContent = text;
+  div.dataset.labelKey = key;
+  div.textContent = THRUSTER_I18N.zh.labels3D[key] || key;
   div.style.cssText = `font-size:11px;padding:3px 10px;border-radius:999px;background:rgba(10,14,24,.78);
     border:1px solid ${accent}66;color:#dbe7f3;white-space:nowrap;backdrop-filter:blur(6px);
     pointer-events:none;font-weight:400;letter-spacing:.3px;box-shadow:0 2px 10px rgba(0,0,0,0.4);`;
   const lab = new CSS2DObject(div);
   lab.position.copy(pos);
   labelsGroup.add(lab);
+  labelElements.push({ div, key });
   return lab;
 }
 
-makeLabel('太阳能电池翼', new THREE.Vector3(-6.35, 0.95, 3.6), '#7986cb');
-makeLabel('PPU 电源处理器', new THREE.Vector3(-4.35, 1.85, 0), '#94a3b8');
-makeLabel('氙气 COPV 贮箱', new THREE.Vector3(-4.35, -2.15, 0), '#38bdf8');
-makeLabel('流量控制阀', new THREE.Vector3(-3.28, 0.85, 0), '#f59e0b');
-makeLabel('中心空心阴极', new THREE.Vector3(-2.3, -0.55, 0), '#f43f5e');
-makeLabel('环形尖点磁钢 (SmCo)', new THREE.Vector3(0.1, 1.95, 0), '#ef4444');
-makeLabel('反向供气喷嘴环', new THREE.Vector3(1.25, 1.85, 0), '#38bdf8');
-makeLabel('放电室阳极', new THREE.Vector3(-0.2, 1.85, 0), '#0ea5e9');
-makeLabel('屏栅极 (+1500V)', new THREE.Vector3(1.52, -1.9, 0), '#ef4444');
-makeLabel('加速栅极 (−300V)', new THREE.Vector3(1.76, -2.15, 0), '#3b82f6');
-makeLabel('外置中和器', new THREE.Vector3(2.35, -2.25, 0), '#facc15');
-makeLabel('高比冲离子束 ~47 km/s', new THREE.Vector3(5.2, 1.35, 0), '#38bdf8');
-makeLabel('常平架矢量机构 (2-Axis)', new THREE.Vector3(-1.8, 2.2, 0), '#94a3b8');
+makeLabel('solar', new THREE.Vector3(-6.35, 0.95, 3.6), '#7986cb');
+makeLabel('ppu', new THREE.Vector3(-4.35, 1.85, 0), '#94a3b8');
+makeLabel('tank', new THREE.Vector3(-4.35, -2.15, 0), '#38bdf8');
+makeLabel('pipe', new THREE.Vector3(-3.28, 0.85, 0), '#f59e0b');
+makeLabel('cathode', new THREE.Vector3(-2.3, -0.55, 0), '#f43f5e');
+makeLabel('magnets', new THREE.Vector3(0.1, 1.95, 0), '#ef4444');
+makeLabel('plenum', new THREE.Vector3(1.25, 1.85, 0), '#38bdf8');
+makeLabel('chamber', new THREE.Vector3(-0.2, 1.85, 0), '#0ea5e9');
+makeLabel('screen', new THREE.Vector3(1.52, -1.9, 0), '#ef4444');
+makeLabel('accel', new THREE.Vector3(1.76, -2.15, 0), '#3b82f6');
+makeLabel('neutralizer', new THREE.Vector3(2.35, -2.25, 0), '#facc15');
+makeLabel('plume', new THREE.Vector3(5.2, 1.35, 0), '#38bdf8');
+makeLabel('gimbal', new THREE.Vector3(-1.8, 2.2, 0), '#94a3b8');
 
 /* ================= 详细部件数据库 ================= */
 const INFO = {
@@ -1437,7 +1442,10 @@ function raycastHover() {
     renderer.domElement.style.cursor = key ? 'pointer' : 'grab';
     if (key) {
       const d = INFO[key];
-      tooltip.textContent = d ? `${d.name} · 点击查看详解` : key;
+      const dict = THRUSTER_I18N[currentLang] || THRUSTER_I18N.zh;
+      const isEn = currentLang === 'en';
+      const name = isEn ? (dict.info[key]?.name || d?.en || key) : (dict.info[key]?.name || d?.name || key);
+      tooltip.textContent = `${name}${dict.tooltipSuffix}`;
       tooltip.style.display = 'block';
     } else {
       tooltip.style.display = 'none';
@@ -1474,14 +1482,19 @@ function refreshGlow(t) {
 const infoPanel = document.getElementById('infoPanel');
 function selectComp(key) {
   selectedKey = key;
+  currentMissionId = null;
   const d = INFO[key];
   if (!d) return;
-  document.getElementById('infoName').textContent = d.name;
+  const isEn = currentLang === 'en';
+  const dict = THRUSTER_I18N[currentLang] || THRUSTER_I18N.zh;
+  const infoData = dict.info[key];
+  document.getElementById('infoName').textContent = isEn ? (infoData?.name || d.en) : (infoData?.name || d.name);
   document.getElementById('infoName').style.color = d.accent;
-  document.getElementById('infoEn').textContent = d.en;
-  document.getElementById('infoDesc').innerHTML = d.desc;
+  document.getElementById('infoEn').textContent = isEn ? d.name : d.en;
+  document.getElementById('infoDesc').innerHTML = isEn ? (infoData?.desc || d.desc) : (infoData?.desc || d.desc);
+  const chips = isEn ? (infoData?.chips || d.chips || []) : (infoData?.chips || d.chips || []);
   document.getElementById('infoChips').innerHTML =
-    (d.chips || []).map(c => `<span class="chip">${c}</span>`).join('');
+    chips.map(c => `<span class="chip">${c}</span>`).join('');
   infoPanel.classList.add('open');
 }
 document.getElementById('infoClose').onclick = () => {
@@ -1543,9 +1556,11 @@ function flyTo(pos, tgt, dur = 1.4) {
 
 function gotoTour(i) {
   tourIdx = i;
+  const dict = THRUSTER_I18N[currentLang] || THRUSTER_I18N.zh;
   const s = TOUR[i];
-  document.getElementById('tourTitle').textContent = s.title;
-  document.getElementById('tourText').innerHTML = s.text;
+  const tData = (dict.tour && dict.tour[i]) || s;
+  document.getElementById('tourTitle').textContent = tData.title;
+  document.getElementById('tourText').innerHTML = tData.text;
   [...tourDots.children].forEach((d, k) => d.classList.toggle('on', k === i));
   tourPulse = s.hl;
   if (s.cut !== undefined) setCutaway(s.cut);
@@ -1708,6 +1723,8 @@ function applyGimbalRotation() {
 }
 
 /* ================= 任务预设切换 ================= */
+let currentMissionId = 'NSTAR_DAWN';
+
 document.querySelectorAll('.mission-btn').forEach((btn) => {
   btn.addEventListener('click', () => {
     playClickSound();
@@ -1718,6 +1735,8 @@ document.querySelectorAll('.mission-btn').forEach((btn) => {
 });
 
 function applyMissionPreset(missionId) {
+  currentMissionId = missionId;
+  selectedKey = null;
   const m = MISSION_PRESETS[missionId];
   if (!m) return;
 
@@ -1733,22 +1752,31 @@ function applyMissionPreset(missionId) {
   document.getElementById('flowVal').textContent = `${m.flow_mg_s.toFixed(1)} mg/s`;
 
   updateStats();
+  showMissionSummary(missionId);
+}
 
-  // Show mission summary in inspector panel
-  document.getElementById('infoName').textContent = m.nameZh;
+function showMissionSummary(missionId) {
+  const m = MISSION_PRESETS[missionId];
+  if (!m) return;
+  const isEn = currentLang === 'en';
+  const dict = THRUSTER_I18N[currentLang] || THRUSTER_I18N.zh;
+  const md = (dict.missionDetails && dict.missionDetails[missionId]) || {};
+  const labels = dict.missionDetails || {};
+
+  document.getElementById('infoName').textContent = isEn ? (md.name || m.nameEn) : (md.name || m.nameZh);
   document.getElementById('infoName').style.color = '#38bdf8';
-  document.getElementById('infoEn').textContent = m.nameEn;
+  document.getElementById('infoEn').textContent = isEn ? m.nameZh : m.nameEn;
   document.getElementById('infoDesc').innerHTML = `
-    <strong>目标天体 / 载荷</strong>：${m.destinations}<br>
-    <strong>点火记录</strong>：${m.burnHours}<br>
-    <strong>核心技术亮点</strong>：${m.highlight}
+    <strong>${labels.destinations || '目标天体 / 载荷'}</strong>：${md.destinations || m.destinations}<br>
+    <strong>${labels.burnHours || '点火记录'}</strong>：${md.burnHours || m.burnHours}<br>
+    <strong>${labels.highlight || '核心技术亮点'}</strong>：${md.highlight || m.highlight}
   `;
   document.getElementById('infoChips').innerHTML = `
-    <span class="chip">束直径 ${m.beamDiameter_cm} cm</span>
-    <span class="chip">额定推力 ${m.nominalThrust_mN} mN</span>
-    <span class="chip">额定比冲 ${m.nominalIsp_s} s</span>
-    <span class="chip">输入功率 ${m.power_kW} kW</span>
-    <span class="chip">排气速度 ${m.nominalVe_kms} km/s</span>
+    <span class="chip">${labels.beamDia || '束直径'} ${m.beamDiameter_cm} cm</span>
+    <span class="chip">${labels.nomThrust || '额定推力'} ${m.nominalThrust_mN} mN</span>
+    <span class="chip">${labels.nomIsp || '额定比冲'} ${m.nominalIsp_s} s</span>
+    <span class="chip">${labels.inPower || '输入功率'} ${m.power_kW} kW</span>
+    <span class="chip">${labels.exhaustVe || '排气速度'} ${m.nominalVe_kms} km/s</span>
   `;
   infoPanel.classList.add('open');
 }
@@ -1757,7 +1785,8 @@ function applyMissionPreset(missionId) {
 document.getElementById('toggleBtn').onclick = function () {
   playClickSound();
   isRunning = !isRunning;
-  this.innerText = isRunning ? '⏸ 暂停' : '▶ 继续';
+  const dict = THRUSTER_I18N[currentLang] || THRUSTER_I18N.zh;
+  this.innerText = isRunning ? dict.controls.pause : dict.controls.resume;
 };
 document.getElementById('resetBtn').onclick = () => {
   playClickSound();
@@ -1933,3 +1962,221 @@ initApertureView();
 seedTank();
 animate();
 window.__ready = true;
+
+/* ================= 国际化支持 (i18n) ================= */
+let currentLang = 'zh';
+
+function resolveLanguage() {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const urlLang = params.get('lang');
+    if (urlLang === 'zh' || urlLang === 'en') return urlLang;
+    const stored = localStorage.getItem('science_lang');
+    if (stored === 'zh' || stored === 'en') return stored;
+    if (navigator.language && navigator.language.startsWith('zh')) return 'zh';
+    return 'en';
+  } catch (e) {
+    return 'zh';
+  }
+}
+
+function applyLanguage(lang) {
+  const dict = THRUSTER_I18N[lang] || THRUSTER_I18N.zh;
+  document.documentElement.lang = lang === 'en' ? 'en' : 'zh-CN';
+  document.title = dict.pageTitle;
+
+  const homeTxt = document.getElementById('homeTxt');
+  if (homeTxt) homeTxt.textContent = dict.homeTxt;
+  const homeBtn = document.getElementById('homeBtn');
+  if (homeBtn) homeBtn.href = `../index.html?lang=${lang}`;
+
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
+
+  const headerTitle = document.getElementById('headerTitle');
+  if (headerTitle) headerTitle.textContent = dict.headerTitle;
+  const subTitle = document.getElementById('subTitle');
+  if (subTitle) subTitle.textContent = dict.subtitle;
+  const missionLabel = document.getElementById('missionLabel');
+  if (missionLabel) missionLabel.textContent = dict.missionLabel;
+
+  const btnNSTAR = document.getElementById('btnM_NSTAR_DAWN');
+  if (btnNSTAR) btnNSTAR.textContent = dict.missions.NSTAR_DAWN;
+  const btnNEXT = document.getElementById('btnM_NEXT_NASA');
+  if (btnNEXT) btnNEXT.textContent = dict.missions.NEXT_NASA;
+  const btnBEPI = document.getElementById('btnM_BEPICOLOMBO_T6');
+  if (btnBEPI) btnBEPI.textContent = dict.missions.BEPICOLOMBO_T6;
+  const btnLIPS = document.getElementById('btnM_LIPS_300');
+  if (btnLIPS) btnLIPS.textContent = dict.missions.LIPS_300;
+
+  const toolMap = {
+    btnExplore: dict.tools.explore,
+    btnTour: dict.tools.tour,
+    btnCut: dict.tools.cut,
+    btnExplode: dict.tools.explode,
+    btnFollow: dict.tools.follow,
+    btnAperture: dict.tools.aperture,
+    btnGimbal: dict.tools.gimbal,
+    btnGridMode: dict.tools.gridMode,
+    btnSound: dict.tools.sound,
+    btnLabels: dict.tools.labels,
+    btnMag: dict.tools.mag,
+    btnField: dict.tools.field
+  };
+  for (const [id, title] of Object.entries(toolMap)) {
+    const el = document.getElementById(id);
+    if (el) el.title = title;
+  }
+
+  const followChip = document.getElementById('followChip');
+  if (followChip) followChip.textContent = dict.followChip;
+
+  const gimbalTitle = document.getElementById('gimbalTitle');
+  if (gimbalTitle) gimbalTitle.textContent = dict.gimbal.title;
+  const gimbalSub = document.getElementById('gimbalSub');
+  if (gimbalSub) gimbalSub.textContent = dict.gimbal.subtitle;
+  const lblGimbalPitch = document.getElementById('lblGimbalPitch');
+  if (lblGimbalPitch) lblGimbalPitch.textContent = dict.gimbal.pitch;
+  const lblGimbalYaw = document.getElementById('lblGimbalYaw');
+  if (lblGimbalYaw) lblGimbalYaw.textContent = dict.gimbal.yaw;
+  const gimbalResetBtn = document.getElementById('gimbalResetBtn');
+  if (gimbalResetBtn) gimbalResetBtn.textContent = dict.gimbal.reset;
+
+  const lblThrust = document.getElementById('lblThrust');
+  if (lblThrust) lblThrust.textContent = dict.stats.thrust;
+  const lblIsp = document.getElementById('lblIsp');
+  if (lblIsp) lblIsp.textContent = dict.stats.isp;
+  const lblVe = document.getElementById('lblVe');
+  if (lblVe) lblVe.textContent = dict.stats.ve;
+  const lblMdot = document.getElementById('lblMdot');
+  if (lblMdot) lblMdot.textContent = dict.stats.mdot;
+  const lblIb = document.getElementById('lblIb');
+  if (lblIb) lblIb.textContent = dict.stats.ib;
+  const lblPow = document.getElementById('lblPow');
+  if (lblPow) lblPow.textContent = dict.stats.pow;
+  const lblEff = document.getElementById('lblEff');
+  if (lblEff) lblEff.textContent = dict.stats.eff;
+
+  const toggleBtn = document.getElementById('toggleBtn');
+  if (toggleBtn) toggleBtn.textContent = isRunning ? dict.controls.pause : dict.controls.resume;
+  const resetBtn = document.getElementById('resetBtn');
+  if (resetBtn) resetBtn.textContent = dict.controls.reset;
+  const camBtn = document.getElementById('camBtn');
+  if (camBtn) camBtn.textContent = dict.controls.camera;
+
+  const lblScreenV = document.getElementById('lblScreenV');
+  if (lblScreenV) lblScreenV.textContent = dict.controls.screenV;
+  const lblAccelV = document.getElementById('lblAccelV');
+  if (lblAccelV) lblAccelV.textContent = dict.controls.accelV;
+  const lblFlow = document.getElementById('lblFlow');
+  if (lblFlow) lblFlow.textContent = dict.controls.flow;
+  const lblTime = document.getElementById('lblTime');
+  if (lblTime) lblTime.textContent = dict.controls.time;
+
+  const lgdAtom = document.getElementById('lgdAtom');
+  if (lgdAtom) lgdAtom.textContent = dict.legend.atom;
+  const lgdIon = document.getElementById('lgdIon');
+  if (lgdIon) lgdIon.textContent = dict.legend.ion;
+  const lgdNeut = document.getElementById('lgdNeut');
+  if (lgdNeut) lgdNeut.textContent = dict.legend.plume;
+  const lgdCathode = document.getElementById('lgdCathode');
+  if (lgdCathode) lgdCathode.textContent = dict.legend.cathode;
+  const lgdNeutE = document.getElementById('lgdNeutE');
+  if (lgdNeutE) lgdNeutE.textContent = dict.legend.neutralizerE;
+  const lgdMag = document.getElementById('lgdMag');
+  if (lgdMag) lgdMag.textContent = dict.legend.magLines;
+
+  const tourPrev = document.getElementById('tourPrev');
+  if (tourPrev) tourPrev.textContent = dict.tourNav.prev;
+  const tourNext = document.getElementById('tourNext');
+  if (tourNext) tourNext.textContent = dict.tourNav.next;
+  const tourExit = document.getElementById('tourExit');
+  if (tourExit) tourExit.textContent = dict.tourNav.exit;
+
+  if (tourActive && tourIdx >= 0) {
+    const tData = (dict.tour && dict.tour[tourIdx]) || TOUR[tourIdx];
+    document.getElementById('tourTitle').textContent = tData.title;
+    document.getElementById('tourText').innerHTML = tData.text;
+  }
+
+  const apertureTitle = document.getElementById('apertureTitle');
+  if (apertureTitle) apertureTitle.textContent = dict.aperture.title;
+  const apertureClose = document.getElementById('apertureClose');
+  if (apertureClose) apertureClose.textContent = dict.aperture.close;
+  const lblApScreenV = document.getElementById('lblApScreenV');
+  if (lblApScreenV) lblApScreenV.textContent = dict.aperture.screenV;
+  const lblApDensity = document.getElementById('lblApDensity');
+  if (lblApDensity) lblApDensity.textContent = dict.aperture.density;
+  const lblApRegime = document.getElementById('lblApRegime');
+  if (lblApRegime) lblApRegime.textContent = dict.aperture.focusState;
+  const lblApPerv = document.getElementById('lblApPerv');
+  if (lblApPerv) lblApPerv.textContent = dict.aperture.pervRatio;
+  const lblApMargin = document.getElementById('lblApMargin');
+  if (lblApMargin) lblApMargin.textContent = dict.aperture.safeMargin;
+
+  setApertureLanguage(lang);
+
+  const hint = document.getElementById('hint');
+  if (hint) hint.innerHTML = dict.hint;
+  const loadingTxt = document.getElementById('loadingTxt');
+  if (loadingTxt) loadingTxt.textContent = dict.loading;
+
+  labelElements.forEach(({ div, key }) => {
+    div.textContent = dict.labels3D[key] || key;
+  });
+
+  if (infoPanel.classList.contains('open')) {
+    if (selectedKey) {
+      selectComp(selectedKey);
+    } else if (currentMissionId) {
+      showMissionSummary(currentMissionId);
+    }
+  }
+
+  document.documentElement.classList.remove('i18n-loading');
+}
+
+function setLanguage(lang) {
+  if (lang !== 'zh' && lang !== 'en') lang = 'zh';
+  currentLang = lang;
+  try {
+    localStorage.setItem('science_lang', lang);
+    const url = new URL(window.location.href);
+    if (url.searchParams.get('lang') !== lang) {
+      url.searchParams.set('lang', lang);
+      window.history.replaceState({}, '', url.toString());
+    }
+  } catch (e) {}
+
+  applyLanguage(lang);
+}
+
+// 绑定语言切换与多标签同步
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    setLanguage(btn.dataset.lang);
+  });
+});
+
+window.addEventListener('storage', (e) => {
+  if (e.key === 'science_lang' && e.newValue && e.newValue !== currentLang) {
+    setLanguage(e.newValue);
+  }
+});
+
+window.addEventListener('pageshow', () => {
+  const active = resolveLanguage();
+  if (active !== currentLang) {
+    setLanguage(active);
+  }
+});
+
+currentLang = resolveLanguage();
+applyLanguage(currentLang);
+
+window.__ionThrusterApp = {
+  get currentLang() { return currentLang; },
+  setLanguage,
+  resolveLanguage
+};

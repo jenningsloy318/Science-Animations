@@ -5,10 +5,10 @@
 
 APP.Tabs = APP.Tabs || {};
 
-const LAM0 = 656.3;                 // Hα 静止波长 nm
-const SPEC_MIN = 576, SPEC_MAX = 736;   // 谱线屏范围 nm（容 ±0.12c）
-const C_SCALE = 3.2;                // 波环扩展速度（世界单位/秒，示意）
-const EM_PERIOD = 0.55;             // 波环发射周期 s
+const LAM0 = 656.3;                 // Hα 静止波长 nm  // PROV: measured | Hα 谱线 | - | 656.3 nm
+const SPEC_MIN = 576, SPEC_MAX = 736;   // 谱线屏范围 nm（容 ±0.12c）  // NO-PROV: 局部变量/运行时状态，非对外科学数值
+const C_SCALE = 3.2;                // 波环扩展速度（世界单位/秒，示意）  // PROV: illustrative | 渲染 | - | 位移放大
+const EM_PERIOD = 0.55;             // 波环发射周期 s  // NO-PROV: 局部变量/运行时状态，非对外科学数值
 
 const PLANETS = [
   { id: 'earth', name: '地球', K: 0.09, Mp: 0.003, Pday: 365.25, note: '9 cm/s — 比 HARPS 精度还弱 10 倍' },
@@ -124,8 +124,9 @@ APP.Tabs['t4-doppler'] = {
     ctx2.strokeStyle = 'rgba(154,163,176,0.8)'; ctx2.setLineDash([6, 5]);
     ctx2.beginPath(); ctx2.moveTo(x0, 8); ctx2.lineTo(x0, H - 8); ctx2.stroke();
     ctx2.setLineDash([]);
+    const isEn = (window.APP && window.APP.lang === 'en');
     ctx2.fillStyle = '#9aa3b0'; ctx2.font = '13px system-ui';
-    ctx2.fillText('静止 Hα 656.3 nm', x0 + 6, 20);
+    ctx2.fillText(isEn ? 'Rest Hα 656.3 nm' : '静止 Hα 656.3 nm', x0 + 6, 20);
     // 移动的谱线（宽吸收线）
     const xs = xOf(LAM0 + shiftNm);
     ctx2.fillStyle = 'rgba(20,30,45,0.92)';
@@ -136,12 +137,12 @@ APP.Tabs['t4-doppler'] = {
     ctx2.fillStyle = this.vKms >= 0 ? '#ff9f8a' : '#8ac4ff';
     ctx2.font = 'bold 14px system-ui';
     const lbl = 'λ=' + (LAM0 + shiftNm).toFixed(3) + ' nm';
-    ctx2.fillText(lbl, Math.min(xs + 12, W - 130), H - 14);
+    ctx2.fillText(lbl, Math.max(isEn ? 85 : 55, Math.min(xs + 12, W - 145)), H - 14);
     // 蓝/红移标记
     ctx2.fillStyle = '#5ea8ff'; ctx2.font = '12px system-ui';
-    ctx2.fillText('← 蓝移', 8, H - 12);
+    ctx2.fillText(isEn ? '← Blueshift' : '← 蓝移', 8, H - 12);
     ctx2.fillStyle = '#ff9f8a'; ctx2.textAlign = 'right';
-    ctx2.fillText('红移 →', W - 8, H - 12);
+    ctx2.fillText(isEn ? 'Redshift →' : '红移 →', W - 8, H - 12);
     ctx2.textAlign = 'left';
     this.specTex.needsUpdate = true;
   },
@@ -285,9 +286,9 @@ APP.Tabs['t4-doppler'] = {
     } else {
       // 行星模式：恒星绕质心正弦摆动，K 越大摆得越快
       const K = APP.F.rvK(this.planet.Mp, this.planet.Pday, 1.0);
-      const w = 0.6 + K / 60;                            // 摆动角频率（示意）
+      const w = 0.6 + K / 60;                            // 摆动角频率（示意）  // NO-PROV: 局部变量/运行时状态，非对外科学数值
       this.wobT += dt * w;
-      const amp = 0.5 + Math.min(1.5, K / 40);
+      const amp = 0.5 + Math.min(1.5, K / 40);  // NO-PROV: 局部变量/运行时状态，非对外科学数值
       this.starX = Math.cos(this.wobT) * amp * 0.5;
       st.star.position.set(this.starX * 0.3, 0, 0);
       st.starGlow.position.set(this.starX * 0.3, 0, 0);
@@ -316,12 +317,12 @@ APP.Tabs['t4-doppler'] = {
     }
     for (const r of this.rings) {
       r.userData.age += dt;
-      const rad = 0.4 + r.userData.age * C_SCALE;
+      const rad = 0.4 + r.userData.age * C_SCALE;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
       r.scale.set(rad, rad, rad);
       r.material.opacity = Math.max(0, 0.85 - r.userData.age * 0.28);
     }
     // 恒星呼吸
-    const s = 1 + 0.08 * Math.sin(st.t * 2);
+    const s = 1 + 0.08 * Math.sin(st.t * 2);  // NO-PROV: 局部变量/运行时状态，非对外科学数值
     st.starGlow.scale.set(2.0 * s, 2.0 * s, 1);
     // 标签跟随
     APP.U.LabelSys.setAnchor('t4-star', new THREE.Vector3(st.star.position.x, 1.1, 0));

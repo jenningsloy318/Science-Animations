@@ -33,7 +33,10 @@
     const setLang = (lang) => {
       if (APP.lang === lang) return;
       APP.lang = lang;
-      try { localStorage.setItem('collider_lang', lang); } catch (e) {}
+      try {
+        localStorage.setItem('science_lang', lang);
+        localStorage.setItem('collider_lang', lang);
+      } catch (e) {}
       applyLang(app);
       showEdu(app, APP.UI._edu ? APP.UI._edu.kind : 'overview', APP.UI._edu && APP.UI._edu.sys);
       if (APP.app && APP.app.collision && APP.app.collision.refreshCaption) APP.app.collision.refreshCaption();
@@ -49,6 +52,10 @@
     const zhBtn = $('#btnLangZh'), enBtn = $('#btnLangEn');
     if (zhBtn) zhBtn.classList.toggle('active', APP.lang === 'zh');
     if (enBtn) enBtn.classList.toggle('active', APP.lang === 'en');
+    const homeBtn = $('#homeBtn');
+    if (homeBtn) {
+      homeBtn.href = `../index.html?lang=${APP.lang}`;
+    }
     /* tabs */
     $$('.tab').forEach((t) => { t.textContent = tr('tab.' + t.dataset.view); });
     /* chrome */

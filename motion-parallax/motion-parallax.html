@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>运动视差 · 为什么近物跑得快，远物跑得慢</title>
   <meta name="description" content="乘车视角的 3D 运动视差实验：感知角速度 ω ≈ v/d，扫角几何，以及从树木到恒星视差的真相。">
+  <script>
+    (function(){
+      var m = location.search.match(/[?&]lang=(en|zh)/);
+      var l = m ? m[1] : (localStorage.getItem('science_lang') || (navigator.language.startsWith('zh') ? 'zh' : 'en'));
+      document.documentElement.lang = l;
+    })();
+  </script>
   <style>
 /* ═══ 运动视差 · hub 风格 ═══ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -68,6 +75,21 @@ body[data-view="topo"] #topo { display: block; }
   color: #1c1607; background: var(--gold); border-color: var(--gold);
   font-weight: 700;
 }
+
+/* ── 语言切换 ── */
+.lang-switch {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: rgba(10, 14, 26, 0.6); border: 1px solid var(--line);
+  border-radius: 999px; padding: 2px 6px; margin-left: auto;
+}
+.lang-btn {
+  background: transparent; border: none; color: var(--ink-dim);
+  font: inherit; font-size: 12px; padding: 3px 7px; border-radius: 999px;
+  cursor: pointer; transition: all .15s;
+}
+.lang-btn:hover { color: var(--ink); }
+.lang-btn.active { color: #1c1607; background: var(--gold); font-weight: 700; }
+.lang-sep { color: var(--ink-dim); opacity: 0.4; font-size: 11px; }
 
 /* ── 右侧面板 ── */
 #sidePanel {
@@ -173,12 +195,18 @@ body[data-view="topo"] #topoWrap { display: flex; }
   <canvas id="topo"></canvas>
 
   <header id="topbar">
-    <div class="title">🌄 运动视差<small>Motion Parallax — 为什么近物跑得快，远物跑得慢</small></div>
+    <a id="homeBtn" class="tab" href="../index.html" title="返回首页 Back to home" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;">🏠 <span id="homeTxt">首页</span></a>
+    <div class="title"><span id="appTitle">🌄 运动视差</span><small id="appSubtitle">Motion Parallax — 为什么近物跑得快，远物跑得慢</small></div>
     <nav id="tabs">
-      <button class="tab active" data-view="ride">① 乘车体验</button>
-      <button class="tab" data-view="topo">② 扫角几何</button>
-      <button class="tab" data-view="space">③ 从树木到星空</button>
+      <button class="tab active" data-view="ride" id="tabRide">① 乘车体验</button>
+      <button class="tab" data-view="topo" id="tabTopo">② 扫角几何</button>
+      <button class="tab" data-view="space" id="tabSpace">③ 从树木到星空</button>
     </nav>
+    <div class="lang-switch" id="langSwitch">
+      <button type="button" class="lang-btn active" data-lang="zh">中文</button>
+      <span class="lang-sep">/</span>
+      <button type="button" class="lang-btn" data-lang="en">EN</button>
+    </div>
   </header>
 
   <aside id="sidePanel"></aside>
@@ -9821,7 +9849,7 @@ body[data-view="topo"] #topoWrap { display: flex; }
     _allocateTargets() {
       const width = 3 * Math.max(this._cubeSize, 16 * 7);
       const height = 4 * this._cubeSize;
-      const params = {
+      const params2 = {
         magFilter: LinearFilter,
         minFilter: LinearFilter,
         generateMipmaps: false,
@@ -9830,12 +9858,12 @@ body[data-view="topo"] #topoWrap { display: flex; }
         colorSpace: LinearSRGBColorSpace,
         depthBuffer: false
       };
-      const cubeUVRenderTarget = _createRenderTarget(width, height, params);
+      const cubeUVRenderTarget = _createRenderTarget(width, height, params2);
       if (this._pingPongRenderTarget === null || this._pingPongRenderTarget.width !== width || this._pingPongRenderTarget.height !== height) {
         if (this._pingPongRenderTarget !== null) {
           this._dispose();
         }
-        this._pingPongRenderTarget = _createRenderTarget(width, height, params);
+        this._pingPongRenderTarget = _createRenderTarget(width, height, params2);
         const { _lodMax } = this;
         ({ sizeLods: this._sizeLods, lodPlanes: this._lodPlanes, sigmas: this._sigmas } = _createPlanes(_lodMax));
         this._blurMaterial = _getBlurShader(_lodMax, width, height);
@@ -10082,8 +10110,8 @@ body[data-view="topo"] #topoWrap { display: flex; }
     }
     return { lodPlanes, sizeLods, sigmas };
   }
-  function _createRenderTarget(width, height, params) {
-    const cubeUVRenderTarget = new WebGLRenderTarget(width, height, params);
+  function _createRenderTarget(width, height, params2) {
+    const cubeUVRenderTarget = new WebGLRenderTarget(width, height, params2);
     cubeUVRenderTarget.texture.mapping = CubeUVReflectionMapping;
     cubeUVRenderTarget.texture.name = "PMREM.cubeUv";
     cubeUVRenderTarget.scissorTest = true;
@@ -20934,6 +20962,44 @@ body[data-view="topo"] #topoWrap { display: flex; }
     );
     moon.renderOrder = -8;
     scene.add(moon);
+    const HERO_NAMES = {
+      tree: { zh: "\u5927\u6811", en: "Tree" },
+      house: { zh: "\u623F\u5B50", en: "House" },
+      hill: { zh: "\u5C71\u4E18", en: "Hill" },
+      mountain: { zh: "\u9AD8\u5C71", en: "Mountain" },
+      moon: { zh: "\u6708\u4EAE", en: "Moon" }
+    };
+    const RIDE_I18N = {
+      zh: {
+        title: "\u4F60\u770B\u5230\u7684\u901F\u5EA6 = \u89D2\u901F\u5EA6<small>\xB0/s\uFF0C\u5B9E\u65F6</small>",
+        note1: '\u5927\u8111\u5224\u65AD"\u5FEB\u6162"\u7528\u7684\u662F\u89C6\u7EBF\u626B\u8FC7\u7684<b>\u89D2\u5EA6\u53D8\u5316\u7387</b>\uFF0C\u4E0D\u662F\u7C73/\u79D2\u3002\u9F50\u5E73\u77AC\u95F4 \u03C9 \u8FBE\u5230\u5CF0\u503C v/d\u3002\u8F66\u901F\u8D8A\u5FEB\u3001\u79BB\u8DEF\u8D8A\u8FD1\uFF0C\u03C9 \u8D8A\u5927\u3002',
+        note2: '\u{1F3F7} <b>\u8FD9\u4E0D\u662F\u5047\u52A8\u753B</b>\uFF1A\u753B\u9762\u662F\u6D4F\u89C8\u5668\u7684\u771F\u5B9E\u900F\u89C6\u6E32\u67D3\u2014\u2014"\u8FD1\u5FEB\u8FDC\u6162"\u5C31\u662F\u900F\u89C6\u672C\u8EAB\u3002\u{1F319} \u6708\u4EAE\u8DDF\u968F\u76F8\u673A\uFF0C\u56E0\u4E3A 384,400 km \u5904\u89C6\u5DEE\u22480\u3002',
+        note3: "\u{1F32B} \u8FDC\u5904\u53D1\u9EC4\u662F\u96FE\u6C14\uFF08\u5927\u6C14\u900F\u89C6\uFF09\uFF0C\u53E6\u4E00\u79CD<b>\u9759\u6001</b>\u6DF1\u5EA6\u7EBF\u7D22\uFF1B\u8FD0\u52A8\u89C6\u5DEE\u662F<b>\u52A8\u6001</b>\u7EBF\u7D22\u2014\u2014\u52A8\u4E00\u52A8\u5C31\u6709\u3002",
+        note4: '\u{1F441} \u5927\u6811\u9F50\u5E73\u65F6 \u03C9 \u8D85\u8FC7 ~100\xB0/s\u2014\u2014\u8D85\u8FC7\u773C\u7403\u5E73\u6ED1\u8FFD\u8E2A\u4E0A\u9650\uFF0C\u6240\u4EE5\u8FD1\u5904\u7684\u4E1C\u897F\u4F60\u53EA\u80FD"\u626B\u8FC7"\uFF0C\u770B\u4E0D\u6E05\uFF08\u773C\u775B\u88AB\u8FEB\u8DF3\u52A8\u5F0F\u626B\u89C6\uFF09\u3002',
+        speedLbl: "\u8F66\u901F v",
+        pause: "\u23F8 \u6682\u505C",
+        resume: "\u25B6 \u7EE7\u7EED",
+        fan: "\u{1F441} \u89C6\u7EBF\u6247",
+        camDriver: "\u{1F3A5} \u9A7E\u9A76\u4F4D",
+        camChase: "\u{1F3A5} \u540E\u8DDF\u968F",
+        peaked: "\u9F50\u5E73!"
+      },
+      en: {
+        title: "Perceived Speed = Angular Velocity<small>\xB0/s, Realtime</small>",
+        note1: "The brain perceives speed as the <b>rate of change of sightline angle</b>, not m/s. Transit instant reaches peak \u03C9 = v/d. Faster vehicle and closer distance produce higher \u03C9.",
+        note2: '\u{1F3F7} <b>Authentic 3D perspective</b>: Rendered via real perspective matrix\u2014"near fast, far slow" is true 3D geometry. \u{1F319} The moon tracks the camera because parallax at 384,400 km is practically 0.',
+        note3: "\u{1F32B} Distant haze is atmospheric perspective, a <b>static</b> depth cue; motion parallax is a <b>dynamic</b> cue active whenever you translate.",
+        note4: "\u{1F441} Tree transit \u03C9 exceeds ~100\xB0/s\u2014exceeding smooth eye pursuit limits, so close objects sweep past in a saccadic blur.",
+        speedLbl: "Speed v",
+        pause: "\u23F8 Pause",
+        resume: "\u25B6 Resume",
+        fan: "\u{1F441} Sight Fan",
+        camDriver: "\u{1F3A5} Driver Seat",
+        camChase: "\u{1F3A5} Chase Cam",
+        peaked: "Aligned!"
+      }
+    };
+    let lang2 = "zh";
     const HEROES = [
       { key: "tree", name: "\u5927\u6811", d: 10, color: C.tree, obj: tree, lh: 7 },
       { key: "house", name: "\u623F\u5B50", d: 60, color: C.house, obj: house, lh: 9 },
@@ -21121,7 +21187,7 @@ body[data-view="topo"] #topoWrap { display: flex; }
     });
     bar.querySelector("#btnPause").addEventListener("click", (e) => {
       state.paused = !state.paused;
-      e.target.textContent = state.paused ? "\u25B6 \u7EE7\u7EED" : "\u23F8 \u6682\u505C";
+      e.target.textContent = state.paused ? RIDE_I18N[lang2].resume : RIDE_I18N[lang2].pause;
       e.target.classList.toggle("on", state.paused);
     });
     bar.querySelector("#btnFan").addEventListener("click", (e) => {
@@ -21131,7 +21197,7 @@ body[data-view="topo"] #topoWrap { display: flex; }
     });
     bar.querySelector("#btnCam").addEventListener("click", (e) => {
       state.camMode = state.camMode === "driver" ? "chase" : "driver";
-      e.target.textContent = state.camMode === "driver" ? "\u{1F3A5} \u9A7E\u9A76\u4F4D" : "\u{1F3A5} \u540E\u8DDF\u968F";
+      e.target.textContent = state.camMode === "driver" ? RIDE_I18N[lang2].camDriver : RIDE_I18N[lang2].camChase;
       e.target.classList.toggle("on", state.camMode === "chase");
     });
     function update(dt) {
@@ -21172,8 +21238,9 @@ body[data-view="topo"] #topoWrap { display: flex; }
           h.peaked = nowPeaked;
           h.row.classList.toggle("peaked", nowPeaked);
           h.el.classList.toggle("peaked", nowPeaked);
-          if (nowPeaked) h.el.querySelector(".nm").textContent = `${h.name} \u9F50\u5E73!`;
-          else h.el.querySelector(".nm").textContent = h.name;
+          const localizedName = HERO_NAMES[h.key][lang2] || h.name;
+          if (nowPeaked) h.el.querySelector(".nm").textContent = `${localizedName} ${RIDE_I18N[lang2].peaked}`;
+          else h.el.querySelector(".nm").textContent = localizedName;
         }
         if (state.fan && !h.isMoon) {
           const pos = h.fan.geometry.attributes.position;
@@ -21183,6 +21250,33 @@ body[data-view="topo"] #topoWrap { display: flex; }
         }
         placeLabel(h);
       }
+    }
+    function setLang2(l) {
+      if (l !== "zh" && l !== "en") return;
+      lang2 = l;
+      const t = RIDE_I18N[lang2];
+      panel.querySelector("h2").innerHTML = t.title;
+      const notes = panel.querySelectorAll("p.note");
+      if (notes[0]) notes[0].innerHTML = t.note1;
+      if (notes[1]) notes[1].innerHTML = t.note2;
+      if (notes[2]) notes[2].innerHTML = t.note3;
+      if (notes[3]) notes[3].innerHTML = t.note4;
+      bar.querySelector(".ctl label").textContent = t.speedLbl;
+      bar.querySelector("#btnPause").textContent = state.paused ? t.resume : t.pause;
+      bar.querySelector("#btnFan").textContent = t.fan;
+      bar.querySelector("#btnCam").textContent = state.camMode === "driver" ? t.camDriver : t.camChase;
+      HEROES.forEach((h) => {
+        const localizedName = HERO_NAMES[h.key][lang2];
+        h.name = localizedName;
+        const nmEl = h.row.querySelector(".nm");
+        const distStr = h.d >= 1e3 ? (h.d / 1e3).toFixed(h.d >= 1e4 ? 0 : 1) + " km" : h.d + " m";
+        nmEl.innerHTML = `${localizedName}<small>d = ${distStr}</small>`;
+        if (h.peaked) {
+          h.el.querySelector(".nm").textContent = `${localizedName} ${t.peaked}`;
+        } else {
+          h.el.querySelector(".nm").textContent = localizedName;
+        }
+      });
     }
     function onResize(w, h) {
       camera.aspect = w / h;
@@ -21202,13 +21296,54 @@ body[data-view="topo"] #topoWrap { display: flex; }
         }))
       };
     }
-    return { scene, camera, update, onResize, getInfo, state };
+    return { scene, camera, update, onResize, getInfo, state, setLang: setLang2 };
   }
 
   // js/topview.js
+  var TOP_I18N = {
+    zh: {
+      title: "\u626B\u89D2\u51E0\u4F55\uFF1A\u4E3A\u4EC0\u4E48\u8FD1\u7684\u5FEB<small>\u4FEF\u89C6\u56FE \xB7 \u771F\u5B9E\u6BD4\u4F8B \xB7 \u4E24\u4E2A\u76EE\u6807\u540C\u901F\u51FA\u53D1</small>",
+      note1: '<b>\u2460 \u53EA\u76EF\u91D1\u8272\u7684\u6811\u3002</b>\u8F66\u5411\u524D\u5F00\uFF0C\u89C6\u7EBF\u5FC5\u987B\u4E00\u76F4"\u8FFD\u7740"\u5B83\u8F6C\u3002\u6811\u8EAB\u540E\u62D6\u51FA\u7684\u91D1\u8272\u6247\u9762 = \u8FC7\u53BB 3 \u79D2\u89C6\u7EBF\u626B\u8FC7\u7684\u89D2\u3002<b>\u6247\u9762\u5F20\u5F00\u5F97\u8D8A\u5927\uFF0C\u611F\u89C9\u8D8A\u5FEB\u3002</b>',
+      note2: '<b>\u2461 \u540C\u4E00\u65F6\u523B\u6BD4\u4E24\u6761\u89C6\u7EBF\u3002</b>\u6811\u8FD1\uFF08d=10 m\uFF09\uFF0C\u63A0\u8FC7\u8EAB\u8FB9\u65F6 1 \u79D2\u8F6C\u51E0\u5341\u5EA6\uFF1B\u5C71\u8FDC\uFF08d=200 m\uFF09\uFF0C\u4ECE\u5934\u5230\u5C3E\u6BCF\u79D2\u4E0D\u8D85\u8FC7 3\xB0\u2014\u2014\u6240\u4EE5\u5C71\u770B\u8D77\u6765"\u6C38\u8FDC\u4E0D\u52A8"\u3002</p>',
+      note3: "<b>\u2462 \u9F50\u5E73\u7684\u4E00\u523B\u6700\u5FEB\u3002</b>\u76EE\u6807\u7A7F\u8FC7\u767D\u8272\u865A\u7EBF\u65F6 \u03C9 \u8FBE\u5230\u5CF0\u503C = v/d\u3002\u8F66\u901F 36 km/h\uFF0810 m/s\uFF09\uFF1A\u6811 10\xF710 \u2248 <b>57\xB0/s</b>\uFF0C\u5C71\u8981\u9664\u4EE5 200\uFF0C\u53EA\u6709 <b>2.9\xB0/s</b>\u2014\u2014\u5DEE 20 \u500D\u3002",
+      note4: '<b>\u2463 \u4E0B\u65B9\u7684\u66F2\u7EBF</b>\u8BB0\u5F55\u6BCF\u4E00\u523B\u7684\u626B\u901F\uFF1A\u6811\u63A0\u8FC7\u8EAB\u8FB9\u65F6\u62F1\u8D77\u9AD8\u9AD8\u7684"\u5C71\u5CF0"\uFF0C\u5C71\u7684\u5CF0\u53EA\u6709\u4E00\u70B9\u70B9\u2014\u2014\u8FD9\u5C31\u662F"\u8FD1\u7684\u5FEB\u3001\u8FDC\u7684\u6162"\u7684\u5168\u90E8\u79D8\u5BC6\u3002',
+      names: { tree: "\u6811", mountain: "\u5C71" },
+      shortNames: { tree: "\u6811", mountain: "\u5C71" },
+      speedLbl: "\u8F66\u901F v",
+      pause: "\u23F8 \u6682\u505C",
+      resume: "\u25B6 \u7EE7\u7EED",
+      reset: "\u21BA \u91CD\u64AD",
+      bannerTop: "\u4FEF\u89C6\u56FE \xB7 \u771F\u5B9E\u6BD4\u4F8B \xB7 \u8F66\u56FA\u5B9A\u5728\u539F\u70B9\uFF0C\u4E16\u754C\u5411\u540E\u6D41\uFF08\u4E24\u76EE\u6807\u540C\u901F\uFF0C\u53EA\u5DEE\u8FDC\u8FD1\uFF09",
+      alignLine: "\u9F50\u5E73\u7EBF \u2014\u2014 \u7A7F\u8FC7\u7684\u4E00\u523B\u6700\u5FEB \u03C9 = v/d",
+      compare1: (dT, dM) => `\u540C\u6837 1.2 \u79D2\uFF1A\u6811\u8F6C ${dT.toFixed(1)}\xB0 \xB7 \u5C71\u53EA\u8F6C ${dM.toFixed(1)}\xB0`,
+      compare2: (dT, dM) => `\u540C\u6837 1.2 \u79D2\uFF1A\u6811 ${dT.toFixed(1)}\xB0 \xB7 \u5C71 ${dM.toFixed(1)}\xB0\uFF08\u90FD\u5F88\u6162\u2014\u2014\u5FEB\u6162\u5DEE\u5728\u9F50\u5E73\u9644\u8FD1\u624D\u62C9\u5F00\uFF09`,
+      chartTitle: '\u611F\u77E5\u89D2\u901F\u5EA6 \u03C9(t) \u2014\u2014 \u63A0\u8FC7\u8EAB\u8FB9\u65F6\u62F1\u8D77"\u5C71\u5CF0"\uFF08\u9F50\u5E73 = v/d\uFF09',
+      chartPeak: (peak) => `\u5CF0\u503C ${peak.toFixed(0)}\xB0/s`
+    },
+    en: {
+      title: "Sweep Geometry: Why Near Moves Faster<small>Top View \xB7 True Scale \xB7 Equal Departure Speed</small>",
+      note1: "<b>\u2460 Focus on the golden tree.</b> As the car moves forward, gaze must track it. The gold swept fan = angle swept over past 3s. <b>Wider fan = higher perceived speed.</b>",
+      note2: "<b>\u2461 Compare two sightlines simultaneously.</b> The tree is near (d=10m), sweeping tens of deg/s. The mountain is far (d=200m), never exceeding 3\xB0/s\u2014appearing nearly static.",
+      note3: "<b>\u2462 Fastest at transit.</b> When passing the dashed line, \u03C9 peaks at v/d. At 36 km/h (10 m/s): Tree = 10/10 \u2248 <b>57\xB0/s</b>; Mountain = 10/200 = <b>2.9\xB0/s</b>\u2014a 20\xD7 difference.",
+      note4: "<b>\u2463 The lower graph</b> records instantaneous angular sweep: tree creates a soaring peak, mountain only a tiny bump\u2014the geometric secret of parallax.",
+      names: { tree: "Tree", mountain: "Mountain" },
+      shortNames: { tree: "Tree", mountain: "Mtn" },
+      speedLbl: "Speed v",
+      pause: "\u23F8 Pause",
+      resume: "\u25B6 Resume",
+      reset: "\u21BA Replay",
+      bannerTop: "Top View \xB7 True Scale \xB7 Car fixed at origin, world streams back (equal speed)",
+      alignLine: "Alignment Line \u2014 Peak \u03C9 = v/d at transit",
+      compare1: (dT, dM) => `Same 1.2s: Tree swept ${dT.toFixed(1)}\xB0 \xB7 Mountain only ${dM.toFixed(1)}\xB0`,
+      compare2: (dT, dM) => `Same 1.2s: Tree ${dT.toFixed(1)}\xB0 \xB7 Mountain ${dM.toFixed(1)}\xB0 (both slow until transit)`,
+      chartTitle: "Perceived Angular Velocity \u03C9(t) \u2014 Peaks as it sweeps by (Transit = v/d)",
+      chartPeak: (peak) => `Peak ${peak.toFixed(0)}\xB0/s`
+    }
+  };
+  var lang = "zh";
   var OBJ = [
-    { name: "\u6811", d: 10, x0: 45, color: "#e8b84b", hero: true },
-    { name: "\u5C71", d: 200, x0: 45, color: "#6ee7b7" }
+    { key: "tree", name: "\u6811", d: 10, x0: 45, color: "#e8b84b", hero: true },
+    { key: "mountain", name: "\u5C71", d: 200, x0: 45, color: "#6ee7b7" }
   ];
   var P = 300;
   var K0 = 1.5;
@@ -21264,7 +21399,7 @@ body[data-view="topo"] #topoWrap { display: flex; }
     });
     bar.querySelector("#tPause").addEventListener("click", (e) => {
       state.paused = !state.paused;
-      e.target.textContent = state.paused ? "\u25B6 \u7EE7\u7EED" : "\u23F8 \u6682\u505C";
+      e.target.textContent = state.paused ? TOP_I18N[lang].resume : TOP_I18N[lang].pause;
       e.target.classList.toggle("on", state.paused);
     });
     bar.querySelector("#tReset").addEventListener("click", () => {
@@ -21336,7 +21471,7 @@ body[data-view="topo"] #topoWrap { display: flex; }
       ctx.stroke();
       ctx.fillStyle = "#97a3b8";
       ctx.font = "13px sans-serif";
-      ctx.fillText("\u4FEF\u89C6\u56FE \xB7 \u771F\u5B9E\u6BD4\u4F8B \xB7 \u8F66\u56FA\u5B9A\u5728\u539F\u70B9\uFF0C\u4E16\u754C\u5411\u540E\u6D41\uFF08\u4E24\u76EE\u6807\u540C\u901F\uFF0C\u53EA\u5DEE\u8FDC\u8FD1\uFF09", pad * 0.4 + 16, y0 + 22);
+      ctx.fillText(TOP_I18N[lang].bannerTop, pad * 0.4 + 16, y0 + 22);
       const roadY = g.roadY, carPx = g.carPx;
       ctx.fillStyle = "#2c303a";
       ctx.fillRect(pad * 0.4, roadY, w - pad * 0.8, 14);
@@ -21371,7 +21506,7 @@ body[data-view="topo"] #topoWrap { display: flex; }
       ctx.fillStyle = "rgba(255,255,255,0.65)";
       ctx.font = "11px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("\u9F50\u5E73\u7EBF \u2014\u2014 \u7A7F\u8FC7\u7684\u4E00\u523B\u6700\u5FEB \u03C9 = v/d", carPx, y0 + 30);
+      ctx.fillText(TOP_I18N[lang].alignLine, carPx, y0 + 30);
       ctx.textAlign = "left";
       [10, 100, 200].forEach((dd) => {
         const py = g.dToPy(dd);
@@ -21433,7 +21568,7 @@ body[data-view="topo"] #topoWrap { display: flex; }
           ctx.fillStyle = "#0a0e1a";
           ctx.font = "bold 10px sans-serif";
           ctx.textAlign = "center";
-          ctx.fillText(o.name, oPx, oPy + 3.5);
+          ctx.fillText(TOP_I18N[lang].shortNames[o.key] || o.name, oPx, oPy + 3.5);
           ctx.textAlign = "left";
           ctx.font = o.hero ? "bold 12px sans-serif" : "bold 12px sans-serif";
           const lbl = `d=${o.d}m  \u03C9=${fmt(o.omega)}\xB0/s`;
@@ -21461,7 +21596,7 @@ body[data-view="topo"] #topoWrap { display: flex; }
         ctx.lineWidth = 1;
         const dT = sweptDeg(0, 1.2), dM = sweptDeg(1, 1.2);
         ctx.font = "bold 13px sans-serif";
-        const msg = dT >= dM ? `\u540C\u6837 1.2 \u79D2\uFF1A\u6811\u8F6C ${dT.toFixed(1)}\xB0 \xB7 \u5C71\u53EA\u8F6C ${dM.toFixed(1)}\xB0` : `\u540C\u6837 1.2 \u79D2\uFF1A\u6811 ${dT.toFixed(1)}\xB0 \xB7 \u5C71 ${dM.toFixed(1)}\xB0\uFF08\u90FD\u5F88\u6162\u2014\u2014\u5FEB\u6162\u5DEE\u5728\u9F50\u5E73\u9644\u8FD1\u624D\u62C9\u5F00\uFF09`;
+        const msg = dT >= dM ? TOP_I18N[lang].compare1(dT, dM) : TOP_I18N[lang].compare2(dT, dM);
         const tw = ctx.measureText(msg).width;
         const tx = carPx - 24 - tw, ty = roadY - 46;
         ctx.fillStyle = "rgba(7,11,22,0.66)";
@@ -21500,9 +21635,9 @@ body[data-view="topo"] #topoWrap { display: flex; }
       const wToPy = (wv) => py1 - Math.min(wv, maxW) / maxW * (py1 - py0);
       ctx.fillStyle = "#97a3b8";
       ctx.font = "13px sans-serif";
-      ctx.fillText('\u611F\u77E5\u89D2\u901F\u5EA6 \u03C9(t) \u2014\u2014 \u63A0\u8FC7\u8EAB\u8FB9\u65F6\u62F1\u8D77"\u5C71\u5CF0"\uFF08\u9F50\u5E73 = v/d\uFF09', px0, y0 + 24);
+      ctx.fillText(TOP_I18N[lang].chartTitle, px0, y0 + 24);
       ctx.font = "11px sans-serif";
-      [[0, "0"], [peak / 2, `${(peak / 2).toFixed(0)}`], [peak, `\u5CF0\u503C ${peak.toFixed(0)}\xB0/s`]].forEach(([wv, txt]) => {
+      [[0, "0"], [peak / 2, `${(peak / 2).toFixed(0)}`], [peak, TOP_I18N[lang].chartPeak(peak)]].forEach(([wv, txt]) => {
         const py = wToPy(wv);
         ctx.strokeStyle = "rgba(255,255,255,0.06)";
         ctx.beginPath();
@@ -21530,7 +21665,7 @@ body[data-view="topo"] #topoWrap { display: flex; }
         ctx.arc(tToPx(last.t), wToPy(last.w), 3.5, 0, 6.29);
         ctx.fill();
         ctx.font = o.hero ? "bold 12px sans-serif" : "12px sans-serif";
-        ctx.fillText(`${o.name} ${fmt(last.w)}\xB0/s`, Math.min(tToPx(last.t) + 6, px1 - 92), wToPy(last.w) - 6);
+        ctx.fillText(`${TOP_I18N[lang].names[o.key] || o.name} ${fmt(last.w)}\xB0/s`, Math.min(tToPx(last.t) + 6, px1 - 92), wToPy(last.w) - 6);
       });
       ctx.restore();
     }
@@ -21546,13 +21681,27 @@ body[data-view="topo"] #topoWrap { display: flex; }
       c.arcTo(x, y, x + w, y, r);
       c.closePath();
     }
+    function setLang2(l) {
+      if (l !== "zh" && l !== "en") return;
+      lang = l;
+      const t = TOP_I18N[lang];
+      panel.querySelector("h2").innerHTML = t.title;
+      const notes = panel.querySelectorAll("p.note");
+      if (notes[0]) notes[0].innerHTML = t.note1;
+      if (notes[1]) notes[1].innerHTML = t.note2;
+      if (notes[2]) notes[2].innerHTML = t.note3;
+      if (notes[3]) notes[3].innerHTML = t.note4;
+      bar.querySelector(".ctl label").textContent = t.speedLbl;
+      bar.querySelector("#tPause").textContent = state.paused ? t.resume : t.pause;
+      bar.querySelector("#tReset").textContent = t.reset;
+    }
     function onResize() {
       resize();
     }
     function getInfo() {
       return { view: "topo", v_kmh: state.v_kmh, dist: state.dist, paused: state.paused };
     }
-    return { update, draw, onResize, getInfo, state };
+    return { update, draw, onResize, getInfo, state, setLang: setLang2 };
   }
 
   // vendor/addons/controls/OrbitControls.js
@@ -22401,6 +22550,59 @@ body[data-view="topo"] #topoWrap { display: flex; }
       opacity: 0.9
     }));
     scene.add(trace);
+    const SPACE_I18N = {
+      zh: {
+        sun: "\u2600 \u592A\u9633",
+        earth: "\u{1F30D} \u5730\u7403",
+        star: "\u2B50 61 Cygni\uFF08\u76EE\u6807\uFF0C\u8FD1\uFF09",
+        ghost: "\u57FA\u7EBF 2 AU\uFF08\u76F8\u9694 6 \u4E2A\u6708\uFF09",
+        marker: '\u80CC\u666F\u661F\u573A = "\u65E0\u7A77\u8FDC\u7684\u8FDC\u5C71"\uFF08\u89C6\u4F4D\u7F6E\uFF09',
+        title: "\u628A\u51E0\u4F55\u653E\u5927\u5230\u94F6\u6CB3\u7CFB<small>\u5468\u5E74\u89C6\u5DEE</small>",
+        formula: "d(pc) = 1 / p(\u2033)",
+        note1: '\u5730\u7403\u516C\u8F6C\u5C31\u662F\u90A3\u8F86"\u8F66"\uFF1A6 \u4E2A\u6708\u524D\u540E\u5730\u7403\u4F4D\u4E8E\u57FA\u7EBF\u4E24\u7AEF\uFF08<b>2 AU \u2248 3 \u4EBF km</b>\uFF09\u3002\u8FD1\u8DDD\u79BB\u6052\u661F\u76F8\u5BF9\u80CC\u666F\u661F\u573A\u4F1A\u753B\u51FA\u4E00\u4E2A\u5C0F\u692D\u5706\u2014\u2014\u8FD9\u5C31\u662F<b>\u6052\u661F\u89C6\u5DEE</b>\u3002',
+        note2: (lyB2) => `1838 \u5E74\u8D1D\u585E\u5C14\u6D4B\u91CF 61 Cygni\uFF1Ap \u2248 0.31\u2033\uFF08\u73B0\u4EE3\u503C 0.286\u2033\uFF09\u2192 \u8DDD\u79BB \u2248 <b>${lyB2} \u5149\u5E74</b>\u30021 \u79D2\u5DEE\u8DDD = \u89C6\u5DEE 1\u2033 \u7684\u8DDD\u79BB \u2248 3.26 \u5149\u5E74\u3002`,
+        note3: (lyP2) => `\u6700\u8FD1\u7684\u6052\u661F\u6BD4\u90BB\u661F p = 0.77\u2033 \u2192 ${lyP2} \u5149\u5E74\u3002<b>\u8FD1 = \u89C6\u5DEE\u5927 = \u8DDD\u79BB\u6781\u8FD1</b>\u2014\u2014\u548C\u5927\u6811\u8DD1\u5F97\u5FEB\u662F\u540C\u4E00\u6761\u51E0\u4F55\uFF01`,
+        note4: "\u2696\uFE0F \u573A\u666F\u91CC\u661F\u8DDD\u88AB\u538B\u7F29\u4E86 ~10\xB9\u2075 \u500D\u624D\u80FD\u770B\u89C1\u89C6\u5DEE\uFF1B\u771F\u5B9E 0.286\u2033 \u76F8\u5F53\u4E8E 10 km \u5916\u4E00\u679A\u786C\u5E01\u7684\u5F20\u89D2\u3002\u4F3D\u5229\u7565\u5F53\u5E74\u8BD5\u56FE\u6D4B\u5B83\u800C\u4E0D\u5F97\u2014\u2014\u4EEA\u5668\u7CBE\u5EA6\u4E0D\u591F\u3002",
+        facts: [
+          { fi: "\u{1F414}", ft: "\u9E3D\u5B50/\u9E21\u70B9\u5934", fd: '\u8D70\u8DEF\u65F6\u5934\u5148"\u5B9A\u4F4F"\u518D\u524D\u4F38\u2014\u2014\u5B9A\u4F4F\u7684\u90A3\u534A\u62CD\u5C31\u662F\u7EAF\u5E73\u79FB\uFF0C\u7528\u8FD0\u52A8\u89C6\u5DEE\u6D4B\u8DDD\uFF08Friedman 1975, J. Exp. Biol.\uFF09\u3002' },
+          { fi: "\u{1F41D}", ft: "\u871C\u8702\u5149\u6D41\u8C03\u901F", fd: '\u871C\u8702\u4FDD\u6301\u89C6\u7F51\u819C\u6D41\u901F\u6052\u5B9A \u2192 \u79BB\u5899\u8D8A\u8FD1\u98DE\u5F97\u8D8A\u6162\uFF08v \u221D d \u7684\u9006\u7528\uFF09\uFF1B\u8FD8\u9760\u79EF\u5206\u5149\u6D41"\u6570"\u98DE\u4E86\u591A\u8FDC\uFF08Srinivasan \u7B49\uFF09\u3002' },
+          { fi: "\u{1F3AC}", ft: "\u79FB\u52A8 vs \u53D8\u7126", fd: '\u53D8\u7126\u628A\u6240\u6709\u5C42\u7B49\u6BD4\u653E\u5927\uFF08\u65E0\u89C6\u5DEE\uFF09\uFF1B\u6444\u5F71\u673A\u79FB\u52A8\u624D\u4EA7\u751F\u89C6\u5DEE\u3002\u5E0C\u533A\u67EF\u514B\u300A\u8FF7\u9B42\u8BB0\u300B\u7684"\u7729\u6655\u955C\u5934"\u5C31\u662F\u4E24\u8005\u53CD\u5411\u53E0\u52A0\u3002' },
+          { fi: "\u{1F916}", ft: "VR \xB7 SLAM", fd: "\u7814\u7A76\u8868\u660E\u8FD0\u52A8\u89C6\u5DEE\u53EF\u4EA7\u751F\u4E0E\u53CC\u76EE\u7ACB\u4F53\u611F\u76F8\u5F53\u7684\u6DF1\u5EA6\u77E5\u89C9\u2014\u2014VR \u5FC5\u987B 6DoF \u8FFD\u8E2A\u5934\u90E8\u5E73\u79FB\uFF1B\u81EA\u52A8\u9A7E\u9A76/SLAM \u7528\u540C\u4E00\u51E0\u4F55\u4F30\u8DDD\u3002" }
+        ],
+        speedLbl: "\u516C\u8F6C\u901F\u5EA6",
+        orbitOut: (s) => `1 \u5708 \u2248 ${s} s`,
+        pause: "\u23F8 \u6682\u505C",
+        resume: "\u25B6 \u7EE7\u7EED",
+        sight: "\u{1F441} \u89C6\u7EBF",
+        trace: "\u3030 \u89C6\u4F4D\u7F6E\u8F68\u8FF9"
+      },
+      en: {
+        sun: "\u2600 Sun",
+        earth: "\u{1F30D} Earth",
+        star: "\u2B50 61 Cygni (Target, Near)",
+        ghost: "Baseline 2 AU (6 Months Apart)",
+        marker: 'Background Stars = "Distant Mountains" (Apparent Pos)',
+        title: "Extrapolating to the Cosmos<small>Stellar Parallax</small>",
+        formula: "d(pc) = 1 / p(\u2033)",
+        note1: `Earth's orbit acts as the "vehicle": 6 months apart, Earth sits at opposite ends of the baseline (<b>2 AU \u2248 300 million km</b>). Nearby stars trace an apparent ellipse against background stars\u2014this is <b>stellar parallax</b>.`,
+        note2: (lyB2) => `In 1838 Bessel measured 61 Cygni: p \u2248 0.31\u2033 (modern 0.286\u2033) \u2192 distance \u2248 <b>${lyB2} ly</b>. 1 parsec = distance with 1\u2033 parallax \u2248 3.26 light years.`,
+        note3: (lyP2) => `Closest star Proxima Centauri p = 0.77\u2033 \u2192 ${lyP2} ly. <b>Closer = larger parallax = shorter distance</b>\u2014identical geometry to the roadside tree!`,
+        note4: "\u2696\uFE0F Stellar distances are compressed ~10\xB9\u2075\xD7 for visibility; actual 0.286\u2033 corresponds to the angular size of a coin 10 km away. Galileo sought it in vain due to instrumentation limits.",
+        facts: [
+          { fi: "\u{1F414}", ft: "Pigeon / Chicken Head Bobbing", fd: "During walking, head holds still then thrusts forward\u2014the hold phase produces pure translation to gauge distance via motion parallax (Friedman 1975)." },
+          { fi: "\u{1F41D}", ft: "Bee Optical Flow Speed Control", fd: "Bees maintain constant retinal optic flow rate \u2192 flying slower when closer to obstacles (inverting v \u221D d); also integrate flow to estimate flight distance." },
+          { fi: "\u{1F3AC}", ft: "Dolly vs Zoom", fd: `Zooming scales all layers uniformly (zero parallax); camera translation creates true parallax. Hitchcock's "Vertigo shot" combines both oppositely.` },
+          { fi: "\u{1F916}", ft: "VR \xB7 SLAM", fd: "Studies show motion parallax produces depth perception comparable to binocular stereopsis\u2014VR requires 6DoF tracking; autonomous driving/SLAM uses identical geometry." }
+        ],
+        speedLbl: "Orbit Speed",
+        orbitOut: (s) => `1 orbit \u2248 ${s} s`,
+        pause: "\u23F8 Pause",
+        resume: "\u25B6 Resume",
+        sight: "\u{1F441} Sightline",
+        trace: "\u3030 Apparent Trail"
+      }
+    };
+    let lang2 = "zh";
     const labelLayer = document.getElementById("labelLayer");
     const labels = [];
     function addLabel(text, color) {
@@ -22413,11 +22615,11 @@ body[data-view="topo"] #topoWrap { display: flex; }
       return el;
     }
     const L = {
-      sun: addLabel("\u2600 \u592A\u9633", "#ffd98a"),
-      earth: addLabel("\u{1F30D} \u5730\u7403", "#7db8f0"),
-      star: addLabel("\u2B50 61 Cygni\uFF08\u76EE\u6807\uFF0C\u8FD1\uFF09", "#ffe9b0"),
-      ghost: addLabel("\u57FA\u7EBF 2 AU\uFF08\u76F8\u9694 6 \u4E2A\u6708\uFF09", "#e8b84b"),
-      marker: addLabel('\u80CC\u666F\u661F\u573A = "\u65E0\u7A77\u8FDC\u7684\u8FDC\u5C71"\uFF08\u89C6\u4F4D\u7F6E\uFF09', "#fff1c4")
+      sun: addLabel(SPACE_I18N.zh.sun, "#ffd98a"),
+      earth: addLabel(SPACE_I18N.zh.earth, "#7db8f0"),
+      star: addLabel(SPACE_I18N.zh.star, "#ffe9b0"),
+      ghost: addLabel(SPACE_I18N.zh.ghost, "#e8b84b"),
+      marker: addLabel(SPACE_I18N.zh.marker, "#fff1c4")
     };
     const state = { theta: 0.9, perYear: 0.22, paused: false, showSight: true, showTrace: true };
     let lastTrace = null;
@@ -22464,11 +22666,12 @@ body[data-view="topo"] #topoWrap { display: flex; }
     const sV = bar.querySelector("#sV"), sVOut = bar.querySelector("#sVOut");
     sV.addEventListener("input", () => {
       state.perYear = +sV.value;
-      sVOut.textContent = `1 \u5708 \u2248 ${(1 / state.perYear).toFixed(1)} s`;
+      const dur = (1 / state.perYear).toFixed(1);
+      sVOut.textContent = SPACE_I18N[lang2].orbitOut(dur);
     });
     bar.querySelector("#sPause").addEventListener("click", (e) => {
       state.paused = !state.paused;
-      e.target.textContent = state.paused ? "\u25B6 \u7EE7\u7EED" : "\u23F8 \u6682\u505C";
+      e.target.textContent = state.paused ? SPACE_I18N[lang2].resume : SPACE_I18N[lang2].pause;
       e.target.classList.toggle("on", state.paused);
     });
     bar.querySelector("#sSight").addEventListener("click", (e) => {
@@ -22533,6 +22736,35 @@ body[data-view="topo"] #topoWrap { display: flex; }
       put(L.ghost, ghostA.position, -34);
       put(L.marker, marker.position, -26);
     }
+    function setLang2(l) {
+      if (l !== "zh" && l !== "en") return;
+      lang2 = l;
+      const t = SPACE_I18N[lang2];
+      panel.querySelector("h2").innerHTML = t.title;
+      const notes = panel.querySelectorAll("p.note");
+      if (notes[0]) notes[0].innerHTML = t.note1;
+      if (notes[1]) notes[1].innerHTML = t.note2(lyB);
+      if (notes[2]) notes[2].innerHTML = t.note3(lyP);
+      if (notes[3]) notes[3].innerHTML = t.note4;
+      const factsEl = panel.querySelector(".facts");
+      if (factsEl && t.facts) {
+        factsEl.innerHTML = t.facts.map((f) => `
+        <div class="fact"><div class="fi">${f.fi}</div><div class="ft">${f.ft}</div>
+          <div class="fd">${f.fd}</div></div>
+      `).join("");
+      }
+      bar.querySelector(".ctl label").textContent = t.speedLbl;
+      const dur = (1 / state.perYear).toFixed(1);
+      sVOut.textContent = t.orbitOut(dur);
+      bar.querySelector("#sPause").textContent = state.paused ? t.resume : t.pause;
+      bar.querySelector("#sSight").textContent = t.sight;
+      bar.querySelector("#sTrace").textContent = t.trace;
+      L.sun.querySelector(".nm").textContent = t.sun;
+      L.earth.querySelector(".nm").textContent = t.earth;
+      L.star.querySelector(".nm").textContent = t.star;
+      L.ghost.querySelector(".nm").textContent = t.ghost;
+      L.marker.querySelector(".nm").textContent = t.marker;
+    }
     function onResize(w, h) {
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
@@ -22540,7 +22772,7 @@ body[data-view="topo"] #topoWrap { display: flex; }
     function getInfo() {
       return { view: "space", theta: state.theta, paused: state.paused };
     }
-    return { scene, camera, update, placeLabels, onResize, getInfo, state, controls };
+    return { scene, camera, update, placeLabels, onResize, getInfo, state, controls, setLang: setLang2 };
   }
 
   // js/main.js
@@ -22551,6 +22783,63 @@ body[data-view="topo"] #topoWrap { display: flex; }
   var ride = buildRide(renderer);
   var space = buildSpace(renderer);
   var topo = buildTopView();
+  var currentLang = "zh";
+  var params = new URLSearchParams(window.location.search);
+  var qLang = params.get("lang");
+  if (qLang === "zh" || qLang === "en") {
+    currentLang = qLang;
+  } else {
+    const saved = localStorage.getItem("science_lang");
+    if (saved === "zh" || saved === "en") {
+      currentLang = saved;
+    } else if (navigator.language && !navigator.language.startsWith("zh")) {
+      currentLang = "en";
+    }
+  }
+  function setLang(lang2) {
+    if (lang2 !== "zh" && lang2 !== "en") return;
+    currentLang = lang2;
+    document.documentElement.lang = lang2;
+    try {
+      localStorage.setItem("science_lang", lang2);
+    } catch (e) {
+    }
+    const u = new URL(window.location.href);
+    u.searchParams.set("lang", lang2);
+    window.history.replaceState({}, "", u.toString());
+    const homeBtn = document.getElementById("homeBtn");
+    if (homeBtn) {
+      homeBtn.href = "../index.html?lang=" + lang2;
+      const homeTxt = document.getElementById("homeTxt");
+      if (homeTxt) homeTxt.textContent = lang2 === "en" ? "Home" : "\u9996\u9875";
+    }
+    document.querySelectorAll(".lang-btn").forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.lang === lang2);
+    });
+    const appTitle = document.getElementById("appTitle");
+    const appSubtitle = document.getElementById("appSubtitle");
+    if (appTitle) appTitle.textContent = lang2 === "en" ? "\u{1F304} Motion Parallax" : "\u{1F304} \u8FD0\u52A8\u89C6\u5DEE";
+    if (appSubtitle) appSubtitle.textContent = lang2 === "en" ? "Motion Parallax \u2014 Why near objects move fast and distant objects move slow" : "Motion Parallax \u2014 \u4E3A\u4EC0\u4E48\u8FD1\u7269\u8DD1\u5F97\u5FEB\uFF0C\u8FDC\u7269\u8DD1\u5F97\u6162";
+    document.title = lang2 === "en" ? "Motion Parallax \xB7 Why Near Objects Move Fast and Distant Slow" : "\u8FD0\u52A8\u89C6\u5DEE \xB7 \u4E3A\u4EC0\u4E48\u8FD1\u7269\u8DD1\u5F97\u5FEB\uFF0C\u8FDC\u7269\u8DD1\u5F97\u6162";
+    const tabRide = document.getElementById("tabRide");
+    const tabTopo = document.getElementById("tabTopo");
+    const tabSpace = document.getElementById("tabSpace");
+    if (tabRide) tabRide.textContent = lang2 === "en" ? "\u2460 Ride Experience" : "\u2460 \u4E58\u8F66\u4F53\u9A8C";
+    if (tabTopo) tabTopo.textContent = lang2 === "en" ? "\u2461 Sweep Geometry" : "\u2461 \u626B\u89D2\u51E0\u4F55";
+    if (tabSpace) tabSpace.textContent = lang2 === "en" ? "\u2462 Earth to Cosmos" : "\u2462 \u4ECE\u6811\u6728\u5230\u661F\u7A7A";
+    if (ride && ride.setLang) ride.setLang(lang2);
+    if (topo && topo.setLang) topo.setLang(lang2);
+    if (space && space.setLang) space.setLang(lang2);
+  }
+  document.querySelectorAll(".lang-btn").forEach((btn) => {
+    btn.addEventListener("click", () => setLang(btn.dataset.lang));
+  });
+  window.addEventListener("storage", (e) => {
+    if (e.key === "science_lang" && (e.newValue === "zh" || e.newValue === "en") && e.newValue !== currentLang) {
+      setLang(e.newValue);
+    }
+  });
+  setLang(currentLang);
   var active = "ride";
   setView(active);
   document.querySelectorAll("#tabs .tab").forEach((btn) => {

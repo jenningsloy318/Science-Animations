@@ -5,16 +5,61 @@ import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+import { i18n } from '../../common/js/i18n.js';
+
+const atomDict = {
+  'nav.home': { zh: '🏠 首页', en: '🏠 Home' },
+  'nav.home_tip': { zh: '返回首页 Back to home', en: 'Return to home portal' },
+  'atom.title': { zh: '原子模型 · Atomic Model', en: 'Atomic Model · 3D' },
+  'atom.sub': { zh: '3D 交互式 — 电子跃迁 vs 电离 · 光子的吸收与发射', en: '3D Interactive — Electron Transitions vs Ionization · Photon Absorption & Emission' },
+  'atom.photon_info': { zh: '💡 光子信息 Photon', en: '💡 Photon Info' },
+  'atom.p_dir': { zh: '方向', en: 'Direction' },
+  'atom.p_energy': { zh: '能量 E', en: 'Energy E' },
+  'atom.p_trans': { zh: '跃迁', en: 'Transition' },
+  'atom.p_color': { zh: '颜色', en: 'Color' },
+  'atom.state_title': { zh: '⚛️ 原子状态', en: '⚛️ Atomic State' },
+  'atom.elem': { zh: '元素', en: 'Element' },
+  'atom.protons': { zh: '质子 Protons', en: 'Protons' },
+  'atom.neutrons': { zh: '中子 Neutrons', en: 'Neutrons' },
+  'atom.electrons': { zh: '电子 Electrons', en: 'Electrons' },
+  'atom.charge': { zh: '净电荷 Charge', en: 'Net Charge' },
+  'atom.state': { zh: '状态 State', en: 'State' },
+  'atom.ground': { zh: '基态 Ground', en: 'Ground State' },
+  'atom.excited': { zh: '激发态 Excited ✨', en: 'Excited State ✨' },
+  'atom.cation': { zh: '正离子 Cation ⊕', en: 'Cation (+)' },
+  'atom.anion': { zh: '负离子 Anion ⊖', en: 'Anion (-)' },
+  'atom.energy_levels': { zh: '能级图 Energy Levels', en: 'Energy Levels' },
+  'atom.shell_dist': { zh: '电子层分布 Shell Distribution', en: 'Shell Distribution' },
+  'atom.model_label': { zh: '模型:', en: 'Model:' },
+  'atom.bohr_orbit': { zh: '⚙️ 玻尔轨道', en: '⚙️ Bohr Orbit' },
+  'atom.electron_cloud': { zh: '☁️ 电子云', en: '☁️ Electron Cloud' },
+  'atom.model_note': { zh: '氢的谱线/能级为里德伯公式真实值 · 多电子为示意', en: 'Hydrogen lines/levels follow exact Rydberg formula · Multi-e⁻ schematic' },
+  'atom.absorb_btn': { zh: '☀️ 吸收光子<br><span class="dir-hint">光子 → 原子 (飞入)</span>', en: '☀️ Absorb Photon<br><span class="dir-hint">Photon → Atom (In)</span>' },
+  'atom.release_btn': { zh: '💫 释放光子<br><span class="dir-hint">原子 → 光子 (飞出)</span>', en: '💫 Emit Photon<br><span class="dir-hint">Atom → Photon (Out)</span>' },
+  'atom.lose_e': { zh: '⚡ 失去电子 (电离)', en: '⚡ Lose e⁻ (Ionize)' },
+  'atom.gain_e': { zh: '⚡ 获得电子', en: '⚡ Gain e⁻' },
+  'atom.reset': { zh: '↺ 重置', en: '↺ Reset' },
+  'atom.what_is_photon': { zh: '💡 光子是什么?', en: '💡 What is Photon?' },
+  'atom.compare_btn': { zh: '📊 对比表', en: '📊 Comparison' },
+  'atom.comp_title': { zh: '📊 电子跃迁 vs 电离 — 对比表', en: '📊 Transitions vs Ionization Table' },
+  'atom.th_case': { zh: '情况', en: 'Case' },
+  'atom.th_photon': { zh: '光子方向', en: 'Photon Flow' },
+  'atom.th_electron': { zh: '电子去向', en: 'Electron Motion' },
+  'atom.th_atom': { zh: '原子变化', en: 'Atomic State' },
+  'atom.th_ion': { zh: '离子?', en: 'Ionized?' },
+};
+
+i18n.loadDict(atomDict);
 
 /* ================================================================
    元素数据 ELEMENT DATA
    ================================================================ */
 const ELEMENTS = {
-  H:  { symbol: 'H',  name: '氢 Hydrogen',  Z: 1,  N: 0,  shells: [1] },
-  He: { symbol: 'He', name: '氦 Helium',     Z: 2,  N: 2,  shells: [2] },
-  O:  { symbol: 'O',  name: '氧 Oxygen',     Z: 8,  N: 8,  shells: [2, 6] },
-  Si: { symbol: 'Si', name: '硅 Silicon',    Z: 14, N: 14, shells: [2, 8, 4] },
-  Fe: { symbol: 'Fe', name: '铁 Iron',       Z: 26, N: 30, shells: [2, 8, 14, 2] },
+  H:  { symbol: 'H',  nameZh: '氢 Hydrogen', nameEn: 'Hydrogen', name: '氢 Hydrogen',  Z: 1,  N: 0,  shells: [1] },
+  He: { symbol: 'He', nameZh: '氦 Helium', nameEn: 'Helium', name: '氦 Helium',     Z: 2,  N: 2,  shells: [2] },
+  O:  { symbol: 'O',  nameZh: '氧 Oxygen', nameEn: 'Oxygen', name: '氧 Oxygen',     Z: 8,  N: 8,  shells: [2, 6] },
+  Si: { symbol: 'Si', nameZh: '硅 Silicon', nameEn: 'Silicon', name: '硅 Silicon',    Z: 14, N: 14, shells: [2, 8, 4] },
+  Fe: { symbol: 'Fe', nameZh: '铁 Iron', nameEn: 'Iron', name: '铁 Iron',       Z: 26, N: 30, shells: [2, 8, 14, 2] },
 };
 const SHELL_NAMES = ['K', 'L', 'M', 'N'];
 const SHELL_MAX   = [2, 8, 18, 32];
@@ -420,7 +465,7 @@ let trailParticles = [];
 
 function animate() {
   requestAnimationFrame(animate);
-  const dt = clock.getDelta();
+  const dt = Math.min(clock.getDelta(), 0.05);
   const t  = clock.getElapsedTime();
 
   // ── Orbit electrons ──
@@ -1187,7 +1232,8 @@ function updateInfoPanel() {
   // Update orbit ring colors based on current state
   updateShellColors();
 
-  document.getElementById('infoElement').textContent = `${elem.symbol} ${elem.name}`;
+  const elemName = (i18n.currentLang === 'zh' ? (elem.nameZh || elem.name) : (elem.nameEn || elem.name));
+  document.getElementById('infoElement').textContent = `${elem.symbol} ${elemName}`;
   document.getElementById('infoProtons').textContent = elem.Z;
   document.getElementById('infoNeutrons').textContent = elem.N;
   document.getElementById('infoElectrons').textContent = totalE;
@@ -1198,10 +1244,10 @@ function updateInfoPanel() {
 
   const stateEl = document.getElementById('infoState');
   let stateText, stateClass;
-  if (atomState === 'excited') { stateText = '激发态 Excited ✨'; stateClass = 'excited'; }
-  else if (atomState === 'cation') { stateText = '正离子 Cation ⊕'; stateClass = 'positive'; }
-  else if (atomState === 'anion')  { stateText = '负离子 Anion ⊖'; stateClass = 'negative'; }
-  else { stateText = '基态 Ground'; stateClass = 'neutral'; }
+  if (atomState === 'excited') { stateText = i18n.t('atom.excited'); stateClass = 'excited'; }
+  else if (atomState === 'cation') { stateText = i18n.t('atom.cation'); stateClass = 'positive'; }
+  else if (atomState === 'anion')  { stateText = i18n.t('atom.anion'); stateClass = 'negative'; }
+  else { stateText = i18n.t('atom.ground'); stateClass = 'neutral'; }
   stateEl.textContent = stateText;
   stateEl.className = 'value ' + stateClass;
 
@@ -1534,7 +1580,7 @@ function buildElementButtons() {
     const btn = document.createElement('button');
     btn.className = 'elem-btn' + (key === currentElement ? ' active' : '');
     btn.textContent = key;
-    btn.title = ELEMENTS[key].name;
+    btn.title = (i18n.currentLang === 'zh' ? (ELEMENTS[key].nameZh || ELEMENTS[key].name) : (ELEMENTS[key].nameEn || ELEMENTS[key].name));
     btn.addEventListener('click', () => {
       if (animating) return;
       buildAtom(key);
@@ -1569,6 +1615,16 @@ document.getElementById('btnPhotonInfo').addEventListener('click', () => {
 });
 document.getElementById('closePhotonInfo').addEventListener('click', () => {
   document.getElementById('photonExplainer').classList.remove('show');
+});
+
+document.getElementById('btnLangZh')?.addEventListener('click', () => i18n.setLanguage('zh'));
+document.getElementById('btnLangEn')?.addEventListener('click', () => i18n.setLanguage('en'));
+
+i18n.subscribe(() => {
+  buildElementButtons();
+  updateInfoPanel();
+  drawEnergyDiagram();
+  drawShellDistribution();
 });
 
 window.addEventListener('resize', () => {

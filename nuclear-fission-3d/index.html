@@ -6,11 +6,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>核裂变 3D 交互动画 · Nuclear Fission</title>
 <link rel="stylesheet" href="css/style.css">
+<script>
+  (function() {
+    try {
+      var p = new URLSearchParams(window.location.search).get('lang');
+      var s = (p === 'zh' || p === 'en') ? p : null;
+      if (!s) s = localStorage.getItem('science_lang');
+      if (!s && navigator.language) s = navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+      var lang = (s === 'en' ? 'en' : 'zh');
+      document.documentElement.lang = (lang === 'zh' ? 'zh-CN' : 'en');
+      document.documentElement.classList.add('i18n-loading');
+    } catch(e) {}
+  })();
+</script>
 </head>
 <body>
 
   <!-- 返回首页链接 -->
   <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
+  <div class="lang-switch" role="group" aria-label="Language Switcher">
+    <button id="btnLangZh" class="lang-btn active" data-lang-btn="zh">🇨🇳 中文</button>
+    <button id="btnLangEn" class="lang-btn" data-lang-btn="en">🇬🇧 EN</button>
+  </div>
 
 <!-- #stage 承载 three.js 画布 -->
 <div id="stage"></div>
@@ -49,19 +66,19 @@
   <div class="split-options">
     <button class="split-btn active" data-split="standard">
       <b>① 经典主产物（教材基准）</b>
-      <span>⁵⁶₁₄₁Ba (钡-141) + ³⁶₉₂Kr (氪-92) + 3 个中子</span>
+      <span>¹⁴¹₅₆Ba (钡-141) + ⁹²₃₆Kr (氪-92) + 3 个中子</span>
     </button>
     <button class="split-btn" data-split="cs">
       <b>② 铯-137 强辐射同位素对（中子幻数 N=82 稳定壳）</b>
-      <span>⁵⁵₁₃₇Cs (铯-137) + ³⁷₉₆Rb (铷-96) + 3 个中子</span>
+      <span>¹³⁷₅₅Cs (铯-137) + ⁹⁶₃₇Rb (铷-96) + 3 个中子</span>
     </button>
     <button class="split-btn" data-split="sr">
       <b>③ 锶-90 / 氙-144 裂变对（反应堆毒物）</b>
-      <span>⁵⁴₁₄₄Xe (氙-144) + ³⁸₉₀Sr (锶-90) + 2 个中子</span>
+      <span>¹⁴⁴₅₄Xe (氙-144) + ⁹⁰₃₈Sr (锶-90) + 2 个中子</span>
     </button>
     <button class="split-btn" data-split="symmetric">
       <b>④ 对称裂变（极端罕见 · 产额 &lt;0.01%）</b>
-      <span>⁴⁶₁₁₈Pd (钯-118) + ⁴⁶₁₁₈Pd (钯-118) — 强核壳层排斥对称分裂</span>
+      <span>¹¹⁸₄₆Pd (钯-118) + ¹¹⁸₄₆Pd (钯-118) — 强核壳层排斥对称分裂</span>
     </button>
   </div>
 </div>
@@ -102,7 +119,7 @@
       <span class="e-pct">6.0%</span>
     </div>
     <div class="e-footer">
-      合计约 207 MeV（工程标称 <b>200 MeV ≈ 3.2e-11 J</b>），其中 84% 转化为反应堆热能驱动汽轮机！
+      合计约 210 MeV（瞬时碎片动能约占 <b>85% ≈ 169 MeV</b>；最终约 <b>95% ≈ 200 MeV</b> 沉积为堆内热能驱动汽轮机，仅约 10 MeV 反中微子逃逸）
     </div>
   </div>
 </div>

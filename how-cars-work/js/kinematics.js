@@ -23,14 +23,14 @@ export const KINEMATICS_SCENARIO_TAGS = Object.freeze([
   'SCENARIO-024',
 ]);
 
-export const CRANK_RADIUS = 0.22;         // r — crank throw (prototype-verified)
-export const ROD_LENGTH = 0.65;           // l — connecting-rod length
-export const PISTON_ANCHOR = 0.8;         // re-anchored piston base (TDC 1.02 / BDC 0.58)
-export const CAM_SPEED_RATIO = 0.5;       // camshaft turns at half crank speed (1:2)
-export const DIFFERENTIAL_SPLIT_K = 0.6;  // inner/outer split factor per |steerAngle|
-export const FRONT_YAW_SCALE = 0.5;       // front-wheel yaw = steerAngle × 0.5
-export const FRONT_YAW_LIMIT = 0.5;       // hard yaw cap in radians
-export const FINAL_DRIVE = 0.5;           // ring-and-pinion reduction behind the prop shaft
+export const CRANK_RADIUS = 0.22;         // r — crank throw (prototype-verified)  // PROV: illustrative | 视觉尺度 | - | 非真实曲柄半径
+export const ROD_LENGTH = 0.65;           // l — connecting-rod length  // PROV: illustrative | 视觉尺度 | - | 非真实连杆长度
+export const PISTON_ANCHOR = 0.8;         // re-anchored piston base (TDC 1.02 / BDC 0.58)  // PROV: illustrative | 视觉尺度 | - | 视觉锚点
+export const CAM_SPEED_RATIO = 0.5;       // camshaft turns at half crank speed (1:2)  // PROV: measured | 四冲程惯例 | - | 凸轮=曲轴/2
+export const DIFFERENTIAL_SPLIT_K = 0.6;  // inner/outer split factor per |steerAngle|  // PROV: illustrative | 教学简化 | - | 差速分配系数
+export const FRONT_YAW_SCALE = 0.5;       // front-wheel yaw = steerAngle × 0.5  // PROV: illustrative | 教学简化 | - | 转向缩放
+export const FRONT_YAW_LIMIT = 0.5;       // hard yaw cap in radians  // PROV: illustrative | 教学简化 | - | 转向上限
+export const FINAL_DRIVE = 0.5;           // ring-and-pinion reduction behind the prop shaft  // PROV: illustrative | 教学简化 | - | 主减速比压缩
 
 // Flat-plane 4-cylinder crank phasing: pistons 1&4 rise together, 2&3 together
 // (offsets are multiples of π, the only firing-order phases a 4-cyl can use).
@@ -101,8 +101,8 @@ export function updateDrivetrain(state, dt = 0) {
   // Speeds are expressed in prop-shaft units so the split stays observable even
   // when the shaft itself is momentarily at rest.
   const split = Math.min(Math.abs(steerAngle) * DIFFERENTIAL_SPLIT_K, 0.9);
-  const innerWheelSpeed = 1 - split;
-  const outerWheelSpeed = 1 + split;
+  const innerWheelSpeed = 1 - split;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
+  const outerWheelSpeed = 1 + split;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
   const innerWheelAngle = propShaftAngle * FINAL_DRIVE * innerWheelSpeed;
   const outerWheelAngle = propShaftAngle * FINAL_DRIVE * outerWheelSpeed;
 

@@ -15,8 +15,8 @@ def main():
         [
             "esbuild", str(ROOT / "js/main.js"),
             "--bundle", "--format=iife",
-            "--alias:three=./vendor/three.module.js",
-            "--alias:three/addons=./vendor/addons",
+            f"--alias:three={ROOT / 'vendor/three.module.js'}",
+            f"--alias:three/addons={ROOT / 'vendor/addons'}",
         ],
         capture_output=True, text=True, check=True,
     )

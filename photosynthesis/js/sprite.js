@@ -23,7 +23,51 @@ export function makeLabel(text, color = '#dbe4ee', size = 44) {
   const sp = new THREE.Sprite(mat);
   sp.scale.set(c.width / 110, c.height / 110, 1);
   sp.renderOrder = 50;
+  sp.userData.canvas = c;
+  sp.userData.tex = tex;
+  sp.userData.color = color;
+  sp.userData.size = size;
+  sp.userData.scaleScalar = 1;
   return sp;
+}
+
+export function updateLabel(sp, text, color, size) {
+  if (!sp || !sp.userData) return;
+  const c = sp.userData.canvas;
+  const tex = sp.userData.tex;
+  if (!c || !tex) return;
+  if (color) sp.userData.color = color;
+  if (size) sp.userData.size = size;
+  const sz = sp.userData.size || 44;
+  const col = sp.userData.color || '#dbe4ee';
+  const pad = 24;
+
+  const g = c.getContext('2d');
+  g.font = `bold ${sz}px "PingFang SC", sans-serif`;
+  const w = Math.ceil(g.measureText(text).width) + pad * 2;
+  c.width = w;
+  c.height = sz + pad * 2;
+
+  const g2 = c.getContext('2d');
+  g2.font = `bold ${sz}px "PingFang SC", sans-serif`;
+  g2.textAlign = 'center';
+  g2.textBaseline = 'middle';
+  g2.lineJoin = 'round';
+  g2.strokeStyle = 'rgba(6,11,18,0.92)';
+  g2.lineWidth = 6;
+  g2.strokeText(text, c.width / 2, c.height / 2);
+  g2.fillStyle = col;
+  g2.fillText(text, c.width / 2, c.height / 2);
+
+  tex.needsUpdate = true;
+  const s = sp.userData.scaleScalar ?? 1;
+  sp.scale.set((c.width / 110) * s, (c.height / 110) * s, 1);
+  if (sp.userData.baseScale) {
+    sp.userData.baseScale.copy(sp.scale);
+  }
+  if (sp.userData.base) {
+    sp.userData.base.copy(sp.scale);
+  }
 }
 
 export function makeSphere(r, color, opts = {}) {

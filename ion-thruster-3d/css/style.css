@@ -181,6 +181,45 @@
 }
 #homeBtn:active { transform: translateY(0); }
 
+/* ── language switcher pill ── */
+.lang-switch {
+  position: fixed;
+  top: 14px;
+  left: 116px;
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 999px;
+  padding: 2px;
+}
+.lang-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 5px 11px;
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 500;
+  border-radius: 999px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  line-height: 1;
+  transition: all .2s ease;
+}
+.lang-btn:hover { color: #e2e8f0; }
+.lang-btn.active {
+  background: rgba(56, 189, 248, 0.22);
+  color: #38bdf8;
+  font-weight: 600;
+}
+.i18n-loading [data-i18n] { visibility: hidden; }
+
   /* ——— 任务预设导航条 ——— */
   #missionBar {
     display: flex; gap: 6px; align-items: center; justify-content: center;

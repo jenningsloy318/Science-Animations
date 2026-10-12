@@ -21,16 +21,33 @@
         }
       }
     });
+  <script>
+    (function() {
+      try {
+        var p = new URLSearchParams(window.location.search).get('lang');
+        var l = p || localStorage.getItem('science_lang') || ((navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en');
+        if (l !== 'zh' && l !== 'en') l = 'zh';
+        document.documentElement.lang = l === 'zh' ? 'zh-CN' : 'en';
+        window.__INITIAL_LANG__ = l;
+      } catch (e) {
+        document.documentElement.lang = 'zh-CN';
+        window.__INITIAL_LANG__ = 'zh';
+      }
+    })();
   </script>
 </head>
 <body>
   <!-- Standard Science Suite Back-to-Home Link -->
-  <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
+  <a id="homeBtn" href="../index.html" title="返回首页 / Back to home">🏠 <span id="homeTxt">首页</span></a>
+  <div class="lang-switch" role="group" aria-label="Language Switcher">
+    <button class="lang-btn active" data-lang="zh">中</button>
+    <button class="lang-btn" data-lang="en">EN</button>
+  </div>
 
   <!-- Loading Overlay -->
   <div id="loading-overlay">
     <div class="spinner"></div>
-    <div class="loading-text">正在实时生成太阳系八大行星与卫星群三维宇宙空间...</div>
+    <div class="loading-text" id="loadingText">正在实时生成太阳系八大行星与卫星群三维宇宙空间...</div>
   </div>
 
   <!-- Three.js Canvas Container -->
@@ -40,8 +57,8 @@
   <header id="top-header">
     <div class="title-badge">
       <span style="font-size: 18px;">🪐</span>
-      <h1>太阳系探索者 · Solar System Explorer</h1>
-      <span class="tag">8大行星 · 22颗卫星</span>
+      <h1 id="appTitle">太阳系探索者 · Solar System Explorer</h1>
+      <span class="tag" id="appTag">8大行星 · 22颗卫星</span>
     </div>
     <div class="date-badge" id="hud-date">2026-09-14 (+0 天)</div>
   </header>
@@ -49,13 +66,13 @@
   <!-- Left Celestial Navigator Panel -->
   <aside id="left-panel">
     <div class="panel-header">
-      <span>🌌 天体导航</span>
-      <span style="font-size: 11px; color: var(--accent-cyan); font-weight: normal;">点击居中跟踪</span>
+      <span id="navPanelTitle">🌌 天体导航</span>
+      <span id="navPanelSub" style="font-size: 11px; color: var(--accent-cyan); font-weight: normal;">点击居中跟踪</span>
     </div>
     <div class="filter-tabs">
-      <button class="filter-tab active" data-filter="all">全部</button>
-      <button class="filter-tab" data-filter="planets">八大行星</button>
-      <button class="filter-tab" data-filter="moons">卫星群 (22颗)</button>
+      <button class="filter-tab active" data-filter="all" id="tabAll">全部</button>
+      <button class="filter-tab" data-filter="planets" id="tabPlanets">八大行星</button>
+      <button class="filter-tab" data-filter="moons" id="tabMoons">卫星群 (22颗)</button>
     </div>
     <div id="celestial-list"></div>
   </aside>
@@ -69,29 +86,29 @@
 
     <div class="specs-grid">
       <div class="spec-cell">
-        <span class="spec-label">天体类型</span>
+        <span class="spec-label" id="lblType">天体类型</span>
         <span class="spec-val" id="info-type">行星</span>
       </div>
       <div class="spec-cell">
-        <span class="spec-label">平均半径</span>
+        <span class="spec-label" id="lblRadius">平均半径</span>
         <span class="spec-val" id="info-radius">6,371 km</span>
       </div>
       <div class="spec-cell">
-        <span class="spec-label">距日半长轴</span>
+        <span class="spec-label" id="lblDist">距日半长轴</span>
         <span class="spec-val" id="info-dist">1.496 亿 km</span>
       </div>
       <div class="spec-cell">
-        <span class="spec-label">公转周期</span>
+        <span class="spec-label" id="lblPeriod">公转周期</span>
         <span class="spec-val" id="info-period">365.26 天</span>
       </div>
       <div class="spec-cell">
-        <span class="spec-label">表面重力</span>
+        <span class="spec-label" id="lblGravity">表面重力</span>
         <span class="spec-val" id="info-gravity">9.81 m/s²</span>
       </div>
     </div>
 
     <div class="facts-box">
-      <h3>🔭 科学档案与探索发现</h3>
+      <h3 id="factsHeader">🔭 科学档案与探索发现</h3>
       <ul id="info-facts">
         <li>目前已知宇宙中唯一孕育生命的星球，表面约71%被液态水海洋覆盖。</li>
         <li>强大的地磁场阻挡了致命宇宙射线与太阳风暴。</li>
@@ -102,31 +119,31 @@
   <!-- Spaceflight Planning Dock -->
   <section id="mission-panel">
     <div class="mission-title">
-      <span>🚀 简易航天轨道规划 (Hohmann Transfer)</span>
+      <span id="missionTitle">🚀 简易航天轨道规划 (Hohmann Transfer)</span>
     </div>
 
     <div class="planner-controls">
       <div class="select-group">
-        <label for="flight-origin">出发天体 (Origin):</label>
+        <label for="flight-origin" id="lblOrigin">出发天体 (Origin):</label>
         <select id="flight-origin" class="select-input"></select>
       </div>
       <div class="select-group">
-        <label for="flight-dest">目标天体 (Destination):</label>
+        <label for="flight-dest" id="lblDest">目标天体 (Destination):</label>
         <select id="flight-dest" class="select-input"></select>
       </div>
     </div>
 
     <div class="plan-stats">
       <div class="plan-row">
-        <span>转移飞行时间:</span>
+        <span id="lblPlanTime">转移飞行时间:</span>
         <span id="plan-time">259 天</span>
       </div>
       <div class="plan-row">
-        <span>总推进量需求 (Δv):</span>
+        <span id="lblPlanDeltaV">总推进量需求 (Δv):</span>
         <span id="plan-deltav">5.59 km/s</span>
       </div>
       <div class="plan-row">
-        <span>发射窗口相位角:</span>
+        <span id="lblPlanPhase">发射窗口相位角:</span>
         <span id="plan-phase">44.3°</span>
       </div>
       <p id="plan-desc" style="font-size: 11px; color: var(--text-muted); margin-top: 4px; line-height: 1.4;">
@@ -150,9 +167,9 @@
         <div id="telem-progress-bar" class="progress-fill"></div>
       </div>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 11px; color: var(--text-muted);">
-        <div>飞行速度: <b id="telem-speed" style="color: #fff;">0 km/s</b></div>
-        <div>任务天数: <b id="telem-time" style="color: #fff;">0 天</b></div>
-        <div style="grid-column: span 2;">距目标剩余: <b id="telem-dist" style="color: #fff;">0 km</b></div>
+        <div><span id="lblTelemSpeed">飞行速度:</span> <b id="telem-speed" style="color: #fff;">0 km/s</b></div>
+        <div><span id="lblTelemTime">任务天数:</span> <b id="telem-time" style="color: #fff;">0 天</b></div>
+        <div style="grid-column: span 2;"><span id="lblTelemDist">距目标剩余:</span> <b id="telem-dist" style="color: #fff;">0 km</b></div>
       </div>
     </div>
   </section>
@@ -181,18 +198,18 @@
     <div class="toggles-row">
       <label class="toggle-label">
         <input type="checkbox" id="toggle-planet-orbits" checked />
-        <span>行星轨道</span>
+        <span id="lblTogglePlanetOrbits">行星轨道</span>
       </label>
       <label class="toggle-label">
         <input type="checkbox" id="toggle-moon-orbits" checked />
-        <span>卫星轨道</span>
+        <span id="lblToggleMoonOrbits">卫星轨道</span>
       </label>
       <label class="toggle-label">
         <input type="checkbox" id="toggle-labels" checked />
-        <span>天体标注</span>
+        <span id="lblToggleLabels">天体标注</span>
       </label>
       <label class="toggle-label" title="调整行星放大比例以便清晰观察细节">
-        <span>天体缩放:</span>
+        <span id="lblPlanetScale">天体缩放:</span>
         <input type="range" id="slider-planet-scale" min="0.5" max="3.0" step="0.1" value="1.0" style="width: 70px;" />
         <span id="planet-scale-val" style="font-family: monospace; font-size: 11px;">1.0x</span>
       </label>
@@ -205,7 +222,9 @@
       if (window.location.pathname.includes('/solar-system')) {
         e.preventDefault();
         const basePath = window.location.pathname.substring(0, window.location.pathname.indexOf('/solar-system'));
-        window.location.href = (basePath || '') + '/index.html';
+        const lang = new URLSearchParams(window.location.search).get('lang') ||
+          (function() { try { return localStorage.getItem('science_lang'); } catch(e){} })() || 'zh';
+        window.location.href = (basePath || '') + '/index.html?lang=' + lang;
       }
     });
   </script>

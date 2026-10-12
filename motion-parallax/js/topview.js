@@ -9,9 +9,52 @@
 // ═══════════════════════════════════════════════════════════════
 import { omegaExact, omegaPeak, toDegPerS, KMH_TO_MS } from './parallax.js';
 
+const TOP_I18N = {
+  zh: {
+    title: '扫角几何：为什么近的快<small>俯视图 · 真实比例 · 两个目标同速出发</small>',
+    note1: '<b>① 只盯金色的树。</b>车向前开，视线必须一直"追着"它转。树身后拖出的金色扇面 = 过去 3 秒视线扫过的角。<b>扇面张开得越大，感觉越快。</b>',
+    note2: '<b>② 同一时刻比两条视线。</b>树近（d=10 m），掠过身边时 1 秒转几十度；山远（d=200 m），从头到尾每秒不超过 3°——所以山看起来"永远不动"。</p>',
+    note3: '<b>③ 齐平的一刻最快。</b>目标穿过白色虚线时 ω 达到峰值 = v/d。车速 36 km/h（10 m/s）：树 10÷10 ≈ <b>57°/s</b>，山要除以 200，只有 <b>2.9°/s</b>——差 20 倍。',
+    note4: '<b>④ 下方的曲线</b>记录每一刻的扫速：树掠过身边时拱起高高的"山峰"，山的峰只有一点点——这就是"近的快、远的慢"的全部秘密。',
+    names: { tree: '树', mountain: '山' },
+    shortNames: { tree: '树', mountain: '山' },
+    speedLbl: '车速 v',
+    pause: '⏸ 暂停',
+    resume: '▶ 继续',
+    reset: '↺ 重播',
+    bannerTop: '俯视图 · 真实比例 · 车固定在原点，世界向后流（两目标同速，只差远近）',
+    alignLine: '齐平线 —— 穿过的一刻最快 ω = v/d',
+    compare1: (dT, dM) => `同样 1.2 秒：树转 ${dT.toFixed(1)}° · 山只转 ${dM.toFixed(1)}°`,
+    compare2: (dT, dM) => `同样 1.2 秒：树 ${dT.toFixed(1)}° · 山 ${dM.toFixed(1)}°（都很慢——快慢差在齐平附近才拉开）`,
+    chartTitle: '感知角速度 ω(t) —— 掠过身边时拱起"山峰"（齐平 = v/d）',
+    chartPeak: peak => `峰值 ${peak.toFixed(0)}°/s`,
+  },
+  en: {
+    title: 'Sweep Geometry: Why Near Moves Faster<small>Top View · True Scale · Equal Departure Speed</small>',
+    note1: '<b>① Focus on the golden tree.</b> As the car moves forward, gaze must track it. The gold swept fan = angle swept over past 3s. <b>Wider fan = higher perceived speed.</b>',
+    note2: '<b>② Compare two sightlines simultaneously.</b> The tree is near (d=10m), sweeping tens of deg/s. The mountain is far (d=200m), never exceeding 3°/s—appearing nearly static.',
+    note3: '<b>③ Fastest at transit.</b> When passing the dashed line, ω peaks at v/d. At 36 km/h (10 m/s): Tree = 10/10 ≈ <b>57°/s</b>; Mountain = 10/200 = <b>2.9°/s</b>—a 20× difference.',
+    note4: '<b>④ The lower graph</b> records instantaneous angular sweep: tree creates a soaring peak, mountain only a tiny bump—the geometric secret of parallax.',
+    names: { tree: 'Tree', mountain: 'Mountain' },
+    shortNames: { tree: 'Tree', mountain: 'Mtn' },
+    speedLbl: 'Speed v',
+    pause: '⏸ Pause',
+    resume: '▶ Resume',
+    reset: '↺ Replay',
+    bannerTop: 'Top View · True Scale · Car fixed at origin, world streams back (equal speed)',
+    alignLine: 'Alignment Line — Peak ω = v/d at transit',
+    compare1: (dT, dM) => `Same 1.2s: Tree swept ${dT.toFixed(1)}° · Mountain only ${dM.toFixed(1)}°`,
+    compare2: (dT, dM) => `Same 1.2s: Tree ${dT.toFixed(1)}° · Mountain ${dM.toFixed(1)}° (both slow until transit)`,
+    chartTitle: 'Perceived Angular Velocity ω(t) — Peaks as it sweeps by (Transit = v/d)',
+    chartPeak: peak => `Peak ${peak.toFixed(0)}°/s`,
+  }
+};
+
+let lang = 'zh';
+
 const OBJ = [
-  { name: '树', d: 10, x0: 45, color: '#e8b84b', hero: true },
-  { name: '山', d: 200, x0: 45, color: '#6ee7b7' },
+  { key: 'tree', name: '树', d: 10, x0: 45, color: '#e8b84b', hero: true },
+  { key: 'mountain', name: '山', d: 200, x0: 45, color: '#6ee7b7' },
 ];
 const P = 300;          // 循环周期 m
 const K0 = 1.5;         // px / m（x、y 共用，真实角度）
@@ -69,7 +112,7 @@ export function buildTopView() {
   });
   bar.querySelector('#tPause').addEventListener('click', e => {
     state.paused = !state.paused;
-    e.target.textContent = state.paused ? '▶ 继续' : '⏸ 暂停';
+    e.target.textContent = state.paused ? TOP_I18N[lang].resume : TOP_I18N[lang].pause;
     e.target.classList.toggle('on', state.paused);
   });
   bar.querySelector('#tReset').addEventListener('click', () => {
@@ -142,7 +185,7 @@ export function buildTopView() {
     ctx.strokeStyle = 'rgba(255,255,255,0.08)';
     roundRect(ctx, pad * 0.4, y0, w - pad * 0.8, topH - y0 - 4, 12); ctx.fill(); ctx.stroke();
     ctx.fillStyle = '#97a3b8'; ctx.font = '13px sans-serif';
-    ctx.fillText('俯视图 · 真实比例 · 车固定在原点，世界向后流（两目标同速，只差远近）', pad * 0.4 + 16, y0 + 22);
+    ctx.fillText(TOP_I18N[lang].bannerTop, pad * 0.4 + 16, y0 + 22);
 
     const roadY = g.roadY, carPx = g.carPx;
     // 道路
@@ -176,7 +219,7 @@ export function buildTopView() {
     ctx.beginPath(); ctx.moveTo(carPx, y0 + 34); ctx.lineTo(carPx, roadY); ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = 'rgba(255,255,255,0.65)'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
-    ctx.fillText('齐平线 —— 穿过的一刻最快 ω = v/d', carPx, y0 + 30);
+    ctx.fillText(TOP_I18N[lang].alignLine, carPx, y0 + 30);
     ctx.textAlign = 'left';
 
     // 距离参考横线（真实比例）
@@ -236,7 +279,7 @@ export function buildTopView() {
         ctx.fillStyle = o.color;
         ctx.beginPath(); ctx.arc(oPx, oPy, o.hero ? 8 : 6, 0, 6.29); ctx.fill();
         ctx.fillStyle = '#0a0e1a'; ctx.font = 'bold 10px sans-serif'; ctx.textAlign = 'center';
-        ctx.fillText(o.name, oPx, oPy + 3.5);
+        ctx.fillText(TOP_I18N[lang].shortNames[o.key] || o.name, oPx, oPy + 3.5);
         ctx.textAlign = 'left';
         // 标签：描边垫底保证可读；山标在点上方居中，树标在点左侧
         ctx.font = o.hero ? 'bold 12px sans-serif' : 'bold 12px sans-serif';
@@ -263,9 +306,7 @@ export function buildTopView() {
       const dT = sweptDeg(0, 1.2), dM = sweptDeg(1, 1.2);
       // 文字固定在车左侧的空白区，永不撞右侧面板；垫一条深色底保证可读
       ctx.font = 'bold 13px sans-serif';
-      const msg = dT >= dM
-        ? `同样 1.2 秒：树转 ${dT.toFixed(1)}° · 山只转 ${dM.toFixed(1)}°`
-        : `同样 1.2 秒：树 ${dT.toFixed(1)}° · 山 ${dM.toFixed(1)}°（都很慢——快慢差在齐平附近才拉开）`;
+      const msg = dT >= dM ? TOP_I18N[lang].compare1(dT, dM) : TOP_I18N[lang].compare2(dT, dM);
       const tw = ctx.measureText(msg).width;
       const tx = carPx - 24 - tw, ty = roadY - 46;
       ctx.fillStyle = 'rgba(7,11,22,0.66)';
@@ -300,11 +341,11 @@ export function buildTopView() {
     const wToPy = wv => py1 - Math.min(wv, maxW) / maxW * (py1 - py0);
 
     ctx.fillStyle = '#97a3b8'; ctx.font = '13px sans-serif';
-    ctx.fillText('感知角速度 ω(t) —— 掠过身边时拱起"山峰"（齐平 = v/d）', px0, y0 + 24);
+    ctx.fillText(TOP_I18N[lang].chartTitle, px0, y0 + 24);
 
     // y 轴刻度：0 / 半峰 / 峰值
     ctx.font = '11px sans-serif';
-    [[0, '0'], [peak / 2, `${(peak / 2).toFixed(0)}`], [peak, `峰值 ${peak.toFixed(0)}°/s`]].forEach(([wv, txt]) => {
+    [[0, '0'], [peak / 2, `${(peak / 2).toFixed(0)}`], [peak, TOP_I18N[lang].chartPeak(peak)]].forEach(([wv, txt]) => {
       const py = wToPy(wv);
       ctx.strokeStyle = 'rgba(255,255,255,0.06)';
       ctx.beginPath(); ctx.moveTo(px0, py); ctx.lineTo(px1, py); ctx.stroke();
@@ -322,7 +363,7 @@ export function buildTopView() {
       ctx.fillStyle = o.color;
       ctx.beginPath(); ctx.arc(tToPx(last.t), wToPy(last.w), 3.5, 0, 6.29); ctx.fill();
       ctx.font = o.hero ? 'bold 12px sans-serif' : '12px sans-serif';
-      ctx.fillText(`${o.name} ${fmt(last.w)}°/s`, Math.min(tToPx(last.t) + 6, px1 - 92), wToPy(last.w) - 6);
+      ctx.fillText(`${TOP_I18N[lang].names[o.key] || o.name} ${fmt(last.w)}°/s`, Math.min(tToPx(last.t) + 6, px1 - 92), wToPy(last.w) - 6);
     });
     ctx.restore();
   }
@@ -341,10 +382,26 @@ export function buildTopView() {
     c.closePath();
   }
 
+  function setLang(l) {
+    if (l !== 'zh' && l !== 'en') return;
+    lang = l;
+    const t = TOP_I18N[lang];
+    panel.querySelector('h2').innerHTML = t.title;
+    const notes = panel.querySelectorAll('p.note');
+    if (notes[0]) notes[0].innerHTML = t.note1;
+    if (notes[1]) notes[1].innerHTML = t.note2;
+    if (notes[2]) notes[2].innerHTML = t.note3;
+    if (notes[3]) notes[3].innerHTML = t.note4;
+
+    bar.querySelector('.ctl label').textContent = t.speedLbl;
+    bar.querySelector('#tPause').textContent = state.paused ? t.resume : t.pause;
+    bar.querySelector('#tReset').textContent = t.reset;
+  }
+
   function onResize() { resize(); }
   function getInfo() {
     return { view: 'topo', v_kmh: state.v_kmh, dist: state.dist, paused: state.paused };
   }
 
-  return { update, draw, onResize, getInfo, state };
+  return { update, draw, onResize, getInfo, state, setLang };
 }

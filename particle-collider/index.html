@@ -441,7 +441,9 @@
       if (window.location.pathname.includes('/particle-collider')) {
         e.preventDefault();
         const basePath = window.location.pathname.substring(0, window.location.pathname.indexOf('/particle-collider'));
-        window.location.href = (basePath || '') + '/index.html';
+        const lang = new URLSearchParams(window.location.search).get('lang') ||
+          (function() { try { return localStorage.getItem('science_lang') || localStorage.getItem('collider_lang'); } catch(e){} })() || 'zh';
+        window.location.href = (basePath || '') + '/index.html?lang=' + lang;
       }
     });
   </script>

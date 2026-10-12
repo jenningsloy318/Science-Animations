@@ -9,11 +9,11 @@
 export const DEG = Math.PI / 180;
 
 export const DEFAULT = {
-  alphaDeg: 4.6,     // 轨道倾角 α（Leybourn 实测模型）
-  betaDeg: 15.3,     // V 型轨道半张角 β
-  gammaDeg: 25.4,    // 双锥体半顶角 γ
-  R: 3,              // 双锥体中心半径（半厚，单位 in）
-  L_half: 9,         // 单锥长度（中→顶，单位 in）
+  alphaDeg: 4.6,  // PROV: illustrative | 演示默认值 | - | 非 Leybourn 原值（见 F11）  // 轨道倾角 α（Leybourn 实测模型）
+  betaDeg: 15.3,  // PROV: illustrative | 演示默认值 | - | 非 Leybourn 原值（见 F11）  // V 型轨道半张角 β
+  gammaDeg: 25.4,  // PROV: illustrative | 演示默认值 | - | 非 Leybourn 原值（见 F11）  // 双锥体半顶角 γ
+  R: 3,  // PROV: measured | Leybourn 模型 | 1694 | 双锥中心半径（半厚）  // 双锥体中心半径（半厚，单位 in）
+  L_half: 9,  // PROV: illustrative | 视觉尺度 | - | 单锥长度  // 单锥长度（中→顶，单位 in）
 };
 
 // 1694 年 William Leybourn《Pleasure with Profit》中的配方推导值

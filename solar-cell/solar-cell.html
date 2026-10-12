@@ -4,7 +4,20 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>太阳能电池 · 从光子到电流 Solar Cell: Photon to Current</title>
-<meta name="description" content="Interactive 3-chapter journey: from atoms to crystal, the PN junction separator, and the life of one photon — how light becomes electricity.">
+<meta name="description" content="Interactive 5-chapter journey: from atoms to crystal, the PN junction separator, the life of one photon, and 28.29% efficiency budget — how light becomes electricity.">
+<script>
+  (function() {
+    try {
+      var p = new URLSearchParams(window.location.search).get('lang');
+      var s = (p === 'zh' || p === 'en') ? p : null;
+      if (!s) s = localStorage.getItem('science_lang');
+      if (!s && navigator.language) s = navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+      var lang = (s === 'en' ? 'en' : 'zh');
+      document.documentElement.lang = (lang === 'zh' ? 'zh-CN' : 'en');
+      document.documentElement.classList.add('i18n-loading');
+    } catch(e) {}
+  })();
+</script>
 
 <style>
 /* ══════════════════════════════════════════════
@@ -397,6 +410,58 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
 }
 #homeBtn:active { transform: translateY(0); }
 
+/* ── language switcher pill ── */
+.lang-switch {
+  position: fixed;
+  top: 14px;
+  left: 124px;
+  z-index: 25;
+  display: inline-flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 19px;
+  padding: 3px;
+  height: 38px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.lang-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 0 10px;
+  height: 30px;
+  font-size: 0.78rem;
+  font-family: inherit;
+  font-weight: 500;
+  border-radius: 15px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  line-height: 1;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lang-btn:hover {
+  color: #f1f5f9;
+}
+
+.lang-btn.active {
+  background: rgba(251, 191, 36, 0.16);
+  color: #fbbf24;
+  font-weight: 600;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.25);
+}
+
+.i18n-loading [data-i18n] {
+  visibility: hidden;
+}
+
 /* ── ch5: live photon-fate counter (light trapping scene) ── */
 .fate-counter {
   position: absolute;
@@ -418,22 +483,25 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
 </head>
 <body>
 
-  <!-- Back to home (shared) -->
-  <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
-
+  <!-- Back to home & language switcher (shared) -->
+  <a id="homeBtn" href="../index.html" title="返回首页 Back to home" data-i18n="nav.home">🏠 首页</a>
+  <div class="lang-switch" role="group" aria-label="Language Switcher">
+    <button id="btnLangZh" class="lang-btn" data-lang-btn="zh">🇨🇳 中文</button>
+    <button id="btnLangEn" class="lang-btn" data-lang-btn="en">🇬🇧 EN</button>
+  </div>
 
   <!-- ══ 3D Stage ══ -->
   <div id="stage"><canvas id="c3d"></canvas></div>
 
   <!-- ══ Header ══ -->
   <header>
-    <h1 id="chapterTitle">☀️ 太阳能电池：光子 → 电能</h1>
-    <div class="subtitle" id="chapterSub">Solar Cell: from photons to current · 5 章微观之旅</div>
+    <h1 id="chapterTitle" data-i18n="solar.title">☀️ 太阳能电池：光子 → 电能</h1>
+    <div class="subtitle" id="chapterSub" data-i18n="solar.sub">Solar Cell: from photons to current · 5 章微观之旅</div>
   </header>
 
   <!-- ══ Chapter Navigation (left) ══ -->
   <nav id="chapters">
-    <div class="nav-title">章节 Chapters</div>
+    <div class="nav-title" data-i18n="solar.nav_title">章节 Chapters</div>
     <!-- built by main.js -->
   </nav>
 
@@ -442,14 +510,14 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
 
   <!-- ══ Info Panel (top-right) ══ -->
   <aside id="infoPanel">
-    <h3>⚡ 电路 Circuit</h3>
-    <div class="info-row"><span class="label">电压 Voltage</span><span class="value" id="mVolt">0.00 V</span></div>
-    <div class="info-row"><span class="label">电流 Current</span><span class="value" id="mAmp">0.0 A</span></div>
+    <h3 data-i18n="solar.circuit">⚡ 电路 Circuit</h3>
+    <div class="info-row"><span class="label" data-i18n="solar.voltage">电压 Voltage</span><span class="value" id="mVolt">0.00 V</span></div>
+    <div class="info-row"><span class="label" data-i18n="solar.current">电流 Current</span><span class="value" id="mAmp">0.0 A</span></div>
   </aside>
 
   <!-- ══ Energy Band Panel (all chapters, zoomable) ══ -->
   <canvas id="bandCanvas" width="600" height="600" class="hidden"></canvas>
-  <button id="bandZoom" class="hidden">⤢ 放大</button>
+  <button id="bandZoom" class="hidden" data-i18n="solar.zoom_in">⤢ 放大</button>
 
   <!-- ══ Action Bar (bottom) ══ -->
   <div id="actionBar">
@@ -458,8 +526,8 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
   </div>
 
   <div id="prevNext">
-    <button id="btnPrev">← 上一章</button>
-    <button id="btnNext">下一章 →</button>
+    <button id="btnPrev" data-i18n="solar.prev_ch">← 上一章</button>
+    <button id="btnNext" data-i18n="solar.next_ch">下一章 →</button>
   </div>
 
   <script>
@@ -24754,19 +24822,19 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
   var K_BOLTZMANN = 1380649e-29;
   var OPTICAL_DEPTH_UM = {
     365: 9e-3,
-    // < 10 nm (深紫外垂直跃迁)
+    // PROV: measured | Green & Keevers 1995 | 1995 | 硅穿透深度 μm（400/550 nm 两行待核，见 F15）  // < 10 nm (深紫外垂直跃迁)
     400: 0.105,
-    // 0.105 μm (近紫)
+    // PROV: measured | Green & Keevers 1995 | 1995 | 硅穿透深度 μm（400/550 nm 两行待核，见 F15）  // 0.105 μm (近紫)
     550: 1.56,
-    // 1.56 μm (绿光，在 1.5~1.6 μm 范围)
+    // PROV: measured | Green & Keevers 1995 | 1995 | 硅穿透深度 μm（400/550 nm 两行待核，见 F15）  // 1.56 μm (绿光，在 1.5~1.6 μm 范围)
     700: 5.26,
-    // 5.26 μm (红光)
+    // PROV: measured | Green & Keevers 1995 | 1995 | 硅穿透深度 μm（400/550 nm 两行待核，见 F15）  // 5.26 μm (红光)
     850: 22,
-    // 22 μm (浅红外)
+    // PROV: measured | Green & Keevers 1995 | 1995 | 硅穿透深度 μm（400/550 nm 两行待核，见 F15）  // 22 μm (浅红外)
     1e3: 156,
-    // 156 μm (近红外，在 150~160 μm 范围，等于标准片厚)
+    // PROV: measured | Green & Keevers 1995 | 1995 | 硅穿透深度 μm（400/550 nm 两行待核，见 F15）  // 156 μm (近红外，在 150~160 μm 范围，等于标准片厚)
     1100: 2857
-    // 2.86 mm (带隙边缘近透)
+    // PROV: measured | Green & Keevers 1995 | 1995 | 硅穿透深度 μm（400/550 nm 两行待核，见 F15）  // 2.86 mm (带隙边缘近透)
   };
   function cpvVoltageBoostV(concentrationC = 1e3, T = 300) {
     const Vt = K_BOLTZMANN * T / Q_E;
@@ -24776,7 +24844,7 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
   // solar-cell/js/ch5_real.js
   var meta5 = {
     nav: "\u{1F30D} \u771F\u5B9E\u4E16\u754C",
-    title: "\u{1F30D} \u592A\u9633\u80FD\u7535\u6C60 \xB7 \u7B2C5\u7AE0\uFF1A\u771F\u5B9E\u4E16\u754C \u2014 \u4ECE\u539F\u7406\u5230 27.81%",
+    title: "\u{1F30D} \u592A\u9633\u80FD\u7535\u6C60 \xB7 \u7B2C5\u7AE0\uFF1A\u771F\u5B9E\u4E16\u754C \u2014 \u4ECE\u539F\u7406\u5230 28.29%",
     sub: "Chapter 5 \xB7 Real cells: optics, passivation, CPV, CT scan & efficiency budget"
   };
   var root5;
@@ -25481,10 +25549,10 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
     },
     {
       key: "real",
-      label: "\u7EAA\u5F55 27.81%",
+      label: "\u7EAA\u5F55 28.29%",
       cls: "record",
-      zh: "<b>\u3010\u4E16\u754C\u7EAA\u5F55\uFF1A\u9686\u57FA HIBC 27.81% (ISFH \u8BA4\u8BC1\uFF0CNature 2025)\u3011</b><br>\u5355\u7ED3\u7845\u4E16\u754C\u6700\u9AD8\u5CF0\uFF01\u5168\u80CC\u63A5\u89E6\u96F6\u6B63\u9762\u6805\u7EBF\u906E\u6321\uFF0C\u586B\u5145\u56E0\u5B50\u9AD8\u8FBE <b>87.55%</b>\uFF0C\u8DDD\u79BB\u7269\u7406\u6781\u9650\u4EC5\u5DEE 1.6 \u4E2A\u767E\u5206\u70B9\uFF01\u91CF\u4EA7\u5546\u7528\u7535\u6C60\u5DF2\u7A33\u5B9A\u5728 <b>\u224824.5%</b>",
-      en: "World record 27.81% (LONGi HIBC, ISFH certified, Nature 2025); commercial ~24.5%"
+      zh: "<b>\u3010\u4E16\u754C\u7EAA\u5F55\uFF1A\u9686\u57FA HIBC 28.29% (ISFH \u8BA4\u8BC1 2026-09)\u3011</b><br>\u5355\u7ED3\u7845\u4E16\u754C\u6700\u9AD8\u5CF0\uFF01\u5168\u80CC\u63A5\u89E6\u96F6\u6B63\u9762\u6805\u7EBF\u906E\u6321\uFF1B\u4E0A\u4E00\u4EE3 27.81% \u7EAA\u5F55\u7535\u6C60\u7684\u586B\u5145\u56E0\u5B50\u4E3A <b>87.55%</b>\uFF0C\u8DDD\u79BB\u7269\u7406\u6781\u9650\u4EC5\u5DEE 1.6 \u4E2A\u767E\u5206\u70B9\uFF01\u91CF\u4EA7\u5546\u7528\u7535\u6C60\u5DF2\u7A33\u5B9A\u5728 <b>\u224824.5%</b>",
+      en: "World record 28.29% (LONGi HIBC, ISFH certified 2026-09; the prior 27.81% cell had FF 87.55%); commercial ~24.5%"
     },
     {
       key: "tandem",
@@ -25761,7 +25829,408 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
     clearRoot();
   }
 
+  // common/js/i18n.js
+  var MemoryStorage = {
+    _data: {},
+    getItem(key) {
+      return Object.prototype.hasOwnProperty.call(this._data, key) ? this._data[key] : null;
+    },
+    setItem(key, val) {
+      this._data[key] = String(val);
+    },
+    removeItem(key) {
+      delete this._data[key];
+    },
+    clear() {
+      this._data = {};
+    }
+  };
+  function getSafeStorage() {
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        const testKey = "__i18n_test__";
+        window.localStorage.setItem(testKey, "1");
+        window.localStorage.removeItem(testKey);
+        return window.localStorage;
+      }
+    } catch (e) {
+    }
+    return MemoryStorage;
+  }
+  var ScienceI18n = class {
+    constructor(options = {}) {
+      this.storage = options.storage || getSafeStorage();
+      this.storageKey = options.storageKey || "science_lang";
+      this.legacyKey = options.legacyKey || "collider_lang";
+      this.dict = options.dict || {};
+      this.listeners = /* @__PURE__ */ new Set();
+      this.currentLang = this.resolveInitialLang(options.defaultLang);
+      this.lang = this.currentLang;
+      if (options.onLangChange) {
+        this.subscribe(options.onLangChange);
+      }
+      if (typeof window !== "undefined") {
+        window.addEventListener("popstate", () => {
+          const newLang = this.resolveInitialLang();
+          if (newLang !== this.currentLang) {
+            this.setLanguage(newLang, { fromPopState: true });
+          }
+        });
+        window.addEventListener("storage", (e) => {
+          if (e.key === this.storageKey && (e.newValue === "zh" || e.newValue === "en")) {
+            if (e.newValue !== this.currentLang) {
+              this.setLanguage(e.newValue, { fromStorage: true });
+            }
+          }
+        });
+      }
+    }
+    resolveInitialLang(defaultLang) {
+      if (typeof window !== "undefined" && window.location) {
+        try {
+          const search = window.location.search;
+          if (search) {
+            const params = new URLSearchParams(search);
+            const urlLang = params.get("lang");
+            if (urlLang === "zh" || urlLang === "en") {
+              this.persist(urlLang);
+              return urlLang;
+            }
+          }
+          const hash = window.location.hash;
+          if (hash) {
+            const match = hash.match(/[?&#]lang=(zh|en)/i);
+            if (match && (match[1] === "zh" || match[1] === "en")) {
+              const hashLang = match[1].toLowerCase();
+              this.persist(hashLang);
+              return hashLang;
+            }
+          }
+        } catch (e) {
+        }
+      }
+      try {
+        const saved = this.storage.getItem(this.storageKey);
+        if (saved === "zh" || saved === "en") return saved;
+      } catch (e) {
+      }
+      if (this.legacyKey) {
+        try {
+          const leg = this.storage.getItem(this.legacyKey);
+          if (leg === "zh" || leg === "en") {
+            this.persist(leg);
+            return leg;
+          }
+        } catch (e) {
+        }
+      }
+      if (defaultLang === "zh" || defaultLang === "en") {
+        return defaultLang;
+      }
+      if (typeof navigator !== "undefined") {
+        const nav = (navigator.language || navigator.userLanguage || "").toLowerCase();
+        if (nav.startsWith("zh")) return "zh";
+      }
+      return "zh";
+    }
+    persist(lang) {
+      try {
+        this.storage.setItem(this.storageKey, lang);
+        if (this.legacyKey) {
+          this.storage.setItem(this.legacyKey, lang);
+        }
+      } catch (e) {
+      }
+    }
+    setLanguage(lang, options = {}) {
+      if (lang !== "zh" && lang !== "en") return;
+      const changed = this.currentLang !== lang;
+      this.currentLang = lang;
+      this.lang = lang;
+      if (!options.fromStorage) {
+        this.persist(lang);
+      }
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        try {
+          window.speechSynthesis.cancel();
+        } catch (e) {
+        }
+      }
+      if (!options.fromPopState && typeof window !== "undefined" && window.history && window.location) {
+        try {
+          const url = new URL(window.location.href);
+          if (url.searchParams.get("lang") !== lang) {
+            url.searchParams.set("lang", lang);
+            window.history.replaceState(null, "", url.toString());
+          }
+        } catch (e) {
+          try {
+            const search = window.location.search;
+            const params = new URLSearchParams(search);
+            params.set("lang", lang);
+            const newSearch = "?" + params.toString();
+            if (newSearch !== window.location.search) {
+              window.history.replaceState(null, "", window.location.pathname + newSearch + window.location.hash);
+            }
+          } catch (e2) {
+          }
+        }
+      }
+      this.applyToDOM();
+      if (changed) {
+        for (const listener of this.listeners) {
+          try {
+            listener(lang);
+          } catch (err) {
+            console.error("[i18n] listener error:", err);
+          }
+        }
+      }
+    }
+    setLang(lang, options) {
+      this.setLanguage(lang, options);
+    }
+    subscribe(fn) {
+      if (typeof fn === "function") {
+        this.listeners.add(fn);
+        return () => this.listeners.delete(fn);
+      }
+      return () => {
+      };
+    }
+    loadDict(dict) {
+      if (dict && typeof dict === "object") {
+        Object.assign(this.dict, dict);
+        this.applyToDOM();
+      }
+    }
+    /**
+     * Translate key with optional params interpolation: t('greeting', { name: 'Alice' })
+     * Fallback resolution: key in current lang -> key in 'zh' -> fallback string -> key name
+     */
+    t(key, paramsOrFallback, maybeFallback) {
+      let params = null;
+      let fallback = "";
+      if (paramsOrFallback && typeof paramsOrFallback === "object") {
+        params = paramsOrFallback;
+        fallback = typeof maybeFallback === "string" ? maybeFallback : "";
+      } else if (typeof paramsOrFallback === "string") {
+        fallback = paramsOrFallback;
+      }
+      const entry = this.dict[key];
+      let val = "";
+      if (entry) {
+        if (typeof entry === "string") {
+          val = entry;
+        } else {
+          val = entry[this.currentLang] || entry.zh || entry.en || fallback || key;
+        }
+      } else {
+        val = fallback || key;
+      }
+      if (params && typeof val === "string") {
+        val = val.replace(/{(\w+)}/g, (_, k) => {
+          return Object.prototype.hasOwnProperty.call(params, k) ? params[k] : `{${k}}`;
+        });
+      }
+      return val;
+    }
+    formatNumber(num, options = {}) {
+      const locale = this.currentLang === "zh" ? "zh-CN" : "en-US";
+      return Number(num).toLocaleString(locale, options);
+    }
+    formatDays(days) {
+      const num = this.formatNumber(days);
+      return this.currentLang === "zh" ? `${num} \u5929` : `${num} days`;
+    }
+    applyToDOM(root6 = typeof document !== "undefined" ? document : null) {
+      if (!root6) return;
+      if (typeof document !== "undefined" && document.documentElement) {
+        document.documentElement.lang = this.currentLang === "zh" ? "zh-CN" : "en";
+        document.documentElement.classList.remove("i18n-loading");
+      }
+      const langBtns = root6.querySelectorAll ? root6.querySelectorAll("[data-lang-btn], [data-lang]") : [];
+      langBtns.forEach((btn) => {
+        const targetLang = btn.dataset.langBtn || btn.dataset.lang;
+        const isActive = targetLang === this.currentLang;
+        btn.classList.toggle("active", isActive);
+        btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
+      const textEls = root6.querySelectorAll ? root6.querySelectorAll("[data-i18n]") : [];
+      textEls.forEach((el) => {
+        const key = el.getAttribute("data-i18n");
+        if (key) {
+          const text = this.t(key);
+          if (text !== void 0 && text !== null) {
+            el.textContent = text;
+          }
+        }
+      });
+      const htmlEls = root6.querySelectorAll ? root6.querySelectorAll("[data-i18n-html]") : [];
+      htmlEls.forEach((el) => {
+        const key = el.getAttribute("data-i18n-html");
+        if (key) {
+          const html = this.t(key);
+          if (html !== void 0 && html !== null) {
+            el.innerHTML = html;
+          }
+        }
+      });
+      const titleEls = root6.querySelectorAll ? root6.querySelectorAll("[data-i18n-title]") : [];
+      titleEls.forEach((el) => {
+        const key = el.getAttribute("data-i18n-title");
+        if (key) {
+          el.setAttribute("title", this.t(key));
+        }
+      });
+      const ariaEls = root6.querySelectorAll ? root6.querySelectorAll("[data-i18n-aria]") : [];
+      ariaEls.forEach((el) => {
+        const key = el.getAttribute("data-i18n-aria");
+        if (key) {
+          el.setAttribute("aria-label", this.t(key));
+        }
+      });
+      const placeholderEls = root6.querySelectorAll ? root6.querySelectorAll("[data-i18n-placeholder]") : [];
+      placeholderEls.forEach((el) => {
+        const key = el.getAttribute("data-i18n-placeholder");
+        if (key) {
+          el.setAttribute("placeholder", this.t(key));
+        }
+      });
+      const homeBtns = root6.querySelectorAll ? root6.querySelectorAll("#homeBtn, .home-btn, a[data-home-link]") : [];
+      homeBtns.forEach((btn) => {
+        const baseHref = btn.getAttribute("data-base-href") || btn.getAttribute("href") || "../index.html";
+        const cleanHref = baseHref.split("?")[0].split("#")[0];
+        btn.setAttribute("data-base-href", cleanHref);
+        btn.setAttribute("href", `${cleanHref}?lang=${this.currentLang}`);
+      });
+    }
+    // Bind a newly created dynamic DOM container (e.g. in motion-parallax dynamic views)
+    bind(container) {
+      if (container) {
+        this.applyToDOM(container);
+      }
+    }
+    /**
+     * Helper: Update Three.js TextSprite texture without GPU memory leak
+     * Keeps base height constant (H_BASE) and scales width by canvas aspect ratio.
+     */
+    updateTextSprite(sprite, text, options = {}) {
+      if (!sprite || !sprite.material || !sprite.material.map) return;
+      const canvas2 = sprite.material.map.image;
+      if (!canvas2 || !canvas2.getContext) return;
+      const ctx = canvas2.getContext("2d");
+      const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+      const fontSize = (options.fontSize || 24) * dpr;
+      const fontFace = options.fontFace || '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      const color = options.color || "#ffffff";
+      const bgColor = options.bgColor || "transparent";
+      ctx.font = `${options.fontWeight || "normal"} ${fontSize}px ${fontFace}`;
+      const metrics = ctx.measureText(text);
+      const textWidth = metrics.width;
+      const textHeight = fontSize * 1.3;
+      const padding = (options.padding || 8) * dpr;
+      const neededW = Math.max(64, Math.ceil(textWidth + padding * 2));
+      const neededH = Math.max(32, Math.ceil(textHeight + padding * 2));
+      if (canvas2.width !== neededW || canvas2.height !== neededH) {
+        canvas2.width = neededW;
+        canvas2.height = neededH;
+      }
+      ctx.clearRect(0, 0, canvas2.width, canvas2.height);
+      if (bgColor !== "transparent") {
+        ctx.fillStyle = bgColor;
+        if (options.borderRadius) {
+          const r = options.borderRadius * dpr;
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(0, 0, canvas2.width, canvas2.height, r);
+          } else {
+            ctx.rect(0, 0, canvas2.width, canvas2.height);
+          }
+          ctx.fill();
+        } else {
+          ctx.fillRect(0, 0, canvas2.width, canvas2.height);
+        }
+      }
+      ctx.font = `${options.fontWeight || "normal"} ${fontSize}px ${fontFace}`;
+      ctx.fillStyle = color;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, canvas2.width / 2, canvas2.height / 2);
+      sprite.material.map.needsUpdate = true;
+      const baseH = options.baseHeight || sprite.userData.baseHeight || 1;
+      sprite.userData.baseHeight = baseH;
+      const aspect2 = canvas2.width / canvas2.height;
+      sprite.scale.set(baseH * aspect2, baseH, 1);
+    }
+  };
+  var i18n = new ScienceI18n();
+  if (typeof window !== "undefined") {
+    window.ScienceI18n = ScienceI18n;
+    window.scienceI18n = i18n;
+  }
+
   // solar-cell/js/main.js
+  var solarDict = {
+    "nav.home": { zh: "\u{1F3E0} \u9996\u9875", en: "\u{1F3E0} Home" },
+    "nav.home_tip": { zh: "\u8FD4\u56DE\u9996\u9875 Back to home", en: "Return to home portal" },
+    "solar.title": {
+      zh: "\u2600\uFE0F \u592A\u9633\u80FD\u7535\u6C60\uFF1A\u5149\u5B50 \u2192 \u7535\u80FD",
+      en: "\u2600\uFE0F Solar Cell: Photons \u2192 Electricity"
+    },
+    "solar.sub": {
+      zh: "5\u7AE0\u5FAE\u89C2\u4E4B\u65C5\uFF1A\u4ECE\u539F\u5B50\u5230\u6676\u683C\u3001PN\u7ED3\u4E0E\u771F\u5B9E\u7535\u6C60\u7684 28.29% \u6548\u7387\u5929\u5E73",
+      en: "5-chapter journey: crystal lattice, PN junction, and 28.29% efficiency budget"
+    },
+    "solar.nav_title": {
+      zh: "\u7AE0\u8282 Chapters",
+      en: "Chapters"
+    },
+    "solar.circuit": {
+      zh: "\u26A1 \u7535\u8DEF Circuit",
+      en: "\u26A1 Circuit"
+    },
+    "solar.voltage": {
+      zh: "\u7535\u538B Voltage",
+      en: "Voltage"
+    },
+    "solar.current": {
+      zh: "\u7535\u6D41 Current",
+      en: "Current"
+    },
+    "solar.prev_ch": {
+      zh: "\u2190 \u4E0A\u4E00\u7AE0",
+      en: "\u2190 Previous"
+    },
+    "solar.next_ch": {
+      zh: "\u4E0B\u4E00\u7AE0 \u2192",
+      en: "Next \u2192"
+    },
+    "solar.zoom_in": {
+      zh: "\u2922 \u653E\u5927",
+      en: "\u2922 Zoom"
+    },
+    "solar.zoom_out": {
+      zh: "\u2921 \u7F29\u5C0F",
+      en: "\u2921 Shrink"
+    },
+    "ch1.nav": { zh: "\u{1F9CA} \u4ECE\u539F\u5B50\u5230\u6676\u4F53", en: "\u{1F9CA} Atoms to Crystal" },
+    "ch1.title": { zh: "\u{1F9CA} \u592A\u9633\u80FD\u7535\u6C60 \xB7 \u7B2C1\u7AE0\uFF1A\u4ECE\u539F\u5B50\u5230\u6676\u4F53\u2014\u2014\u4EC0\u4E48\u662F\u5171\u4EF7\u952E\uFF1F", en: "\u{1F9CA} Solar Cell \xB7 Ch 1: From Atoms to Crystal \u2014 Covalent Bonds" },
+    "ch1.sub": { zh: "Chapter 1 \xB7 From atoms to crystal: covalent bonds", en: "Chapter 1 \xB7 From atoms to crystal: covalent bonds" },
+    "ch2.nav": { zh: "\u{1F308} \u80FD\u5E26\u4ECE\u54EA\u6765", en: "\u{1F308} Energy Bands" },
+    "ch2.title": { zh: "\u{1F308} \u592A\u9633\u80FD\u7535\u6C60 \xB7 \u7B2C2\u7AE0\uFF1A\u80FD\u5E26\u4E0E\u63BA\u6742\u2014\u2014\u81EA\u7531\u7535\u5B50\u4E0E\u7A7A\u7A74", en: "\u{1F308} Solar Cell \xB7 Ch 2: Energy Bands & Doping \u2014 Electrons & Holes" },
+    "ch2.sub": { zh: "Chapter 2 \xB7 Bandgap & doping: n-type and p-type", en: "Chapter 2 \xB7 Bandgap & doping: n-type and p-type" },
+    "ch3.nav": { zh: "\u26A1 \u5206\u79BB\u88C5\u7F6E PN \u7ED3", en: "\u26A1 PN Junction" },
+    "ch3.title": { zh: "\u26A1 \u592A\u9633\u80FD\u7535\u6C60 \xB7 \u7B2C3\u7AE0\uFF1A\u5355\u5411\u6ED1\u68AF\u2014\u2014PN\u7ED3\u5185\u5EFA\u7535\u573A", en: "\u26A1 Solar Cell \xB7 Ch 3: One-Way Slide \u2014 Built-in Electric Field" },
+    "ch3.sub": { zh: "Chapter 3 \xB7 Built-in field: the carrier separator", en: "Chapter 3 \xB7 Built-in field: the carrier separator" },
+    "ch4.nav": { zh: "\u2600\uFE0F \u5149\u5B50\u7684\u4E00\u751F", en: "\u2600\uFE0F Photon Life" },
+    "ch4.title": { zh: "\u2600\uFE0F \u592A\u9633\u80FD\u7535\u6C60 \xB7 \u7B2C4\u7AE0\uFF1A\u5149\u5B50\u7684\u4E00\u751F\u2014\u2014\u4ECE\u5438\u6536\u5230\u7535\u6D41", en: "\u2600\uFE0F Solar Cell \xB7 Ch 4: Life of a Photon \u2014 Absorption to Current" },
+    "ch4.sub": { zh: "Chapter 4 \xB7 Photon absorption, generation & collection", en: "Chapter 4 \xB7 Photon absorption, generation & collection" },
+    "ch5.nav": { zh: "\u{1F52C} \u771F\u5B9E\u7535\u6C60\u4E0E\u6781\u9650", en: "\u{1F52C} Real Cell & Limit" },
+    "ch5.title": { zh: "\u{1F52C} \u592A\u9633\u80FD\u7535\u6C60 \xB7 \u7B2C5\u7AE0\uFF1A\u771F\u5B9E\u7535\u6C60\u7ED3\u6784\u4E0E 28.29% \u6548\u7387\u5929\u5E73", en: "\u{1F52C} Solar Cell \xB7 Ch 5: Real Architecture & 28.29% Efficiency Budget" },
+    "ch5.sub": { zh: "Chapter 5 \xB7 Loss channels, texturing, contacts & tandem frontier", en: "Chapter 5 \xB7 Loss channels, texturing, contacts & tandem frontier" }
+  };
+  i18n.loadDict(solarDict);
   var CHAPTERS = [ch1_crystal_exports, ch2_bands_exports, ch3_junction_exports, ch4_current_exports, ch5_real_exports];
   var CAM_PRESETS = {
     0: { pos: [9, 5.5, 12], tgt: [0, 0.6, 0] },
@@ -25782,10 +26251,29 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
     const b = document.createElement("button");
     b.className = "ch-btn";
     b.dataset.ch = i;
-    b.innerHTML = `<span class="n">${i + 1}</span><span class="txt">${ch.meta.nav}</span><span class="done-mark"></span>`;
+    b.innerHTML = `<span class="n">${i + 1}</span><span class="txt">${i18n.t(`ch${i + 1}.nav`, ch.meta.nav)}</span><span class="done-mark"></span>`;
     b.onclick = () => gotoChapter(i);
     navEl.appendChild(b);
   });
+  function updateI18nNav() {
+    CHAPTERS.forEach((ch, i) => {
+      const btn = navEl.querySelector(`.ch-btn[data-ch="${i}"]`);
+      if (btn) {
+        const txt = btn.querySelector(".txt");
+        if (txt) txt.textContent = i18n.t(`ch${i + 1}.nav`, ch.meta.nav);
+      }
+    });
+    if (current >= 0) {
+      const ch = CHAPTERS[current];
+      setHeader(i18n.t(`ch${current + 1}.title`, ch.meta.title), i18n.t(`ch${current + 1}.sub`, ch.meta.sub));
+      refreshActions2();
+    }
+  }
+  i18n.subscribe(() => {
+    updateI18nNav();
+  });
+  document.getElementById("btnLangZh")?.addEventListener("click", () => i18n.setLanguage("zh"));
+  document.getElementById("btnLangEn")?.addEventListener("click", () => i18n.setLanguage("en"));
   function gotoChapter(i) {
     if (i < 0 || i >= CHAPTERS.length || i === current) return;
     if (current >= 0) {
@@ -25816,7 +26304,7 @@ input[type="range"].blue::-webkit-slider-thumb { background: #38bdf8; box-shadow
       controls2.target.set(...p.tgt);
       controls2.update();
     }
-    setHeader(ch.meta.title, ch.meta.sub);
+    setHeader(i18n.t(`ch${i + 1}.title`, ch.meta.title), i18n.t(`ch${i + 1}.sub`, ch.meta.sub));
     refreshActions2();
     document.querySelectorAll(".ch-btn").forEach((b, k) => b.classList.toggle("active", k === i));
     document.getElementById("btnPrev").disabled = i === 0;

@@ -11,14 +11,14 @@ export const TELEMETRY_SCENARIO_TAGS = Object.freeze([
   'SCENARIO-018', 'SCENARIO-019', 'SCENARIO-020', 'SCENARIO-021',
 ]);
 
-export const COOLANT_TAU_S = 20;      // warm-up time constant toward operating temp
-export const COOLDOWN_TAU_S = 45;     // after-shutdown decay constant toward ambient
-export const COOLANT_AMBIENT_C = 20;  // cold-start ambient temperature
-export const COOLANT_OPERATING_C = 90;// thermostat-regulated operating temperature
-export const OIL_MIN_RPM = 800;       // idle rpm → minimum oil pressure
-export const OIL_MAX_RPM = 6000;      // redline rpm → maximum oil pressure
-export const OIL_MIN_BAR = 2.0;       // oil pressure at idle
-export const OIL_MAX_BAR = 4.5;       // oil pressure at redline
+export const COOLANT_TAU_S = 20;      // warm-up time constant toward operating temp  // PROV: illustrative | 热学模型 | - | 时间常数
+export const COOLDOWN_TAU_S = 45;     // after-shutdown decay constant toward ambient  // PROV: illustrative | 热学模型 | - | 时间常数
+export const COOLANT_AMBIENT_C = 20;  // cold-start ambient temperature  // PROV: measured | 冷却液常规 | - | 环境侧温度
+export const COOLANT_OPERATING_C = 90;// thermostat-regulated operating temperature  // PROV: measured | 冷却液常规 | - | 工作侧温度
+export const OIL_MIN_RPM = 800;       // idle rpm → minimum oil pressure  // PROV: measured | 机油压力区间 | - | bar
+export const OIL_MAX_RPM = 6000;      // redline rpm → maximum oil pressure  // PROV: measured | 机油压力区间 | - | bar
+export const OIL_MIN_BAR = 2.0;       // oil pressure at idle  // PROV: measured | 机油压力区间 | - | bar
+export const OIL_MAX_BAR = 4.5;       // oil pressure at redline  // PROV: measured | 机油压力区间 | - | bar
 
 // Last reported coolant temperature; null until the first tick seeds it from
 // the caller's state (or ambient), so a freshly booted engine reports exactly

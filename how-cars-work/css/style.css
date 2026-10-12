@@ -647,6 +647,46 @@ input[type="range"] { width: 100%; accent-color: #38bdf8; cursor: pointer; }
   transform: translateY(-1px);
 }
 
+/* Floating Language Switcher */
+.lang-switch {
+  position: fixed;
+  top: 10px;
+  left: 108px;
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  padding: 2px;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.lang-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 4px 10px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  border-radius: 9999px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.lang-btn:hover {
+  color: #f1f5f9;
+}
+
+.lang-btn.active {
+  background: rgba(56, 189, 248, 0.25);
+  color: #38bdf8;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+}
+
 /* 点火故事字幕 Narrated Story Caption (js/ignition-story.js) */
 .story-caption {
   position: absolute;

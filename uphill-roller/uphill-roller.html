@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>锥体上滚 · 双锥体在 V 型轨道上的视觉错觉</title>
+<script>
+  (function(){
+    var m = location.search.match(/[?&]lang=(en|zh)/);
+    var l = m ? m[1] : (localStorage.getItem('science_lang') || (navigator.language.startsWith('zh') ? 'zh' : 'en'));
+    document.documentElement.lang = l;
+  })();
+</script>
 <style>
   :root {
     --bg: #070b16; --panel: rgba(13, 20, 38, 0.92); --line: rgba(255,255,255,0.10);
@@ -22,6 +29,14 @@
   #topbar h1 small { color: var(--mut); font-weight: 400; font-size: 13px; margin-left: 10px; }
   #topbar .badge { margin-left: auto; pointer-events: auto; background: var(--panel);
     border: 1px solid var(--line); border-radius: 999px; padding: 5px 14px; font-size: 12px; color: var(--mut); }
+
+  /* 语言切换 */
+  .lang-switch { pointer-events: auto; display: inline-flex; align-items: center; gap: 3px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 2px 6px; }
+  .lang-btn { background: transparent; border: none; color: var(--mut); font: inherit; font-size: 12px;
+    padding: 3px 8px; border-radius: 999px; cursor: pointer; transition: all .15s; }
+  .lang-btn:hover { color: var(--txt); }
+  .lang-btn.active { color: var(--bg); background: var(--gold); font-weight: 700; }
 
   /* 右侧面板 */
   .viewpanel { position: fixed; top: 64px; right: 14px; width: 330px; max-height: calc(100vh - 150px);
@@ -67,20 +82,26 @@
   <canvas id="gl"></canvas>
 
   <div id="topbar">
-    <h1>锥体上滚<small>双锥体在 V 型轨道上的视觉错觉 · 重心下降是驱动力</small></h1>
-    <span class="badge">物理演示 · 3D · 纯几何</span>
+    <a id="homeBtn" class="btn" href="../index.html" title="返回首页 Back to home" style="pointer-events:auto;text-decoration:none;display:inline-flex;align-items:center;gap:6px;">🏠 <span id="homeTxt">首页</span></a>
+    <h1 id="appTitle">锥体上滚<small id="appSubtitle">双锥体在 V 型轨道上的视觉错觉 · 重心下降是驱动力</small></h1>
+    <span class="badge" id="appBadge">物理演示 · 3D · 纯几何</span>
+    <div class="lang-switch" id="langSwitch">
+      <button type="button" class="lang-btn active" data-lang="zh">中文</button>
+      <span style="color:var(--mut); opacity:0.4; font-size:11px;">/</span>
+      <button type="button" class="lang-btn" data-lang="en">EN</button>
+    </div>
   </div>
 
   <div class="viewpanel">
-    <h2>为什么它会“上坡”<small>真实几何</small></h2>
+    <h2 id="panelTitle">为什么它会“上坡”<small id="panelSub">真实几何</small></h2>
     <div class="formula">y(x) = r + x·(tanα − tanβ·tanγ)</div>
     <p id="hValid" class="ok">✓ 条件成立</p>
-    <p><b>接触点</b>沿轨道爬升（视觉“上坡”），<b>重心</b>却沿金色曲线实际下降。
+    <p id="panelDesc"><b>接触点</b>沿轨道爬升（视觉“上坡”），<b>重心</b>却沿金色曲线实际下降。
     运动条件：<b>tanα &lt; tanβ·tanγ</b> —— 轨道倾角 α 越小、张口 β 越大、锥体越钝 γ 越大，越容易上坡。</p>
-    <div class="stat"><span>重心高度</span><b id="hCoM">—</b></div>
-    <div class="stat"><span>已下降</span><b id="hDrop">—</b></div>
-    <div class="stat"><span>沿轨道行程</span><b id="hX">—</b></div>
-    <div class="facts">
+    <div class="stat"><span id="lblCoM">重心高度</span><b id="hCoM">—</b></div>
+    <div class="stat"><span id="lblDrop">已下降</span><b id="hDrop">—</b></div>
+    <div class="stat"><span id="lblX">沿轨道行程</span><b id="hX">—</b></div>
+    <div class="facts" id="factsBox">
       <div class="fact"><b>1694 年配方</b> — William Leybourn《Pleasure with Profit》原推导：
       tanα = 1/√143, tanβ = 3/√134, tanγ = 1/3 → 条件等价于 <b>143 &gt; 134</b>。</div>
       <div class="fact"><b>玻璃珠同理</b> — 球在张开的 V 槽中也会沿槽“上坡”，机制相同（arXiv:2608.19541）。</div>
@@ -92,13 +113,13 @@
     <button class="btn" id="bPlay">⏸ 暂停</button>
     <button class="btn" id="bReset">↺ 重播</button>
     <div class="sep"></div>
-    <div class="ctl"><label>α 倾角</label><input type="range" id="aAlpha" min="0" max="12" step="0.1" value="4.6"><output id="aOut">4.6°</output></div>
-    <div class="ctl"><label>β 张口</label><input type="range" id="aBeta" min="5" max="25" step="0.1" value="15.3"><output id="bOut">15.3°</output></div>
-    <div class="ctl"><label>γ 锥角</label><input type="range" id="aGamma" min="10" max="40" step="0.1" value="25.4"><output id="gOut">25.4°</output></div>
+    <div class="ctl"><label id="lblAlpha">α 倾角</label><input type="range" id="aAlpha" min="0" max="12" step="0.1" value="4.6"><output id="aOut">4.6°</output></div>
+    <div class="ctl"><label id="lblBeta">β 张口</label><input type="range" id="aBeta" min="5" max="25" step="0.1" value="15.3"><output id="bOut">15.3°</output></div>
+    <div class="ctl"><label id="lblGamma">γ 锥角</label><input type="range" id="aGamma" min="10" max="40" step="0.1" value="25.4"><output id="gOut">25.4°</output></div>
     <div class="sep"></div>
     <button class="btn" id="bLeybourn">Leybourn 配方</button>
     <div class="sep"></div>
-    <div class="ctl"><label>速度</label><input type="range" id="hSpeed" min="0.3" max="2" step="0.1" value="1"><output id="hSpeedOut">1×</output></div>
+    <div class="ctl"><label id="lblSpeed">速度</label><input type="range" id="hSpeed" min="0.3" max="2" step="0.1" value="1"><output id="hSpeedOut">1×</output></div>
   </div>
 
   <script>
@@ -20943,8 +20964,84 @@
     tex.minFilter = LinearFilter;
     const sprite = new Sprite(new SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
     sprite.scale.set(7, 1.75, 1);
+    sprite._cv = c;
+    sprite._color = color;
     return sprite;
   }
+  function updateLabelText(sprite, text) {
+    const c = sprite._cv;
+    if (!c) return;
+    const g = c.getContext("2d");
+    g.clearRect(0, 0, 512, 128);
+    g.font = 'bold 44px "Helvetica Neue", sans-serif';
+    g.fillStyle = sprite._color;
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+    g.strokeStyle = "rgba(7,11,22,0.85)";
+    g.lineWidth = 12;
+    g.strokeText(text, 256, 64);
+    g.fillText(text, 256, 64);
+    sprite.material.map.needsUpdate = true;
+  }
+  var ROLLER_I18N = {
+    zh: {
+      title: "\u9525\u4F53\u4E0A\u6EDA",
+      subtitle: "\u53CC\u9525\u4F53\u5728 V \u578B\u8F68\u9053\u4E0A\u7684\u89C6\u89C9\u9519\u89C9 \xB7 \u91CD\u5FC3\u4E0B\u964D\u662F\u9A71\u52A8\u529B",
+      badge: "\u7269\u7406\u6F14\u793A \xB7 3D \xB7 \u7EAF\u51E0\u4F55",
+      panelTitle: "\u4E3A\u4EC0\u4E48\u5B83\u4F1A\u201C\u4E0A\u5761\u201D<small>\u771F\u5B9E\u51E0\u4F55</small>",
+      panelDesc: "<b>\u63A5\u89E6\u70B9</b>\u6CBF\u8F68\u9053\u722C\u5347\uFF08\u89C6\u89C9\u201C\u4E0A\u5761\u201D\uFF09\uFF0C<b>\u91CD\u5FC3</b>\u5374\u6CBF\u91D1\u8272\u66F2\u7EBF\u5B9E\u9645\u4E0B\u964D\u3002\u8FD0\u52A8\u6761\u4EF6\uFF1A<b>tan\u03B1 &lt; tan\u03B2\xB7tan\u03B3</b> \u2014\u2014 \u8F68\u9053\u503E\u89D2 \u03B1 \u8D8A\u5C0F\u3001\u5F20\u53E3 \u03B2 \u8D8A\u5927\u3001\u9525\u4F53\u8D8A\u949D \u03B3 \u8D8A\u5927\uFF0C\u8D8A\u5BB9\u6613\u4E0A\u5761\u3002",
+      validOk: "\u2713 \u6761\u4EF6\u6210\u7ACB \xB7 \u771F\u5B9E\u4E0A\u5761",
+      validBad: "\u2717 \u6761\u4EF6\u4E0D\u6210\u7ACB \xB7 \u4FDD\u6301\u539F\u4F4D",
+      lblCoM: "\u91CD\u5FC3\u9AD8\u5EA6",
+      lblDrop: "\u5DF2\u4E0B\u964D",
+      lblX: "\u6CBF\u8F68\u9053\u884C\u7A0B",
+      facts: [
+        "<b>1694 \u5E74\u914D\u65B9</b> \u2014 William Leybourn\u300APleasure with Profit\u300B\u539F\u63A8\u5BFC\uFF1Atan\u03B1 = 1/\u221A143, tan\u03B2 = 3/\u221A134, tan\u03B3 = 1/3 \u2192 \u6761\u4EF6\u7B49\u4EF7\u4E8E <b>143 &gt; 134</b>\u3002",
+        "<b>\u73BB\u7483\u73E0\u540C\u7406</b> \u2014 \u7403\u5728\u5F20\u5F00\u7684 V \u69FD\u4E2D\u4E5F\u4F1A\u6CBF\u69FD\u201C\u4E0A\u5761\u201D\uFF0C\u673A\u5236\u76F8\u540C\uFF08arXiv:2608.19541\uFF09\u3002",
+        "<b>\u9A71\u52A8\u529B = \u91CD\u529B</b> \u2014 \u9759\u6469\u64E6\u53EA\u4FDD\u8BC1\u201C\u7EAF\u6EDA\u52A8\u201D\uFF0C\u6EDA\u52A8\u6469\u64E6\u53EA\u662F\u963B\u529B\u3002"
+      ],
+      play: "\u23F8 \u6682\u505C",
+      resume: "\u25B6 \u7EE7\u7EED",
+      reset: "\u21BA \u91CD\u64AD",
+      lblAlpha: "\u03B1 \u503E\u89D2",
+      lblBeta: "\u03B2 \u5F20\u53E3",
+      lblGamma: "\u03B3 \u9525\u89D2",
+      leybourn: "Leybourn \u914D\u65B9",
+      lblSpeed: "\u901F\u5EA6",
+      labelCoM: "\u91CD\u5FC3 CoM\uFF08\u771F\u5B9E\u8DEF\u5F84 \u2193\uFF09",
+      labelContact: "\u63A5\u89E6\u70B9\uFF08\u89C6\u89C9\u8DEF\u5F84 \u2191\uFF09",
+      docTitle: "\u9525\u4F53\u4E0A\u6EDA \xB7 \u53CC\u9525\u4F53\u5728 V \u578B\u8F68\u9053\u4E0A\u7684\u89C6\u89C9\u9519\u89C9"
+    },
+    en: {
+      title: "Uphill Roller",
+      subtitle: "Double cone optical illusion on V-rails \xB7 Center of mass drop is the driver",
+      badge: "Physics Sim \xB7 3D \xB7 Pure Geometry",
+      panelTitle: 'Why Does It "Roll Uphill"?<small>True Geometry</small>',
+      panelDesc: '<b>Contact points</b> climb the rails (apparent "uphill"), while the <b>center of mass</b> strictly descends along the golden curve. Criterion: <b>tan\u03B1 &lt; tan\u03B2\xB7tan\u03B3</b> \u2014 smaller rail slope \u03B1, wider opening \u03B2, and blunter cone angle \u03B3 make uphill ascent easier.',
+      validOk: "\u2713 Criterion Met \xB7 True Ascent",
+      validBad: "\u2717 Criterion Not Met \xB7 At Rest",
+      lblCoM: "CoM Height",
+      lblDrop: "Total Drop",
+      lblX: "Travel on Rails",
+      facts: [
+        '<b>1694 Recipe</b> \u2014 William Leybourn "Pleasure with Profit" derivation: tan\u03B1 = 1/\u221A143, tan\u03B2 = 3/\u221A134, tan\u03B3 = 1/3 \u2192 condition equivalent to <b>143 &gt; 134</b>.',
+        "<b>Same for Marbles</b> \u2014 A marble in an opening V-groove also climbs via the identical mechanism (arXiv:2608.19541).",
+        "<b>Driving Force = Gravity</b> \u2014 Static friction only enforces pure rolling; rolling friction is purely resistive."
+      ],
+      play: "\u23F8 Pause",
+      resume: "\u25B6 Resume",
+      reset: "\u21BA Replay",
+      lblAlpha: "\u03B1 Rail Slope",
+      lblBeta: "\u03B2 Opening",
+      lblGamma: "\u03B3 Cone Angle",
+      leybourn: "Leybourn Recipe",
+      lblSpeed: "Speed",
+      labelCoM: "CoM (True Path \u2193)",
+      labelContact: "Contact (Visual Path \u2191)",
+      docTitle: "Uphill Roller \xB7 Double Cone on V-Rails Optical Illusion"
+    }
+  };
+  var currentLang = "zh";
   function buildRail(zSign) {
     const a = tan(params.alphaDeg) * RAIL_LEN;
     const b = tan(params.betaDeg) * RAIL_LEN * zSign;
@@ -21105,7 +21202,7 @@
   });
   els.play.addEventListener("click", () => {
     state.playing = !state.playing;
-    els.play.textContent = state.playing ? "\u23F8 \u6682\u505C" : "\u25B6 \u7EE7\u7EED";
+    els.play.textContent = state.playing ? ROLLER_I18N[currentLang].play : ROLLER_I18N[currentLang].resume;
     els.play.classList.toggle("on", !state.playing);
   });
   els.reset.addEventListener("click", resetSim);
@@ -21113,7 +21210,7 @@
     state.x = 0;
     state.t = 0;
     state.playing = true;
-    els.play.textContent = "\u23F8 \u6682\u505C";
+    els.play.textContent = ROLLER_I18N[currentLang].play;
     els.play.classList.remove("on");
   }
   var Leyburn = { alphaDeg: 4.6, betaDeg: 15.3, gammaDeg: 25.4 };
@@ -21126,9 +21223,87 @@
     rebuild();
     resetSim();
   });
+  var paramsUrl = new URLSearchParams(window.location.search);
+  var qLang = paramsUrl.get("lang");
+  if (qLang === "zh" || qLang === "en") {
+    currentLang = qLang;
+  } else {
+    const saved = localStorage.getItem("science_lang");
+    if (saved === "zh" || saved === "en") {
+      currentLang = saved;
+    } else if (navigator.language && !navigator.language.startsWith("zh")) {
+      currentLang = "en";
+    }
+  }
+  function setLang(lang) {
+    if (lang !== "zh" && lang !== "en") return;
+    currentLang = lang;
+    document.documentElement.lang = lang;
+    try {
+      localStorage.setItem("science_lang", lang);
+    } catch (e) {
+    }
+    const u = new URL(window.location.href);
+    u.searchParams.set("lang", lang);
+    window.history.replaceState({}, "", u.toString());
+    const homeBtn = document.getElementById("homeBtn");
+    if (homeBtn) {
+      homeBtn.href = "../index.html?lang=" + lang;
+      const homeTxt = document.getElementById("homeTxt");
+      if (homeTxt) homeTxt.textContent = lang === "en" ? "Home" : "\u9996\u9875";
+    }
+    document.querySelectorAll(".lang-btn").forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.lang === lang);
+    });
+    const t = ROLLER_I18N[lang];
+    document.title = t.docTitle;
+    const appTitle = document.getElementById("appTitle");
+    if (appTitle) {
+      appTitle.innerHTML = `${t.title}<small id="appSubtitle">${t.subtitle}</small>`;
+    }
+    const appBadge = document.getElementById("appBadge");
+    if (appBadge) appBadge.textContent = t.badge;
+    const panelTitle = document.getElementById("panelTitle");
+    if (panelTitle) panelTitle.innerHTML = t.panelTitle;
+    const panelDesc = document.getElementById("panelDesc");
+    if (panelDesc) panelDesc.innerHTML = t.panelDesc;
+    const lblCoM = document.getElementById("lblCoM");
+    if (lblCoM) lblCoM.textContent = t.lblCoM;
+    const lblDrop = document.getElementById("lblDrop");
+    if (lblDrop) lblDrop.textContent = t.lblDrop;
+    const lblX = document.getElementById("lblX");
+    if (lblX) lblX.textContent = t.lblX;
+    const factsBox = document.getElementById("factsBox");
+    if (factsBox && t.facts) {
+      factsBox.innerHTML = t.facts.map((f) => `<div class="fact">${f}</div>`).join("");
+    }
+    const lblAlpha = document.getElementById("lblAlpha");
+    if (lblAlpha) lblAlpha.textContent = t.lblAlpha;
+    const lblBeta = document.getElementById("lblBeta");
+    if (lblBeta) lblBeta.textContent = t.lblBeta;
+    const lblGamma = document.getElementById("lblGamma");
+    if (lblGamma) lblGamma.textContent = t.lblGamma;
+    const bLeybourn = document.getElementById("bLeybourn");
+    if (bLeybourn) bLeybourn.textContent = t.leybourn;
+    const lblSpeed = document.getElementById("lblSpeed");
+    if (lblSpeed) lblSpeed.textContent = t.lblSpeed;
+    els.play.textContent = state.playing ? t.play : t.resume;
+    els.reset.textContent = t.reset;
+    updateLabelText(comLabel, t.labelCoM);
+    updateLabelText(contactLabel, t.labelContact);
+    updateHUD();
+  }
+  document.querySelectorAll(".lang-btn").forEach((btn) => {
+    btn.addEventListener("click", () => setLang(btn.dataset.lang));
+  });
+  window.addEventListener("storage", (e) => {
+    if (e.key === "science_lang" && (e.newValue === "zh" || e.newValue === "en") && e.newValue !== currentLang) {
+      setLang(e.newValue);
+    }
+  });
   function updateHUD() {
     const v = isValid(params);
-    els.hValid.textContent = v ? "\u2713 \u6761\u4EF6\u6210\u7ACB \xB7 \u771F\u5B9E\u4E0A\u5761" : "\u2717 \u6761\u4EF6\u4E0D\u6210\u7ACB \xB7 \u4FDD\u6301\u539F\u4F4D";
+    els.hValid.textContent = v ? ROLLER_I18N[currentLang].validOk : ROLLER_I18N[currentLang].validBad;
     els.hValid.className = v ? "ok" : "bad";
     const curY = y(state.x, params);
     els.hCoM.textContent = `${curY.toFixed(2)} m`;
@@ -21171,6 +21346,7 @@
     camera.updateProjectionMatrix();
     renderer.setSize(innerWidth, innerHeight);
   });
+  setLang(currentLang);
   updateParamReadouts();
   updateHUD();
   window.__ur = () => ({

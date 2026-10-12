@@ -8,9 +8,9 @@
  *       能级在本应用中一律标注"示意"。
  */
 
-export const R_H = 1.0967758e7;          // m^-1 氢的里德伯常数
-export const E_ION_EV = 13.5984;         // 氢基态电离能 eV
-export const EV_NM = 1239.841984;        // E(eV)·λ(nm) = 1239.84 (普朗克换算)
+export const R_H = 1.0967758e7;          // m^-1 氢的里德伯常数  // PROV: measured | NIST ASD | 2019 | 氢里德伯常数
+export const E_ION_EV = 13.5984;         // 氢基态电离能 eV  // PROV: measured | NIST ASD | 2019 | 氢电离能
+export const EV_NM = 1239.841984;        // E(eV)·λ(nm) = 1239.84 (普朗克换算)  // PROV: derived | h·c | - | eV·nm
 
 /** 类氢离子 n 能级能量 (eV, 负值) */
 export function levelEnergyEv(n, Z = 1) {
@@ -19,8 +19,8 @@ export function levelEnergyEv(n, Z = 1) {
 
 /** 跃迁波长 (nm)。n1 < n2, 类氢离子 Z。 */
 export function transitionNm(n1, n2, Z = 1) {
-  const dInv = 1.0 / (n1 * n1) - 1.0 / (n2 * n2);
-  const lamM = 1.0 / (R_H * Z * Z * dInv);
+  const dInv = 1.0 / (n1 * n1) - 1.0 / (n2 * n2);  // NO-PROV: 局部变量/运行时状态，非对外科学数值
+  const lamM = 1.0 / (R_H * Z * Z * dInv);  // NO-PROV: 局部变量/运行时状态，非对外科学数值
   return lamM * 1e9;
 }
 
@@ -45,7 +45,7 @@ export function seriesName(n1) {
 export function wavelengthColor(nm) {
   if (nm < 380) return { r: 0.62, g: 0.55, b: 1.00, label: '紫外 UV', hex: 0x9e8cff };
   if (nm > 750) return { r: 0.45, g: 0.08, b: 0.08, label: '红外 IR', hex: 0x731414 };
-  let r = 0, g = 0, b = 0;
+  let r = 0, g = 0, b = 0;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
   if (nm < 440) { r = -(nm - 440) / 60; b = 1; }
   else if (nm < 490) { g = (nm - 440) / 50; b = 1; }
   else if (nm < 510) { g = 1; b = -(nm - 510) / 20; }
@@ -53,7 +53,7 @@ export function wavelengthColor(nm) {
   else if (nm < 645) { r = 1; g = -(nm - 645) / 65; }
   else { r = 1; }
   // 边缘淡出
-  let f = 1;
+  let f = 1;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
   if (nm < 420) f = 0.3 + 0.7 * (nm - 380) / 40;
   else if (nm > 700) f = 0.3 + 0.7 * (750 - nm) / 50;
   const to255 = v => Math.round(255 * Math.pow(v * f, 0.8));

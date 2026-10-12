@@ -4,6 +4,19 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>旋转地球 — 实时昼夜与四季 · Rotating Earth</title>
+  <script>
+    (function() {
+      try {
+        var p = new URLSearchParams(window.location.search).get('lang');
+        var s = (p === 'zh' || p === 'en') ? p : null;
+        if (!s) s = localStorage.getItem('science_lang');
+        if (!s && navigator.language) s = navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+        var lang = (s === 'en' ? 'en' : 'zh');
+        document.documentElement.lang = (lang === 'zh' ? 'zh-CN' : 'en');
+        document.documentElement.classList.add('i18n-loading');
+      } catch(e) {}
+    })();
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root { --gold: #d8b25c; --ink: #e8e4d8; --dim: #9aa3b0; }
@@ -14,6 +27,29 @@
     }
     #gl { position: fixed; inset: 0; width: 100vw; height: 100vh; display: block; cursor: grab; }
     #gl:active { cursor: grabbing; }
+
+    /* ── 语言切换药丸 ── */
+    .lang-switch {
+      display: inline-flex; align-items: center; gap: 2px;
+      padding: 3px 6px; border-radius: 999px;
+      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.14);
+      backdrop-filter: blur(8px);
+    }
+    .lang-btn {
+      min-width: 36px; min-height: 26px; padding: 2px 8px;
+      background: transparent; border: none; border-radius: 13px;
+      color: var(--dim); font-size: 12px; font-weight: 600; cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      transition: all 0.18s ease;
+    }
+    .lang-btn:hover { color: var(--ink); }
+    .lang-btn.active {
+      background: rgba(216, 178, 92, 0.22);
+      color: var(--gold);
+    }
+    .i18n-loading [data-i18n] {
+      visibility: hidden;
+    }
 
     #topbar {
       position: fixed; top: 0; left: 0; right: 0; z-index: 20;
@@ -151,11 +187,15 @@
        pointer-events:none;backdrop-filter:blur(8px)"></div>
 
   <div id="topbar">
-    <a class="btn" href="../index.html">🏠</a>
+    <a id="homeBtn" class="btn" href="../index.html" title="返回首页 Back to home">🏠 <span id="homeTxt">首页</span></a>
+    <div class="lang-switch" role="group" aria-label="Language Switcher">
+      <button id="btnLangZh" class="lang-btn active" data-lang-btn="zh">中</button>
+      <button id="btnLangEn" class="lang-btn" data-lang-btn="en">EN</button>
+    </div>
     <span id="title">旋转地球 · Rotating Earth<small>实时昼夜 / 四季 / 岁差 — 拖拽转视角 · 滚轮缩放</small></span>
     <span id="fps">— fps</span>
     <button class="btn" id="resetBtn">⟲ 复位</button>
-    <span class="q-lab">画质</span>
+    <span class="q-lab" id="qLab">画质</span>
     <button class="btn q2 on" data-q="2k">2K</button>
     <button class="btn q2" data-q="4k">4K</button>
     <button class="btn q2" data-q="8k">8K</button>
@@ -167,19 +207,19 @@
     <div id="countryCard"></div>
     <div id="panel"></div>
     <div id="pipelineBox">
-      <div style="font-size:12px;color:var(--gold);font-weight:700;margin-bottom:4px">📐 数据流水线</div>
+      <div id="pipeHead" style="font-size:12px;color:var(--gold);font-weight:700;margin-bottom:4px">📐 数据流水线</div>
       <div id="pipe"></div>
     </div>
   </div>
 
   <div id="timeBar">
     <button class="btn" id="playBtn">⏸</button>
-    <span class="chip" data-speed="1">×1 真实</span>
+    <span class="chip" data-speed="1" id="speed1">×1 真实</span>
     <span class="chip" data-speed="600">×600</span>
-    <span class="chip on" data-speed="3600">×3600（1天=24秒）</span>
+    <span class="chip on" data-speed="3600" id="speed3600">×3600（1天=24秒）</span>
     <span class="chip" data-speed="21600">×21600</span>
-    <label>时刻 <input type="range" id="utcSlider" min="0" max="24" step="0.05" value="6"><b id="utcVal">06:00</b></label>
-    <label>日期 <input type="range" id="dateSlider" min="1" max="365" step="1" value="172"><b id="dateVal">6月21日</b></label>
+    <label id="lblUtc">时刻 <input type="range" id="utcSlider" min="0" max="24" step="0.05" value="6"><b id="utcVal">06:00</b></label>
+    <label id="lblDate">日期 <input type="range" id="dateSlider" min="1" max="365" step="1" value="172"><b id="dateVal">6月21日</b></label>
   </div>
 
   <div id="physBar">
@@ -195,8 +235,8 @@
 
   <div id="help">
     <div class="card">
-      <h2>🖐 怎么玩</h2>
-      <table>
+      <h2 id="helpTitle">🖐 怎么玩</h2>
+      <table id="helpTable">
         <tr><td>拖拽 / 滚轮</td><td>旋转视角 / 缩放</td></tr>
         <tr><td>1–5</td><td>五个视角：昼夜 · 四季 · 自转 · 昼长 · 岁差</td></tr>
         <tr><td>日期滑块</td><td>看四季：直射点移动、晨昏线倾斜</td></tr>
@@ -207,7 +247,7 @@
         <tr><td>空格</td><td>播放 / 暂停</td></tr>
         <tr><td>R / H</td><td>复位视角 / 帮助</td></tr>
       </table>
-      <div class="note">
+      <div class="note" id="helpNote">
         <b>真实数据标注</b>：地轴倾角 23.44°；恒星日 23h56m4s；赤道自转 465.1 m/s（1674 km/h）；
         岁差 25,772 年。昼夜贴图 = NASA Blue Marble；城市灯光 = NASA Black Marble（Suomi NPP，
         2012 合成）；云层为卫星快照（会以示意速度漂移，非实时气象）。
@@ -431,16 +471,17 @@ ASTRO.rotationSpeed = function (latDeg) {
 };
 
 // ── 季节标签 ──────────────────────────────────────────────────
-ASTRO.seasonLabel = function (N) {
+ASTRO.seasonLabel = function (N, lang) {
+  const isEn = lang === 'en' || (typeof window !== 'undefined' && window.APP_LANG === 'en');
   // 北半球节气（近似日期）：春分 3/20 (N=79) 夏至 6/21 (N=172) 秋分 9/23 (N=266) 冬至 12/21 (N=355)
-  if (N >= 76 && N <= 84) return '春分附近（3/20）';
-  if (N >= 169 && N <= 176) return '夏至附近（6/21）';
-  if (N >= 262 && N <= 270) return '秋分附近（9/23）';
-  if (N >= 351 || N <= 5) return '冬至附近（12/21）';
-  if (N > 84 && N < 169) return '北半球春季';
-  if (N > 176 && N < 262) return '北半球夏季';
-  if (N > 270 && N < 351) return '北半球秋季';
-  return '北半球冬季';
+  if (N >= 76 && N <= 84) return isEn ? 'Near Spring Equinox (Mar 20)' : '春分附近（3/20）';
+  if (N >= 169 && N <= 176) return isEn ? 'Near Summer Solstice (Jun 21)' : '夏至附近（6/21）';
+  if (N >= 262 && N <= 270) return isEn ? 'Near Autumnal Equinox (Sep 23)' : '秋分附近（9/23）';
+  if (N >= 351 || N <= 5) return isEn ? 'Near Winter Solstice (Dec 21)' : '冬至附近（12/21）';
+  if (N > 84 && N < 169) return isEn ? 'Northern Spring' : '北半球春季';
+  if (N > 176 && N < 262) return isEn ? 'Northern Summer' : '北半球夏季';
+  if (N > 270 && N < 351) return isEn ? 'Northern Autumn' : '北半球秋季';
+  return isEn ? 'Northern Winter' : '北半球冬季';
 };
 
 // ── 世界坐标太阳方向 / 地轴（供场景用，向量以数组返回）────────
@@ -835,15 +876,47 @@ document.addEventListener('DOMContentLoaded', () => {
     return null;
   }
 
+  // ── 语言与地名英文对照 ─────────────────────────────────────────
+  let curLang = (() => {
+    try {
+      const p = new URLSearchParams(window.location.search).get('lang');
+      if (p === 'zh' || p === 'en') return p;
+      return localStorage.getItem('science_lang') || localStorage.getItem('collider_lang') ||
+        ((typeof navigator !== 'undefined' && (navigator.language || '').toLowerCase().startsWith('zh')) ? 'zh' : 'en');
+    } catch(e) { return 'zh'; }
+  })();
+  window.APP_LANG = curLang;
+
+  const PLACE_EN = {
+    '太平洋': 'Pacific Ocean', '大西洋': 'Atlantic Ocean', '印度洋': 'Indian Ocean', '北冰洋': 'Arctic Ocean', '南冰洋': 'Southern Ocean',
+    '地中海': 'Mediterranean Sea', '加勒比海': 'Caribbean Sea', '红海': 'Red Sea', '黑海': 'Black Sea', '波罗的海': 'Baltic Sea',
+    '波斯湾': 'Persian Gulf', '阿拉伯海': 'Arabian Sea', '孟加拉湾': 'Bay of Bengal', '南海': 'South China Sea', '东海': 'East China Sea',
+    '日本海': 'Sea of Japan', '白令海': 'Bering Sea', '鄂霍次克海': 'Sea of Okhotsk', '挪威海': 'Norwegian Sea', '珊瑚海': 'Coral Sea',
+    '阿拉斯加湾': 'Gulf of Alaska', '哈德逊湾': 'Hudson Bay', '墨西哥湾': 'Gulf of Mexico', '阿曼湾': 'Gulf of Oman', '亚丁湾': 'Gulf of Aden',
+    '几内亚湾': 'Gulf of Guinea', '渤海': 'Bohai Sea', '黄海': 'Yellow Sea', '白令海峡': 'Bering Strait', '马六甲海峡': 'Strait of Malacca',
+    '直布罗陀海峡': 'Strait of Gibraltar', '英吉利海峡': 'English Channel', '霍尔木兹海峡': 'Strait of Hormuz', '曼德海峡': 'Bab-el-Mandeb',
+    '土耳其海峡': 'Turkish Straits', '麦哲伦海峡': 'Strait of Magellan', '德雷克海峡': 'Drake Passage', '望加锡海峡': 'Makassar Strait',
+    '对马海峡': 'Tsushima Strait', '台湾海峡': 'Taiwan Strait', '苏伊士运河': 'Suez Canal', '巴拿马运河': 'Panama Canal', '基尔运河': 'Kiel Canal',
+    '贝加尔湖': 'Lake Baikal', '里海': 'Caspian Sea', '苏必利尔湖': 'Lake Superior', '密歇根湖': 'Lake Michigan', '维多利亚湖': 'Lake Victoria',
+    '坦噶尼喀湖': 'Lake Tanganyika', '青海湖': 'Qinghai Lake', '伊利湖': 'Lake Erie', '安大略湖': 'Lake Ontario',
+    '🇨🇳 长城·八达岭': '🇨🇳 Great Wall', '⛰️ 珠穆朗玛峰': '⛰️ Mt. Everest', '🏔️ 大峡谷': '🏔️ Grand Canyon', '🌋 黄石': '🌋 Yellowstone',
+    '🌊 尼亚加拉瀑布': '🌊 Niagara Falls', '🗻 富士山': '🗻 Mt. Fuji', '🏛️ 吉萨金字塔': '🏛️ Pyramids of Giza', '🕌 泰姬陵': '🕌 Taj Mahal',
+    '🗼 埃菲尔铁塔': '🗼 Eiffel Tower', '🗿 乌鲁鲁': '🗿 Uluru', '🐠 大堡礁': '🐠 Great Barrier Reef', '🗿 基督像·里约': '🗿 Christ the Redeemer',
+    '🌳 亚马逊雨林': '🌳 Amazon Rainforest', '⛰️ 马丘比丘': '⛰️ Machu Picchu', '🏰 克里姆林宫': '🏰 Kremlin', '🏛️ 罗马斗兽场': '🏛️ Colosseum',
+    '🛕 吴哥窟': '🛕 Angkor Wat', '🌆 哈利法塔': '🌆 Burj Khalifa', '🗿 奇琴伊察': '🗿 Chichen Itza', '⛰️ 乞力马扎罗山': '⛰️ Mt. Kilimanjaro',
+    '🕌 圣索菲亚': '🕌 Hagia Sophia', '🏛️ 伊瓜苏瀑布': '🏛️ Iguazu Falls', '🏛️ 雅典卫城': '🏛️ Acropolis of Athens', '🏔️ 富士山·航拍': '🏔️ Mt. Fuji'
+  };
+
   // ── 地名标签（HTML，分级显示，背面隐藏）─────────────────────
   const labelLayer = document.getElementById('labelLayer');
   const labels = [];                                  // {el, anchor(Vector3), tier, kind}
   function addLabel(text, latDeg, lonDeg, tier, kind) {
     const el = document.createElement('div');
     el.className = 'geo-label ' + kind;
-    el.textContent = text;
+    const enText = PLACE_EN[text] || text;
+    el.textContent = curLang === 'en' ? enText : text;
     labelLayer.appendChild(el);
-    labels.push({ el, anchor: latLonToLocal(latDeg, lonDeg, R * 1.012), tier, kind });
+    labels.push({ el, anchor: latLonToLocal(latDeg, lonDeg, R * 1.012), tier, kind, name: text, enName: enText });
   }
   for (const p of window.PLACES)
     addLabel(p.name, p.lat, p.lon, p.tier, p.kind || 'place');
@@ -854,7 +927,7 @@ document.addEventListener('DOMContentLoaded', () => {
   byArea.forEach(([id, m], rank) => {
     const maxDist = rank < 40 ? 21 : rank < 90 ? 16.5 : 12.5;
     labels.push({ el: null, anchor: latLonToLocal(m.lat, m.lon, R * 1.012),
-      tier: null, kind: 'country', id, name: m.zh, maxDist });
+      tier: null, kind: 'country', id, name: m.zh, enName: m.en, maxDist });
   });
   const TIERS = [[1, 999], [2, 999], [3, 26]];        // 大洋恒显；大海<26；其余按 maxDist
 
@@ -944,6 +1017,8 @@ document.addEventListener('DOMContentLoaded', () => {
     highlightCountry(f);
     if (!f) { cardEl.style.display = 'none'; return; }
     const m = window.COUNTRY_META[f.id];
+    const isEn = curLang === 'en';
+    const dict = EARTH_I18N[curLang] || EARTH_I18N.zh;
     // 当地太阳时（按经度估算，真实时区含政治边界）
     const solar = ((time.utc + m.lon / 15) % 24 + 24) % 24;
     const hh = Math.floor(solar), mm = Math.floor((solar - hh) * 60);
@@ -951,20 +1026,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // 首都昼夜
     const capLocal = latLonToLocal(m.lat, m.lon, R).applyQuaternion(earthGroup.quaternion).normalize();
     const ndl = capLocal.dot(sunDir);
-    const dayNight = ndl > 0.1 ? '☀️ 白天' : ndl < -0.1 ? '🌙 夜晚' : '🌆 晨昏';
+    const dayNight = ndl > 0.1 ? dict.card.day : ndl < -0.1 ? dict.card.night : dict.card.twilight;
     const dl = ASTRO.dayLength(m.lat, ASTRO.declination(time.N));
-    const dlTxt = dl >= 24 ? '极昼' : dl <= 0 ? '极夜'
-      : Math.floor(dl) + '小时' + String(Math.round((dl % 1) * 60)).padStart(2, '0') + '分';
+    const dlTxt = dl >= 24 ? dict.card.polarDay : dl <= 0 ? dict.card.polarNight
+      : Math.floor(dl) + dict.card.hours + String(Math.round((dl % 1) * 60)).padStart(2, '0') + dict.card.mins;
     cardEl.style.display = 'block';
+    const nameStr = isEn ? (m.en + ' <small>' + m.zh + '</small>') : (m.zh + ' <small>' + m.en + '</small>');
+    const tzStr = dict.card.tzEst.replace('{tz}', (tzGuess >= 0 ? '+' : '') + tzGuess);
     cardEl.innerHTML =
-      '<div class="cc-name">' + m.zh + ' <small>' + m.en + '</small></div>' +
-      '<div class="cc-row">🏛 首都：<b>' + m.cap + '</b></div>' +
-      '<div class="cc-row">🌍 大洲：' + m.cont + '</div>' +
-      '<div class="cc-row">📍 质心：' + m.lat.toFixed(1) + '°, ' + m.lon.toFixed(1) + '°E</div>' +
-      '<div class="cc-row">🕐 当地太阳时 ≈ <b>' + String(hh).padStart(2, '0') + ':' +
-        String(mm).padStart(2, '0') + '</b>（时区 ≈ UTC' + (tzGuess >= 0 ? '+' : '') + tzGuess +
-        '，按经度估算）</div>' +
-      '<div class="cc-row">' + dayNight + '　⏳ 今日昼长 <b>' + dlTxt + '</b></div>';
+      '<div class="cc-name">' + nameStr + '</div>' +
+      '<div class="cc-row">' + dict.card.cap + '<b>' + (isEn ? (m.capEn || m.cap) : m.cap) + '</b></div>' +
+      '<div class="cc-row">' + dict.card.cont + (isEn ? (m.contEn || m.cont) : m.cont) + '</div>' +
+      '<div class="cc-row">' + dict.card.centroid + m.lat.toFixed(1) + '°, ' + m.lon.toFixed(1) + '°E</div>' +
+      '<div class="cc-row">' + dict.card.solarTime + '<b>' + String(hh).padStart(2, '0') + ':' +
+        String(mm).padStart(2, '0') + '</b>' + tzStr + '</div>' +
+      '<div class="cc-row">' + dayNight + '　' + dict.card.todayDayLen + '<b>' + dlTxt + '</b></div>';
   }
 
   // ── 时间状态 ─────────────────────────────────────────────────
@@ -981,87 +1057,298 @@ document.addEventListener('DOMContentLoaded', () => {
   const tweens = [];
   const vis = { clouds: true, markers: true, atmo: true, grid: true, borders: true, labels: true };
 
+  // ── 国际化词典 ───────────────────────────────────────────────
+  const EARTH_I18N = {
+    zh: {
+      home: '首页',
+      title: '旋转地球 · Rotating Earth<small>实时昼夜 / 四季 / 岁差 — 拖拽转视角 · 滚轮缩放</small>',
+      reset: '⟲ 复位',
+      qLab: '画质',
+      help: '? 帮助',
+      pipeHead: '📐 数据流水线',
+      pipeRows: { raw: '原始读数', eq: '应用方程', calc: '逐步算术', res: '真实结果' },
+      speed1: '×1 真实',
+      speed3600: '×3600（1天=24秒）',
+      lblUtc: '时刻',
+      lblDate: '日期',
+      chips: {
+        clouds: '☁️ 云层',
+        markers: '📐 轴线极圈',
+        atmo: '🌫️ 大气',
+        grid: '🕸 经纬网',
+        borders: '🗺 国界',
+        labels: '🏷 地名'
+      },
+      on: '开', off: '关',
+      helpTitle: '🖐 怎么玩',
+      helpTable: [
+        ['拖拽 / 滚轮', '旋转视角 / 缩放'],
+        ['1–5', '五个视角：昼夜 · 四季 · 自转 · 昼长 · 岁差'],
+        ['日期滑块', '看四季：直射点移动、晨昏线倾斜'],
+        ['时刻滑块', '拨动一天：看晨昏线扫过、城市灯亮起'],
+        ['点击国家', '金色高亮 + 信息卡（当地时间/昼夜/昼长）'],
+        ['推近', '分级显示海峡、运河、湖泊与国名标签'],
+        ['×N', '时间加速倍率（×3600 = 1 天 24 秒）'],
+        ['空格', '播放 / 暂停'],
+        ['R / H', '复位视角 / 帮助']
+      ],
+      helpNote: `<b>真实数据标注</b>：地轴倾角 23.44°；恒星日 23h56m4s；赤道自转 465.1 m/s（1674 km/h）；
+        岁差 25,772 年。昼夜贴图 = NASA Blue Marble；城市灯光 = NASA Black Marble（Suomi NPP，
+        2012 合成）；云层为卫星快照（会以示意速度漂移，非实时气象）。
+        太阳赤纬用 NOAA 近似公式（误差 &lt;1°）；直射经度忽略均时差（±16 分钟）。
+        岁差演示速度夸大约千万倍。`,
+      helpClose: '知道了',
+      months: ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
+      dayUnit: '日',
+      subsolar: '☀️ 直射点：',
+      beijingDayLen: '⏳ 北京昼长 ',
+      card: {
+        cap: '🏛 首都：',
+        cont: '🌍 大洲：',
+        centroid: '📍 质心：',
+        solarTime: '🕐 当地太阳时 ≈ ',
+        tzEst: '（时区 ≈ UTC{tz}，按经度估算）',
+        day: '☀️ 白天',
+        night: '🌙 夜晚',
+        twilight: '🌆 晨昏',
+        todayDayLen: '⏳ 今日昼长 ',
+        polarDay: '极昼',
+        polarNight: '极夜',
+        hours: '小时',
+        mins: '分'
+      }
+    },
+    en: {
+      home: 'Home',
+      title: 'Rotating Earth<small>Day/Night / Seasons / Precession — Drag to Rotate · Scroll to Zoom</small>',
+      reset: '⟲ Reset',
+      qLab: 'Quality',
+      help: '? Help',
+      pipeHead: '📐 Data Pipeline',
+      pipeRows: { raw: 'Raw Reading', eq: 'Equation', calc: 'Stepwise Math', res: 'Published Result' },
+      speed1: '×1 Real-Time',
+      speed3600: '×3600 (1 day = 24s)',
+      lblUtc: 'Time',
+      lblDate: 'Date',
+      chips: {
+        clouds: '☁️ Clouds',
+        markers: '📐 Axes & Circles',
+        atmo: '🌫️ Atmosphere',
+        grid: '🕸 Lat/Lon Grid',
+        borders: '🗺 Borders',
+        labels: '🏷 Labels'
+      },
+      on: 'On', off: 'Off',
+      helpTitle: '🖐 Controls',
+      helpTable: [
+        ['Drag / Scroll', 'Rotate view / Zoom in & out'],
+        ['1–5', 'Five vantage points: Day/Night · Seasons · Rotation · Day Length · Precession'],
+        ['Date slider', 'Explore seasons: subsolar latitude shifts & terminator tilt'],
+        ['Time slider', 'Scrub through a day: terminator sweep & night city lights'],
+        ['Click country', 'Gold highlight + Country dossier (local solar time / day/night / day length)'],
+        ['Zoom in', 'Hierarchical discovery of straits, canals, lakes, and country labels'],
+        ['×N', 'Time acceleration rate (×3600 = 1 day per 24 seconds)'],
+        ['Space', 'Play / Pause'],
+        ['R / H', 'Reset camera view / Help modal']
+      ],
+      helpNote: `<b>Astrophysical Data Reference</b>: Axial tilt ε = 23.44°; Sidereal day = 23h56m4s; Equatorial speed = 465.1 m/s (1,674 km/h); Axial precession cycle = 25,772 years.
+        Day & night surface textures from NASA Blue Marble & Black Marble (Suomi NPP 2012 composite).
+        Subsolar coordinates computed via NOAA solar algorithms (<1° error).
+        Axial precession animation speed is exaggerated for visual clarity.`,
+      helpClose: 'Got it',
+      months: ['Jan ','Feb ','Mar ','Apr ','May ','Jun ','Jul ','Aug ','Sep ','Oct ','Nov ','Dec '],
+      dayUnit: '',
+      subsolar: '☀️ Subsolar: ',
+      beijingDayLen: '⏳ Beijing Day Length: ',
+      card: {
+        cap: '🏛 Capital: ',
+        cont: '🌍 Continent: ',
+        centroid: '📍 Centroid: ',
+        solarTime: '🕐 Local Solar Time ≈ ',
+        tzEst: ' (Approx. UTC{tz}, solar longitude estimate)',
+        day: '☀️ Daytime',
+        night: '🌙 Night',
+        twilight: '🌆 Twilight',
+        todayDayLen: '⏳ Today\'s Day Length: ',
+        polarDay: 'Midnight Sun (24h)',
+        polarNight: 'Polar Night (0h)',
+        hours: 'h ',
+        mins: 'm'
+      }
+    }
+  };
+
   // ── 面板 ─────────────────────────────────────────────────────
   const panelEl = document.getElementById('panel');
   const pipeEl = document.getElementById('pipe');
   const statusEl = document.getElementById('status');
   function setPanel(html) { panelEl.innerHTML = html; }
   function setPipe(st) {
-    const rows = [['raw', '原始读数'], ['eq', '应用方程'], ['calc', '逐步算术'], ['res', '真实结果']];
+    const dict = EARTH_I18N[curLang] || EARTH_I18N.zh;
+    const pSt = (st && st[curLang]) ? st[curLang] : (st && st.zh ? st.zh : (st || {}));
+    const rows = [
+      ['raw', dict.pipeRows.raw],
+      ['eq', dict.pipeRows.eq],
+      ['calc', dict.pipeRows.calc],
+      ['res', dict.pipeRows.res]
+    ];
     pipeEl.innerHTML = rows.map(([k, label]) =>
       '<div class="pipe-row"><div class="pipe-label">' + label + '</div>' +
-      '<div class="pipe-val">' + st[k] + '</div></div>').join('');
+      '<div class="pipe-val">' + (pSt[k] || '') + '</div></div>').join('');
   }
 
   // ── 功能定义 ─────────────────────────────────────────────────
   const FEATURES = [
-    { id: 'daynight', btn: '🌙 昼夜与晨昏线', key: '1',
+    { id: 'daynight',
+      btn: { zh: '🌙 昼夜与晨昏线', en: '🌙 Day & Night' }, key: '1',
       cam: { az: 0.55, pol: 1.5, dist: 21 },
-      panel: `<h3>🌙 地球的昼与夜</h3>
+      panel: {
+        zh: `<h3>🌙 地球的昼与夜</h3>
         <p>太阳只照亮地球的一半。明暗分界线叫<b>晨昏线</b>——因为大气散射，它是
         柔和的渐变带（能看到日出日落的暖色）。</p>
         <p>转到夜半球的暗处，能看到<b>城市的灯光</b>——NASA Suomi NPP 卫星
         2012 年的真实灯光合成图。</p>
         <p>🖱 <b>点击任何国家</b>试试：高亮 + 信息卡（当地现在几点、白天还是晚上）。</p>`,
+        en: `<h3>🌙 Earth's Day & Night</h3>
+        <p>The Sun illuminates exactly half of our planet at any moment. The division between day and night is the <b>solar terminator</b>—rendered with soft Rayleigh atmospheric twilight transitions (dawn and dusk hues).</p>
+        <p>Orbit toward the night hemisphere to observe human civilization: <b>city night lights</b> sourced from NASA Suomi NPP satellite telemetry.</p>
+        <p>🖱 <b>Click any country</b> to inspect: interactive golden boundary highlight + real-time local solar time & illumination state.</p>`
+      },
       pipe: {
-        raw: 'UTC 时刻 t → 太阳直射经度 = 180° − 15°·t',
-        eq: '晨昏线 = 垂直于日地连线的大圆；直射点纬度 = 太阳赤纬 δ',
-        calc: '12:00 UTC 时直射经度 = <b>0°</b>（格林尼治正午）；0:00 UTC 直射 180°',
-        res: '地球一小时自转 15°——时区就是这样划出来的（每 15° 一个时区）' } },
+        zh: {
+          raw: 'UTC 时刻 t → 太阳直射经度 = 180° − 15°·t',
+          eq: '晨昏线 = 垂直于日地连线的大圆；直射点纬度 = 太阳赤纬 δ',
+          calc: '12:00 UTC 时直射经度 = <b>0°</b>（格林尼治正午）；0:00 UTC 直射 180°',
+          res: '地球一小时自转 15°——时区就是这样划出来的（每 15° 一个时区）'
+        },
+        en: {
+          raw: 'UTC time t → Subsolar longitude = 180° − 15°·t',
+          eq: 'Terminator = great circle orthogonal to Sun-Earth vector; subsolar latitude = solar declination δ',
+          calc: 'At 12:00 UTC subsolar longitude = <b>0°</b> (Greenwich solar noon); at 0:00 UTC subsolar is 180°',
+          res: 'Earth rotates 15° per hour—the foundational physical origin of worldwide standard time zones (15°/zone)'
+        }
+      }
+    },
 
-    { id: 'season', btn: '🍂 四季与地轴倾角', key: '2',
+    { id: 'season',
+      btn: { zh: '🍂 四季与地轴倾角', en: '🍂 Seasons & Axial Tilt' }, key: '2',
       cam: { az: -0.6, pol: 0.85, dist: 28.5 },
-      panel: `<h3>🍂 四季不是离太阳远近造成的</h3>
+      panel: {
+        zh: `<h3>🍂 四季不是离太阳远近造成的</h3>
         <p>地轴相对公转轨道面倾斜 <b>23.44°</b>，方向在空间中基本不变。
         所以夏天太阳直射北半球（δ=+23.44°），冬天直射南半球。</p>
         <p>关键冷知识：地球<b>1 月初离太阳最近</b>（近日点 1.471 亿 km）——
         北半球的冬天反而更近！四季由<b>倾角</b>主导，不是距离。</p>
         <p>↓ 拖动"日期"滑块，看直射点纬度和晨昏线怎么变。</p>`,
+        en: `<h3>🍂 Seasons: Tilt, Not Distance</h3>
+        <p>Earth's rotational axis is tilted <b>23.44°</b> relative to its orbital plane (ecliptic), fixed toward Polaris in space. Consequently, the subsolar point oscillates between the Tropic of Cancer (+23.44° in June) and Tropic of Capricorn (−23.44° in December).</p>
+        <p>Vital counter-intuitive fact: Earth reaches <b>perihelion (closest to the Sun, 147.1M km) in early January</b>—meaning the Northern Hemisphere winter occurs when we are closest to the Sun! Seasons are governed by <b>axial tilt</b>, not orbital distance.</p>
+        <p>↓ Drag the Date slider to observe subsolar latitude migrations and terminator tilt.</p>`
+      },
       pipe: {
-        raw: '一年中的第 N 天（N=80 春分，172 夏至，266 秋分，355 冬至）',
-        eq: '太阳赤纬 <b>δ = −23.44°·cos(360°/365 × (N+10))</b>（NOAA 近似，误差 <1°）',
-        calc: 'N=172：δ ≈ <b>+23.44°</b>；N=80 → ≈0°',
-        res: '夏至北半球昼最长；但地球 1 月初过近日点（1.471 亿 km），偏心率仅 0.0167' } },
+        zh: {
+          raw: '一年中的第 N 天（N=80 春分，172 夏至，266 秋分，355 冬至）',
+          eq: '太阳赤纬 <b>δ = −23.44°·cos(360°/365 × (N+10))</b>（NOAA 近似，误差 <1°）',
+          calc: 'N=172：δ ≈ <b>+23.44°</b>；N=80 → ≈0°',
+          res: '夏至北半球昼最长；但地球 1 月初过近日点（1.471 亿 km），偏心率仅 0.0167'
+        },
+        en: {
+          raw: 'Day of year N (N=80 Equinox, 172 Solstice, 266 Equinox, 355 Solstice)',
+          eq: 'Solar declination <b>δ = −23.44°·cos(360°/365 × (N+10))</b> (NOAA algorithm, error <1°)',
+          calc: 'At N=172 (Jun 21): δ ≈ <b>+23.44°</b>; at N=80: δ ≈ 0°',
+          res: 'Summer solstice yields longest Northern daylight; yet Earth passes perihelion in January due to slight eccentricity (e=0.0167)'
+        }
+      }
+    },
 
-    { id: 'spin', btn: '🌀 自转与线速度', key: '3',
+    { id: 'spin',
+      btn: { zh: '🌀 自转与线速度', en: '🌀 Earth Rotation' }, key: '3',
       cam: { az: 0.4, pol: 1.32, dist: 18.6 },
-      panel: `<h3>🌀 你正坐在超音速的旋转木马上</h3>
+      panel: {
+        zh: `<h3>🌀 你正坐在超音速的旋转木马上</h3>
         <p>地球自转一圈（相对恒星）只要 <b>23 小时 56 分 4 秒</b>——
         为什么一天是 24 小时？因为太阳也在动：自转完还要多转约 1° 才能再对准太阳。</p>
         <p>赤道地表速度 <b>465 m/s（1674 km/h）</b>，是音速的 1.4 倍——
         我们毫无感觉，因为空气和你一起在转（惯性）。</p>`,
+        en: `<h3>🌀 Supersonic Carousel</h3>
+        <p>A true sidereal rotation takes <b>23 hours, 56 minutes, 4.1 seconds</b>. Why is a solar day 24 hours? Because Earth progresses along its orbit, requiring an extra ~0.986° rotation to bring the Sun back overhead.</p>
+        <p>Equatorial surface speed reaches <b>465.1 m/s (1,674 km/h)</b>—1.36× the speed of sound. We feel motionless because the atmosphere and reference frame co-rotate with us.</p>`
+      },
       pipe: {
-        raw: '纬度 φ（赤道 0°，北京 40°N）',
-        eq: '线速度 <b>v = 465.1 · cos φ</b> m/s',
-        calc: '北京：465.1 × cos 40° = <b>356 m/s ≈ 1283 km/h</b>；极点 = 0（原地打转）',
-        res: '向东发射火箭省燃料：赤道自转 1674 km/h 是免费的速度加成（法属圭亚那航天中心建在赤道附近）' } },
+        zh: {
+          raw: '纬度 φ（赤道 0°，北京 40°N）',
+          eq: '线速度 <b>v = 465.1 · cos φ</b> m/s',
+          calc: '北京：465.1 × cos 40° = <b>356 m/s ≈ 1283 km/h</b>；极点 = 0（原地打转）',
+          res: '向东发射火箭省燃料：赤道自转 1674 km/h 是免费的速度加成（法属圭亚那航天中心建在赤道附近）'
+        },
+        en: {
+          raw: 'Latitude φ (Equator 0°, Beijing 40°N)',
+          eq: 'Linear velocity <b>v = 465.1 · cos φ</b> m/s',
+          calc: 'Beijing: 465.1 × cos(40°) = <b>356 m/s ≈ 1,283 km/h</b>; Poles = 0 m/s',
+          res: 'Launching orbital rockets eastward reaps Earth\'s free rotational velocity bonus (e.g. Guiana Space Centre near equator)'
+        }
+      }
+    },
 
-    { id: 'daylen', btn: '⏳ 昼夜长短与极昼', key: '4',
+    { id: 'daylen',
+      btn: { zh: '⏳ 昼夜长短与极昼', en: '⏳ Day Length & Polar Day' }, key: '4',
       cam: { az: 0.15, pol: 1.1, dist: 24 },
-      panel: `<h3>⏳ 白天为什么夏天长？</h3>
+      panel: {
+        zh: `<h3>⏳ 白天为什么夏天长？</h3>
         <p>纬度越高，倾斜的地轴让它在夏天泡在日照里的时间越长。
         <b>点击高纬度的国家</b>（挪威、加拿大、俄罗斯北部）看昼长读数；
         再把日期拨到 12 月——它们变成极夜。</p>
         <p>北极圈（66.56°N）以上出现<b>极昼/极夜</b>。</p>`,
+        en: `<h3>⏳ Why Are Summer Days Longer?</h3>
+        <p>Higher latitudes dip deeper into the illuminated hemisphere during their respective summer. <b>Click high-latitude countries</b> (Norway, Canada, northern Russia) to inspect real-time calculated day length; scrub the date to December to observe polar night.</p>
+        <p>Regions beyond the Polar Circles (±66.56°) experience continuous <b>24-hour midnight sun or polar night</b>.</p>`
+      },
       pipe: {
-        raw: '纬度 φ + 太阳赤纬 δ（随日期）',
-        eq: '半昼弧 <b>cos H = −tan φ · tan δ</b>；昼长 = 2H/15 小时',
-        calc: '北京夏至：cos H = −tan40°·tan23.44° = −0.364 → H = 111.3° → <b>14.85 h</b>',
-        res: '|−tanφtanδ| ≥ 1 时出现<b>极昼/极夜</b>——边界正是 ±66.56°（= 90° − 23.44°）的极圈' } },
+        zh: {
+          raw: '纬度 φ + 太阳赤纬 δ（随日期）',
+          eq: '半昼弧 <b>cos H = −tan φ · tan δ</b>；昼长 = 2H/15 小时',
+          calc: '北京夏至：cos H = −tan40°·tan23.44° = −0.364 → H = 111.3° → <b>14.85 h</b>',
+          res: '|−tanφtanδ| ≥ 1 时出现<b>极昼/极夜</b>——边界正是 ±66.56°（= 90° − 23.44°）的极圈'
+        },
+        en: {
+          raw: 'Latitude φ + Solar declination δ (date-dependent)',
+          eq: 'Semi-diurnal arc <b>cos H = −tan φ · tan δ</b>; Day length = 2H / 15 hours',
+          calc: 'Beijing summer solstice: cos H = −tan(40°)·tan(23.44°) = −0.364 → H = 111.3° → <b>14.85 h</b>',
+          res: 'When |−tanφ·tanδ| ≥ 1, perpetual <b>Midnight Sun or Polar Night</b> occurs; boundary is ±66.56° (90° − 23.44°)'
+        }
+      }
+    },
 
-    { id: 'prec', btn: '新浪网 岁差（2.6 万年）', key: '5',
+    { id: 'prec',
+      btn: { zh: '💫 岁差（2.6 万年）', en: '💫 Precession (26k yr)' }, key: '5',
       cam: { az: -0.8, pol: 0.7, dist: 33 },
-      panel: `<h3>新浪网 地轴像陀螺一样晃</h3>
+      panel: {
+        zh: `<h3>💫 地轴像陀螺一样晃</h3>
         <p>地轴不只倾斜，指向还在缓慢画圈（像转动的陀螺），一圈要
         <b>25,772 年</b>（每年 50.3 角秒）。</p>
         <p>所以北极星不固定：现在是<b>勾陈一（Polaris）</b>，古埃及时代是天龙座 α；
         约 <b>13,700 年后</b>织女星接任。</p>
         <p>⚠ 本页晃动速度<b>夸大约千万倍</b>——真实岁差肉眼不可察觉。</p>`,
+        en: `<h3>💫 Gyroscopic Axial Precession</h3>
+        <p>Earth's axis does not point statically in deep space; tidal torque from the Sun and Moon causes it to trace a slow <b>25,772-year gyroscopic cone</b> (~50.3 arcseconds annually).</p>
+        <p>Thus the North Celestial Pole wanders: currently near <b>Polaris (Alpha Ursae Minoris)</b>; during ancient Egyptian pyramid construction it pointed near Thuban (Alpha Draconis); in ~13,700 years, Vega will take the mantle.</p>
+        <p>⚠ The wobble in this mode is accelerated ~10 million times for visual comprehension.</p>`
+      },
       pipe: {
-        raw: '夜空长期观测：北极星"漂移"（喜帕恰斯，公元前 2 世纪发现）',
-        eq: '岁差速率 ≈ <b>50.3″/年</b> → 一圈 360° ÷ 50.3″/年 ≈ 25,772 年',
-        calc: '春分点每年西移 50.3″ → 星座"日期"每 71.6 年偏 1°',
-        res: '公元前 2800 年 Thuban 是北极星；公元 13700 年前后 Vega 接任——"北极星"只是轮班岗位' } }
+        zh: {
+          raw: '夜空长期观测：北极星"漂移"（喜帕恰斯，公元前 2 世纪发现）',
+          eq: '岁差速率 ≈ <b>50.3″/年</b> → 一圈 360° ÷ 50.3″/年 ≈ 25,772 年',
+          calc: '春分点每年西移 50.3″ → 星座"日期"每 71.6 年偏 1°',
+          res: '公元前 2800 年 Thuban 是北极星；公元 13700 年前后 Vega 接任——"北极星"只是轮班岗位'
+        },
+        en: {
+          raw: 'Long-term astronomical records: equinoctial drift discovered by Hipparchus (2nd century BCE)',
+          eq: 'Precession rate ≈ <b>50.3″/year</b> → full 360° circuit ≈ 25,772 years',
+          calc: 'Vernal equinox point drifts westward 50.3″/year → Zodiacal alignment shifts 1° every 71.6 years',
+          res: 'In 2800 BCE Thuban was the pole star; in 13,700 CE Vega will serve—the "North Star" is a temporary cosmic appointment'
+        }
+      }
+    }
   ];
 
   // ── UI ───────────────────────────────────────────────────────
@@ -1069,7 +1356,7 @@ document.addEventListener('DOMContentLoaded', () => {
   FEATURES.forEach(f => {
     const b = document.createElement('button');
     b.className = 'feat-btn';
-    b.textContent = f.btn;
+    b.textContent = f.btn[curLang] || f.btn.zh;
     b.addEventListener('click', () => activate(f));
     featBar.appendChild(b);
   });
@@ -1079,8 +1366,18 @@ document.addEventListener('DOMContentLoaded', () => {
     flyTo(f.cam);
     document.querySelectorAll('.feat-btn').forEach((b, i) =>
       b.classList.toggle('on', FEATURES[i] === f));
-    setPanel(f.panel);
-    setPipe(f.pipe);
+    const lang = curLang;
+    setPanel((f.panel && f.panel[lang]) ? f.panel[lang] : (f.panel && f.panel.zh ? f.panel.zh : f.panel));
+    setPipe((f.pipe && f.pipe[lang]) ? f.pipe[lang] : (f.pipe && f.pipe.zh ? f.pipe.zh : f.pipe));
+  }
+
+  function updatePhysChips() {
+    const dict = EARTH_I18N[curLang] || EARTH_I18N.zh;
+    document.querySelectorAll('[data-vis]').forEach(c => {
+      const k = c.dataset.vis;
+      const name = dict.chips[k] || k;
+      c.innerHTML = name + '：' + (vis[k] ? dict.on : dict.off);
+    });
   }
 
   function mountChips() {
@@ -1095,11 +1392,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (k === 'grid') gridGroup.visible = vis.grid;
         if (k === 'borders') bordersGroup.visible = vis.borders;
         if (k === 'labels') { labelLayer.style.display = vis.labels ? 'block' : 'none'; }
-        const name = { clouds: '☁️ 云层', markers: '📐 轴线极圈', atmo: '🌫️ 大气',
-          grid: '🕸 经纬网', borders: '🗺 国界', labels: '🏷 地名' }[k];
-        c.innerHTML = name + '：' + (vis[k] ? '开' : '关');
+        updatePhysChips();
       });
     });
+    updatePhysChips();
   }
   const utcSlider = document.getElementById('utcSlider');
   const dateSlider = document.getElementById('dateSlider');
@@ -1109,18 +1405,20 @@ document.addEventListener('DOMContentLoaded', () => {
     return String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
   }
   const MDAYS = [31,28,31,30,31,30,31,31,30,31,30,31];
-  const MNAMES = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
   function dateFromN(N) {
     let d = N, m = 0;
     while (d > MDAYS[m]) { d -= MDAYS[m]; m++; }
-    return MNAMES[Math.min(m, 11)] + Math.min(d, 31) + '日';
+    const dict = EARTH_I18N[curLang] || EARTH_I18N.zh;
+    const mStr = dict.months[Math.min(m, 11)];
+    const dStr = Math.min(d, 31) + dict.dayUnit;
+    return mStr + dStr;
   }
   function syncTimeUI() {
     utcSlider.value = time.utc;
     dateSlider.value = time.N;
     document.getElementById('utcVal').textContent = fmtUtc(time.utc) + ' UTC';
     document.getElementById('dateVal').textContent =
-      dateFromN(time.N) + ' · ' + ASTRO.seasonLabel(time.N) + ' (N=' + time.N + ')';
+      dateFromN(time.N) + ' · ' + ASTRO.seasonLabel(time.N, curLang) + ' (N=' + time.N + ')';
   }
   playBtn.addEventListener('click', () => {
     time.playing = !time.playing;
@@ -1136,6 +1434,101 @@ document.addEventListener('DOMContentLoaded', () => {
       document.querySelectorAll('[data-speed]').forEach(x => x.classList.toggle('on', x === c));
     });
   });
+
+  function setLang(lang) {
+    if (lang !== 'zh' && lang !== 'en') return;
+    curLang = lang;
+    window.APP_LANG = lang;
+    try {
+      localStorage.setItem('science_lang', lang);
+      const u = new URL(window.location);
+      u.searchParams.set('lang', lang);
+      window.history.replaceState({}, '', u);
+    } catch(e) {}
+    document.documentElement.lang = (lang === 'zh' ? 'zh-CN' : 'en');
+    document.documentElement.classList.remove('i18n-loading');
+
+    const homeBtn = document.getElementById('homeBtn');
+    if (homeBtn) {
+      homeBtn.href = '../index.html?lang=' + lang;
+      const homeTxt = document.getElementById('homeTxt');
+      if (homeTxt) homeTxt.textContent = lang === 'en' ? 'Home' : '首页';
+    }
+    const bZh = document.getElementById('btnLangZh');
+    const bEn = document.getElementById('btnLangEn');
+    if (bZh) bZh.classList.toggle('active', lang === 'zh');
+    if (bEn) bEn.classList.toggle('active', lang === 'en');
+
+    const dict = EARTH_I18N[lang] || EARTH_I18N.zh;
+    const titleEl = document.getElementById('title');
+    if (titleEl) titleEl.innerHTML = dict.title;
+    const resetBtn = document.getElementById('resetBtn');
+    if (resetBtn) resetBtn.textContent = dict.reset;
+    const qLab = document.getElementById('qLab');
+    if (qLab) qLab.textContent = dict.qLab;
+    const helpBtn = document.getElementById('helpBtn');
+    if (helpBtn) helpBtn.textContent = dict.help;
+    const pipeHead = document.getElementById('pipeHead');
+    if (pipeHead) pipeHead.textContent = dict.pipeHead;
+
+    const speed1 = document.getElementById('speed1');
+    if (speed1) speed1.textContent = dict.speed1;
+    const speed3600 = document.getElementById('speed3600');
+    if (speed3600) speed3600.textContent = dict.speed3600;
+
+    const lblUtc = document.getElementById('lblUtc');
+    if (lblUtc) {
+      const b = document.getElementById('utcVal');
+      const input = document.getElementById('utcSlider');
+      lblUtc.innerHTML = dict.lblUtc + ' ';
+      if (input) lblUtc.appendChild(input);
+      if (b) lblUtc.appendChild(b);
+    }
+    const lblDate = document.getElementById('lblDate');
+    if (lblDate) {
+      const b = document.getElementById('dateVal');
+      const input = document.getElementById('dateSlider');
+      lblDate.innerHTML = dict.lblDate + ' ';
+      if (input) lblDate.appendChild(input);
+      if (b) lblDate.appendChild(b);
+    }
+
+    const helpTitle = document.getElementById('helpTitle');
+    if (helpTitle) helpTitle.textContent = dict.helpTitle;
+    const helpTable = document.getElementById('helpTable');
+    if (helpTable && dict.helpTable) {
+      helpTable.innerHTML = dict.helpTable.map(r => '<tr><td>' + r[0] + '</td><td>' + r[1] + '</td></tr>').join('');
+    }
+    const helpNote = document.getElementById('helpNote');
+    if (helpNote) helpNote.innerHTML = dict.helpNote;
+    const helpClose = document.getElementById('helpClose');
+    if (helpClose) helpClose.textContent = dict.helpClose;
+
+    const fBtns = featBar.querySelectorAll('.feat-btn');
+    FEATURES.forEach((f, idx) => {
+      if (fBtns[idx]) {
+        fBtns[idx].textContent = f.btn[lang] || f.btn.zh;
+      }
+    });
+
+    for (const L of labels) {
+      if (L.el) {
+        L.el.textContent = lang === 'en' ? (L.enName || L.name) : L.name;
+      }
+    }
+
+    updatePhysChips();
+    syncTimeUI();
+
+    if (active) {
+      setPanel((active.panel && active.panel[lang]) ? active.panel[lang] : (active.panel && active.panel.zh ? active.panel.zh : active.panel));
+      setPipe((active.pipe && active.pipe[lang]) ? active.pipe[lang] : (active.pipe && active.pipe.zh ? active.pipe.zh : active.pipe));
+    }
+    if (selectedId) {
+      const f = window.COUNTRY_GEO ? window.COUNTRY_GEO.features.find(x => x.id === selectedId) : null;
+      if (f) select(f);
+    }
+  }
 
   // ── 标签投影（每帧）──────────────────────────────────────────
   const tmpV = new THREE.Vector3();
@@ -1234,12 +1627,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (statusT >= 0.25) {
       statusT = 0;
       const dec = ASTRO.declination(time.N);
+      const dict = EARTH_I18N[curLang] || EARTH_I18N.zh;
       statusEl.innerHTML =
-        '📅 ' + dateFromN(time.N) + '（N=' + time.N + '）· ' + ASTRO.seasonLabel(time.N) +
+        '📅 ' + dateFromN(time.N) + '（N=' + time.N + '）· ' + ASTRO.seasonLabel(time.N, curLang) +
         '　🕰 ' + fmtUtc(time.utc) + ' UTC' +
-        '　☀️ 直射点：<b>' + (dec >= 0 ? '+' : '') + dec.toFixed(2) + '°</b>, ' +
+        '　' + dict.subsolar + '<b>' + (dec >= 0 ? '+' : '') + dec.toFixed(2) + '°</b>, ' +
         ASTRO.subsolarLon(time.utc).toFixed(1) + '°E' +
-        '　⏳ 北京昼长 <b>' + (function () {
+        '　' + dict.beijingDayLen + '<b>' + (function () {
           const dl = ASTRO.dayLength(40, dec);
           return Math.floor(dl) + 'h' + String(Math.round((dl % 1) * 60)).padStart(2, '0') + 'm';
         })() + '</b>';
@@ -1265,11 +1659,22 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (e.key === 'h' || e.key === 'H') toggleHelp();
   });
 
+  // ── 语言切换事件 ──
+  const btnZh = document.getElementById('btnLangZh');
+  const btnEn = document.getElementById('btnLangEn');
+  if (btnZh) btnZh.addEventListener('click', () => setLang('zh'));
+  if (btnEn) btnEn.addEventListener('click', () => setLang('en'));
+  window.addEventListener('storage', e => {
+    if (e.key === 'science_lang' && (e.newValue === 'en' || e.newValue === 'zh') && e.newValue !== curLang) {
+      setLang(e.newValue);
+    }
+  });
+
   // ── 启动 ─────────────────────────────────────────────────────
   mountChips();
   document.querySelector('[data-speed="3600"]').classList.add('on');
   activate(FEATURES[0]);
-  syncTimeUI();
+  setLang(curLang);
   loop();
   // 画质 UI + 启动时升级到保存档
   document.querySelectorAll('.q2').forEach(b => {

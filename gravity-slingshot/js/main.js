@@ -1,6 +1,115 @@
     const canvas = document.getElementById('simCanvas');
     const ctx = canvas.getContext('2d');
 
+    const SLING_I18N = {
+      zh: {
+        docTitle: '引力弹弓 — 太阳系航行模拟',
+        appTitle: '🚀 引力弹弓 — 太阳系航行模拟',
+        appSubtitle: '模拟旅行者号探测器利用行星引力弹弓穿越太阳系的壮举',
+        lblCurSpeed: '当前速度:',
+        lblSlingshotGain: '引力弹弓增速:',
+        lblGravAcc: '引力加速度:',
+        legTraj: '实际轨道 (引力弹弓)',
+        legGhost: '无行星时直线轨道',
+        legGrav: '引力 (指向行星)',
+        secMission: '📡 任务状态',
+        missionStart: '🌍 从地球出发，目标：木星',
+        missionFlyby: (name, next) => `✅ ${name} 飞掠完成！下一站：${next}`,
+        missionDeep: name => `✅ ${name} 飞掠完成！冲向星际空间…`,
+        missionEscape: '🌌 <strong>任务完成！</strong>飞出太阳系！',
+        secSpeed: '⚡ 航天器速度',
+        lblTotalGain: '引力弹弓总增益:',
+        secLog: '📋 飞行日志',
+        nameEarth: '🌍 地球 (出发)',
+        nameJupiter: '🪐 木星',
+        nameSaturn: '🪐 土星',
+        nameUranus: '⭐ 天王星',
+        nameNeptune: '🔵 海王星',
+        nameEscape: '🌌 飞出太阳系',
+        waiting: '等待中…',
+        secCtrl: '🎮 控制',
+        lblAnimSpeed: '动画速度',
+        play: '▶ 播放',
+        pause: '⏸ 暂停',
+        relaunch: '🔄 重新发射',
+        secFaq: '📖 你知道吗？',
+        faqBody: '<strong>旅行者2号</strong> 于1977年从地球发射，先后利用了 <strong>木星</strong>(1979)、<strong>土星</strong>(1981)、<strong>天王星</strong>(1986)、<strong>海王星</strong>(1989) 的引力弹弓加速，最终于2018年飞出太阳系日球层！<br><br>每次飞掠，行星的公转动能就"送"给航天器一点速度。观察<span style="color:#fb923c">橙色箭头</span>——那就是每颗行星对航天器施加的引力！',
+        bodyNames: {
+          sun: '太阳',
+          mercury: '水星',
+          venus: '金星',
+          earth: '地球 🌍',
+          mars: '火星',
+          jupiter: '木星',
+          saturn: '土星',
+          uranus: '天王星',
+          neptune: '海王星',
+          craft: '航天器 🚀',
+        },
+        nextNames: ['土星', '天王星', '海王星', '太阳系边界'],
+      },
+      en: {
+        docTitle: 'Gravity Assist — Solar System Trajectory Simulation',
+        appTitle: '🚀 Gravity Assist — Solar System Trajectory Sim',
+        appSubtitle: 'Simulating the Voyager spacecraft gravity assists across the Solar System',
+        lblCurSpeed: 'Current Speed:',
+        lblSlingshotGain: 'Gravity Assist Gain:',
+        lblGravAcc: 'Gravitational Accel:',
+        legTraj: 'Actual Trajectory (Gravity Assist)',
+        legGhost: 'Linear Trajectory (No Gravity)',
+        legGrav: 'Gravity (Towards Planets)',
+        secMission: '📡 Mission Status',
+        missionStart: '🌍 Departing Earth, destination: Jupiter',
+        missionFlyby: (name, next) => `✅ ${name} flyby complete! Next: ${next}`,
+        missionDeep: name => `✅ ${name} flyby complete! Heading into deep space…`,
+        missionEscape: '🌌 <strong>Mission accomplished!</strong> Escaped the Solar System!',
+        secSpeed: '⚡ Spacecraft Velocity',
+        lblTotalGain: 'Total Assist Gain:',
+        secLog: '📋 Flight Log',
+        nameEarth: '🌍 Earth (Launch)',
+        nameJupiter: '🪐 Jupiter',
+        nameSaturn: '🪐 Saturn',
+        nameUranus: '⭐ Uranus',
+        nameNeptune: '🔵 Neptune',
+        nameEscape: '🌌 Interstellar Escape',
+        waiting: 'Waiting…',
+        secCtrl: '🎮 Controls',
+        lblAnimSpeed: 'Simulation Speed',
+        play: '▶ Play',
+        pause: '⏸ Pause',
+        relaunch: '🔄 Relaunch',
+        secFaq: '📖 Did You Know?',
+        faqBody: 'Launched in 1977 from Earth, <strong>Voyager 2</strong> utilized successive gravity assists from <strong>Jupiter</strong> (1979), <strong>Saturn</strong> (1981), <strong>Uranus</strong> (1986), and <strong>Neptune</strong> (1989) to reach interstellar space in 2018!<br><br>With each flyby, orbital kinetic energy from the planet is transferred to the probe. The <span style="color:#fb923c">orange dashed arrows</span> represent instantaneous gravitational attraction from each giant planet!',
+        bodyNames: {
+          sun: 'Sun',
+          mercury: 'Mercury',
+          venus: 'Venus',
+          earth: 'Earth 🌍',
+          mars: 'Mars',
+          jupiter: 'Jupiter',
+          saturn: 'Saturn',
+          uranus: 'Uranus',
+          neptune: 'Neptune',
+          craft: 'Spacecraft 🚀',
+        },
+        nextNames: ['Saturn', 'Uranus', 'Neptune', 'Solar System Boundary'],
+      }
+    };
+
+    let currentLang = 'zh';
+    const paramsUrl = new URLSearchParams(window.location.search);
+    const qLang = paramsUrl.get('lang');
+    if (qLang === 'zh' || qLang === 'en') {
+      currentLang = qLang;
+    } else {
+      const saved = localStorage.getItem('science_lang');
+      if (saved === 'zh' || saved === 'en') {
+        currentLang = saved;
+      } else if (navigator.language && !navigator.language.startsWith('zh')) {
+        currentLang = 'en';
+      }
+    }
+
     let isPlaying = true;
     let simSpeed = 0.35;
     let camX = 0, camY = 0;
@@ -26,27 +135,28 @@
 
     function buildSolarSystem() {
       const cy = centerY;
+      const n = SLING_I18N[currentLang].bodyNames;
       bodies = [
         // 太阳
-        { id:'sun', name:'太阳', x: 100, y: cy, r: 38, color:'#fbbf24', glow:'#f59e0b',
+        { id:'sun', name:n.sun, x: 100, y: cy, r: 38, color:'#fbbf24', glow:'#f59e0b',
           type:'star', vx:0, vy:0, GM:0 },
         // 内行星（展示用）
-        { id:'mercury', name:'水星', x: 185, y: cy - 12, r: 3, color:'#94a3b8',
+        { id:'mercury', name:n.mercury, x: 185, y: cy - 12, r: 3, color:'#94a3b8',
           type:'inner', vx:0, vy:0, GM:0 },
-        { id:'venus', name:'金星', x: 240, y: cy + 8, r: 5, color:'#fcd34d',
+        { id:'venus', name:n.venus, x: 240, y: cy + 8, r: 5, color:'#fcd34d',
           type:'inner', vx:0, vy:0, GM:0 },
-        { id:'earth', name:'地球 🌍', x: 320, y: cy, r: 7, color:'#3b82f6',
+        { id:'earth', name:n.earth, x: 320, y: cy, r: 7, color:'#3b82f6',
           type:'home', vx:0, vy:0, GM:0 },
-        { id:'mars', name:'火星', x: 420, y: cy - 18, r: 4.5, color:'#ef4444',
+        { id:'mars', name:n.mars, x: 420, y: cy - 18, r: 4.5, color:'#ef4444',
           type:'inner', vx:0, vy:0, GM:0 },
         // 外行星（引力弹弓）—— 精确校准轨道几何与引力场，确保航天器在各行星外侧安全飞掠，绝不与天体本体重叠
-        { id:'jupiter', name:'木星', x: 850, y: cy + 30, r: 26, color:'#f59e0b',
+        { id:'jupiter', name:n.jupiter, x: 850, y: cy + 30, r: 26, color:'#f59e0b',
           type:'gas', vx: 0.9, vy:0, GM: 100 },
-        { id:'saturn', name:'土星', x: 1450, y: cy + 0, r: 21, color:'#fbbf24',
+        { id:'saturn', name:n.saturn, x: 1450, y: cy + 0, r: 21, color:'#fbbf24',
           type:'gas', vx: 0.7, vy:0, GM: 120, hasRing: true },
-        { id:'uranus', name:'天王星', x: 2100, y: cy - 45, r: 15, color:'#67e8f9',
+        { id:'uranus', name:n.uranus, x: 2100, y: cy - 45, r: 15, color:'#67e8f9',
           type:'ice', vx: 0.45, vy:0, GM: 90 },
-        { id:'neptune', name:'海王星', x: 2750, y: cy - 40, r: 14, color:'#818cf8',
+        { id:'neptune', name:n.neptune, x: 2750, y: cy - 40, r: 14, color:'#818cf8',
           type:'ice', vx: 0.35, vy:0, GM: 90 },
       ];
 
@@ -90,7 +200,7 @@
 
     function togglePlay() {
       isPlaying = !isPlaying;
-      document.getElementById('btnPlay').innerText = isPlaying ? '⏸ 暂停' : '▶ 播放';
+      document.getElementById('btnPlay').innerText = isPlaying ? SLING_I18N[currentLang].pause : SLING_I18N[currentLang].play;
     }
     function updateSpeed() {
       simSpeed = parseFloat(document.getElementById('sliderSpeed').value);
@@ -127,14 +237,14 @@
         document.getElementById('dot' + n).style.background = 'transparent';
         document.getElementById('dot' + n).classList.remove('visited');
         document.getElementById('name' + n).classList.remove('visited');
-        document.getElementById('log' + n).innerText = '等待中…';
+        document.getElementById('log' + n).innerText = SLING_I18N[currentLang].waiting;
       });
       document.getElementById('dotEscape').style.background = 'transparent';
       document.getElementById('dotEscape').classList.remove('visited');
       document.getElementById('nameEscape').classList.remove('visited');
       document.getElementById('logEscape').innerText = '—';
       document.getElementById('logEarth').innerText = (Math.hypot(craft.vx, craft.vy) / 0.25).toFixed(1) + ' km/s';
-      document.getElementById('missionStatus').innerText = '🌍 从地球出发，目标：木星';
+      document.getElementById('missionStatus').innerText = SLING_I18N[currentLang].missionStart;
 
       updateHUD();
     }
@@ -149,6 +259,7 @@
         let totalAx = 0, totalAy = 0;
 
         // 引力叠加（带核心平滑，保证近距飞掠轨道精准平滑，永不奇点震荡）
+        // PROV: illustrative | 软化引力势（Plummer softening ε²=200） | - | 避免近距离奇点发散（见 spec 09 F13）
         for (const p of gravBodies) {
           const dx = p.x - craft.x;
           const dy = p.y - craft.y;
@@ -199,7 +310,7 @@
           el.classList.add('visited');
           document.getElementById('nameEscape').classList.add('visited');
           document.getElementById('logEscape').innerText = curSpeed().toFixed(1) + ' km/s 🎉';
-          document.getElementById('missionStatus').innerHTML = '🌌 <strong>任务完成！</strong>飞出太阳系！';
+          document.getElementById('missionStatus').innerHTML = SLING_I18N[currentLang].missionEscape;
         }
         if (craft.x > neptune.x + 2000) resetSim();
       }
@@ -216,7 +327,6 @@
         { key: 'uranus',  id: 'Uranus' },
         { key: 'neptune', id: 'Neptune' },
       ];
-      const nextNames = ['土星', '天王星', '海王星', '太阳系边界'];
 
       for (let i = 0; i < checks.length; i++) {
         const c = checks[i];
@@ -241,6 +351,7 @@
           dot.classList.add('visited');
           document.getElementById('name' + c.id).classList.add('visited');
 
+          // PROV: illustrative | 演示速度标度换算 | - | 速度为交互演示比例，四大行星交会年份为真实旅行者2号时序（见 spec 09 F13）
           const speedGain = m.speedAtPass - (initialSpeed / 0.25);
           document.getElementById('log' + c.id).innerText =
             m.speedAtPass.toFixed(1) + ' km/s (+' + speedGain.toFixed(1) + ')';
@@ -248,10 +359,10 @@
           // 更新任务状态
           if (i < checks.length - 1) {
             document.getElementById('missionStatus').innerText =
-              '✅ ' + body.name + ' 飞掠完成！下一站：' + nextNames[i];
+              SLING_I18N[currentLang].missionFlyby(body.name, SLING_I18N[currentLang].nextNames[i]);
           } else {
             document.getElementById('missionStatus').innerText =
-              '✅ ' + body.name + ' 飞掠完成！冲向星际空间…';
+              SLING_I18N[currentLang].missionDeep(body.name);
           }
         }
       }
@@ -334,7 +445,7 @@
 
     function render() {
       const nowMs = performance.now();
-      const rdt = Math.min((nowMs - lastFrame) / 1000, 0.1);
+      const rdt = Math.min((nowMs - lastFrame) / 1000, 0.05);
       lastFrame = nowMs;
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -539,7 +650,7 @@
         craft.x + craft.vx * 10, craft.y + craft.vy * 10,
         '#4ade80', 2, 6);
 
-      drawLabel('航天器 🚀', craft.x, craft.y - 5, '#38bdf8', 38);
+      drawLabel(SLING_I18N[currentLang].bodyNames.craft, craft.x, craft.y - 5, '#38bdf8', 38);
 
       ctx.restore();
 
@@ -562,10 +673,118 @@
       return `rgba(${r},${g},${b},${a})`;
     }
 
+    function setLang(lang) {
+      if (lang !== 'zh' && lang !== 'en') return;
+      currentLang = lang;
+      document.documentElement.lang = lang;
+      try {
+        localStorage.setItem('science_lang', lang);
+      } catch (e) {}
+
+      const u = new URL(window.location.href);
+      u.searchParams.set('lang', lang);
+      window.history.replaceState({}, '', u.toString());
+
+      const homeBtn = document.getElementById('homeBtn');
+      if (homeBtn) {
+        homeBtn.href = '../index.html?lang=' + lang;
+        const homeTxt = document.getElementById('homeTxt');
+        if (homeTxt) homeTxt.textContent = lang === 'en' ? 'Home' : '首页';
+      }
+
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.lang === lang);
+      });
+
+      const t = SLING_I18N[lang];
+      document.title = t.docTitle;
+      const appTitle = document.getElementById('appTitle');
+      if (appTitle) appTitle.textContent = t.appTitle;
+      const appSubtitle = document.getElementById('appSubtitle');
+      if (appSubtitle) appSubtitle.textContent = t.appSubtitle;
+
+      const lblCurSpeed = document.getElementById('lblCurSpeed');
+      if (lblCurSpeed) lblCurSpeed.textContent = t.lblCurSpeed;
+      const lblSlingshotGain = document.getElementById('lblSlingshotGain');
+      if (lblSlingshotGain) lblSlingshotGain.textContent = t.lblSlingshotGain;
+      const lblGravAcc = document.getElementById('lblGravAcc');
+      if (lblGravAcc) lblGravAcc.textContent = t.lblGravAcc;
+
+      const legTraj = document.getElementById('legTraj');
+      if (legTraj) legTraj.textContent = t.legTraj;
+      const legGhost = document.getElementById('legGhost');
+      if (legGhost) legGhost.textContent = t.legGhost;
+      const legGrav = document.getElementById('legGrav');
+      if (legGrav) legGrav.textContent = t.legGrav;
+
+      const secMission = document.getElementById('secMission');
+      if (secMission) secMission.textContent = t.secMission;
+      const secSpeed = document.getElementById('secSpeed');
+      if (secSpeed) secSpeed.textContent = t.secSpeed;
+      const lblTotalGain = document.getElementById('lblTotalGain');
+      if (lblTotalGain) lblTotalGain.textContent = t.lblTotalGain;
+      const secLog = document.getElementById('secLog');
+      if (secLog) secLog.textContent = t.secLog;
+
+      const nameEarth = document.getElementById('nameEarth');
+      if (nameEarth) nameEarth.textContent = t.nameEarth;
+      const nameJupiter = document.getElementById('nameJupiter');
+      if (nameJupiter) nameJupiter.textContent = t.nameJupiter;
+      const nameSaturn = document.getElementById('nameSaturn');
+      if (nameSaturn) nameSaturn.textContent = t.nameSaturn;
+      const nameUranus = document.getElementById('nameUranus');
+      if (nameUranus) nameUranus.textContent = t.nameUranus;
+      const nameNeptune = document.getElementById('nameNeptune');
+      if (nameNeptune) nameNeptune.textContent = t.nameNeptune;
+      const nameEscape = document.getElementById('nameEscape');
+      if (nameEscape) nameEscape.textContent = t.nameEscape;
+
+      const secCtrl = document.getElementById('secCtrl');
+      if (secCtrl) secCtrl.textContent = t.secCtrl;
+      const lblAnimSpeed = document.getElementById('lblAnimSpeed');
+      if (lblAnimSpeed) lblAnimSpeed.textContent = t.lblAnimSpeed;
+      const btnPlay = document.getElementById('btnPlay');
+      if (btnPlay) btnPlay.textContent = isPlaying ? t.pause : t.play;
+      const btnReset = document.getElementById('btnReset');
+      if (btnReset) btnReset.textContent = t.relaunch;
+
+      const secFaq = document.getElementById('secFaq');
+      if (secFaq) secFaq.textContent = t.secFaq;
+      const faqBody = document.getElementById('faqBody');
+      if (faqBody) faqBody.innerHTML = t.faqBody;
+
+      // Update body names in memory
+      for (const b of bodies) {
+        if (t.bodyNames[b.id]) {
+          b.name = t.bodyNames[b.id];
+        }
+      }
+
+      // Update current mission status text if at initial state or escaped
+      if (!milestones.jupiter.passed) {
+        const ms = document.getElementById('missionStatus');
+        if (ms) ms.textContent = t.missionStart;
+      } else if (milestones.escaped) {
+        const ms = document.getElementById('missionStatus');
+        if (ms) ms.innerHTML = t.missionEscape;
+      }
+    }
+
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => setLang(btn.dataset.lang));
+    });
+
+    window.addEventListener('storage', e => {
+      if (e.key === 'science_lang' && (e.newValue === 'zh' || e.newValue === 'en') && e.newValue !== currentLang) {
+        setLang(e.newValue);
+      }
+    });
+
     // --- 初始化 ---
     function init() {
       resizeCanvas();
       initStars();
+      setLang(currentLang);
       render();
     }
     init();

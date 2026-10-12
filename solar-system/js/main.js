@@ -8,12 +8,17 @@ import { CELESTIAL_DATA, CELESTIAL_MAP, PLANETS, MOONS } from './data.js';
 import { SolarSystemManager } from './celestial.js';
 import { SpaceflightPlanner } from './flight.js';
 import { CameraController } from './camera.js';
+import { SOLAR_I18N } from './i18n.js';
 
 class SolarSystemApp {
   constructor() {
     try {
       this.container = document.getElementById('canvas-container');
       this.clock = new THREE.Clock();
+
+      // Language state
+      this.currentLang = this.resolveLanguage();
+      this.currentSelectedBodyId = 'earth';
 
       // Simulation Clock
       this.isPaused = false;
@@ -100,15 +105,150 @@ class SolarSystemApp {
     );
   }
 
-  initUI() {
-    // Populate Planet and Moon lists in Navigator
-    this.populateNavigatorList();
+  resolveLanguage() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const urlLang = params.get('lang');
+      if (urlLang === 'zh' || urlLang === 'en') {
+        localStorage.setItem('science_lang', urlLang);
+        return urlLang;
+      }
+      const stored = localStorage.getItem('science_lang');
+      if (stored === 'zh' || stored === 'en') return stored;
+      const nav = (navigator.language || navigator.userLanguage || '').toLowerCase();
+      return nav.startsWith('zh') ? 'zh' : 'en';
+    } catch (e) {
+      return 'zh';
+    }
+  }
 
-    // Populate Mission Planner selects
+  setLanguage(lang) {
+    if (lang !== 'zh' && lang !== 'en') return;
+    this.currentLang = lang;
+    try {
+      localStorage.setItem('science_lang', lang);
+      const url = new URL(window.location.href);
+      if (url.searchParams.get('lang') !== lang) {
+        url.searchParams.set('lang', lang);
+        window.history.replaceState({}, '', url.toString());
+      }
+    } catch (e) {}
+
+    document.documentElement.lang = (lang === 'zh') ? 'zh-CN' : 'en';
+
+    const homeBtn = document.getElementById('homeBtn');
+    if (homeBtn) {
+      homeBtn.href = `../index.html?lang=${lang}`;
+    }
+
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.lang === lang);
+    });
+
+    this.applyLanguage();
+  }
+
+  applyLanguage() {
+    const isEn = this.currentLang === 'en';
+
+    const appTitle = document.getElementById('appTitle');
+    if (appTitle) appTitle.textContent = isEn ? SOLAR_I18N.appTitle.en : SOLAR_I18N.appTitle.zh;
+    const appTag = document.getElementById('appTag');
+    if (appTag) appTag.textContent = isEn ? SOLAR_I18N.appTag.en : SOLAR_I18N.appTag.zh;
+    const homeTxt = document.getElementById('homeTxt');
+    if (homeTxt) homeTxt.textContent = isEn ? SOLAR_I18N.homeTxt.en : SOLAR_I18N.homeTxt.zh;
+
+    const navPanelTitle = document.getElementById('navPanelTitle');
+    if (navPanelTitle) navPanelTitle.textContent = isEn ? SOLAR_I18N.navPanelTitle.en : SOLAR_I18N.navPanelTitle.zh;
+    const navPanelSub = document.getElementById('navPanelSub');
+    if (navPanelSub) navPanelSub.textContent = isEn ? SOLAR_I18N.navPanelSub.en : SOLAR_I18N.navPanelSub.zh;
+
+    const tabAll = document.getElementById('tabAll');
+    if (tabAll) tabAll.textContent = isEn ? SOLAR_I18N.tabAll.en : SOLAR_I18N.tabAll.zh;
+    const tabPlanets = document.getElementById('tabPlanets');
+    if (tabPlanets) tabPlanets.textContent = isEn ? SOLAR_I18N.tabPlanets.en : SOLAR_I18N.tabPlanets.zh;
+    const tabMoons = document.getElementById('tabMoons');
+    if (tabMoons) tabMoons.textContent = isEn ? SOLAR_I18N.tabMoons.en : SOLAR_I18N.tabMoons.zh;
+
+    const lblType = document.getElementById('lblType');
+    if (lblType) lblType.textContent = isEn ? SOLAR_I18N.lblType.en : SOLAR_I18N.lblType.zh;
+    const lblRadius = document.getElementById('lblRadius');
+    if (lblRadius) lblRadius.textContent = isEn ? SOLAR_I18N.lblRadius.en : SOLAR_I18N.lblRadius.zh;
+    const lblDist = document.getElementById('lblDist');
+    if (lblDist) lblDist.textContent = isEn ? SOLAR_I18N.lblDist.en : SOLAR_I18N.lblDist.zh;
+    const lblPeriod = document.getElementById('lblPeriod');
+    if (lblPeriod) lblPeriod.textContent = isEn ? SOLAR_I18N.lblPeriod.en : SOLAR_I18N.lblPeriod.zh;
+    const lblGravity = document.getElementById('lblGravity');
+    if (lblGravity) lblGravity.textContent = isEn ? SOLAR_I18N.lblGravity.en : SOLAR_I18N.lblGravity.zh;
+    const factsHeader = document.getElementById('factsHeader');
+    if (factsHeader) factsHeader.textContent = isEn ? SOLAR_I18N.factsHeader.en : SOLAR_I18N.factsHeader.zh;
+
+    const missionTitle = document.getElementById('missionTitle');
+    if (missionTitle) missionTitle.textContent = isEn ? SOLAR_I18N.missionTitle.en : SOLAR_I18N.missionTitle.zh;
+    const lblOrigin = document.getElementById('lblOrigin');
+    if (lblOrigin) lblOrigin.textContent = isEn ? SOLAR_I18N.lblOrigin.en : SOLAR_I18N.lblOrigin.zh;
+    const lblDest = document.getElementById('lblDest');
+    if (lblDest) lblDest.textContent = isEn ? SOLAR_I18N.lblDest.en : SOLAR_I18N.lblDest.zh;
+    const lblPlanTime = document.getElementById('lblPlanTime');
+    if (lblPlanTime) lblPlanTime.textContent = isEn ? SOLAR_I18N.lblPlanTime.en : SOLAR_I18N.lblPlanTime.zh;
+    const lblPlanDeltaV = document.getElementById('lblPlanDeltaV');
+    if (lblPlanDeltaV) lblPlanDeltaV.textContent = isEn ? SOLAR_I18N.lblPlanDeltaV.en : SOLAR_I18N.lblPlanDeltaV.zh;
+    const lblPlanPhase = document.getElementById('lblPlanPhase');
+    if (lblPlanPhase) lblPlanPhase.textContent = isEn ? SOLAR_I18N.lblPlanPhase.en : SOLAR_I18N.lblPlanPhase.zh;
+
+    const btnLaunch = document.getElementById('btn-launch-mission');
+    if (btnLaunch) btnLaunch.textContent = isEn ? SOLAR_I18N.btnLaunch.en : SOLAR_I18N.btnLaunch.zh;
+    const btnChaseCam = document.getElementById('btn-chase-cam');
+    if (btnChaseCam) btnChaseCam.textContent = isEn ? SOLAR_I18N.btnChaseCam.en : SOLAR_I18N.btnChaseCam.zh;
+    const btnAbort = document.getElementById('btn-abort-mission');
+    if (btnAbort) btnAbort.textContent = isEn ? SOLAR_I18N.btnAbort.en : SOLAR_I18N.btnAbort.zh;
+
+    const lblTelemSpeed = document.getElementById('lblTelemSpeed');
+    if (lblTelemSpeed) lblTelemSpeed.textContent = isEn ? SOLAR_I18N.lblTelemSpeed.en : SOLAR_I18N.lblTelemSpeed.zh;
+    const lblTelemTime = document.getElementById('lblTelemTime');
+    if (lblTelemTime) lblTelemTime.textContent = isEn ? SOLAR_I18N.lblTelemTime.en : SOLAR_I18N.lblTelemTime.zh;
+    const lblTelemDist = document.getElementById('lblTelemDist');
+    if (lblTelemDist) lblTelemDist.textContent = isEn ? SOLAR_I18N.lblTelemDist.en : SOLAR_I18N.lblTelemDist.zh;
+
+    const btnPlayPause = document.getElementById('btn-play-pause');
+    if (btnPlayPause) {
+      btnPlayPause.textContent = this.isPaused
+        ? (isEn ? SOLAR_I18N.btnPlayPause.playEn : SOLAR_I18N.btnPlayPause.playZh)
+        : (isEn ? SOLAR_I18N.btnPlayPause.pauseEn : SOLAR_I18N.btnPlayPause.pauseZh);
+    }
+
+    document.querySelectorAll('.preset-btn').forEach(btn => {
+      const p = btn.dataset.preset;
+      if (SOLAR_I18N.presets[p]) {
+        btn.textContent = isEn ? SOLAR_I18N.presets[p].en : SOLAR_I18N.presets[p].zh;
+      }
+    });
+
+    const lblTogglePlanetOrbits = document.getElementById('lblTogglePlanetOrbits');
+    if (lblTogglePlanetOrbits) lblTogglePlanetOrbits.textContent = isEn ? SOLAR_I18N.toggles.planetOrbits.en : SOLAR_I18N.toggles.planetOrbits.zh;
+    const lblToggleMoonOrbits = document.getElementById('lblToggleMoonOrbits');
+    if (lblToggleMoonOrbits) lblToggleMoonOrbits.textContent = isEn ? SOLAR_I18N.toggles.moonOrbits.en : SOLAR_I18N.toggles.moonOrbits.zh;
+    const lblToggleLabels = document.getElementById('lblToggleLabels');
+    if (lblToggleLabels) lblToggleLabels.textContent = isEn ? SOLAR_I18N.toggles.labels.en : SOLAR_I18N.toggles.labels.zh;
+    const lblPlanetScale = document.getElementById('lblPlanetScale');
+    if (lblPlanetScale) lblPlanetScale.textContent = isEn ? SOLAR_I18N.toggles.scale.en : SOLAR_I18N.toggles.scale.zh;
+
+    // Refresh dynamic lists and details
+    const activeFilter = document.querySelector('.filter-tab.active')?.dataset.filter || 'all';
+    this.populateNavigatorList(activeFilter);
     this.populatePlannerSelects();
+    if (this.currentSelectedBodyId) {
+      this.showBodyDetails(this.currentSelectedBodyId);
+    } else {
+      this.showBodyDetails('earth');
+    }
+    this.updateFlightPlan();
+    this.updateDateDisplay();
+  }
 
-    // Show initial educational card for Earth
-    this.showBodyDetails('earth');
+  initUI() {
+    this.currentSelectedBodyId = 'earth';
+    this.setLanguage(this.currentLang);
 
     // Hide Loading screen
     window.__solarSystemReady = true;
@@ -132,10 +272,15 @@ class SolarSystemApp {
       return true;
     });
 
+    const isEn = this.currentLang === 'en';
+
     items.forEach(body => {
       const itemBtn = document.createElement('button');
       itemBtn.className = `nav-item ${body.type}`;
       itemBtn.dataset.id = body.id;
+      if (this.currentSelectedBodyId === body.id) {
+        itemBtn.classList.add('active');
+      }
 
       const dot = document.createElement('span');
       dot.className = 'nav-dot';
@@ -143,7 +288,7 @@ class SolarSystemApp {
 
       const nameSpan = document.createElement('span');
       nameSpan.className = 'nav-name';
-      nameSpan.textContent = `${body.nameZh} (${body.name})`;
+      nameSpan.textContent = isEn ? body.name : `${body.nameZh} (${body.name})`;
 
       itemBtn.appendChild(dot);
       itemBtn.appendChild(nameSpan);
@@ -161,41 +306,46 @@ class SolarSystemApp {
     const destSelect = document.getElementById('flight-dest');
     if (!originSelect || !destSelect) return;
 
+    const prevOrigin = originSelect.value || 'earth';
+    const prevDest = destSelect.value || 'mars';
+
     originSelect.innerHTML = '';
     destSelect.innerHTML = '';
 
+    const isEn = this.currentLang === 'en';
+
     // Major candidate bodies for mission planning
     const candidates = [
-      { id: 'earth', name: '🌍 地球 (Earth)' },
-      { id: 'moon', name: '🌕 月球 (Moon)' },
-      { id: 'mars', name: '🔴 火星 (Mars)' },
-      { id: 'jupiter', name: '🪐 木星 (Jupiter)' },
-      { id: 'europa', name: '❄️ 木卫二 (Europa)' },
-      { id: 'ganymede', name: '🛰️ 木卫三 (Ganymede)' },
-      { id: 'saturn', name: '🪐 土星 (Saturn)' },
-      { id: 'titan', name: '🌫️ 土卫六 (Titan)' },
-      { id: 'enceladus', name: '💧 土卫二 (Enceladus)' },
-      { id: 'uranus', name: '🔵 天王星 (Uranus)' },
-      { id: 'neptune', name: '🌊 海王星 (Neptune)' },
-      { id: 'triton', name: '❄️ 海卫一 (Triton)' },
-      { id: 'mercury', name: '🪨 水星 (Mercury)' },
-      { id: 'venus', name: '🟡 金星 (Venus)' }
+      { id: 'earth', icon: '🌍', nameZh: '地球 (Earth)', nameEn: 'Earth' },
+      { id: 'moon', icon: '🌕', nameZh: '月球 (Moon)', nameEn: 'Moon' },
+      { id: 'mars', icon: '🔴', nameZh: '火星 (Mars)', nameEn: 'Mars' },
+      { id: 'jupiter', icon: '🪐', nameZh: '木星 (Jupiter)', nameEn: 'Jupiter' },
+      { id: 'europa', icon: '❄️', nameZh: '木卫二 (Europa)', nameEn: 'Europa' },
+      { id: 'ganymede', icon: '🛰️', nameZh: '木卫三 (Ganymede)', nameEn: 'Ganymede' },
+      { id: 'saturn', icon: '🪐', nameZh: '土星 (Saturn)', nameEn: 'Saturn' },
+      { id: 'titan', icon: '🌫️', nameZh: '土卫六 (Titan)', nameEn: 'Titan' },
+      { id: 'enceladus', icon: '💧', nameZh: '土卫二 (Enceladus)', nameEn: 'Enceladus' },
+      { id: 'uranus', icon: '🔵', nameZh: '天王星 (Uranus)', nameEn: 'Uranus' },
+      { id: 'neptune', icon: '🌊', nameZh: '海王星 (Neptune)', nameEn: 'Neptune' },
+      { id: 'triton', icon: '❄️', nameZh: '海卫一 (Triton)', nameEn: 'Triton' },
+      { id: 'mercury', icon: '🪨', nameZh: '水星 (Mercury)', nameEn: 'Mercury' },
+      { id: 'venus', icon: '🟡', nameZh: '金星 (Venus)', nameEn: 'Venus' }
     ];
 
     candidates.forEach(c => {
       const opt1 = document.createElement('option');
       opt1.value = c.id;
-      opt1.textContent = c.name;
+      opt1.textContent = isEn ? `${c.icon} ${c.nameEn}` : `${c.icon} ${c.nameZh}`;
       originSelect.appendChild(opt1);
 
       const opt2 = document.createElement('option');
       opt2.value = c.id;
-      opt2.textContent = c.name;
+      opt2.textContent = isEn ? `${c.icon} ${c.nameEn}` : `${c.icon} ${c.nameZh}`;
       destSelect.appendChild(opt2);
     });
 
-    originSelect.value = 'earth';
-    destSelect.value = 'mars';
+    originSelect.value = prevOrigin;
+    destSelect.value = prevDest;
 
     // Auto-calculate default Earth -> Mars plan
     this.updateFlightPlan();
@@ -208,6 +358,8 @@ class SolarSystemApp {
     const plan = this.flight.calculateHohmannTransfer(originId, destId);
     if (!plan) return;
 
+    const isEn = this.currentLang === 'en';
+
     // Update Plan Stats UI
     const transferDaysEl = document.getElementById('plan-time');
     const deltaVEl = document.getElementById('plan-deltav');
@@ -217,14 +369,20 @@ class SolarSystemApp {
     if (transferDaysEl) {
       if (plan.transferTimeDays > 365) {
         const yrs = (plan.transferTimeDays / 365.25).toFixed(1);
-        transferDaysEl.textContent = `${plan.transferTimeDays} 天 (约 ${yrs} 年)`;
+        transferDaysEl.textContent = isEn
+          ? `${plan.transferTimeDays} days (~${yrs} yrs)`
+          : `${plan.transferTimeDays} 天 (约 ${yrs} 年)`;
       } else {
-        transferDaysEl.textContent = `${plan.transferTimeDays} 天`;
+        transferDaysEl.textContent = isEn
+          ? `${plan.transferTimeDays} days`
+          : `${plan.transferTimeDays} 天`;
       }
     }
 
     if (deltaVEl) {
-      deltaVEl.textContent = `${plan.totalDeltaVKps} km/s (发射: ${plan.deltaV1Kps} / 入轨: ${plan.deltaV2Kps})`;
+      deltaVEl.textContent = isEn
+        ? `${plan.totalDeltaVKps} km/s (Departure: ${plan.deltaV1Kps} / Insertion: ${plan.deltaV2Kps})`
+        : `${plan.totalDeltaVKps} km/s (发射: ${plan.deltaV1Kps} / 入轨: ${plan.deltaV2Kps})`;
     }
 
     if (phaseAngleEl) {
@@ -232,13 +390,18 @@ class SolarSystemApp {
     }
 
     if (missionDescEl) {
-      const originName = CELESTIAL_MAP.get(originId)?.nameZh || originId;
-      const destName = CELESTIAL_MAP.get(destId)?.nameZh || destId;
-      missionDescEl.textContent = `规划霍曼转移椭圆轨道：从 ${originName} 出发，切向加速脱离，经日心转移弧线交会于 ${destName} 轨道。`;
+      const originBody = CELESTIAL_MAP.get(originId);
+      const destBody = CELESTIAL_MAP.get(destId);
+      const originName = isEn ? (originBody?.name || originId) : (originBody?.nameZh || originId);
+      const destName = isEn ? (destBody?.name || destId) : (destBody?.nameZh || destId);
+      missionDescEl.textContent = isEn
+        ? `Hohmann Transfer Orbit: Departing from ${originName}, tangential burn injection into heliocentric transfer arc rendezvous with ${destName} orbit.`
+        : `规划霍曼转移椭圆轨道：从 ${originName} 出发，切向加速脱离，经日心转移弧线交会于 ${destName} 轨道。`;
     }
   }
 
   selectBody(bodyId) {
+    this.currentSelectedBodyId = bodyId;
     this.cameraCtrl.focusOnBody(bodyId);
     this.showBodyDetails(bodyId);
 
@@ -249,8 +412,11 @@ class SolarSystemApp {
   }
 
   showBodyDetails(bodyId) {
+    this.currentSelectedBodyId = bodyId;
     const body = CELESTIAL_MAP.get(bodyId);
     if (!body) return;
+
+    const isEn = this.currentLang === 'en';
 
     const titleEl = document.getElementById('info-title');
     const subEl = document.getElementById('info-sub');
@@ -261,29 +427,35 @@ class SolarSystemApp {
     const gravityEl = document.getElementById('info-gravity');
     const factsList = document.getElementById('info-facts');
 
-    if (titleEl) titleEl.textContent = `${body.nameZh} · ${body.name}`;
+    if (titleEl) titleEl.textContent = isEn ? body.name : `${body.nameZh} · ${body.name}`;
     if (subEl) subEl.textContent = body.massKg;
     if (typeEl) {
-      typeEl.textContent = body.type === 'star' ? '恒星 (Star)' : body.type === 'planet' ? '行星 (Planet)' : '天然卫星 (Moon)';
+      typeEl.textContent = isEn ? SOLAR_I18N.types[body.type].en : SOLAR_I18N.types[body.type].zh;
     }
     if (radiusEl) radiusEl.textContent = `${body.radiusKm.toLocaleString()} km`;
     if (distEl) {
       distEl.textContent = body.semiMajorAxisKm > 0
         ? `${body.semiMajorAxisKm.toLocaleString()} km`
-        : '太阳系中心';
+        : (isEn ? SOLAR_I18N.sunCenter.en : SOLAR_I18N.sunCenter.zh);
     }
     if (periodEl) {
       if (body.orbitalPeriodDays > 365) {
-        periodEl.textContent = `${body.orbitalPeriodDays} 天 (${(body.orbitalPeriodDays / 365.25).toFixed(1)} 年)`;
+        const yrs = (body.orbitalPeriodDays / 365.25).toFixed(1);
+        periodEl.textContent = isEn
+          ? `${body.orbitalPeriodDays} days (~${yrs} yrs)`
+          : `${body.orbitalPeriodDays} 天 (${(body.orbitalPeriodDays / 365.25).toFixed(1)} 年)`;
       } else {
-        periodEl.textContent = `${body.orbitalPeriodDays} 天`;
+        periodEl.textContent = isEn
+          ? `${body.orbitalPeriodDays} days`
+          : `${body.orbitalPeriodDays} 天`;
       }
     }
     if (gravityEl) gravityEl.textContent = `${body.gravityMps2} m/s²`;
 
     if (factsList) {
       factsList.innerHTML = '';
-      body.factsZh.forEach(fact => {
+      const facts = (isEn && body.factsEn && body.factsEn.length > 0) ? body.factsEn : body.factsZh;
+      facts.forEach(fact => {
         const li = document.createElement('li');
         li.textContent = fact;
         factsList.appendChild(li);
@@ -319,7 +491,10 @@ class SolarSystemApp {
 
     btnPlayPause?.addEventListener('click', () => {
       this.isPaused = !this.isPaused;
-      btnPlayPause.textContent = this.isPaused ? '▶️ 继续' : '⏸️ 暂停';
+      const isEn = this.currentLang === 'en';
+      btnPlayPause.textContent = this.isPaused
+        ? (isEn ? SOLAR_I18N.btnPlayPause.playEn : SOLAR_I18N.btnPlayPause.playZh)
+        : (isEn ? SOLAR_I18N.btnPlayPause.pauseEn : SOLAR_I18N.btnPlayPause.pauseZh);
     });
 
     btnSpeedDown?.addEventListener('click', () => {
@@ -395,6 +570,29 @@ class SolarSystemApp {
       const btn = document.getElementById('btn-chase-cam');
       if (btn) btn.classList.toggle('active', isChase);
     });
+
+    // Language buttons
+    document.querySelectorAll('.lang-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const lang = btn.dataset.lang;
+        if (lang) this.setLanguage(lang);
+      });
+    });
+
+    // Multi-tab storage sync
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'science_lang' && e.newValue && e.newValue !== this.currentLang) {
+        this.setLanguage(e.newValue);
+      }
+    });
+
+    // bfcache pageshow sync
+    window.addEventListener('pageshow', () => {
+      const active = this.resolveLanguage();
+      if (active !== this.currentLang) {
+        this.setLanguage(active);
+      }
+    });
   }
 
   onWindowResize() {
@@ -437,7 +635,8 @@ class SolarSystemApp {
       const y = simDate.getFullYear();
       const m = String(simDate.getMonth() + 1).padStart(2, '0');
       const d = String(simDate.getDate()).padStart(2, '0');
-      dateEl.textContent = `${y}-${m}-${d} (+${Math.round(this.simDaysElapsed)} 天)`;
+      const isEn = this.currentLang === 'en';
+      dateEl.textContent = `${y}-${m}-${d} (+${Math.round(this.simDaysElapsed)} ${isEn ? 'days' : '天'})`;
     }
   }
 
@@ -448,14 +647,17 @@ class SolarSystemApp {
     const timeEl = document.getElementById('telem-time');
     const distEl = document.getElementById('telem-dist');
     const statusEl = document.getElementById('telem-status');
+    const isEn = this.currentLang === 'en';
 
     if (progBar) progBar.style.width = `${telem.progressPct}%`;
     if (progText) progText.textContent = `${telem.progressPct}%`;
     if (speedEl) speedEl.textContent = `${telem.currentSpeedKps} km/s`;
-    if (timeEl) timeEl.textContent = `${telem.elapsedDays} / ${telem.totalDays} 天`;
+    if (timeEl) timeEl.textContent = `${telem.elapsedDays} / ${telem.totalDays} ${isEn ? 'days' : '天'}`;
     if (distEl) distEl.textContent = `${telem.distToTargetKm} km`;
     if (statusEl) {
-      statusEl.textContent = telem.isArrived ? '✅ 成功泊入目标环绕轨道！' : '🚀 霍曼转移轨道巡航中...';
+      statusEl.textContent = telem.isArrived
+        ? (isEn ? '✅ Successfully parked into target orbit!' : '✅ 成功泊入目标环绕轨道！')
+        : (isEn ? '🚀 Cruising Hohmann transfer orbit...' : '🚀 霍曼转移轨道巡航中...');
       statusEl.style.color = telem.isArrived ? '#4ade80' : '#38bdf8';
     }
   }

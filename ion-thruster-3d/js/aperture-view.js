@@ -5,12 +5,27 @@
 
 import { calculateApertureOptics } from './physics.js';
 import { playClickSound } from './audio.js';
+import { THRUSTER_I18N } from './i18n.js';
 
 let modalEl = null;
 let canvasEl = null;
 let ctx2d = null;
 let isOpen = false;
 let animFrameId = null;
+let apertureLang = 'zh';
+
+export function setApertureLanguage(lang) {
+  apertureLang = lang;
+  updateGridBtnText();
+}
+
+function updateGridBtnText() {
+  const gridBtn = document.getElementById('apertureGridBtn');
+  if (gridBtn) {
+    const dict = THRUSTER_I18N[apertureLang] || THRUSTER_I18N.zh;
+    gridBtn.textContent = isThreeGrid ? dict.aperture.threeGrid : dict.aperture.twoGrid;
+  }
+}
 
 // Aperture simulation state
 let currentScreenV = 1500;
@@ -64,7 +79,7 @@ export function initApertureView() {
   if (gridBtn) {
     gridBtn.addEventListener('click', () => {
       isThreeGrid = !isThreeGrid;
-      gridBtn.textContent = isThreeGrid ? '当前：三栅极 (Screen + Accel + Decel)' : '当前：双栅极 (Screen + Accel)';
+      updateGridBtnText();
       gridBtn.classList.toggle('active', isThreeGrid);
       playClickSound();
     });
@@ -144,12 +159,22 @@ function renderApertureFrame(dt) {
   const marginEl = document.getElementById('apertureMarginVal');
   const pervEl = document.getElementById('aperturePervVal');
 
+  const dict = THRUSTER_I18N[apertureLang] || THRUSTER_I18N.zh;
+  const isEn = apertureLang === 'en';
+
   if (regimeEl) {
-    regimeEl.textContent = optics.regime === 'OPTIMAL' ? '✅ 最佳匹配 (Optimal)' :
-      (optics.regime === 'UNDER_FOCUSED' ? '⚠️ 欠聚焦 (Under-focused / Impingement)' : '⚡ 过聚焦 (Over-focused)');
+    let tag = dict.aperture.regimes.optimal;
+    if (optics.regime === 'UNDER_FOCUSED') tag = dict.aperture.regimes.under;
+    else if (optics.regime === 'OVER_FOCUSED') tag = dict.aperture.regimes.over;
+    regimeEl.textContent = tag;
     regimeEl.className = 'regime-tag ' + optics.regime.toLowerCase();
   }
-  if (descEl) descEl.textContent = optics.descZh;
+  if (descEl) {
+    let desc = dict.aperture.desc.optimal;
+    if (optics.regime === 'UNDER_FOCUSED') desc = dict.aperture.desc.under;
+    else if (optics.regime === 'OVER_FOCUSED') desc = dict.aperture.desc.over;
+    descEl.textContent = desc;
+  }
   if (marginEl) marginEl.textContent = `${optics.safeMarginPct.toFixed(1)}%`;
   if (pervEl) pervEl.textContent = `${optics.perveanceRatio.toFixed(2)}`;
 
@@ -209,13 +234,17 @@ function renderApertureFrame(dt) {
   // Label Meniscus
   ctx2d.fillStyle = '#7dd3fc';
   ctx2d.font = '11px sans-serif';
-  ctx2d.fillText('等离子体鞘层 (Meniscus 静电凹透镜)', xScreen - 2.2 * scale, cy - rScreenAperture - 8);
+  const meniscusLabel = isEn ? 'Plasma Sheath (Meniscus Lens)' : '等离子体鞘层 (Meniscus 静电凹透镜)';
+  ctx2d.fillText(meniscusLabel, xScreen - 2.2 * scale, cy - rScreenAperture - 8);
 
   // 4. Draw Grid Plates (Cross-section upper & lower blocks)
-  drawGridPlate(ctx2d, xScreen, cy, screenThick, rScreenAperture, h, '#ef4444', `屏栅极 (+${currentScreenV}V)`);
-  drawGridPlate(ctx2d, xAccel, cy, accelThick, rAccelAperture, h, '#3b82f6', `加速栅 (${currentAccelV}V)`);
+  const screenLabel = isEn ? `Screen Grid (+${currentScreenV}V)` : `屏栅极 (+${currentScreenV}V)`;
+  const accelLabel = isEn ? `Accel Grid (${currentAccelV}V)` : `加速栅 (${currentAccelV}V)`;
+  const decelLabel = isEn ? 'Decel Grid (0V Ground)' : '减速栅 (0V 地电位)';
+  drawGridPlate(ctx2d, xScreen, cy, screenThick, rScreenAperture, h, '#ef4444', screenLabel);
+  drawGridPlate(ctx2d, xAccel, cy, accelThick, rAccelAperture, h, '#3b82f6', accelLabel);
   if (isThreeGrid) {
-    drawGridPlate(ctx2d, xDecel, cy, decelThick, rDecelAperture, h, '#10b981', '减速栅 (0V 地电位)');
+    drawGridPlate(ctx2d, xDecel, cy, decelThick, rDecelAperture, h, '#10b981', decelLabel);
   }
 
   // 5. Simulate & Draw Ion Beamlets flowing through aperture

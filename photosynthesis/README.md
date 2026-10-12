@@ -52,4 +52,4 @@ python3 build.py                   # 生成单文件
 | Ruben & Kamen ¹⁸O (1941)、Priestley 1771、Ingenhousz 1779 | Khan Academy / Wikipedia: Sam Ruben |
 | Z 方案电子传递链 | rseco.org 'Z-scheme electron flow'; LibreTexts |
 | GPP ≈ 120 Gt C/年 | Liao et al. 2023 (Sci Data); NASA SVS |
-| 太阳能板 24% 量产 / 27.81% 纪录 | 本仓库 solar-cell 项目已核实（LONGi HIBC 2025） |
+| 太阳能板 24% 量产 / 28.29% 纪录 | 本仓库 solar-cell 项目已核实（LONGi HIBC 2026-09） |

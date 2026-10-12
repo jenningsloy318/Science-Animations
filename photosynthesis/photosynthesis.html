@@ -4,6 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>光合作用 · 一片叶子里的能量工厂</title>
+<script>
+  (function() {
+    try {
+      var p = new URLSearchParams(window.location.search).get('lang');
+      var s = (p === 'zh' || p === 'en') ? p : null;
+      if (!s) s = localStorage.getItem('science_lang');
+      if (!s && navigator.language) s = navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+      var lang = (s === 'en' ? 'en' : 'zh');
+      document.documentElement.lang = (lang === 'zh' ? 'zh-CN' : 'en');
+      document.documentElement.classList.add('i18n-loading');
+    } catch(e) {}
+  })();
+</script>
 <style>
   :root {
     --bg: #060b12; --panel: rgba(12, 20, 32, 0.92); --line: rgba(255,255,255,0.10);
@@ -23,6 +36,41 @@
     color: var(--txt); font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap;
     pointer-events: auto; transition: background .25s ease, border-color .25s ease; }
   .homeBtn:hover { background: rgba(30,41,59,0.95); border-color: rgba(148,163,184,0.45); color: #fff; }
+
+  /* ── language switcher pill ── */
+  .lang-switch {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(15,23,42,0.82);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 2px;
+    pointer-events: auto;
+  }
+  .lang-btn {
+    background: transparent;
+    border: none;
+    color: var(--mut);
+    padding: 4px 9px;
+    font-size: 12px;
+    font-family: inherit;
+    font-weight: 500;
+    border-radius: 999px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    line-height: 1;
+    transition: all .2s ease;
+  }
+  .lang-btn:hover { color: var(--txt); }
+  .lang-btn.active {
+    background: rgba(74,222,128,0.18);
+    color: var(--green);
+    font-weight: 600;
+  }
+  .i18n-loading [data-i18n] { visibility: hidden; }
+
   .tab { pointer-events: auto; background: var(--panel); border: 1px solid var(--line); color: var(--mut);
     border-radius: 999px; padding: 7px 16px; font-size: 13px; cursor: pointer; }
   .tab:hover { color: var(--txt); }
@@ -85,93 +133,97 @@
   <canvas id="zscheme" width="360" height="205"></canvas>
 
   <div id="topbar">
-    <a class="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
-    <h1>光合作用</h1>
-    <button class="tab active" data-view="story">① 一图看懂</button>
-    <button class="tab" data-view="leaf">② 叶子里</button>
-    <button class="tab" data-view="light">③ 光反应 + 拼糖</button>
-    <button class="tab" data-view="facts">④ 数字与真相</button>
+    <a id="homeBtn" class="homeBtn" href="../index.html" title="返回首页 Back to home" data-i18n="nav.home">🏠 首页</a>
+    <div class="lang-switch" role="group" aria-label="Language Switcher">
+      <button id="btnLangZh" class="lang-btn active" data-lang-btn="zh">🇨🇳 中文</button>
+      <button id="btnLangEn" class="lang-btn" data-lang-btn="en">🇬🇧 EN</button>
+    </div>
+    <h1 data-i18n="photo.title">光合作用</h1>
+    <button class="tab active" data-view="story" data-i18n="photo.tab_story">① 一图看懂</button>
+    <button class="tab" data-view="leaf" data-i18n="photo.tab_leaf">② 叶子里</button>
+    <button class="tab" data-view="light" data-i18n="photo.tab_light">③ 光反应 + 拼糖</button>
+    <button class="tab" data-view="facts" data-i18n="photo.tab_facts">④ 数字与真相</button>
   </div>
 
   <!-- ⓪ 一图看懂 -->
   <div class="viewpanel active" data-panel="story">
-    <h2>光合作用，一句话<small>讲给小朋友</small></h2>
-    <div class="formula" style="font-size:15px">光 + 水 + 二氧化碳 → 糖 + 氧气</div>
-    <p><b>植物是一座“吃阳光的糖工厂”</b>：它从空气里抓住二氧化碳，从根里喝水，在阳光下把这两样拼成自己的食物——糖；顺便送给我们氧气。</p>
-    <div class="stat"><span>💧 喝掉的水</span><b id="hSwater" style="color:var(--cyan)">0</b></div>
-    <div class="stat"><span>💨 抓住的二氧化碳</span><b id="hSco2" style="color:#cfd8e3">0</b></div>
-    <div class="stat"><span>🍬 拼出的糖</span><b id="hSsugar" style="color:var(--green)">0</b></div>
-    <div class="stat"><span>😮‍💨 送出的氧气</span><b id="hSo2" style="color:#fff">0</b></div>
-    <p style="font-size:11.5px">点 <b>▶ 一分钟故事</b>，让相机带你逐句看。后面的标签是给想深入的小朋友准备的。</p>
+    <h2><span data-i18n="photo.story_h2">光合作用，一句话</span><small data-i18n="photo.story_sub">讲给小朋友</small></h2>
+    <div class="formula" style="font-size:15px" data-i18n="photo.story_formula">光 + 水 + 二氧化碳 → 糖 + 氧气</div>
+    <p data-i18n="photo.story_desc"><b>植物是一座“吃阳光的糖工厂”</b>：它从空气里抓住二氧化碳，从根里喝水，在阳光下把这两样拼成自己的食物——糖；顺便送给我们氧气。</p>
+    <div class="stat"><span data-i18n="photo.stat_water">💧 喝掉的水</span><b id="hSwater" style="color:var(--cyan)">0</b></div>
+    <div class="stat"><span data-i18n="photo.stat_co2">💨 抓住的二氧化碳</span><b id="hSco2" style="color:#cfd8e3">0</b></div>
+    <div class="stat"><span data-i18n="photo.stat_sugar">🍬 拼出的糖</span><b id="hSsugar" style="color:var(--green)">0</b></div>
+    <div class="stat"><span data-i18n="photo.stat_o2">😮‍💨 送出的氧气</span><b id="hSo2" style="color:#fff">0</b></div>
+    <p style="font-size:11.5px" data-i18n="photo.story_tip">点 <b>▶ 一分钟故事</b>，让相机带你逐句看。后面的标签是给想深入的小朋友准备的。</p>
     <div class="facts">
-      <div class="fact green"><b>为什么重要</b> — 你吃的米饭、面包、肉，能量都能追回到这片“糖工厂”；你呼出的二氧化碳也会被它抓回去。</div>
-      <div class="fact gold"><b>氧气从哪来</b> — 空气里的氧，大半是这座工厂 24 亿年来放出的“副产品”。</div>
+      <div class="fact green" data-i18n="photo.story_fact1"><b>为什么重要</b> — 你吃的米饭、面包、肉，能量都能追回到这片“糖工厂”；你呼出的二氧化碳也会被它抓回去。</div>
+      <div class="fact gold" data-i18n="photo.story_fact2"><b>氧气从哪来</b> — 空气里的氧，大半是这座工厂 24 亿年来放出的“副产品”。</div>
     </div>
   </div>
 
   <!-- ① 叶子里 -->
   <div class="viewpanel" data-panel="leaf">
-    <h2>工厂在哪？<small>三级放大，一页看完</small></h2>
-    <p>这张图从左到右连着看：<b>① 叶片横切</b> → 金圈挑出一个细胞 → <b>② 放大它</b>：里面漂着绿色“豆豆”（叶绿体）→ 金圈挑出一个豆豆 → <b>③ 再放大</b>：一摞摞“硬币”叫<b>基粒</b>（光反应在它膜上），周围液体叫<b>基质</b>（拼糖循环在这）。</p>
-    <p>点 <b>🎬 自动导览</b>，相机会带你依次飞近三级；随时拖动画面自己看。</p>
+    <h2><span data-i18n="photo.leaf_h2">工厂在哪？</span><small data-i18n="photo.leaf_sub">三级放大，一页看完</small></h2>
+    <p data-i18n="photo.leaf_p1">这张图从左到右连着看：<b>① 叶片横切</b> → 金圈挑出一个细胞 → <b>② 放大它</b>：里面漂着绿色“豆豆”（叶绿体）→ 金圈挑出一个豆豆 → <b>③ 再放大</b>：一摞摞“硬币”叫<b>基粒</b>（光反应在它膜上），周围液体叫<b>基质</b>（拼糖循环在这）。</p>
+    <p data-i18n="photo.leaf_p2">点 <b>🎬 自动导览</b>，相机会带你依次飞近三级；随时拖动画面自己看。</p>
     <div class="facts">
-      <div class="fact green"><b>叶绿体</b> — 一个细胞里约 20–100 个，是细胞里的“太阳能车间”。</div>
-      <div class="fact"><b>类囊体</b> — 基粒里一层层薄膜；阳光在这里被装进“电池”。</div>
-      <div class="fact gold"><b>总账</b> — 每合成 1 mol 葡萄糖储存 2870 kJ 能量，全部来自光子。</div>
+      <div class="fact green" data-i18n="photo.leaf_fact1"><b>叶绿体</b> — 一个细胞里约 20–100 个，是细胞里的“太阳能车间”。</div>
+      <div class="fact" data-i18n="photo.leaf_fact2"><b>类囊体</b> — 基粒里一层层薄膜；阳光在这里被装进“电池”。</div>
+      <div class="fact gold" data-i18n="photo.leaf_fact3"><b>总账</b> — 每合成 1 mol 葡萄糖储存 2870 kJ 能量，全部来自光子。</div>
     </div>
   </div>
 
   <!-- ③ 光反应 + 拼糖 -->
   <div class="viewpanel" data-panel="light">
-    <h2>一台完整的机器<small>充电 + 拼糖 · 同屏看</small></h2>
+    <h2><span data-i18n="photo.light_h2">一台完整的机器</span><small data-i18n="photo.light_sub">充电 + 拼糖 · 同屏看</small></h2>
     
     <div style="display:flex;gap:8px;margin:8px 0 6px">
-      <button class="btn on" id="mLightLive" style="flex:1;text-align:center">⚡ 连续运转</button>
-      <button class="btn" id="mLightTour" style="flex:1;text-align:center">🎬 讲透四步曲</button>
+      <button class="btn on" id="mLightLive" style="flex:1;text-align:center" data-i18n="photo.btn_live">⚡ 连续运转</button>
+      <button class="btn" id="mLightTour" style="flex:1;text-align:center" data-i18n="photo.btn_tour">🎬 讲透四步曲</button>
     </div>
     <div id="tourStepList" style="display:none;gap:4px;margin-bottom:8px">
-      <button class="btn cur" data-tour="1" style="flex:1;padding:4px 2px;font-size:11px">① 全景叶绿体</button>
-      <button class="btn" data-tour="2" style="flex:1;padding:4px 2px;font-size:11px">② 膜上发电</button>
-      <button class="btn" data-tour="3" style="flex:1;padding:4px 2px;font-size:11px">③ 能量专线</button>
-      <button class="btn" data-tour="4" style="flex:1;padding:4px 2px;font-size:11px">④ 基质拼糖</button>
+      <button class="btn cur" data-tour="1" style="flex:1;padding:4px 2px;font-size:11px" data-i18n="photo.tour_step1">① 全景叶绿体</button>
+      <button class="btn" data-tour="2" style="flex:1;padding:4px 2px;font-size:11px" data-i18n="photo.tour_step2">② 膜上发电</button>
+      <button class="btn" data-tour="3" style="flex:1;padding:4px 2px;font-size:11px" data-i18n="photo.tour_step3">③ 能量专线</button>
+      <button class="btn" data-tour="4" style="flex:1;padding:4px 2px;font-size:11px" data-i18n="photo.tour_step4">④ 基质拼糖</button>
     </div>
 
-    <div class="formula">光能 → 电子电梯 → H⁺ 大坝水压 → ATP + NADPH 电池 → 拼装出糖</div>
+    <div class="formula" data-i18n="photo.light_formula">光能 → 电子电梯 → H⁺ 大坝水压 → ATP + NADPH 电池 → 拼装出糖</div>
 
     <div class="legend">
-      <span><i class="dot" style="background:#ffd54a"></i>光子</span>
-      <span><i class="dot" style="background:#38bdf8"></i>e⁻ 电子</span>
-      <span><i class="dot" style="background:#f43f5e"></i>H⁺ 质子</span>
-      <span><i class="dot" style="background:#f8fafc"></i>O₂ 氧气</span>
-      <span><i class="dot" style="background:#f59e0b"></i>🔋ATP满电</span>
-      <span><i class="dot" style="background:#78716c"></i>🪫ADP待充</span>
-      <span><i class="dot" style="background:#a855f7"></i>⚡NADPH满载</span>
-      <span><i class="dot" style="background:#6b7280"></i>📦NADP⁺待装</span>
-      <span><i class="dot" style="background:#1e293b;border:1px solid #ef4444"></i>1碳 CO₂</span>
-      <span><i class="dot" style="background:#22c55e"></i>3碳糖 G3P</span>
+      <span><i class="dot" style="background:#ffd54a"></i><span data-i18n="photo.legend_photon">光子</span></span>
+      <span><i class="dot" style="background:#38bdf8"></i><span data-i18n="photo.legend_electron">e⁻ 电子</span></span>
+      <span><i class="dot" style="background:#f43f5e"></i><span data-i18n="photo.legend_proton">H⁺ 质子</span></span>
+      <span><i class="dot" style="background:#f8fafc"></i><span data-i18n="photo.legend_o2">O₂ 氧气</span></span>
+      <span><i class="dot" style="background:#f59e0b"></i><span data-i18n="photo.legend_atp_full">🔋ATP满电</span></span>
+      <span><i class="dot" style="background:#78716c"></i><span data-i18n="photo.legend_adp_empty">🪫ADP待充</span></span>
+      <span><i class="dot" style="background:#a855f7"></i><span data-i18n="photo.legend_nadph_full">⚡NADPH满载</span></span>
+      <span><i class="dot" style="background:#6b7280"></i><span data-i18n="photo.legend_nadp_empty">📦NADP⁺待装</span></span>
+      <span><i class="dot" style="background:#1e293b;border:1px solid #ef4444"></i><span data-i18n="photo.legend_co2">1碳 CO₂</span></span>
+      <span><i class="dot" style="background:#22c55e"></i><span data-i18n="photo.legend_g3p">3碳糖 G3P</span></span>
     </div>
 
     <div class="steps" id="stepList">
-      <div data-step="1">① 光子打入 PSII：电子乘<b>阳光电梯 1</b> 跃迁（水被拆开放出 O₂ 与 H⁺）</div>
-      <div data-step="3">② 电子滑过 b6f：做功像<b>抽水泵把 H⁺ 压入腔内大坝</b></div>
-      <div data-step="5">③ 电子到 PSI 没劲了：第二个光子启动<b>阳光电梯 2</b> 再次激发</div>
-      <div data-step="6">④ FNR 酶把高能电子和 H⁺ 封装入 NADP⁺ → <b>NADPH 满载电池</b></div>
-      <div data-step="4">⑤ 腔内高压 H⁺ 喷涌推动水轮机 → 旋转压出 <b>ATP 满电电池</b></div>
+      <div data-step="1" data-i18n="photo.step1">① 光子打入 PSII：电子乘<b>阳光电梯 1</b> 跃迁（水被拆开放出 O₂ 与 H⁺）</div>
+      <div data-step="3" data-i18n="photo.step2">② 电子滑过 b6f：做功像<b>抽水泵把 H⁺ 压入腔内大坝</b></div>
+      <div data-step="5" data-i18n="photo.step3">③ 电子到 PSI 没劲了：第二个光子启动<b>阳光电梯 2</b> 再次激发</div>
+      <div data-step="6" data-i18n="photo.step4">④ FNR 酶把高能电子和 H⁺ 封装入 NADP⁺ → <b>NADPH 满载电池</b></div>
+      <div data-step="4" data-i18n="photo.step5">⑤ 腔内高压 H⁺ 喷涌推动水轮机 → 旋转压出 <b>ATP 满电电池</b></div>
     </div>
 
-    <div class="stat"><span>😮‍💨 O₂ 放出</span><b id="hO2" style="color:#fff">0</b></div>
-    <div class="stat"><span>🔋 满格电池（ATP / NADPH）</span><b><span id="hBatAtp" style="color:var(--orange)">0</span> / <span id="hBatNadph" style="color:var(--violet)">0</span></b></div>
-    <div class="stat"><span>🍬 拼糖圈数</span><b id="hTurns" style="color:var(--cyan)">0</b></div>
-    <div class="stat"><span>🧱 净得糖块（G3P）</span><b id="hG3p" style="color:var(--green)">0</b></div>
-    <div class="stat"><span>放氧复合体（Kok 态）</span><b id="hKok" style="color:var(--cyan)">S1</b></div>
+    <div class="stat"><span data-i18n="photo.stat_o2_out">😮‍💨 O₂ 放出</span><b id="hO2" style="color:#fff">0</b></div>
+    <div class="stat"><span data-i18n="photo.stat_battery">🔋 满格电池（ATP / NADPH）</span><b><span id="hBatAtp" style="color:var(--orange)">0</span> / <span id="hBatNadph" style="color:var(--violet)">0</span></b></div>
+    <div class="stat"><span data-i18n="photo.stat_turns">🍬 拼糖圈数</span><b id="hTurns" style="color:var(--cyan)">0</b></div>
+    <div class="stat"><span data-i18n="photo.stat_g3p">🧱 净得糖块（G3P）</span><b id="hG3p" style="color:var(--green)">0</b></div>
+    <div class="stat"><span data-i18n="photo.stat_kok">放氧复合体（Kok 态）</span><b id="hKok" style="color:var(--cyan)">S1</b></div>
 
     <!-- 独立与联系 · 遮光探索实验 -->
     <div id="expCoupling" style="margin-top:10px;padding:9px 12px;background:rgba(56,189,248,0.08);border:1px solid rgba(56,189,248,0.3);border-radius:10px">
       <div style="font-weight:bold;color:var(--cyan);display:flex;justify-content:space-between;align-items:center">
-        <span>🔬 独立与联系 · 遮光小实验</span>
-        <button class="btn" id="bCutLight" style="padding:2px 9px;font-size:11px;background:rgba(244,63,94,0.15);border-color:rgba(244,63,94,0.4);color:#fda4af">🌑 关掉太阳</button>
+        <span data-i18n="photo.exp_title">🔬 独立与联系 · 遮光小实验</span>
+        <button class="btn" id="bCutLight" style="padding:2px 9px;font-size:11px;background:rgba(244,63,94,0.15);border-color:rgba(244,63,94,0.4);color:#fda4af" data-i18n="photo.exp_btn_off">🌑 关掉太阳</button>
       </div>
-      <div id="expCouplingMsg" style="font-size:11.5px;color:var(--txt);margin-top:5px;line-height:1.45">
+      <div id="expCouplingMsg" style="font-size:11.5px;color:var(--txt);margin-top:5px;line-height:1.45" data-i18n="photo.exp_msg_init">
         点“关掉太阳”观察：光反应立刻断电，但拼糖车间如何利用【存量电池】独立继续运转！
       </div>
     </div>
@@ -179,60 +231,64 @@
     <!-- 部件交互科普卡片 -->
     <div id="lightInspector" style="margin-top:10px;padding:9px 12px;background:rgba(255,255,255,0.05);border-radius:10px;border:1px solid var(--line)">
       <div style="font-weight:bold;color:var(--gold);display:flex;justify-content:space-between">
-        <span id="inspTitle">💡 点击 3D 部件看大白话档案</span>
-        <span id="inspTag" style="font-size:11px;color:var(--mut)">可随时点击</span>
+        <span id="inspTitle" data-i18n="photo.insp_default_title">💡 点击 3D 部件看大白话档案</span>
+        <span id="inspTag" style="font-size:11px;color:var(--mut)" data-i18n="photo.insp_default_tag">可随时点击</span>
       </div>
       <div id="inspMetaphor" style="font-size:12px;color:var(--green);margin:4px 0;font-weight:600"></div>
-      <div id="inspDesc" style="font-size:11.5px;color:var(--txt);line-height:1.5">拖动旋转场景，点击膜上的蛋白质、旋转的水轮机或拼糖车间，揭秘微观机器的精妙分工！</div>
+      <div id="inspDesc" style="font-size:11.5px;color:var(--txt);line-height:1.5" data-i18n="photo.insp_default_desc">拖动旋转场景，点击膜上的蛋白质、旋转的水轮机或拼糖车间，揭秘微观机器的精妙分工！</div>
+      <div id="inspIO" style="display:none;margin-top:8px;padding-top:7px;border-top:1px dashed rgba(255,255,255,0.15);font-size:11.5px;line-height:1.6">
+        <div style="color:var(--cyan)"><b id="inspInLabel" data-i18n="photo.insp_in_label">输入 (Inputs)：</b><span id="inspInVal"></span></div>
+        <div style="color:var(--orange)"><b id="inspOutLabel" data-i18n="photo.insp_out_label">输出 (Outputs)：</b><span id="inspOutVal"></span></div>
+      </div>
     </div>
 
     <div class="facts" style="margin-top:10px">
-      <div class="fact green"><b>为什么叫“拼糖”？</b> 空气中的 CO₂ 只有 1 个碳，是散落的积木。植物用 5 碳抓手（RuBP）把它们抓牢，并消耗光反应做好的化学电池（ATP 与 NADPH）注入高能量，拼合成真正的食物——糖（G3P）。</div>
-      <div class="fact gold"><b>为什么要充两次电？</b> 阳光单个光子的能量不足以一口气把电子从水直接顶上 NADPH。大自然巧妙设计了两个“阳光充电站”（PSII 和 PSI），接力把电子能量推上巅峰！</div>
-      <div class="fact"><b>暗反应真的不需要光吗？</b> 暗反应本身不需要光子直接轰击，但它极其依赖光反应送来的新鲜 ATP 和 NADPH 电池；如果长时间没光，电池耗尽，拼糖车间立刻停摆！</div>
+      <div class="fact green" data-i18n="photo.light_fact1"><b>为什么叫“拼糖”？</b> 空气中的 CO₂ 只有 1 个碳，是散落的积木。植物用 5 碳抓手（RuBP）把它们抓牢，并消耗光反应做好的化学电池（ATP 与 NADPH）注入高能量，拼合成真正的食物——糖（G3P）。</div>
+      <div class="fact gold" data-i18n="photo.light_fact2"><b>为什么要充两次电？</b> 阳光单个光子的能量不足以一口气把电子从水直接顶上 NADPH。大自然巧妙设计了两个“阳光充电站”（PSII 和 PSI），接力把电子能量推上巅峰！</div>
+      <div class="fact" data-i18n="photo.light_fact3"><b>暗反应真的不需要光吗？</b> 暗反应本身不需要光子直接轰击，但它极其依赖光反应送来的新鲜 ATP 和 NADPH 电池；如果长时间没光，电池耗尽，拼糖车间立刻停摆！</div>
     </div>
   </div>
 
   <!-- ④ 数字与真相 -->
   <div class="viewpanel" data-panel="facts">
-    <h2>数字与真相<small>全部来自已核实来源</small></h2>
-    <p><b>为什么叶子是绿色的？</b> 叶绿素强吸收蓝光（约 430 nm）和红光（约 662 nm），把绿光（约 550 nm）反射回你的眼睛。1882 年 Engelmann 用好氧菌找出"哪种颜色的光最管用"——红光和蓝光。</p>
-    <div class="stat"><span>放 1 个 O₂ 的光子账单</span><b style="color:var(--gold)">8–10 个</b></div>
-    <div class="stat"><span>植物理论效率上限</span><b style="color:var(--green)">C3 4.6% · C4 6%</b></div>
-    <div class="stat"><span>实际田间作物</span><b style="color:var(--txt)">约 1–2%</b></div>
-    <div class="stat"><span>商品太阳能板（对比）</span><b style="color:var(--orange)">约 24%</b></div>
-    <p style="font-size:12px;margin-top:8px"><b>规模</b>：陆地光合作用每年固碳约 120 Gt；大气里的 O₂ 至少一半来自海洋浮游植物。约 24 亿年前，光合细菌引发的"大氧化事件"永远改写了大气。</p>
+    <h2><span data-i18n="photo.facts_h2">数字与真相</span><small data-i18n="photo.facts_sub">全部来自已核实来源</small></h2>
+    <p data-i18n="photo.facts_p1"><b>为什么叶子是绿色的？</b> 叶绿素强吸收蓝光（约 430 nm）和红光（约 662 nm），把绿光（约 550 nm）反射回你的眼睛。1882 年 Engelmann 用好氧菌找出"哪种颜色的光最管用"——红光和蓝光。</p>
+    <div class="stat"><span data-i18n="photo.facts_stat1">放 1 个 O₂ 的光子账单</span><b style="color:var(--gold)" data-i18n="photo.facts_stat1_val">8–10 个</b></div>
+    <div class="stat"><span data-i18n="photo.facts_stat2">植物理论效率上限</span><b style="color:var(--green)">C3 4.6% · C4 6%</b></div>
+    <div class="stat"><span data-i18n="photo.facts_stat3">实际田间作物</span><b style="color:var(--txt)" data-i18n="photo.facts_stat3_val">约 1–2%</b></div>
+    <div class="stat"><span data-i18n="photo.facts_stat4">商品太阳能板（对比）</span><b style="color:var(--orange)" data-i18n="photo.facts_stat4_val">约 24%</b></div>
+    <p style="font-size:12px;margin-top:8px" data-i18n="photo.facts_p2"><b>规模</b>：陆地光合作用每年固碳约 120 Gt；大气里的 O₂ 至少一半来自海洋浮游植物。约 24 亿年前，光合细菌引发的"大氧化事件"永远改写了大气。</p>
     <ul class="tl">
-      <li><b>1771</b>Priestley：薄荷"净化"蜡烛烧坏的空气</li>
-      <li><b>1779</b>Ingenhousz：只有绿色植物在光下才这么做</li>
-      <li><b>1882</b>Engelmann：细菌找红光——作用光谱</li>
-      <li><b>1941</b>Ruben & Kamen：¹⁸O 证实 O₂ 来自水</li>
-      <li><b>1961</b>Calvin：¹⁴C 解出固碳循环（诺贝尔奖）</li>
+      <li data-i18n="photo.tl_1"><b>1771</b>Priestley：薄荷"净化"蜡烛烧坏的空气</li>
+      <li data-i18n="photo.tl_2"><b>1779</b>Ingenhousz：只有绿色植物在光下才这么做</li>
+      <li data-i18n="photo.tl_3"><b>1882</b>Engelmann：细菌找红光——作用光谱</li>
+      <li data-i18n="photo.tl_4"><b>1941</b>Ruben & Kamen：¹⁸O 证实 O₂ 来自水</li>
+      <li data-i18n="photo.tl_5"><b>1961</b>Calvin：¹⁴C 解出固碳循环（诺贝尔奖）</li>
     </ul>
   </div>
 
   <div id="bottomBar">
     <div class="viewbar active" data-bar="story">
-      <button class="btn" id="bStory">▶ 一分钟故事</button>
-      <button class="btn" id="bStoryPause">⏸ 暂停</button>
-      <button class="btn" id="bStoryHome">⟲ 回到全景</button>
+      <button class="btn" id="bStory" data-i18n="photo.btn_story_play">▶ 一分钟故事</button>
+      <button class="btn" id="bStoryPause" data-i18n="photo.btn_pause">⏸ 暂停</button>
+      <button class="btn" id="bStoryHome" data-i18n="photo.btn_home_view">⟲ 回到全景</button>
     </div>
     <div class="viewbar" data-bar="leaf">
-      <button class="btn" id="bLeafTour">🎬 自动导览</button>
-      <button class="btn" id="bLeafPause">⏸ 暂停</button>
-      <button class="btn" id="bLeafHome">⟲ 回到全景</button>
+      <button class="btn" id="bLeafTour" data-i18n="photo.btn_leaf_tour">🎬 自动导览</button>
+      <button class="btn" id="bLeafPause" data-i18n="photo.btn_pause">⏸ 暂停</button>
+      <button class="btn" id="bLeafHome" data-i18n="photo.btn_home_view">⟲ 回到全景</button>
     </div>
     <div class="viewbar" data-bar="light">
-      <button class="btn" id="bLightTour">🎬 讲透四步曲</button>
-      <button class="btn" id="bLightPause">⏸ 暂停</button>
-      <button class="btn" id="bLightHome">⟲ 回到全景</button>
-      <button class="btn on" id="bLabels">🏷 标签</button>
-      <div class="ctl"><label>光强</label><input type="range" id="rLight" min="0.3" max="2.5" step="0.1" value="1"><output id="oLight">1.0×</output></div>
-      <div class="ctl"><label>速度</label><input type="range" id="rSpeed" min="0.4" max="2.5" step="0.1" value="1"><output id="oSpeed">1.0×</output></div>
+      <button class="btn" id="bLightTour" data-i18n="photo.btn_tour">🎬 讲透四步曲</button>
+      <button class="btn" id="bLightPause" data-i18n="photo.btn_pause">⏸ 暂停</button>
+      <button class="btn" id="bLightHome" data-i18n="photo.btn_home_view">⟲ 回到全景</button>
+      <button class="btn on" id="bLabels" data-i18n="photo.btn_labels">🏷 标签</button>
+      <div class="ctl"><label data-i18n="photo.ctl_light">光强</label><input type="range" id="rLight" min="0.3" max="2.5" step="0.1" value="1"><output id="oLight">1.0×</output></div>
+      <div class="ctl"><label data-i18n="photo.ctl_speed">速度</label><input type="range" id="rSpeed" min="0.4" max="2.5" step="0.1" value="1"><output id="oSpeed">1.0×</output></div>
     </div>
     <div class="viewbar" data-bar="facts">
-      <button class="btn" id="bFactsPause">⏸ 暂停</button>
-      <div class="ctl"><label>视角</label><input type="range" id="rFacts" min="0" max="2" step="1" value="0"><output id="oFacts">吸收光谱</output></div>
+      <button class="btn" id="bFactsPause" data-i18n="photo.btn_pause">⏸ 暂停</button>
+      <div class="ctl"><label data-i18n="photo.ctl_view">视角</label><input type="range" id="rFacts" min="0" max="2" step="1" value="0"><output id="oFacts" data-i18n="photo.view_spectrum">吸收光谱</output></div>
     </div>
   </div>
 
@@ -241,11 +297,11 @@
     border-radius:16px;padding:14px 26px;font-size:19px;line-height:1.7;color:#ffe9ae;text-align:center;
     box-shadow:0 6px 30px rgba(0,0,0,0.45);"></div>
 
-  <span class="badge">真实生化过程 · 示意几何 · 数据来源见 README</span>
+  <span class="badge" data-i18n="photo.badge">真实生化过程 · 示意几何 · 数据来源见 README</span>
 
   <script>
 (() => {
-  // vendor/three.module.js
+  // photosynthesis/vendor/three.module.js
   var REVISION = "160";
   var MOUSE = { LEFT: 0, MIDDLE: 1, RIGHT: 2, ROTATE: 0, DOLLY: 1, PAN: 2 };
   var TOUCH = { ROTATE: 0, PAN: 1, DOLLY_PAN: 2, DOLLY_ROTATE: 3 };
@@ -22950,7 +23006,7 @@
     }
   }
 
-  // vendor/addons/controls/OrbitControls.js
+  // photosynthesis/vendor/addons/controls/OrbitControls.js
   var _changeEvent = { type: "change" };
   var _startEvent = { type: "start" };
   var _endEvent = { type: "end" };
@@ -23664,7 +23720,7 @@
     }
   };
 
-  // js/sprite.js
+  // photosynthesis/js/sprite.js
   function makeLabel(text, color = "#dbe4ee", size = 44) {
     const pad = 24;
     const c = document.createElement("canvas");
@@ -23690,7 +23746,47 @@
     const sp = new Sprite(mat);
     sp.scale.set(c.width / 110, c.height / 110, 1);
     sp.renderOrder = 50;
+    sp.userData.canvas = c;
+    sp.userData.tex = tex;
+    sp.userData.color = color;
+    sp.userData.size = size;
+    sp.userData.scaleScalar = 1;
     return sp;
+  }
+  function updateLabel(sp, text, color, size) {
+    if (!sp || !sp.userData) return;
+    const c = sp.userData.canvas;
+    const tex = sp.userData.tex;
+    if (!c || !tex) return;
+    if (color) sp.userData.color = color;
+    if (size) sp.userData.size = size;
+    const sz = sp.userData.size || 44;
+    const col = sp.userData.color || "#dbe4ee";
+    const pad = 24;
+    const g = c.getContext("2d");
+    g.font = `bold ${sz}px "PingFang SC", sans-serif`;
+    const w = Math.ceil(g.measureText(text).width) + pad * 2;
+    c.width = w;
+    c.height = sz + pad * 2;
+    const g2 = c.getContext("2d");
+    g2.font = `bold ${sz}px "PingFang SC", sans-serif`;
+    g2.textAlign = "center";
+    g2.textBaseline = "middle";
+    g2.lineJoin = "round";
+    g2.strokeStyle = "rgba(6,11,18,0.92)";
+    g2.lineWidth = 6;
+    g2.strokeText(text, c.width / 2, c.height / 2);
+    g2.fillStyle = col;
+    g2.fillText(text, c.width / 2, c.height / 2);
+    tex.needsUpdate = true;
+    const s = sp.userData.scaleScalar ?? 1;
+    sp.scale.set(c.width / 110 * s, c.height / 110 * s, 1);
+    if (sp.userData.baseScale) {
+      sp.userData.baseScale.copy(sp.scale);
+    }
+    if (sp.userData.base) {
+      sp.userData.base.copy(sp.scale);
+    }
   }
   function makeSphere(r, color, opts = {}) {
     return new Mesh(
@@ -23713,7 +23809,348 @@
     );
   }
 
-  // js/story.js
+  // common/js/i18n.js
+  var MemoryStorage = {
+    _data: {},
+    getItem(key) {
+      return Object.prototype.hasOwnProperty.call(this._data, key) ? this._data[key] : null;
+    },
+    setItem(key, val) {
+      this._data[key] = String(val);
+    },
+    removeItem(key) {
+      delete this._data[key];
+    },
+    clear() {
+      this._data = {};
+    }
+  };
+  function getSafeStorage() {
+    try {
+      if (typeof window !== "undefined" && window.localStorage) {
+        const testKey = "__i18n_test__";
+        window.localStorage.setItem(testKey, "1");
+        window.localStorage.removeItem(testKey);
+        return window.localStorage;
+      }
+    } catch (e) {
+    }
+    return MemoryStorage;
+  }
+  var ScienceI18n = class {
+    constructor(options = {}) {
+      this.storage = options.storage || getSafeStorage();
+      this.storageKey = options.storageKey || "science_lang";
+      this.legacyKey = options.legacyKey || "collider_lang";
+      this.dict = options.dict || {};
+      this.listeners = /* @__PURE__ */ new Set();
+      this.currentLang = this.resolveInitialLang(options.defaultLang);
+      this.lang = this.currentLang;
+      if (options.onLangChange) {
+        this.subscribe(options.onLangChange);
+      }
+      if (typeof window !== "undefined") {
+        window.addEventListener("popstate", () => {
+          const newLang = this.resolveInitialLang();
+          if (newLang !== this.currentLang) {
+            this.setLanguage(newLang, { fromPopState: true });
+          }
+        });
+        window.addEventListener("storage", (e) => {
+          if (e.key === this.storageKey && (e.newValue === "zh" || e.newValue === "en")) {
+            if (e.newValue !== this.currentLang) {
+              this.setLanguage(e.newValue, { fromStorage: true });
+            }
+          }
+        });
+      }
+    }
+    resolveInitialLang(defaultLang) {
+      if (typeof window !== "undefined" && window.location) {
+        try {
+          const search = window.location.search;
+          if (search) {
+            const params = new URLSearchParams(search);
+            const urlLang = params.get("lang");
+            if (urlLang === "zh" || urlLang === "en") {
+              this.persist(urlLang);
+              return urlLang;
+            }
+          }
+          const hash = window.location.hash;
+          if (hash) {
+            const match = hash.match(/[?&#]lang=(zh|en)/i);
+            if (match && (match[1] === "zh" || match[1] === "en")) {
+              const hashLang = match[1].toLowerCase();
+              this.persist(hashLang);
+              return hashLang;
+            }
+          }
+        } catch (e) {
+        }
+      }
+      try {
+        const saved = this.storage.getItem(this.storageKey);
+        if (saved === "zh" || saved === "en") return saved;
+      } catch (e) {
+      }
+      if (this.legacyKey) {
+        try {
+          const leg = this.storage.getItem(this.legacyKey);
+          if (leg === "zh" || leg === "en") {
+            this.persist(leg);
+            return leg;
+          }
+        } catch (e) {
+        }
+      }
+      if (defaultLang === "zh" || defaultLang === "en") {
+        return defaultLang;
+      }
+      if (typeof navigator !== "undefined") {
+        const nav = (navigator.language || navigator.userLanguage || "").toLowerCase();
+        if (nav.startsWith("zh")) return "zh";
+      }
+      return "zh";
+    }
+    persist(lang) {
+      try {
+        this.storage.setItem(this.storageKey, lang);
+        if (this.legacyKey) {
+          this.storage.setItem(this.legacyKey, lang);
+        }
+      } catch (e) {
+      }
+    }
+    setLanguage(lang, options = {}) {
+      if (lang !== "zh" && lang !== "en") return;
+      const changed = this.currentLang !== lang;
+      this.currentLang = lang;
+      this.lang = lang;
+      if (!options.fromStorage) {
+        this.persist(lang);
+      }
+      if (typeof window !== "undefined" && window.speechSynthesis) {
+        try {
+          window.speechSynthesis.cancel();
+        } catch (e) {
+        }
+      }
+      if (!options.fromPopState && typeof window !== "undefined" && window.history && window.location) {
+        try {
+          const url = new URL(window.location.href);
+          if (url.searchParams.get("lang") !== lang) {
+            url.searchParams.set("lang", lang);
+            window.history.replaceState(null, "", url.toString());
+          }
+        } catch (e) {
+          try {
+            const search = window.location.search;
+            const params = new URLSearchParams(search);
+            params.set("lang", lang);
+            const newSearch = "?" + params.toString();
+            if (newSearch !== window.location.search) {
+              window.history.replaceState(null, "", window.location.pathname + newSearch + window.location.hash);
+            }
+          } catch (e2) {
+          }
+        }
+      }
+      this.applyToDOM();
+      if (changed) {
+        for (const listener of this.listeners) {
+          try {
+            listener(lang);
+          } catch (err) {
+            console.error("[i18n] listener error:", err);
+          }
+        }
+      }
+    }
+    setLang(lang, options) {
+      this.setLanguage(lang, options);
+    }
+    subscribe(fn) {
+      if (typeof fn === "function") {
+        this.listeners.add(fn);
+        return () => this.listeners.delete(fn);
+      }
+      return () => {
+      };
+    }
+    loadDict(dict) {
+      if (dict && typeof dict === "object") {
+        Object.assign(this.dict, dict);
+        this.applyToDOM();
+      }
+    }
+    /**
+     * Translate key with optional params interpolation: t('greeting', { name: 'Alice' })
+     * Fallback resolution: key in current lang -> key in 'zh' -> fallback string -> key name
+     */
+    t(key, paramsOrFallback, maybeFallback) {
+      let params = null;
+      let fallback = "";
+      if (paramsOrFallback && typeof paramsOrFallback === "object") {
+        params = paramsOrFallback;
+        fallback = typeof maybeFallback === "string" ? maybeFallback : "";
+      } else if (typeof paramsOrFallback === "string") {
+        fallback = paramsOrFallback;
+      }
+      const entry = this.dict[key];
+      let val = "";
+      if (entry) {
+        if (typeof entry === "string") {
+          val = entry;
+        } else {
+          val = entry[this.currentLang] || entry.zh || entry.en || fallback || key;
+        }
+      } else {
+        val = fallback || key;
+      }
+      if (params && typeof val === "string") {
+        val = val.replace(/{(\w+)}/g, (_, k) => {
+          return Object.prototype.hasOwnProperty.call(params, k) ? params[k] : `{${k}}`;
+        });
+      }
+      return val;
+    }
+    formatNumber(num, options = {}) {
+      const locale = this.currentLang === "zh" ? "zh-CN" : "en-US";
+      return Number(num).toLocaleString(locale, options);
+    }
+    formatDays(days) {
+      const num = this.formatNumber(days);
+      return this.currentLang === "zh" ? `${num} \u5929` : `${num} days`;
+    }
+    applyToDOM(root = typeof document !== "undefined" ? document : null) {
+      if (!root) return;
+      if (typeof document !== "undefined" && document.documentElement) {
+        document.documentElement.lang = this.currentLang === "zh" ? "zh-CN" : "en";
+        document.documentElement.classList.remove("i18n-loading");
+      }
+      const langBtns = root.querySelectorAll ? root.querySelectorAll("[data-lang-btn], [data-lang]") : [];
+      langBtns.forEach((btn) => {
+        const targetLang = btn.dataset.langBtn || btn.dataset.lang;
+        const isActive = targetLang === this.currentLang;
+        btn.classList.toggle("active", isActive);
+        btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+      });
+      const textEls = root.querySelectorAll ? root.querySelectorAll("[data-i18n]") : [];
+      textEls.forEach((el) => {
+        const key = el.getAttribute("data-i18n");
+        if (key) {
+          const text = this.t(key);
+          if (text !== void 0 && text !== null) {
+            el.textContent = text;
+          }
+        }
+      });
+      const htmlEls = root.querySelectorAll ? root.querySelectorAll("[data-i18n-html]") : [];
+      htmlEls.forEach((el) => {
+        const key = el.getAttribute("data-i18n-html");
+        if (key) {
+          const html = this.t(key);
+          if (html !== void 0 && html !== null) {
+            el.innerHTML = html;
+          }
+        }
+      });
+      const titleEls = root.querySelectorAll ? root.querySelectorAll("[data-i18n-title]") : [];
+      titleEls.forEach((el) => {
+        const key = el.getAttribute("data-i18n-title");
+        if (key) {
+          el.setAttribute("title", this.t(key));
+        }
+      });
+      const ariaEls = root.querySelectorAll ? root.querySelectorAll("[data-i18n-aria]") : [];
+      ariaEls.forEach((el) => {
+        const key = el.getAttribute("data-i18n-aria");
+        if (key) {
+          el.setAttribute("aria-label", this.t(key));
+        }
+      });
+      const placeholderEls = root.querySelectorAll ? root.querySelectorAll("[data-i18n-placeholder]") : [];
+      placeholderEls.forEach((el) => {
+        const key = el.getAttribute("data-i18n-placeholder");
+        if (key) {
+          el.setAttribute("placeholder", this.t(key));
+        }
+      });
+      const homeBtns = root.querySelectorAll ? root.querySelectorAll("#homeBtn, .home-btn, a[data-home-link]") : [];
+      homeBtns.forEach((btn) => {
+        const baseHref = btn.getAttribute("data-base-href") || btn.getAttribute("href") || "../index.html";
+        const cleanHref = baseHref.split("?")[0].split("#")[0];
+        btn.setAttribute("data-base-href", cleanHref);
+        btn.setAttribute("href", `${cleanHref}?lang=${this.currentLang}`);
+      });
+    }
+    // Bind a newly created dynamic DOM container (e.g. in motion-parallax dynamic views)
+    bind(container) {
+      if (container) {
+        this.applyToDOM(container);
+      }
+    }
+    /**
+     * Helper: Update Three.js TextSprite texture without GPU memory leak
+     * Keeps base height constant (H_BASE) and scales width by canvas aspect ratio.
+     */
+    updateTextSprite(sprite, text, options = {}) {
+      if (!sprite || !sprite.material || !sprite.material.map) return;
+      const canvas2 = sprite.material.map.image;
+      if (!canvas2 || !canvas2.getContext) return;
+      const ctx = canvas2.getContext("2d");
+      const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+      const fontSize = (options.fontSize || 24) * dpr;
+      const fontFace = options.fontFace || '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      const color = options.color || "#ffffff";
+      const bgColor = options.bgColor || "transparent";
+      ctx.font = `${options.fontWeight || "normal"} ${fontSize}px ${fontFace}`;
+      const metrics = ctx.measureText(text);
+      const textWidth = metrics.width;
+      const textHeight = fontSize * 1.3;
+      const padding = (options.padding || 8) * dpr;
+      const neededW = Math.max(64, Math.ceil(textWidth + padding * 2));
+      const neededH = Math.max(32, Math.ceil(textHeight + padding * 2));
+      if (canvas2.width !== neededW || canvas2.height !== neededH) {
+        canvas2.width = neededW;
+        canvas2.height = neededH;
+      }
+      ctx.clearRect(0, 0, canvas2.width, canvas2.height);
+      if (bgColor !== "transparent") {
+        ctx.fillStyle = bgColor;
+        if (options.borderRadius) {
+          const r = options.borderRadius * dpr;
+          ctx.beginPath();
+          if (ctx.roundRect) {
+            ctx.roundRect(0, 0, canvas2.width, canvas2.height, r);
+          } else {
+            ctx.rect(0, 0, canvas2.width, canvas2.height);
+          }
+          ctx.fill();
+        } else {
+          ctx.fillRect(0, 0, canvas2.width, canvas2.height);
+        }
+      }
+      ctx.font = `${options.fontWeight || "normal"} ${fontSize}px ${fontFace}`;
+      ctx.fillStyle = color;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(text, canvas2.width / 2, canvas2.height / 2);
+      sprite.material.map.needsUpdate = true;
+      const baseH = options.baseHeight || sprite.userData.baseHeight || 1;
+      sprite.userData.baseHeight = baseH;
+      const aspect2 = canvas2.width / canvas2.height;
+      sprite.scale.set(baseH * aspect2, baseH, 1);
+    }
+  };
+  var i18n = new ScienceI18n();
+  if (typeof window !== "undefined") {
+    window.ScienceI18n = ScienceI18n;
+    window.scienceI18n = i18n;
+  }
+
+  // photosynthesis/js/story.js
   var C = { photon: 16766282, water: 6928383, co2: 11187394, o2: 15398655, sugar: 13166698 };
   function buildStory() {
     const scene = new Scene();
@@ -23747,7 +24184,8 @@
     const leaf = new Mesh(leafGeo, leafMat);
     leaf.position.set(0, 2.6, 0);
     scene.add(leaf);
-    const leafLabel = makeLabel("\u53F6\u5B50 = \u7CD6\u5DE5\u5382", "#9ff0b5");
+    const leafLabel = makeLabel(i18n.t("photo.story_lbl_leaf"), "#9ff0b5");
+    leafLabel.userData.i18nKey = "photo.story_lbl_leaf";
     leafLabel.position.set(0, -3.4, 0);
     scene.add(leafLabel);
     const stem = new Mesh(
@@ -23762,22 +24200,27 @@
     );
     sun.position.set(-11.5, 9.5, -3);
     scene.add(sun);
-    const sunLabel = makeLabel("\u2600 \u9633\u5149\uFF08\u80FD\u91CF\uFF09", "#ffd54a");
+    const sunLabel = makeLabel(i18n.t("photo.story_lbl_sun"), "#ffd54a");
+    sunLabel.userData.i18nKey = "photo.story_lbl_sun";
     sunLabel.position.set(-11.5, 12.2, -3);
     scene.add(sunLabel);
     const sunGlow = new PointLight("#ffd54a", 60, 50, 2);
     sunGlow.position.copy(sun.position);
     scene.add(sunGlow);
-    const waterLabel = makeLabel("\u{1F4A7} \u6C34\uFF08\u6839\u9001\u4E0A\u6765\uFF09", "#7dd3fc");
+    const waterLabel = makeLabel(i18n.t("photo.story_lbl_water"), "#7dd3fc");
+    waterLabel.userData.i18nKey = "photo.story_lbl_water";
     waterLabel.position.set(-6.8, -7.6, 0);
     scene.add(waterLabel);
-    const co2Label = makeLabel("\u{1F4A8} \u4E8C\u6C27\u5316\u78B3\uFF08\u4ECE\u7A7A\u6C14\uFF09", "#cfd8e3");
+    const co2Label = makeLabel(i18n.t("photo.story_lbl_co2"), "#cfd8e3");
+    co2Label.userData.i18nKey = "photo.story_lbl_co2";
     co2Label.position.set(9.2, 7.8, 0);
     scene.add(co2Label);
-    const o2Label = makeLabel("\u{1F62E}\u200D\u{1F4A8} \u6C27\u6C14\uFF08\u6211\u4EEC\u547C\u5438\uFF01\uFF09", "#ffffff");
+    const o2Label = makeLabel(i18n.t("photo.story_lbl_o2"), "#ffffff");
+    o2Label.userData.i18nKey = "photo.story_lbl_o2";
     o2Label.position.set(6.8, 12.6, 0);
     scene.add(o2Label);
-    const sugarLabel = makeLabel("\u{1F36C} \u7CD6\uFF08\u690D\u7269\u7684\u98DF\u7269\uFF09", "#dbe86a");
+    const sugarLabel = makeLabel(i18n.t("photo.story_lbl_sugar"), "#dbe86a");
+    sugarLabel.userData.i18nKey = "photo.story_lbl_sugar";
     sugarLabel.position.set(-7.6, 5.6, 0);
     scene.add(sugarLabel);
     const allLabels = [leafLabel, sunLabel, waterLabel, co2Label, o2Label, sugarLabel];
@@ -23826,13 +24269,13 @@
       state.captionEl.style.display = "none";
       setDim(null);
       const b = document.getElementById("bStory");
-      b.textContent = "\u25B6 \u4E00\u5206\u949F\u6545\u4E8B";
+      b.textContent = i18n.t("photo.btn_story_play");
       b.classList.remove("on");
     }
     function setPaused(v) {
       state.paused = v;
       const b = document.getElementById("bStoryPause");
-      b.textContent = v ? "\u25B6 \u7EE7\u7EED" : "\u23F8 \u6682\u505C";
+      b.textContent = v ? i18n.t("photo.btn_resume") : i18n.t("photo.btn_pause");
       b.classList.toggle("on", v);
     }
     document.getElementById("bStoryPause").addEventListener("click", () => setPaused(!state.paused));
@@ -23850,7 +24293,7 @@
         setPaused(false);
         state.story = 0;
         state.storyT = 0;
-        e.target.textContent = "\u23F9 \u505C\u6B62\u6545\u4E8B";
+        e.target.textContent = i18n.t("photo.btn_story_stop");
         e.target.classList.add("on");
       }
     });
@@ -23985,7 +24428,7 @@
         camera.position.lerp(w.cam, Math.min(1, dt * 2));
         controls.target.lerp(w.target, Math.min(1, dt * 2));
         state.captionEl.style.display = "block";
-        state.captionEl.textContent = CAPTIONS[state.story];
+        state.captionEl.textContent = i18n.t(`photo.story_cap_${state.story}`);
         setDim(STEP_FOCUS[state.story]);
         if (state.storyT > 6.5) {
           state.storyT = 0;
@@ -23997,18 +24440,33 @@
       }
       controls.update();
     }
+    function onLangChange(lang) {
+      allLabels.forEach((l) => {
+        if (l.userData.i18nKey) {
+          updateLabel(l, i18n.t(l.userData.i18nKey));
+        }
+      });
+      const bStory = document.getElementById("bStory");
+      if (bStory) bStory.textContent = state.story >= 0 ? i18n.t("photo.btn_story_stop") : i18n.t("photo.btn_story_play");
+      const bPause = document.getElementById("bStoryPause");
+      if (bPause) bPause.textContent = state.paused ? i18n.t("photo.btn_resume") : i18n.t("photo.btn_pause");
+      if (state.story >= 0 && state.captionEl) {
+        state.captionEl.textContent = i18n.t(`photo.story_cap_${state.story}`);
+      }
+    }
     return {
       scene,
       camera,
       update,
       refreshHUD,
+      onLangChange,
       getInfo() {
         return { ...state.counts, story: state.story };
       }
     };
   }
 
-  // js/chloroplast.js
+  // photosynthesis/js/chloroplast.js
   function buildLeaf() {
     const scene = new Scene();
     scene.background = new Color("#060b12");
@@ -24027,6 +24485,7 @@
     const allLabels = [];
     const bigLabel = (l) => {
       l.scale.multiplyScalar(4.2);
+      l.userData.scaleScalar = (l.userData.scaleScalar || 1) * 4.2;
       l.userData.base = l.scale.clone();
       allLabels.push(l);
       return l;
@@ -24065,10 +24524,12 @@
         st.position.set(-12 + i * 6, -3.3, 0);
         leaf.add(st);
       }
-      const l = bigLabel(makeLabel("\u2460 \u8FD9\u662F\u4E00\u7247\u53F6\u5B50\uFF08\u6A2A\u5207\u9762\uFF09", "#9ff0b5"));
+      const l = bigLabel(makeLabel(i18n.t("photo.leaf_lbl_section"), "#9ff0b5"));
+      l.userData.i18nKey = "photo.leaf_lbl_section";
       l.position.set(0, 8.4, 0);
       leaf.add(l);
-      const sun = bigLabel(makeLabel("\u2600 \u9633\u5149\u4ECE\u8FD9\u91CC\u8FDB\u6765", "#ffd54a"));
+      const sun = bigLabel(makeLabel(i18n.t("photo.leaf_lbl_sun"), "#ffd54a"));
+      sun.userData.i18nKey = "photo.leaf_lbl_sun";
       sun.position.set(6, 6.2, 0);
       leaf.add(sun);
     }
@@ -24109,10 +24570,12 @@
         ch.rotation.y = i * 0.7;
         cell.add(ch);
       });
-      const l = bigLabel(makeLabel("\u2461 \u653E\u5927\u5176\u4E2D\u4E00\u4E2A\u7EC6\u80DE", "#9ff0b5"));
+      const l = bigLabel(makeLabel(i18n.t("photo.leaf_lbl_cell"), "#9ff0b5"));
+      l.userData.i18nKey = "photo.leaf_lbl_cell";
       l.position.set(0, 13.8, 0);
       cell.add(l);
-      const l2 = bigLabel(makeLabel("\u7EFF\u8272\u8C46\u8C46 = \u53F6\u7EFF\u4F53", "#d6ffe2"));
+      const l2 = bigLabel(makeLabel(i18n.t("photo.leaf_lbl_chloro_dots"), "#d6ffe2"));
+      l2.userData.i18nKey = "photo.leaf_lbl_chloro_dots";
       l2.position.set(0, -8, 6);
       cell.add(l2);
     }
@@ -24163,17 +24626,20 @@
       lam2.position.set(-3.6, -0.4, 0);
       lam2.rotation.z = -0.1;
       big.add(lam2);
-      const l = bigLabel(makeLabel("\u2462 \u518D\u653E\u5927\uFF1A\u53F6\u7EFF\u4F53\uFF08\u5256\u5F00\uFF09", "#9ff0b5"));
+      const l = bigLabel(makeLabel(i18n.t("photo.leaf_lbl_chloro_cut"), "#9ff0b5"));
+      l.userData.i18nKey = "photo.leaf_lbl_chloro_cut";
       l.position.set(0, 12.2, 0);
       big.add(l);
-      const l2 = bigLabel(makeLabel("\u786C\u5E01\u5806 = \u57FA\u7C92\uFF08\u5149\u53CD\u5E94\u2461\u5728\u8FD9\u5C42\u819C\u4E0A\uFF09", "#ffd54a"));
+      const l2 = bigLabel(makeLabel(i18n.t("photo.leaf_lbl_grana"), "#ffd54a"));
+      l2.userData.i18nKey = "photo.leaf_lbl_grana";
       l2.position.set(0, -9.2, 5);
       big.add(l2);
-      const l3 = bigLabel(makeLabel("\u5468\u56F4\u6DB2\u4F53 = \u57FA\u8D28\uFF08\u5408\u6210\u5FAA\u73AF\u2462\u5728\u8FD9\uFF09", "#7dd3fc"));
+      const l3 = bigLabel(makeLabel(i18n.t("photo.leaf_lbl_stroma"), "#7dd3fc"));
+      l3.userData.i18nKey = "photo.leaf_lbl_stroma";
       l3.position.set(0, -12, 5);
       big.add(l3);
     }
-    function zoomWedge(fromWorld, ringR, toPanelX, halfH, label) {
+    function zoomWedge(fromWorld, ringR, toPanelX, halfH, labelKey) {
       const a1 = new Vector2(fromWorld.x - ringR * 0.75, fromWorld.y + ringR * 0.9);
       const a2 = new Vector2(fromWorld.x - ringR * 0.75, fromWorld.y - ringR * 0.9);
       const b1 = new Vector2(toPanelX, fromWorld.y + halfH);
@@ -24200,20 +24666,23 @@
         ), lineMat);
         scene.add(line);
       });
-      const l = bigLabel(makeLabel(label, "#ffd54a"));
+      const l = bigLabel(makeLabel(i18n.t(labelKey), "#ffd54a"));
       l.scale.multiplyScalar(0.8);
+      l.userData.scaleScalar = (l.userData.scaleScalar || 1) * 0.8;
+      l.userData.base = l.scale.clone();
+      l.userData.i18nKey = labelKey;
       l.position.set((fromWorld.x + toPanelX) / 2, fromWorld.y + halfH + 1.4, 0);
       scene.add(l);
     }
     const hlAWorld = HL_A.clone().multiplyScalar(0.45).add(leaf.position);
     const hlBWorld = HL_B.clone().multiplyScalar(0.9).add(new Vector3(cell.position.x, 0, 0));
-    zoomWedge(hlAWorld, 2.1 * 0.45, cell.position.x - 11.5, 10.4, "\u653E\u5927 \u2192");
-    zoomWedge(hlBWorld, 1.9 * 0.9, big.position.x - 10.6, 7.6, "\u518D\u653E\u5927 \u2192");
+    zoomWedge(hlAWorld, 2.1 * 0.45, cell.position.x - 11.5, 10.4, "photo.leaf_lbl_zoom1");
+    zoomWedge(hlBWorld, 1.9 * 0.9, big.position.x - 10.6, 7.6, "photo.leaf_lbl_zoom2");
     const HOME = { cam: new Vector3(6.7, 3, 70), target: new Vector3(6.7, 0, 0) };
     const TOUR = [
-      { cam: new Vector3(-34, 1.5, 16), target: new Vector3(-34, 0, 0), name: "\u2460 \u53F6\u7247\u6A2A\u5207" },
-      { cam: new Vector3(-6, 1.5, 16), target: new Vector3(-6, 0, 0), name: "\u2461 \u53F6\u8089\u7EC6\u80DE" },
-      { cam: new Vector3(19.5, 2, 15), target: new Vector3(19.5, 0.5, 0), name: "\u2462 \u53F6\u7EFF\u4F53" }
+      { cam: new Vector3(-34, 1.5, 16), target: new Vector3(-34, 0, 0), key: "photo.leaf_tour_1" },
+      { cam: new Vector3(-6, 1.5, 16), target: new Vector3(-6, 0, 0), key: "photo.leaf_tour_2" },
+      { cam: new Vector3(19.5, 2, 15), target: new Vector3(19.5, 0.5, 0), key: "photo.leaf_tour_3" }
     ];
     camera.position.copy(HOME.cam);
     controls.target.copy(HOME.target);
@@ -24226,7 +24695,7 @@
       if (state.tour >= 0) {
         state.tour = -1;
         setPaused(false);
-        e.target.textContent = "\u{1F3AC} \u81EA\u52A8\u5BFC\u89C8";
+        e.target.textContent = i18n.t("photo.btn_leaf_tour");
         e.target.classList.remove("on");
         controls.enabled = true;
         flyTo(HOME.cam, HOME.target, 0.999);
@@ -24234,7 +24703,7 @@
         setPaused(false);
         state.tour = 0;
         state.t = 0;
-        e.target.textContent = "\u23F9 \u505C\u6B62\u5BFC\u89C8";
+        e.target.textContent = i18n.t("photo.btn_leaf_stop");
         e.target.classList.add("on");
         controls.enabled = false;
       }
@@ -24242,7 +24711,7 @@
     function setPaused(v) {
       state.paused = v;
       const b = document.getElementById("bLeafPause");
-      b.textContent = v ? "\u25B6 \u7EE7\u7EED" : "\u23F8 \u6682\u505C";
+      b.textContent = v ? i18n.t("photo.btn_resume") : i18n.t("photo.btn_pause");
       b.classList.toggle("on", v);
     }
     document.getElementById("bLeafPause").addEventListener("click", () => setPaused(!state.paused));
@@ -24250,7 +24719,7 @@
       setPaused(false);
       state.tour = -1;
       const b = document.getElementById("bLeafTour");
-      b.textContent = "\u{1F3AC} \u81EA\u52A8\u5BFC\u89C8";
+      b.textContent = i18n.t("photo.btn_leaf_tour");
       b.classList.remove("on");
       controls.enabled = true;
     });
@@ -24282,17 +24751,29 @@
       }
       controls.update();
     }
+    function onLangChange(lang) {
+      for (const l of allLabels) {
+        if (l.userData.i18nKey) {
+          updateLabel(l, i18n.t(l.userData.i18nKey));
+        }
+      }
+      const bTour = document.getElementById("bLeafTour");
+      if (bTour) bTour.textContent = state.tour >= 0 ? i18n.t("photo.btn_leaf_stop") : i18n.t("photo.btn_leaf_tour");
+      const bPause = document.getElementById("bLeafPause");
+      if (bPause) bPause.textContent = state.paused ? i18n.t("photo.btn_resume") : i18n.t("photo.btn_pause");
+    }
     return {
       scene,
       camera,
       update,
+      onLangChange,
       getInfo() {
-        return { tour: state.tour, name: state.tour >= 0 ? TOUR[state.tour].name : "\u5168\u666F" };
+        return { tour: state.tour, name: state.tour >= 0 ? i18n.t(TOUR[state.tour].key) : "\u5168\u666F" };
       }
     };
   }
 
-  // js/facts.js
+  // photosynthesis/js/facts.js
   var ABSORPTION = {
     chlA: [430, 662],
     chlB: [455, 642],
@@ -24306,24 +24787,29 @@
   var H_PER_ATP = ATP_SYNTHASE.hPerTurn / ATP_SYNTHASE.atpPerTurn;
   var CALVIN = {
     atpPerCO2: 3,
+    // PROV: derived | 卡尔文循环计量 | - | 3 ATP/CO₂
     nadphPerCO2: 2,
+    // PROV: derived | 卡尔文循环计量 | - | 2 NADPH/CO₂
     g3pPerTurns: 3,
-    // 每 3 圈净得 1 个 G3P（5/6 回收再生）
+    // PROV: derived | 卡尔文循环计量 | - | 3 圈净得 1 个 G3P（5/6 回收再生）  // 每 3 圈净得 1 个 G3P（5/6 回收再生）
     co2PerGlucose: 6,
+    // PROV: derived | 卡尔文循环计量 | - | 6 CO₂
     atpPerGlucose: 18,
+    // PROV: derived | 卡尔文循环计量 | - | 18 ATP
     nadphPerGlucose: 12,
+    // PROV: derived | 卡尔文循环计量 | - | 12 NADPH
     rubiscoKcat: 3
-    // 约每秒 3 次——著名地慢
+    // PROV: measured | Rubisco 综述 | - | ≈3 s⁻¹  // 约每秒 3 次——著名地慢
   };
   var EFFICIENCY = [
     { key: "crop", zh: "\u5B9E\u9645\u4F5C\u7269\uFF08\u7530\u95F4\uFF09", pct: 1.5, note: "1\u20132%" },
     { key: "c3", zh: "C3 \u7406\u8BBA\u4E0A\u9650", pct: 4.6, note: "Zhu et al. 2008" },
     { key: "c4", zh: "C4 \u7406\u8BBA\u4E0A\u9650", pct: 6, note: "Zhu et al. 2008" },
     { key: "pv", zh: "\u5546\u54C1\u592A\u9633\u80FD\u677F", pct: 24, note: "\u91CF\u4EA7\u7EC4\u4EF6" },
-    { key: "pvRecord", zh: "\u592A\u9633\u80FD\u677F\u7EAA\u5F55", pct: 27.8, note: "LONGi HIBC 2025" }
+    { key: "pvRecord", zh: "\u592A\u9633\u80FD\u677F\u7EAA\u5F55", pct: 28.29, note: "LONGi HIBC 2026-09" }
   ];
 
-  // js/light.js
+  // photosynthesis/js/light.js
   var C2 = {
     photon: 16766282,
     electron: 3718648,
@@ -24381,17 +24867,19 @@
     const labels = [];
     const leaderLines = [];
     const clickables = [];
-    function addLabel(text, color, x, y, k = 1) {
-      const l = makeLabel(text, color);
+    function addLabel(key, color, x, y, k = 1) {
+      const l = makeLabel(i18n.t(key), color);
       l.scale.multiplyScalar(k * 0.95);
+      l.userData.scaleScalar = k * 0.95;
       l.userData.baseScale = l.scale.clone();
+      l.userData.i18nKey = key;
       l.position.set(x, y, 0.2);
       scene.add(l);
       labels.push(l);
       return l;
     }
-    function addComponentLabel(text, color, lx, ly, tx, ty, k = 0.85) {
-      const l = addLabel(text, color, lx, ly, k);
+    function addComponentLabel(key, color, lx, ly, tx, ty, k = 0.85) {
+      const l = addLabel(key, color, lx, ly, k);
       const line = new Line(
         new BufferGeometry().setFromPoints([new Vector3(lx, ly - 0.5, 0.1), new Vector3(tx, ty, 0.1)]),
         new LineBasicMaterial({ color: 9741240, transparent: true, opacity: 0.45 })
@@ -24428,7 +24916,7 @@
     );
     envelopeLine.position.set(0.5, 0.8, -2.6);
     scene.add(envelopeLine);
-    addLabel("\u{1F343} \u53F6\u7EFF\u4F53\u5185\u90E8\u5FAE\u5B87\u5B99 (Chloroplast Matrix \xB7 \u7EDF\u4E00\u751F\u547D\u673A\u5668)", "#10b981", 0.5, 11.2, 1.15);
+    addLabel("photo.lbl_chloro_matrix", "#10b981", 0.5, 11.2, 1.15);
     const stromaDust = [];
     for (let i = 0; i < 40; i++) {
       const dot = makeGlowDot(0.08 + Math.random() * 0.08, 1096065);
@@ -24453,8 +24941,8 @@
     );
     lightZoneBackdrop.position.set(lumenCenterX, 0.8, -1.8);
     scene.add(lightZoneBackdrop);
-    addLabel("\u{1F3ED} \u8FC7\u7A0B \u2460 \xB7 \u5149\u53CD\u5E94\u53D1\u7535\u5DE5\u573A (\u7C7B\u56CA\u4F53\u819C\u7CFB\u7EDF)", "#38bdf8", lumenCenterX, 6.1, 1.05);
-    addLabel("\u6C34\u88C2\u53D1\u653E\u6C27 \xB7 \u8D28\u5B50\u6C34\u5E93\u5927\u575D \xB7 \u7EB3\u7C73\u6C34\u8F6E\u673A\u538B\u5236\u6EE1\u7535\u7535\u6C60", "#94a3b8", lumenCenterX, 5.5, 0.75);
+    addLabel("photo.lbl_light_zone", "#38bdf8", lumenCenterX, 6.1, 1.05);
+    addLabel("photo.lbl_light_zone_sub", "#94a3b8", lumenCenterX, 5.5, 0.75);
     const lumenBox = new Mesh(
       new BoxGeometry(lumenWidth, 3.4, 2.2),
       new MeshStandardMaterial({
@@ -24472,7 +24960,7 @@
     const lineBox = new LineSegments(edges, new LineBasicMaterial({ color: 3718648, transparent: true, opacity: 0.35 }));
     lineBox.position.copy(lumenBox.position);
     scene.add(lineBox);
-    addLabel("\u7C7B\u56CA\u4F53\u8154 \xB7 \u8D28\u5B50\u6C34\u5E93 (\u9AD8\u538B\u84C4\u6C34\u5927\u575D \xB7 \u5145\u76C8 H\u207A)", "#7dd3fc", lumenCenterX, -4.3, 0.88);
+    addLabel("photo.lbl_lumen_dam", "#7dd3fc", lumenCenterX, -4.3, 0.88);
     const flowTrack = new Mesh(
       new BoxGeometry(5, 0.08, 0.08),
       new MeshBasicMaterial({ color: 16007006, transparent: true, opacity: 0.6 })
@@ -24483,7 +24971,7 @@
     flowHead.rotation.z = -Math.PI / 2;
     flowHead.position.set(1.4, -1.8, 0.4);
     scene.add(flowHead);
-    addLabel("H\u207A \u987A\u6C34\u52BF\u51B2\u5411\u6C34\u8F6E\u673A \u2192", "#f43f5e", -1.2, -2.5, 0.85);
+    addLabel("photo.lbl_hplus_flow", "#f43f5e", -1.2, -2.5, 0.85);
     const membrane = new Group();
     scene.add(membrane);
     const headMat = new MeshStandardMaterial({
@@ -24504,7 +24992,7 @@
     );
     coreLayer.position.set(lumenCenterX, 0, 0);
     membrane.add(coreLayer);
-    function makeProtein(x, y, w, h, d, color, name, desc) {
+    function makeProtein(x, y, w, h, d, color, key) {
       const geo = new CylinderGeometry(w / 2, w / 2, h, 20);
       const mat = new MeshStandardMaterial({
         color,
@@ -24517,22 +25005,13 @@
       m.scale.set(1, 1, d / w);
       m.position.set(x, y, 0);
       scene.add(m);
-      m.userData = { name, desc };
-      clickables.push({ mesh: m, name, desc });
+      m.userData = { key };
+      clickables.push({ mesh: m, key });
       return m;
     }
     const psiiX = -12.2;
-    const psii = makeProtein(
-      psiiX,
-      0.2,
-      2.6,
-      2.4,
-      2.2,
-      C2.psii,
-      "\u5149\u7CFB\u7EDF II (PSII / P680)",
-      "\u3010\u9633\u5149\u7535\u68AF 1 \u53F7 + \u62C6\u6C34\u653E\u6C27\u3011\u53F6\u7EFF\u7D20\u5438\u6536\u5149\u5B50\uFF0C\u5C06\u7535\u5B50\u9876\u4E0A\u9AD8\u80FD\u6001\uFF1B\u5E95\u90E8\u9530\u7C07\uFF08OEC\uFF09\u4ECE\u6C34\u91CC\u593A\u8D70\u7535\u5B50\u8865\u4F4D\uFF0C\u6C34\u88AB\u62C6\u5F00\u91CA\u653E O\u2082 \u548C H\u207A\uFF01"
-    );
-    addComponentLabel("\u2460 PSII \xB7 \u62C6\u6C34\u653E\u6C27", "#34d399", psiiX, 4.4, psiiX, 1.4);
+    const psii = makeProtein(psiiX, 0.2, 2.6, 2.4, 2.2, C2.psii, "psii");
+    addComponentLabel("photo.lbl_psii", "#34d399", psiiX, 4.4, psiiX, 1.4);
     const chlRing = new Group();
     for (let i = 0; i < 8; i++) {
       const ang = i / 8 * Math.PI * 2;
@@ -24552,19 +25031,10 @@
     const ca = makeSphere(0.16, 16347926, { ei: 0.5 });
     ca.position.set(0, 0, 0.15);
     oecGroup.add(ca);
-    addLabel("OEC \u9530\u7C07 (\u62C6\u6C34\u5200)", "#c4b5fd", psiiX - 1.6, -1.3, 0.75);
+    addLabel("photo.lbl_oec", "#c4b5fd", psiiX - 1.6, -1.3, 0.75);
     const b6fX = -7.4;
-    const b6f = makeProtein(
-      b6fX,
-      0.1,
-      2.1,
-      2.2,
-      1.9,
-      C2.b6f,
-      "\u7EC6\u80DE\u8272\u7D20 b6f \u590D\u5408\u4F53",
-      "\u3010\u8D28\u5B50\u62BD\u6C34\u6CF5\u3011\u7535\u5B50\u50CF\u6ED1\u68AF\u6ED1\u7ECF\u5B83\u65F6\uFF0C\u5B83\u5229\u7528\u7535\u5B50\u4E0B\u5761\u7684\u80FD\u91CF\uFF0C\u5C06\u57FA\u8D28\u4E2D\u7684 H\u207A \u5F3A\u884C\u6CF5\u8FDB\u7C7B\u56CA\u4F53\u8154\uFF0C\u9020\u51FA\u5927\u575D\u6C34\u538B\uFF01"
-    );
-    addComponentLabel("\u2461 b6f \xB7 \u6CF5 H\u207A \u5165\u5927\u575D", "#fb923c", b6fX, 4.4, b6fX, 1.2);
+    const b6f = makeProtein(b6fX, 0.1, 2.1, 2.2, 1.9, C2.b6f, "b6f");
+    addComponentLabel("photo.lbl_b6f", "#fb923c", b6fX, 4.4, b6fX, 1.2);
     const b6fShaft = new Mesh(
       new CylinderGeometry(0.25, 0.25, 2.4, 12),
       new MeshBasicMaterial({ color: 16007006, transparent: true, opacity: 0.4 })
@@ -24572,29 +25042,11 @@
     b6fShaft.position.set(b6fX, 0.1, 0.3);
     scene.add(b6fShaft);
     const psiX = -3.2;
-    const psi = makeProtein(
-      psiX,
-      0.2,
-      2.4,
-      2.3,
-      2,
-      C2.psi,
-      "\u5149\u7CFB\u7EDF I (PSI / P700)",
-      "\u3010\u9633\u5149\u7535\u68AF 2 \u53F7\u3011\u5230\u8FBE\u8FD9\u91CC\u7684\u7535\u5B50\u5DF2\u7ECF\u75B2\u60EB\u6CA1\u52B2\u4E86\uFF1B\u7B2C\u4E8C\u4E2A\u5149\u5B50\u6253\u5165\uFF0C\u5C06\u7535\u5B50\u518D\u6B21\u9876\u4E0A\u6781\u9AD8\u80FD\u6001\uFF0C\u51C6\u5907\u9001\u53BB\u88C5\u5305\uFF01"
-    );
-    addComponentLabel("\u2462 PSI \xB7 \u4E8C\u6B21\u5145\u80FD", "#34d399", -3.6, 4.6, psiX, 1.4, 0.82);
+    const psi = makeProtein(psiX, 0.2, 2.4, 2.3, 2, C2.psi, "psi");
+    addComponentLabel("photo.lbl_psi", "#34d399", -3.6, 4.6, psiX, 1.4, 0.82);
     const fnrX = -0.7;
-    const fnr = makeProtein(
-      fnrX,
-      2.1,
-      1.4,
-      1.4,
-      1.3,
-      C2.fnr,
-      "FNR (\u94C1\u6C27\u8FD8\u86CB\u767D-NADP\u207A \u8FD8\u539F\u9176)",
-      "\u3010\u7535\u6C60\u6253\u5305\u8F66\u95F4\u3011\u628A\u4ECE PSI \u9001\u6765\u7684 2 \u4E2A\u9AD8\u80FD\u7535\u5B50\u4E0E H\u207A \u88C5\u8FDB NADP\u207A\uFF0C\u5C01\u88C5\u6210\u6EE1\u7535\u5316\u5B66\u7535\u6C60 NADPH\uFF01"
-    );
-    addComponentLabel("\u2463 FNR \xB7 \u5C01\u88C5 NADPH", "#c084fc", -0.7, 3.6, fnrX, 2.8, 0.8);
+    const fnr = makeProtein(fnrX, 2.1, 1.4, 1.4, 1.3, C2.fnr, "fnr");
+    addComponentLabel("photo.lbl_fnr", "#c084fc", -0.7, 3.6, fnrX, 2.8, 0.8);
     const atpX = 1.3;
     const atpSynthaseGrp = new Group();
     scene.add(atpSynthaseGrp);
@@ -24634,12 +25086,9 @@
       lobe.position.set(Math.cos(a) * 0.35, 0, Math.sin(a) * 0.35);
       knob.add(lobe);
     }
-    clickables.push({
-      mesh: knob,
-      name: "ATP \u5408\u9176 (\u5206\u5B50\u6C34\u8F6E\u53D1\u7535\u673A)",
-      desc: "\u3010\u6C34\u8F6E\u53D1\u7535\u673A\u3011\u7C7B\u56CA\u4F53\u8154\u5185\u9AD8\u538B H\u207A \u55B7\u6D8C\u800C\u51FA\u63A8\u7740 c \u73AF\u9AD8\u901F\u65CB\u8F6C\uFF0C\u5E26\u52A8\u8F6C\u8F74\u5728\u7403\u5934\u91CC\u5494\u54D2\u7EC4\u88C5 ADP + Pi \u2192 ATP \u6EE1\u7535\u7535\u6C60\uFF01"
-    });
-    addComponentLabel("\u2464 ATP \u5408\u9176 \xB7 \u65CB\u8F6C\u53D1\u7535", "#fbbf24", 1.4, 5.1, atpX, 2.3, 0.82);
+    knob.userData = { key: "atp" };
+    clickables.push({ mesh: knob, key: "atp" });
+    addComponentLabel("photo.lbl_atp_synth", "#fbbf24", 1.4, 5.1, atpX, 2.3, 0.82);
     const pipeCurve = new CatmullRomCurve3([
       new Vector3(psiiX, 1.4, 0),
       // PSII 出口
@@ -24686,30 +25135,72 @@
     const U_PSI = getUAtX(psiX);
     const highwayGroup = new Group();
     scene.add(highwayGroup);
-    const forwardCurve = new LineCurve3(HIGHWAY_START, HIGHWAY_END);
-    const forwardTube = new Mesh(
-      new TubeGeometry(forwardCurve, 32, 0.09, 8, false),
+    const nadphCurve = new CatmullRomCurve3([
+      new Vector3(fnrX, 2.6, 0),
+      new Vector3(fnrX + 0.8, 3.9, 0),
+      new Vector3(5, 3.9, 0),
+      new Vector3(9.4, 3.9, 0)
+    ]);
+    const nadphTube = new Mesh(
+      new TubeGeometry(nadphCurve, 40, 0.085, 10, false),
       new MeshStandardMaterial({
-        color: 16096779,
-        roughness: 0.3,
-        emissive: 14251782,
-        emissiveIntensity: 0.7,
+        color: 12616956,
+        roughness: 0.25,
+        emissive: 9647082,
+        emissiveIntensity: 0.85,
         transparent: true,
-        opacity: 0.65
+        opacity: 0.75
       })
     );
-    highwayGroup.add(forwardTube);
-    [0.25, 0.55, 0.85].forEach((u) => {
-      const arrow = new Mesh(new ConeGeometry(0.18, 0.42, 8), new MeshBasicMaterial({ color: 16638023 }));
+    highwayGroup.add(nadphTube);
+    nadphTube.userData = { key: "fnr" };
+    clickables.push({ mesh: nadphTube, key: "fnr" });
+    [0.32, 0.62, 0.9].forEach((u) => {
+      const arrow = new Mesh(
+        new ConeGeometry(0.16, 0.38, 8),
+        new MeshBasicMaterial({ color: 14202110 })
+      );
       arrow.rotation.z = -Math.PI / 2;
-      arrow.position.set(HIGHWAY_START.x + (HIGHWAY_END.x - HIGHWAY_START.x) * u, HIGHWAY_START.y, 0);
+      const pt = nadphCurve.getPointAt(u);
+      arrow.position.set(pt.x, pt.y, 0);
       highwayGroup.add(arrow);
     });
-    addLabel("\u26A1 \u6EE1\u7535\u524D\u9001 (3 ATP + 2 NADPH) \u2192", "#fcd34d", 5.35, 3.6, 0.78);
-    addLabel("\u21C4 \u80FD\u91CF\u4E0E\u539F\u6599\u7A7F\u68AD\u4E13\u7EBF \u21C4", "#ffd54a", 5.35, 0.6, 0.86);
+    addLabel("photo.lbl_pipe_nadph", "#c084fc", 5.35, 4.45, 0.76);
+    const atpCurve = new CatmullRomCurve3([
+      new Vector3(atpX, 2.1, 0),
+      new Vector3(atpX + 0.6, 2.4, 0),
+      new Vector3(5, 2.4, 0),
+      new Vector3(9.4, 2.4, 0)
+    ]);
+    const atpTube = new Mesh(
+      new TubeGeometry(atpCurve, 40, 0.085, 10, false),
+      new MeshStandardMaterial({
+        color: 16096779,
+        roughness: 0.25,
+        emissive: 14251782,
+        emissiveIntensity: 0.85,
+        transparent: true,
+        opacity: 0.75
+      })
+    );
+    highwayGroup.add(atpTube);
+    atpTube.userData = { key: "atp" };
+    clickables.push({ mesh: atpTube, key: "atp" });
+    [0.32, 0.62, 0.9].forEach((u) => {
+      const arrow = new Mesh(
+        new ConeGeometry(0.16, 0.38, 8),
+        new MeshBasicMaterial({ color: 16638023 })
+      );
+      arrow.rotation.z = -Math.PI / 2;
+      const pt = atpCurve.getPointAt(u);
+      arrow.position.set(pt.x, pt.y, 0);
+      highwayGroup.add(arrow);
+    });
+    addLabel("photo.lbl_pipe_atp", "#fcd34d", 5.35, 2.95, 0.76);
+    addLabel("photo.lbl_highway_shuttle", "#ffd54a", 5.35, 0.7, 0.84);
     const returnCurve = new LineCurve3(RETURN_START, RETURN_END);
     const returnTube = new Mesh(
-      new TubeGeometry(returnCurve, 32, 0.09, 8, false),
+      new TubeGeometry(returnCurve, 32, 0.085, 8, false),
       new MeshStandardMaterial({
         color: 9741240,
         roughness: 0.4,
@@ -24721,20 +25212,20 @@
     );
     highwayGroup.add(returnTube);
     [0.25, 0.55, 0.85].forEach((u) => {
-      const arrow = new Mesh(new ConeGeometry(0.18, 0.42, 8), new MeshBasicMaterial({ color: 13358561 }));
+      const arrow = new Mesh(new ConeGeometry(0.16, 0.38, 8), new MeshBasicMaterial({ color: 13358561 }));
       arrow.rotation.z = Math.PI / 2;
       arrow.position.set(RETURN_START.x + (RETURN_END.x - RETURN_START.x) * u, RETURN_START.y, 0);
       highwayGroup.add(arrow);
     });
-    addLabel("\u2190 \u{1FAAB} \u7A7A\u7535\u56DE\u5145 (3 ADP + 2 NADP\u207A)", "#cbd5e1", 5.35, -1.2, 0.78);
+    addLabel("photo.lbl_highway_return", "#cbd5e1", 5.35, -1.1, 0.76);
     const calvinZoneBackdrop = new Mesh(
       new PlaneGeometry(9, 11.8),
       new MeshBasicMaterial({ color: 417606, transparent: true, opacity: 0.045, depthWrite: false })
     );
     calvinZoneBackdrop.position.set(RING_C.x, 0.8, -1.8);
     scene.add(calvinZoneBackdrop);
-    addLabel("\u{1F36C} \u8FC7\u7A0B \u2461 \xB7 \u78B3\u53CD\u5E94\u62FC\u7CD6\u5DE5\u573A (\u53F6\u7EFF\u4F53\u57FA\u8D28)", "#4ade80", RING_C.x, 6.1, 1.05);
-    addLabel("RuBisCO \u6293\u78B3 \xB7 \u6CE8\u5165\u6C22\u80FD \xB7 \u7EC4\u88C5\u4EA7\u51FA\u7CD6", "#86efac", RING_C.x, 5.5, 0.75);
+    addLabel("photo.lbl_calvin_zone", "#4ade80", RING_C.x, 6.1, 1.05);
+    addLabel("photo.lbl_calvin_zone_sub", "#86efac", RING_C.x, 5.5, 0.75);
     const calvinGroup = new Group();
     calvinGroup.position.copy(RING_C);
     scene.add(calvinGroup);
@@ -24761,14 +25252,15 @@
     );
     rubiscoMesh.position.copy(posFix);
     calvinGroup.add(rubiscoMesh);
-    clickables.push({
-      mesh: rubiscoMesh,
-      name: "RuBisCO (\u6838\u916E\u7CD6\u4E8C\u78F7\u9178\u7FA7\u5316\u9176)",
-      desc: "\u3010\u6293\u78B3\u673A\u68B0\u624B\u3011\u5730\u7403\u4E0A\u6700\u591A\u7684\u9176\uFF01\u8D1F\u8D23\u4ECE\u7A7A\u6C14\u4E2D\u6293\u4F4F\u53EA\u6709 1 \u4E2A\u78B3\u7684 CO\u2082\uFF0C\u5F3A\u884C\u6263\u5728 5 \u78B3\u6293\u624B RuBP \u4E0A\uFF0C\u62C9\u5F00\u62FC\u7CD6\u5E8F\u5E55\uFF01"
-    });
-    const lblFix = makeLabel("\u2460 \u6293\u78B3\u56FA\u5B9A (RuBisCO)", "#86efac", 38);
+    rubiscoMesh.userData = { key: "rubisco" };
+    clickables.push({ mesh: rubiscoMesh, key: "rubisco" });
+    const lblFix = makeLabel(i18n.t("photo.lbl_calvin_fix"), "#86efac", 38);
     lblFix.position.set(posFix.x, posFix.y + 1.25, 0);
     lblFix.scale.multiplyScalar(0.78);
+    lblFix.userData.scaleScalar = 0.78;
+    lblFix.userData.baseScale = lblFix.scale.clone();
+    lblFix.userData.i18nKey = "photo.lbl_calvin_fix";
+    labels.push(lblFix);
     calvinGroup.add(lblFix);
     stations.push({ pad: rubiscoMesh, label: lblFix });
     const posRed = new Vector3(Math.cos(ANG_RED) * RING_R, Math.sin(ANG_RED) * RING_R, 0);
@@ -24785,14 +25277,15 @@
     );
     redPad.position.copy(posRed);
     calvinGroup.add(redPad);
-    clickables.push({
-      mesh: redPad,
-      name: "\u8FD8\u539F\u5DE5\u4F4D (\u80FD\u91CF\u4E0E\u7535\u5B50\u6CE8\u5165)",
-      desc: "\u3010\u7535\u6C60\u82B1\u5728\u8FD9\u91CC\uFF01\u30113-PGA \u5438\u6536 ATP \u63D0\u4F9B\u7684\u80FD\u91CF\u78F7\u9178\uFF0C\u5E76\u541E\u4E0B NADPH \u9001\u6765\u7684\u9AD8\u80FD\u7535\u5B50\u4E0E\u6C22\uFF0C\u8715\u53D8\u4E3A\u751C\u7F8E\u7684\u9AD8\u80FD\u7CD6\u7816 G3P\uFF01"
-    });
-    const lblRed = makeLabel("\u2461 \u5145\u80FD\u8FD8\u539F (\u6CE8\u5165\u80FD\u91CF)", "#c084fc", 38);
+    redPad.userData = { key: "red" };
+    clickables.push({ mesh: redPad, key: "red" });
+    const lblRed = makeLabel(i18n.t("photo.lbl_calvin_red"), "#c084fc", 38);
     lblRed.position.set(posRed.x, -3.5, 0);
     lblRed.scale.multiplyScalar(0.78);
+    lblRed.userData.scaleScalar = 0.78;
+    lblRed.userData.baseScale = lblRed.scale.clone();
+    lblRed.userData.i18nKey = "photo.lbl_calvin_red";
+    labels.push(lblRed);
     calvinGroup.add(lblRed);
     stations.push({ pad: redPad, label: lblRed });
     const posReg = new Vector3(Math.cos(ANG_REG) * RING_R, Math.sin(ANG_REG) * RING_R, 0);
@@ -24809,14 +25302,15 @@
     );
     regPad.position.copy(posReg);
     calvinGroup.add(regPad);
-    clickables.push({
-      mesh: regPad,
-      name: "\u518D\u751F\u4E0E\u51FA\u7CD6\u5DE5\u4F4D",
-      desc: "\u30101 \u5757\u51FA\u5382\uFF0C5 \u5757\u56DE\u7089\u30113 \u5708\u79EF\u6512 6 \u5757 G3P\uFF0C\u5176\u4E2D 1 \u5757\u4F5C\u4E3A\u7EAF\u6536\u5165\u79BB\u5F00\u8F66\u95F4\u53BB\u9020\u8461\u8404\u7CD6\uFF1B\u5269\u4F59 5 \u5757\u5728 ATP \u652F\u6301\u4E0B\u91CD\u65B0\u62FC\u56DE 3 \u4E2A RuBP \u6293\u624B\uFF01"
-    });
-    const lblReg = makeLabel("\u2462 \u6293\u624B\u518D\u751F (RuBP)", "#7dd3fc", 38);
+    regPad.userData = { key: "reg" };
+    clickables.push({ mesh: regPad, key: "reg" });
+    const lblReg = makeLabel(i18n.t("photo.lbl_calvin_reg"), "#7dd3fc", 38);
     lblReg.position.set(posReg.x, -3.5, 0);
     lblReg.scale.multiplyScalar(0.78);
+    lblReg.userData.scaleScalar = 0.78;
+    lblReg.userData.baseScale = lblReg.scale.clone();
+    lblReg.userData.i18nKey = "photo.lbl_calvin_reg";
+    labels.push(lblReg);
     calvinGroup.add(lblReg);
     stations.push({ pad: regPad, label: lblReg });
     const sugarExitPos = new Vector3(RING_C.x, RING_C.y - RING_R - 0.2, 0);
@@ -24828,7 +25322,7 @@
     const sugarPile = new Group();
     sugarPile.position.set(sugarExitPos.x, sugarExitPos.y - 1.6, 0);
     scene.add(sugarPile);
-    addLabel("\u{1F36C} \u7EAF\u8D5A 1 \u5757\u7CD6\u51FA\u5382 (G3P)", "#facc15", RING_C.x, sugarExitPos.y - 2.6, 0.82);
+    addLabel("photo.lbl_sugar_exit", "#facc15", RING_C.x, sugarExitPos.y - 2.6, 0.82);
     function makeCO2Mesh() {
       const grp = new Group();
       const c = makeSphere(0.18, C2.carbon, { rough: 0.4, ei: 0.3 });
@@ -25002,7 +25496,8 @@
     }
     function fly(mesh, target, speed, onArrive) {
       scene.add(mesh);
-      state.fliers.push({ mesh, target, speed, onArrive });
+      const waypoints = Array.isArray(target) ? target.slice() : [target];
+      state.fliers.push({ mesh, waypoints, target: waypoints[0], speed, onArrive });
     }
     function supplyWater() {
       const w = new Group();
@@ -25060,17 +25555,34 @@
         }
       });
     }
+    const expCouplingMsg = document.getElementById("expCouplingMsg");
+    let expMsgKind = "init";
+    function updateExpCouplingMsg(kind) {
+      expMsgKind = kind;
+      if (!expCouplingMsg) return;
+      if (kind === "depleted") {
+        expCouplingMsg.innerHTML = i18n.t("photo.exp_msg_depleted");
+      } else if (kind === "dark_run") {
+        expCouplingMsg.innerHTML = i18n.t("photo.exp_msg_dark_run", { atp: state.bat.atp, nadph: state.bat.nadph });
+      } else if (kind === "sun_off") {
+        expCouplingMsg.innerHTML = i18n.t("photo.exp_msg_sun_off", { atp: state.bat.atp, nadph: state.bat.nadph });
+      } else if (kind === "sun_restored") {
+        expCouplingMsg.innerHTML = i18n.t("photo.exp_msg_sun_restored");
+      } else {
+        expCouplingMsg.innerHTML = i18n.t("photo.exp_msg_init");
+      }
+    }
     function triggerCalvinCycle() {
       if (state.bat.atp < CALVIN.atpPerCO2 || state.bat.nadph < CALVIN.nadphPerCO2) {
-        if (state.sunCutoff && expCouplingMsg) {
-          expCouplingMsg.innerHTML = '<b style="color:#f43f5e">\u{1FAAB} \u5B58\u91CF\u7535\u6C60\u8017\u5C3D\uFF01</b>\u8FC7\u7A0B \u2461 \u62FC\u7CD6\u5382\u56E0\u7F3A\u7535\u505C\u5DE5\u3002<br><b>\u63ED\u793A\u672C\u8D28\uFF1A</b>\u4E24\u5382\u7269\u7406\u72EC\u7ACB\uFF0C\u4F46\u56E0\u7535\u6C60\u7EBD\u5E26\u751F\u6B7B\u4E0E\u5171\uFF01\u70B9\u201C\u91CD\u65B0\u6253\u5F00\u592A\u9633\u201D\u590D\u5DE5\u3002';
+        if (state.sunCutoff) {
+          updateExpCouplingMsg("depleted");
         }
         return;
       }
       state.bat.atp -= CALVIN.atpPerCO2;
       state.bat.nadph -= CALVIN.nadphPerCO2;
-      if (state.sunCutoff && expCouplingMsg) {
-        expCouplingMsg.innerHTML = '<b>\u{1F311} \u6697\u5BA4\u62FC\u7CD6\u4E2D\uFF1A</b>\u6D88\u8017\u5B58\u91CF\u7535\u6C60\uFF01\u5269\u4F59 <b style="color:var(--orange)">' + state.bat.atp + ' ATP</b> / <b style="color:var(--violet)">' + state.bat.nadph + " NADPH</b>\uFF08\u5370\u8BC1\uFF1A\u62FC\u7CD6\u8FC7\u7A0B\u4E0D\u5403\u5149\uFF0C\u5403\u7535\u6C60\u5373\u53EF\u72EC\u7ACB\u8FD0\u884C\uFF09...";
+      if (state.sunCutoff) {
+        updateExpCouplingMsg("dark_run");
       }
       state.turns++;
       state.calvinTurn = { stage: "fix", t: 0 };
@@ -25127,12 +25639,33 @@
     const inspMetaphor = document.getElementById("inspMetaphor");
     const inspDesc = document.getElementById("inspDesc");
     const inspIO = document.getElementById("inspIO");
-    function inspectComponent(name, desc) {
+    const inspInLabel = document.getElementById("inspInLabel");
+    const inspInVal = document.getElementById("inspInVal");
+    const inspOutLabel = document.getElementById("inspOutLabel");
+    const inspOutVal = document.getElementById("inspOutVal");
+    let activeInspectorKey = null;
+    function inspectComponent(key) {
+      activeInspectorKey = key;
       if (!inspTitle) return;
-      inspTitle.textContent = name;
-      inspTag.textContent = "\u{1F4A1} \u70B9\u51FB\u67E5\u770B\u6863\u6848";
-      inspMetaphor.textContent = desc.split("\u3011")[0] ? desc.split("\u3011")[0] + "\u3011" : "";
-      inspDesc.textContent = desc.includes("\u3011") ? desc.split("\u3011")[1] : desc;
+      if (!key) {
+        inspTitle.textContent = i18n.t("photo.insp_default_title");
+        inspTag.textContent = i18n.t("photo.insp_default_tag");
+        inspMetaphor.textContent = "";
+        inspDesc.textContent = i18n.t("photo.insp_default_desc");
+        if (inspIO) inspIO.style.display = "none";
+        return;
+      }
+      inspTitle.textContent = i18n.t(`photo.comp_${key}_name`);
+      inspTag.textContent = i18n.t("photo.insp_click_tag");
+      inspMetaphor.textContent = i18n.t(`photo.comp_${key}_metaphor`);
+      inspDesc.textContent = i18n.t(`photo.comp_${key}_desc`);
+      if (inspIO && inspInVal && inspOutVal) {
+        inspIO.style.display = "block";
+        if (inspInLabel) inspInLabel.textContent = i18n.t("photo.insp_in_label");
+        if (inspOutLabel) inspOutLabel.textContent = i18n.t("photo.insp_out_label");
+        inspInVal.textContent = i18n.t(`photo.comp_${key}_in`);
+        inspOutVal.textContent = i18n.t(`photo.comp_${key}_out`);
+      }
     }
     const raycaster = new Raycaster();
     const mouse = new Vector2();
@@ -25146,21 +25679,21 @@
       const hit = raycaster.intersectObjects(clickables.map((c) => c.mesh), true)[0];
       if (hit) {
         let targetObj = hit.object;
-        while (targetObj && !targetObj.userData.name && targetObj.parent) targetObj = targetObj.parent;
-        const found = clickables.find((c) => c.mesh === targetObj || c.mesh === hit.object);
+        while (targetObj && !targetObj.userData?.key && targetObj.parent) targetObj = targetObj.parent;
+        const found = clickables.find((c) => c.mesh === targetObj || c.mesh === hit.object || targetObj?.userData && targetObj.userData.key === c.key);
         if (found) {
-          inspectComponent(found.name, found.desc);
+          inspectComponent(found.key);
         }
       }
     });
     const zCanvas = document.getElementById("zscheme");
     const zCtx = zCanvas ? zCanvas.getContext("2d") : null;
     const Z_NODES = [
-      { x: 0.08, y: 0.78, label: "\u6C34 (H\u2082O)", col: "#38bdf8" },
-      { x: 0.18, y: 0.18, label: "\u2600\uFE0F \u7535\u68AF 1 (P680*)", col: "#facc15" },
-      { x: 0.42, y: 0.58, label: "b6f (\u6CF5 H\u207A)", col: "#fb923c" },
-      { x: 0.65, y: 0.18, label: "\u2600\uFE0F \u7535\u68AF 2 (P700*)", col: "#facc15" },
-      { x: 0.9, y: 0.78, label: "\u{1F4E6} NADPH", col: "#c084fc" }
+      { x: 0.08, y: 0.78, key: "photo.z_node_0", col: "#38bdf8" },
+      { x: 0.18, y: 0.18, key: "photo.z_node_1", col: "#facc15" },
+      { x: 0.42, y: 0.58, key: "photo.z_node_2", col: "#fb923c" },
+      { x: 0.65, y: 0.18, key: "photo.z_node_3", col: "#facc15" },
+      { x: 0.9, y: 0.78, key: "photo.z_node_4", col: "#c084fc" }
     ];
     function drawZScheme(electronProgress) {
       if (!zCtx || !zCanvas) return;
@@ -25170,10 +25703,10 @@
       zCtx.textBaseline = "top";
       zCtx.font = 'bold 12px "PingFang SC", sans-serif';
       zCtx.fillStyle = "#9ff0b5";
-      zCtx.fillText("Z \u65B9\u6848\uFF1A\u7535\u5B50\u80FD\u91CF\u8FC7\u5C71\u8F66 (\u4E24\u6B21\u5145\u80FD)", 14, 12);
+      zCtx.fillText(i18n.t("photo.z_title"), 14, 12);
       zCtx.font = '10px "PingFang SC", sans-serif';
       zCtx.fillStyle = "#64748b";
-      zCtx.fillText("\u52BF\u80FD \u2191 (\u9AD8\u80FD\u91CF)", 14, 28);
+      zCtx.fillText(i18n.t("photo.z_axis"), 14, 28);
       zCtx.strokeStyle = "#eab308";
       zCtx.lineWidth = 2.5;
       zCtx.beginPath();
@@ -25190,16 +25723,17 @@
         zCtx.beginPath();
         zCtx.arc(px2, py2, 4, 0, Math.PI * 2);
         zCtx.fill();
+        const label = i18n.t(pt.key);
         zCtx.fillStyle = pt.col;
         if (idx === Z_NODES.length - 1) {
           zCtx.textAlign = "right";
-          zCtx.fillText(pt.label, px2 + 8, py2 - 10);
+          zCtx.fillText(label, px2 + 8, py2 - 10);
         } else if (idx === 0) {
           zCtx.textAlign = "left";
-          zCtx.fillText(pt.label, px2 - 6, py2 + 14);
+          zCtx.fillText(label, px2 - 6, py2 + 14);
         } else {
           zCtx.textAlign = "center";
-          zCtx.fillText(pt.label, px2, py2 + (pt.y > 0.4 ? 14 : -10));
+          zCtx.fillText(label, px2, py2 + (pt.y > 0.4 ? 14 : -10));
         }
       });
       if (electronProgress != null) {
@@ -25225,36 +25759,33 @@
       {
         cam: new Vector3(0.5, 0.6, 38),
         tar: new Vector3(0.5, 0.2, 0),
-        title: "\u2460 \u5168\u666F\u53F6\u7EFF\u4F53\u5FAE\u5B87\u5B99 (\u5B8F\u89C2\u603B\u63FD \xB7 \u751F\u547D\u673A\u5668)",
-        text: "\u3010\u7F6E\u8EAB\u53F6\u7EFF\u4F53\u5185\u90E8\u3011\u5DE6\u4FA7\u56FA\u6001\u819C\u7CFB\u7EDF\u9633\u5149\u5145\u7535\u653E\u6C27\uFF0C\u53F3\u4FA7\u6DB2\u6001\u57FA\u8D28\u91CC\u5403\u7535\u6C60\u62FC\u7CD6\uFF0C\u4E2D\u95F4\u662F\u6E90\u6E90\u4E0D\u65AD\u7684\u80FD\u91CF\u5BF9\u6D41\u9AD8\u94C1\u3002\u4E24\u5382\u5206\u5DE5\u660E\u786E\u3001\u6D51\u7136\u4E00\u4F53\uFF01"
+        stepIdx: 1
       },
       {
         cam: new Vector3(-7.5, 0.6, 20),
         tar: new Vector3(-7.5, 0.2, 0),
-        title: "\u2461 \u8FC7\u7A0B \u2460 \xB7 \u819C\u4E0A\u53D1\u7535\u5927\u575D (\u7C7B\u56CA\u4F53\u819C\u7CFB\u7EDF)",
-        text: "\u3010\u72EC\u7ACB\u786C\u4EF6\uFF1A\u56FA\u6001\u819C\u673A\u5668\u3011\u9633\u5149\u6253\u5165 PSII \u548C PSI\uFF0C\u6C34\u5206\u5B50\u5728 OEC \u5200\u53E3\u88AB\u5207\u5F00\u53D1\u51FA\u6C27\u6C14\u3002\u4E0B\u5761\u7535\u5B50\u63A8\u52A8 b6f \u6CF5\u5EFA\u8D77\u8D28\u5B50\u5927\u575D\uFF0C\u9AD8\u538B\u8D28\u5B50\u51B2\u5237\u7EB3\u7C73\u6C34\u8F6E\u673A\uFF08ATP\u5408\u9176\uFF09\u98DE\u8F6C\u538B\u51FA\u6EE1\u683C\u7535\u6C60\uFF01"
+        stepIdx: 2
       },
       {
         cam: new Vector3(5.35, 0.6, 18),
         tar: new Vector3(5.35, 0.4, 0),
-        title: "\u2462 \u552F\u4E00\u7EBD\u5E26 \xB7 \u80FD\u91CF\u4E0E\u539F\u6599\u7A7F\u68AD\u4E13\u7EBF (\u57CE\u9645\u7269\u6D41)",
-        text: "\u3010\u4E24\u5382\u751F\u6B7B\u8110\u5E26\u3011\u5149\u53CD\u5E94\u7EDD\u4E0D\u76F4\u63A5\u9020\u7CD6\uFF0C\u62FC\u7CD6\u8F66\u95F4\u7EDD\u4E0D\u76F4\u63A5\u5403\u5149\uFF01\u4E24\u5382\u7A7A\u95F4\u72EC\u7ACB\uFF0C\u5168\u9760\u4E24\u6761\u7A7F\u68AD\u7EBF\u8FDE\u7ED3\uFF1A\u91D1\u8272\u6EE1\u7535\u9001\u53BB\u62FC\u7CD6\uFF0C\u9752\u7070\u7A7A\u7535\u56DE\u819C\u5145\u7535\uFF01"
+        stepIdx: 3
       },
       {
         cam: new Vector3(12.2, 0.6, 18),
         tar: new Vector3(12.2, 0.6, 0),
-        title: "\u2463 \u8FC7\u7A0B \u2461 \xB7 \u78B3\u53CD\u5E94\u62FC\u7CD6\u5DE5\u573A (\u53F6\u7EFF\u4F53\u57FA\u8D28\u6DB2\u76F8)",
-        text: "\u3010\u72EC\u7ACB\u8F6F\u4EF6\uFF1A\u6DB2\u76F8\u81EA\u50AC\u5316\u5FAA\u73AF\u3011RuBisCO \u6293\u53D6\u7A7A\u6C14\u4E2D\u7684 CO\u2082\uFF0C\u541E\u4E0B\u9001\u6765\u7684\u6EE1\u7535\u7535\u6C60\u6CE8\u5165\u9AD8\u80FD\u6C22\uFF0C\u62FC\u88C5\u51FA 3\u78B3\u7CD6 G3P\uFF01\u6BCF 3 \u5708\u7EAF\u8D5A 1 \u5757\u7CD6\u51FA\u5382\uFF0C\u5176\u4F59\u56DE\u7089\u518D\u751F\u6293\u624B\uFF01"
+        stepIdx: 4
       }
     ];
     function startTourStep(idx) {
       state.tourMode = true;
       state.tourStep = idx;
       state.speed = 0.8;
-      const info = TOUR_STEPS[idx - 1];
+      const title = i18n.t(`photo.light_tour_title_${idx}`);
+      const text = i18n.t(`photo.light_tour_desc_${idx}`);
       if (captionEl) {
         captionEl.style.display = "block";
-        captionEl.innerHTML = `<b style="color:#ffd54a;font-size:20px">${info.title}</b><br><span style="font-size:16px">${info.text}</span>`;
+        captionEl.innerHTML = `<b style="color:#ffd54a;font-size:20px">${title}</b><br><span style="font-size:16px">${text}</span>`;
       }
       document.querySelectorAll("#tourStepList [data-tour]").forEach((b) => {
         b.classList.toggle("cur", +b.dataset.tour === idx);
@@ -25269,7 +25800,7 @@
     if (bPause) {
       bPause.addEventListener("click", () => {
         state.paused = !state.paused;
-        bPause.textContent = state.paused ? "\u25B6 \u7EE7\u7EED" : "\u23F8 \u6682\u505C";
+        bPause.textContent = state.paused ? i18n.t("photo.btn_resume") : i18n.t("photo.btn_pause");
         bPause.classList.toggle("on", state.paused);
       });
     }
@@ -25315,23 +25846,19 @@
         if (state.sunCutoff) {
           state.lightRate = 0;
           sunLight.intensity = 0.15;
-          bCutLight.textContent = "\u2600\uFE0F \u91CD\u65B0\u5F00\u542F\u592A\u9633";
+          bCutLight.textContent = i18n.t("photo.exp_btn_on");
           bCutLight.style.background = "rgba(74,222,128,0.2)";
           bCutLight.style.borderColor = "rgba(74,222,128,0.5)";
           bCutLight.style.color = "#86efac";
-          if (expCouplingMsg) {
-            expCouplingMsg.innerHTML = '<b>\u{1F311} \u592A\u9633\u5DF2\u7184\u706D\uFF01</b>\u8FC7\u7A0B \u2460 \u5149\u53CD\u5E94\u65AD\u7535\u505C\u4EA7\u3002<br>\u6B64\u65F6\u8FC7\u7A0B \u2461 \u62FC\u7CD6\u5382\u6709 <b style="color:var(--orange)">' + state.bat.atp + ' ATP</b> \u4E0E <b style="color:var(--violet)">' + state.bat.nadph + " NADPH</b> \u5B58\u91CF\u7535\u6C60\uFF0C\u6B63\u5728\u3010\u72EC\u7ACB\u3011\u8FD0\u8F6C...";
-          }
+          updateExpCouplingMsg("sun_off");
         } else {
           state.lightRate = 1;
           sunLight.intensity = 1.8;
-          bCutLight.textContent = "\u{1F311} \u5173\u6389\u592A\u9633";
+          bCutLight.textContent = i18n.t("photo.exp_btn_off");
           bCutLight.style.background = "rgba(244,63,94,0.15)";
           bCutLight.style.borderColor = "rgba(244,63,94,0.4)";
           bCutLight.style.color = "#fda4af";
-          if (expCouplingMsg) {
-            expCouplingMsg.innerHTML = '<b style="color:var(--green)">\u26A1 \u9633\u5149\u6062\u590D\uFF01</b>\u5149\u53CD\u5E94\u91CD\u65B0\u53D1\u7535\uFF0C\u7535\u6C60\u9001\u8FBE\uFF0C\u62FC\u7CD6\u8F66\u95F4\u77AC\u95F4\u590D\u5DE5\uFF01';
-          }
+          updateExpCouplingMsg("sun_restored");
         }
       });
     }
@@ -25426,7 +25953,10 @@
               fnr.material.emissiveIntensity = 0.9;
               const fullNADPH = makeNADPHMesh();
               fullNADPH.position.set(fnrX, 2.6, 0);
-              fly(fullNADPH, HIGHWAY_END.clone().add(new Vector3(0, 0.4, 0)), 2.8, () => {
+              fly(fullNADPH, [
+                new Vector3(fnrX + 0.8, 3.9, 0),
+                new Vector3(9.4, 3.9, 0)
+              ], 2.8, () => {
                 scene.remove(fullNADPH);
                 state.bat.nadph = Math.min(8, state.bat.nadph + 1);
               });
@@ -25449,8 +25979,11 @@
         state.counts.atp++;
         highlightStep(4);
         const fullATP = makeATPMesh();
-        fullATP.position.set(atpX, 2.4, 0);
-        fly(fullATP, HIGHWAY_END.clone(), 3, () => {
+        fullATP.position.set(atpX, 2.1, 0);
+        fly(fullATP, [
+          new Vector3(atpX + 0.6, 2.4, 0),
+          new Vector3(9.4, 2.4, 0)
+        ], 3, () => {
           scene.remove(fullATP);
           state.bat.atp = Math.min(12, state.bat.atp + 1);
         });
@@ -25484,11 +26017,16 @@
       for (let i = state.fliers.length - 1; i >= 0; i--) {
         const f = state.fliers[i];
         const dist = f.mesh.position.distanceTo(f.target);
-        if (dist < 0.25) {
-          f.onArrive?.();
-          scene.remove(f.mesh);
-          state.fliers.splice(i, 1);
-          continue;
+        if (dist < 0.28) {
+          if (f.waypoints && f.waypoints.length > 1) {
+            f.waypoints.shift();
+            f.target = f.waypoints[0];
+          } else {
+            f.onArrive?.();
+            scene.remove(f.mesh);
+            state.fliers.splice(i, 1);
+            continue;
+          }
         }
         f.mesh.position.lerp(f.target, Math.min(1, f.speed * dt));
       }
@@ -25519,12 +26057,34 @@
       if (hudTurns) hudTurns.textContent = state.turns;
       if (hudG3p) hudG3p.textContent = state.g3pCount;
     }
+    function onLangChange(lang) {
+      labels.forEach((l) => {
+        if (l.userData.i18nKey) {
+          updateLabel(l, i18n.t(l.userData.i18nKey));
+        }
+      });
+      if (activeInspectorKey) {
+        inspectComponent(activeInspectorKey);
+      }
+      if (state.tourMode && state.tourStep) {
+        startTourStep(state.tourStep);
+      }
+      if (bCutLight) {
+        bCutLight.textContent = state.sunCutoff ? i18n.t("photo.exp_btn_on") : i18n.t("photo.exp_btn_off");
+      }
+      if (bPause) {
+        bPause.textContent = state.paused ? i18n.t("photo.btn_resume") : i18n.t("photo.btn_pause");
+      }
+      updateExpCouplingMsg(expMsgKind);
+      drawZScheme(state.zPos);
+    }
     return {
       scene,
       camera,
       controls,
       update,
       refreshHUD,
+      onLangChange,
       onShow() {
         controls.enabled = true;
       },
@@ -25547,7 +26107,7 @@
     };
   }
 
-  // js/spectrum.js
+  // photosynthesis/js/spectrum.js
   function absorption(nm, peaks) {
     let a = 0;
     for (const p of peaks) a += Math.exp(-((nm - p) ** 2) / (2 * 34 ** 2));
@@ -25590,6 +26150,7 @@
     controls.target.set(-3, 3, 0);
     const groups = { spectrum: new Group(), ladder: new Group(), globe: new Group() };
     scene.add(groups.spectrum, groups.ladder, groups.globe);
+    const labelsToUpdate = [];
     {
       const N = 64, W = 30;
       for (let i = 0; i < N; i++) {
@@ -25619,23 +26180,35 @@
           groups.spectrum.add(bar);
         }
       }
-      const l1 = makeLabel("\u5438\u6536\u5149\u8C31\uFF1A\u53F6\u7EFF\u7D20\u7231\u5403\u84DD\u5149\u548C\u7EA2\u5149", "#9ff0b5");
+      const l1 = makeLabel(i18n.t("photo.facts_lbl_spectrum"), "#9ff0b5");
       l1.position.set(0, 8.6, 0);
       groups.spectrum.add(l1);
-      const l2 = makeLabel("\u7EFF\u5149\uFF08\u7EA6550nm\uFF09\u51E0\u4E4E\u4E0D\u88AB\u5438\u6536 \u2192 \u88AB\u53CD\u5C04\u56DE\u4F60\u7684\u773C\u775B", "#ffe08a");
+      labelsToUpdate.push({ sp: l1, key: "photo.facts_lbl_spectrum", color: "#9ff0b5" });
+      const l2 = makeLabel(i18n.t("photo.facts_lbl_green_reflect"), "#ffe08a");
       l2.position.set(0, -1.6, 3);
       groups.spectrum.add(l2);
-      const lBlue = makeLabel("\u84DD 430nm", "#7dd3fc");
+      labelsToUpdate.push({ sp: l2, key: "photo.facts_lbl_green_reflect", color: "#ffe08a" });
+      const lBlue = makeLabel(i18n.t("photo.facts_lbl_blue"), "#7dd3fc");
       lBlue.position.set(-W / 2 + (430 - 380) / 320 * W, 7.4, 0);
       groups.spectrum.add(lBlue);
-      const lRed = makeLabel("\u7EA2 662nm", "#ff9e9e");
+      labelsToUpdate.push({ sp: lBlue, key: "photo.facts_lbl_blue", color: "#7dd3fc" });
+      const lRed = makeLabel(i18n.t("photo.facts_lbl_red"), "#ff9e9e");
       lRed.position.set(-W / 2 + (662 - 380) / 320 * W, 7.4, 0);
       groups.spectrum.add(lRed);
-      const lGreen = makeLabel("\u7EFF 550nm\uFF08\u88AB\u53CD\u5C04\uFF09", "#c9f7cf");
+      labelsToUpdate.push({ sp: lRed, key: "photo.facts_lbl_red", color: "#ff9e9e" });
+      const lGreen = makeLabel(i18n.t("photo.facts_lbl_green"), "#c9f7cf");
       lGreen.position.set(-W / 2 + (550 - 380) / 320 * W, 3.4, 2.6);
       groups.spectrum.add(lGreen);
+      labelsToUpdate.push({ sp: lGreen, key: "photo.facts_lbl_green", color: "#c9f7cf" });
     }
     {
+      const EFF_KEYS = {
+        crop: "photo.facts_eff_crop",
+        c3: "photo.facts_eff_c3",
+        c4: "photo.facts_eff_c4",
+        pv: "photo.facts_eff_pv",
+        pvRecord: "photo.facts_eff_pv_rec"
+      };
       const W = 2.3;
       EFFICIENCY.forEach((e, i) => {
         const h = Math.max(e.pct * 0.52, 0.6);
@@ -25650,17 +26223,21 @@
         );
         bar.position.set((i - (EFFICIENCY.length - 1) / 2) * (W + 1.3), h / 2, 0);
         groups.ladder.add(bar);
-        const top = makeLabel(e.zh, i >= 3 ? "#ffc078" : "#9ff0b5");
+        const k = EFF_KEYS[e.key];
+        const col = i >= 3 ? "#ffc078" : "#9ff0b5";
+        const top = makeLabel(k ? i18n.t(k) : e.zh, col);
         top.position.set(bar.position.x, h + 0.8, 0);
         groups.ladder.add(top);
+        if (k) labelsToUpdate.push({ sp: top, key: k, color: col });
         const pct = makeLabel(`${e.pct}%`, "#ffffff");
         pct.position.set(bar.position.x, h / 2, 0);
         pct.scale.multiplyScalar(0.7);
         groups.ladder.add(pct);
       });
-      const l = makeLabel("\u5149\u5408 vs \u592A\u9633\u80FD\u677F\uFF1A\u628A\u5149\u53D8\u6210\u53EF\u50A8\u5B58\u80FD\u91CF\u7684\u6548\u7387", "#9ff0b5");
-      l.position.set(0, 17, 0);
-      groups.ladder.add(l);
+      const lLadder = makeLabel(i18n.t("photo.facts_lbl_ladder"), "#9ff0b5");
+      lLadder.position.set(0, 17, 0);
+      groups.ladder.add(lLadder);
+      labelsToUpdate.push({ sp: lLadder, key: "photo.facts_lbl_ladder", color: "#9ff0b5" });
     }
     {
       const earth = new Mesh(
@@ -25679,37 +26256,48 @@
         patch.lookAt(0, 0, 0);
         groups.globe.add(patch);
       }
-      const l1 = makeLabel("\u9646\u5730\u6BCF\u5E74\u56FA\u78B3 \u2248 120 Gt", "#9ff0b5");
-      l1.position.set(0, 8.4, 0);
-      groups.globe.add(l1);
-      const l2 = makeLabel("\u5927\u6C14 O\u2082 \u2265 \u4E00\u534A\u6765\u81EA\u6D77\u6D0B\u6D6E\u6E38\u690D\u7269\uFF08NOAA\uFF09", "#7dd3fc");
-      l2.position.set(0, -8.6, 0);
-      groups.globe.add(l2);
-      const l3 = makeLabel("24 \u4EBF\u5E74\u524D\uFF1A\u5927\u6C27\u5316\u4E8B\u4EF6", "#ffe08a");
-      l3.position.set(-9.5, 0, 4);
-      groups.globe.add(l3);
+      const g1 = makeLabel(i18n.t("photo.facts_lbl_globe_c"), "#9ff0b5");
+      g1.position.set(0, 8.4, 0);
+      groups.globe.add(g1);
+      labelsToUpdate.push({ sp: g1, key: "photo.facts_lbl_globe_c", color: "#9ff0b5" });
+      const g2 = makeLabel(i18n.t("photo.facts_lbl_globe_o2"), "#7dd3fc");
+      g2.position.set(0, -8.6, 0);
+      groups.globe.add(g2);
+      labelsToUpdate.push({ sp: g2, key: "photo.facts_lbl_globe_o2", color: "#7dd3fc" });
+      const g3 = makeLabel(i18n.t("photo.facts_lbl_globe_goe"), "#ffe08a");
+      g3.position.set(-9.5, 0, 4);
+      groups.globe.add(g3);
+      labelsToUpdate.push({ sp: g3, key: "photo.facts_lbl_globe_goe", color: "#ffe08a" });
     }
     const CAMS = [
       { cam: new Vector3(-3, 9, 22), target: new Vector3(-3, 3, 0) },
       { cam: new Vector3(-3, 12, 24), target: new Vector3(-3, 6, 0) },
       { cam: new Vector3(-3, 5, 18), target: new Vector3(-3, 0, 0) }
     ];
-    const NAMES = ["\u5438\u6536\u5149\u8C31", "\u6548\u7387\u9636\u68AF", "\u5168\u7403\u5C3A\u5EA6"];
+    const VIEW_KEYS = ["photo.view_spectrum", "photo.view_efficiency", "photo.view_scale"];
     const state = { stage: 0, paused: false };
     function applyStage(s) {
       state.stage = s;
       Object.entries(groups).forEach(([k, g], i) => g.visible = i === s);
-      document.getElementById("oFacts").textContent = NAMES[s];
+      document.getElementById("oFacts").textContent = i18n.t(VIEW_KEYS[s]);
       camera.position.copy(CAMS[s].cam);
       controls.target.copy(CAMS[s].target);
     }
     document.getElementById("rFacts").addEventListener("input", (e) => applyStage(+e.target.value));
     document.getElementById("bFactsPause").addEventListener("click", (e) => {
       state.paused = !state.paused;
-      e.target.textContent = state.paused ? "\u25B6 \u7EE7\u7EED" : "\u23F8 \u6682\u505C";
+      e.target.textContent = state.paused ? i18n.t("photo.btn_resume") : i18n.t("photo.btn_pause");
       e.target.classList.toggle("on", state.paused);
     });
     applyStage(0);
+    function onLangChange(lang) {
+      labelsToUpdate.forEach(({ sp, key: key2, color, size }) => {
+        updateLabel(sp, i18n.t(key2), color, size);
+      });
+      document.getElementById("oFacts").textContent = i18n.t(VIEW_KEYS[state.stage]);
+      const bPause = document.getElementById("bFactsPause");
+      bPause.textContent = state.paused ? i18n.t("photo.btn_resume") : i18n.t("photo.btn_pause");
+    }
     return {
       scene,
       camera,
@@ -25718,12 +26306,485 @@
         controls.update();
       },
       getInfo() {
-        return { stage: state.stage, name: NAMES[state.stage] };
-      }
+        return { stage: state.stage, name: i18n.t(VIEW_KEYS[state.stage]) };
+      },
+      onLangChange
     };
   }
 
-  // js/main.js
+  // photosynthesis/js/main.js
+  var photoDict = {
+    "nav.home": { zh: "\u{1F3E0} \u9996\u9875", en: "\u{1F3E0} Home" },
+    "nav.home_tip": { zh: "\u8FD4\u56DE\u9996\u9875 Back to home", en: "Return to home portal" },
+    "meta.title": {
+      zh: "\u5149\u5408\u4F5C\u7528 \xB7 \u4E00\u7247\u53F6\u5B50\u91CC\u7684\u80FD\u91CF\u5DE5\u5382",
+      en: "Photosynthesis \xB7 Energy Factory in a Leaf"
+    },
+    "meta.description": {
+      zh: "3D \u63A2\u7D22\u5149\u5408\u4F5C\u7528\uFF1A\u4ECE\u53F6\u7247\u6A2A\u5207\u3001\u53F6\u7EFF\u4F53\u5230\u7C7B\u56CA\u4F53\u819C\u4E0A\u7684 Z \u65B9\u6848\u7535\u5B50\u4F20\u9012\u94FE\u3001\u6C34\u5206\u89E3\u653E\u6C27\u3001ATP \u5408\u9176\u4E0E\u5361\u5C14\u6587\u5FAA\u73AF\u62FC\u7CD6\u3002",
+      en: "Explore photosynthesis in 3D: leaf cross-section, chloroplasts, thylakoid Z-scheme electron transport, water oxidation, ATP synthase, and Calvin cycle."
+    },
+    "photo.title": { zh: "\u5149\u5408\u4F5C\u7528", en: "Photosynthesis" },
+    "photo.tab_story": { zh: "\u2460 \u4E00\u56FE\u770B\u61C2", en: "\u2460 Overview" },
+    "photo.tab_leaf": { zh: "\u2461 \u53F6\u5B50\u91CC", en: "\u2461 Inside Leaf" },
+    "photo.tab_light": { zh: "\u2462 \u5149\u53CD\u5E94 + \u62FC\u7CD6", en: "\u2462 Light Rxn & Sugar" },
+    "photo.tab_facts": { zh: "\u2463 \u6570\u5B57\u4E0E\u771F\u76F8", en: "\u2463 Numbers & Facts" },
+    "photo.story_h2": { zh: "\u5149\u5408\u4F5C\u7528\uFF0C\u4E00\u53E5\u8BDD", en: "Photosynthesis in a Nutshell" },
+    "photo.story_sub": { zh: "\u8BB2\u7ED9\u5C0F\u670B\u53CB", en: "For Curious Kids" },
+    "photo.story_formula": { zh: "\u5149 + \u6C34 + \u4E8C\u6C27\u5316\u78B3 \u2192 \u7CD6 + \u6C27\u6C14", en: "Light + Water + Carbon Dioxide \u2192 Sugar + Oxygen" },
+    "photo.story_desc": {
+      zh: "<b>\u690D\u7269\u662F\u4E00\u5EA7\u201C\u5403\u9633\u5149\u7684\u7CD6\u5DE5\u5382\u201D</b>\uFF1A\u5B83\u4ECE\u7A7A\u6C14\u91CC\u6293\u4F4F\u4E8C\u6C27\u5316\u78B3\uFF0C\u4ECE\u6839\u91CC\u559D\u6C34\uFF0C\u5728\u9633\u5149\u4E0B\u628A\u8FD9\u4E24\u6837\u62FC\u6210\u81EA\u5DF1\u7684\u98DF\u7269\u2014\u2014\u7CD6\uFF1B\u987A\u4FBF\u9001\u7ED9\u6211\u4EEC\u6C27\u6C14\u3002",
+      en: "<b>Plants are sun-eating sugar factories</b>: they capture CO\u2082 from air, take water from roots, and use sunlight to build sugar (their food), releasing oxygen for us."
+    },
+    "photo.stat_water": { zh: "\u{1F4A7} \u559D\u6389\u7684\u6C34", en: "\u{1F4A7} Water Consumed" },
+    "photo.stat_co2": { zh: "\u{1F4A8} \u6293\u4F4F\u7684\u4E8C\u6C27\u5316\u78B3", en: "\u{1F4A8} CO\u2082 Captured" },
+    "photo.stat_sugar": { zh: "\u{1F36C} \u62FC\u51FA\u7684\u7CD6", en: "\u{1F36C} Sugar Produced" },
+    "photo.stat_o2": { zh: "\u{1F62E}\u200D\u{1F4A8} \u9001\u51FA\u7684\u6C27\u6C14", en: "\u{1F62E}\u200D\u{1F4A8} Oxygen Released" },
+    "photo.story_tip": {
+      zh: "\u70B9 <b>\u25B6 \u4E00\u5206\u949F\u6545\u4E8B</b>\uFF0C\u8BA9\u76F8\u673A\u5E26\u4F60\u9010\u53E5\u770B\u3002\u540E\u9762\u7684\u6807\u7B7E\u662F\u7ED9\u60F3\u6DF1\u5165\u7684\u5C0F\u670B\u53CB\u51C6\u5907\u7684\u3002",
+      en: "Click <b>\u25B6 1-Minute Story</b> for a guided walkthrough. Tabs above explore deeper levels."
+    },
+    "photo.story_fact1": {
+      zh: "<b>\u4E3A\u4EC0\u4E48\u91CD\u8981</b> \u2014 \u4F60\u5403\u7684\u7C73\u996D\u3001\u9762\u5305\u3001\u8089\uFF0C\u80FD\u91CF\u90FD\u80FD\u8FFD\u56DE\u5230\u8FD9\u7247\u201C\u7CD6\u5DE5\u5382\u201D\uFF1B\u4F60\u547C\u51FA\u7684\u4E8C\u6C27\u5316\u78B3\u4E5F\u4F1A\u88AB\u5B83\u6293\u56DE\u53BB\u3002",
+      en: "<b>Why it matters</b> \u2014 Rice, bread, and meat all trace their energy back to this sugar factory. It also absorbs the CO\u2082 we exhale."
+    },
+    "photo.story_fact2": {
+      zh: "<b>\u6C27\u6C14\u4ECE\u54EA\u6765</b> \u2014 \u7A7A\u6C14\u91CC\u7684\u6C27\uFF0C\u5927\u534A\u662F\u8FD9\u5EA7\u5DE5\u5382 24 \u4EBF\u5E74\u6765\u653E\u51FA\u7684\u201C\u526F\u4EA7\u54C1\u201D\u3002",
+      en: "<b>Where oxygen comes from</b> \u2014 Most oxygen in Earth\u2019s atmosphere is a 2.4-billion-year byproduct of this factory."
+    },
+    "photo.leaf_h2": { zh: "\u5DE5\u5382\u5728\u54EA\uFF1F", en: "Where is the Factory?" },
+    "photo.leaf_sub": { zh: "\u4E09\u7EA7\u653E\u5927\uFF0C\u4E00\u9875\u770B\u5B8C", en: "3-tier zoom at a glance" },
+    "photo.leaf_p1": {
+      zh: "\u8FD9\u5F20\u56FE\u4ECE\u5DE6\u5230\u53F3\u8FDE\u7740\u770B\uFF1A<b>\u2460 \u53F6\u7247\u6A2A\u5207</b> \u2192 \u91D1\u5708\u6311\u51FA\u4E00\u4E2A\u7EC6\u80DE \u2192 <b>\u2461 \u653E\u5927\u5B83</b>\uFF1A\u91CC\u9762\u6F02\u7740\u7EFF\u8272\u201C\u8C46\u8C46\u201D\uFF08\u53F6\u7EFF\u4F53\uFF09\u2192 \u91D1\u5708\u6311\u51FA\u4E00\u4E2A\u8C46\u8C46 \u2192 <b>\u2462 \u518D\u653E\u5927</b>\uFF1A\u4E00\u645E\u645E\u201C\u786C\u5E01\u201D\u53EB<b>\u57FA\u7C92</b>\uFF08\u5149\u53CD\u5E94\u5728\u5B83\u819C\u4E0A\uFF09\uFF0C\u5468\u56F4\u6DB2\u4F53\u53EB<b>\u57FA\u8D28</b>\uFF08\u62FC\u7CD6\u5FAA\u73AF\u5728\u8FD9\uFF09\u3002",
+      en: "Read left to right: <b>\u2460 Leaf cross-section</b> \u2192 highlight a single cell \u2192 <b>\u2461 Zoom in</b>: green chloroplast organelles inside \u2192 <b>\u2462 Zoom further</b>: coin-like stacks called <b>grana</b> (light reactions on thylakoids), surrounded by liquid <b>stroma</b> (Calvin cycle)."
+    },
+    "photo.leaf_p2": {
+      zh: "\u70B9 <b>\u{1F3AC} \u81EA\u52A8\u5BFC\u89C8</b>\uFF0C\u76F8\u673A\u4F1A\u5E26\u4F60\u4F9D\u6B21\u98DE\u8FD1\u4E09\u7EA7\uFF1B\u968F\u65F6\u62D6\u52A8\u753B\u9762\u81EA\u5DF1\u770B\u3002",
+      en: "Click <b>\u{1F3AC} Auto Tour</b> to fly through all 3 tiers, or drag anytime to explore."
+    },
+    "photo.leaf_fact1": {
+      zh: "<b>\u53F6\u7EFF\u4F53</b> \u2014 \u4E00\u4E2A\u7EC6\u80DE\u91CC\u7EA6 20\u2013100 \u4E2A\uFF0C\u662F\u7EC6\u80DE\u91CC\u7684\u201C\u592A\u9633\u80FD\u8F66\u95F4\u201D\u3002",
+      en: "<b>Chloroplasts</b> \u2014 20\u2013100 per plant cell; miniature solar power workshops."
+    },
+    "photo.leaf_fact2": {
+      zh: "<b>\u7C7B\u56CA\u4F53</b> \u2014 \u57FA\u7C92\u91CC\u4E00\u5C42\u5C42\u8584\u819C\uFF1B\u9633\u5149\u5728\u8FD9\u91CC\u88AB\u88C5\u8FDB\u201C\u7535\u6C60\u201D\u3002",
+      en: "<b>Thylakoid</b> \u2014 Membrane sacs where sunlight charges chemical batteries."
+    },
+    "photo.leaf_fact3": {
+      zh: "<b>\u603B\u8D26</b> \u2014 \u6BCF\u5408\u6210 1 mol \u8461\u8404\u7CD6\u50A8\u5B58 2870 kJ \u80FD\u91CF\uFF0C\u5168\u90E8\u6765\u81EA\u5149\u5B50\u3002",
+      en: "<b>Energy balance</b> \u2014 Storing 1 mol glucose absorbs 2,870 kJ, all from photons."
+    },
+    "photo.light_h2": { zh: "\u4E00\u53F0\u5B8C\u6574\u7684\u673A\u5668", en: "A Complete Machine" },
+    "photo.light_sub": { zh: "\u5145\u7535 + \u62FC\u7CD6 \xB7 \u540C\u5C4F\u770B", en: "Light rxn + Calvin cycle side by side" },
+    "photo.btn_live": { zh: "\u26A1 \u8FDE\u7EED\u8FD0\u8F6C", en: "\u26A1 Continuous Run" },
+    "photo.btn_tour": { zh: "\u{1F3AC} \u8BB2\u900F\u56DB\u6B65\u66F2", en: "\u{1F3AC} 4-Step Walkthrough" },
+    "photo.tour_step1": { zh: "\u2460 \u5168\u666F\u53F6\u7EFF\u4F53", en: "\u2460 Chloroplast Pan" },
+    "photo.tour_step2": { zh: "\u2461 \u819C\u4E0A\u53D1\u7535", en: "\u2461 Membrane Power" },
+    "photo.tour_step3": { zh: "\u2462 \u80FD\u91CF\u4E13\u7EBF", en: "\u2462 Energy Transfer" },
+    "photo.tour_step4": { zh: "\u2463 \u57FA\u8D28\u62FC\u7CD6", en: "\u2463 Stroma Calvin Cycle" },
+    "photo.light_formula": { zh: "\u5149\u80FD \u2192 \u7535\u5B50\u7535\u68AF \u2192 H\u207A \u5927\u575D\u6C34\u538B \u2192 ATP + NADPH \u7535\u6C60 \u2192 \u62FC\u88C5\u51FA\u7CD6", en: "Light \u2192 Electron Elevators \u2192 H\u207A Dam Pressure \u2192 ATP + NADPH Batteries \u2192 Sugar Assembly" },
+    "photo.legend_photon": { zh: "\u5149\u5B50", en: "Photon" },
+    "photo.legend_electron": { zh: "e\u207B \u7535\u5B50", en: "e\u207B Electron" },
+    "photo.legend_proton": { zh: "H\u207A \u8D28\u5B50", en: "H\u207A Proton" },
+    "photo.legend_o2": { zh: "O\u2082 \u6C27\u6C14", en: "O\u2082 Oxygen" },
+    "photo.legend_atp_full": { zh: "\u{1F50B}ATP\u6EE1\u7535", en: "\u{1F50B}ATP Charged" },
+    "photo.legend_adp_empty": { zh: "\u{1FAAB}ADP\u5F85\u5145", en: "\u{1FAAB}ADP Empty" },
+    "photo.legend_nadph_full": { zh: "\u26A1NADPH\u6EE1\u8F7D", en: "\u26A1NADPH Loaded" },
+    "photo.legend_nadp_empty": { zh: "\u{1F4E6}NADP\u207A\u5F85\u88C5", en: "\u{1F4E6}NADP\u207A Empty" },
+    "photo.legend_co2": { zh: "1\u78B3 CO\u2082", en: "1-C CO\u2082" },
+    "photo.legend_g3p": { zh: "3\u78B3\u7CD6 G3P", en: "3-C G3P Sugar" },
+    "photo.step1": {
+      zh: "\u2460 \u5149\u5B50\u6253\u5165 PSII\uFF1A\u7535\u5B50\u4E58<b>\u9633\u5149\u7535\u68AF 1</b> \u8DC3\u8FC1\uFF08\u6C34\u88AB\u62C6\u5F00\u653E\u51FA O\u2082 \u4E0E H\u207A\uFF09",
+      en: "\u2460 Photon strikes PSII: electron rides <b>Sun Elevator 1</b> (water splits into O\u2082 and H\u207A)"
+    },
+    "photo.step2": {
+      zh: "\u2461 \u7535\u5B50\u6ED1\u8FC7 b6f\uFF1A\u505A\u529F\u50CF<b>\u62BD\u6C34\u6CF5\u628A H\u207A \u538B\u5165\u8154\u5185\u5927\u575D</b>",
+      en: "\u2461 Electron flows through b6f: pumps <b>H\u207A into lumen like a water dam</b>"
+    },
+    "photo.step3": {
+      zh: "\u2462 \u7535\u5B50\u5230 PSI \u6CA1\u52B2\u4E86\uFF1A\u7B2C\u4E8C\u4E2A\u5149\u5B50\u542F\u52A8<b>\u9633\u5149\u7535\u68AF 2</b> \u518D\u6B21\u6FC0\u53D1",
+      en: "\u2462 Low-energy electron reaches PSI: 2nd photon fires <b>Sun Elevator 2</b>"
+    },
+    "photo.step4": {
+      zh: "\u2463 FNR \u9176\u628A\u9AD8\u80FD\u7535\u5B50\u548C H\u207A \u5C01\u88C5\u5165 NADP\u207A \u2192 <b>NADPH \u6EE1\u8F7D\u7535\u6C60</b>",
+      en: "\u2463 FNR enzyme loads electrons and H\u207A onto NADP\u207A \u2192 <b>NADPH battery</b>"
+    },
+    "photo.step5": {
+      zh: "\u2464 \u8154\u5185\u9AD8\u538B H\u207A \u55B7\u6D8C\u63A8\u52A8\u6C34\u8F6E\u673A \u2192 \u65CB\u8F6C\u538B\u51FA <b>ATP \u6EE1\u7535\u7535\u6C60</b>",
+      en: "\u2464 High H\u207A lumen pressure spins turbine rotor \u2192 generates <b>ATP battery</b>"
+    },
+    "photo.stat_o2_out": { zh: "\u{1F62E}\u200D\u{1F4A8} O\u2082 \u653E\u51FA", en: "\u{1F62E}\u200D\u{1F4A8} O\u2082 Released" },
+    "photo.stat_battery": { zh: "\u{1F50B} \u6EE1\u683C\u7535\u6C60\uFF08ATP / NADPH\uFF09", en: "\u{1F50B} Full Batteries (ATP / NADPH)" },
+    "photo.stat_turns": { zh: "\u{1F36C} \u62FC\u7CD6\u5708\u6570", en: "\u{1F36C} Calvin Cycle Turns" },
+    "photo.stat_g3p": { zh: "\u{1F9F1} \u51C0\u5F97\u7CD6\u5757\uFF08G3P\uFF09", en: "\u{1F9F1} Net G3P Synthesized" },
+    "photo.stat_kok": { zh: "\u653E\u6C27\u590D\u5408\u4F53\uFF08Kok \u6001\uFF09", en: "Oxygen-Evolving Complex (Kok)" },
+    "photo.exp_title": { zh: "\u{1F52C} \u72EC\u7ACB\u4E0E\u8054\u7CFB \xB7 \u906E\u5149\u5C0F\u5B9E\u9A8C", en: "\u{1F52C} Independence & Link \xB7 Light Cut Experiment" },
+    "photo.exp_btn_off": { zh: "\u{1F311} \u5173\u6389\u592A\u9633", en: "\u{1F311} Turn Off Sun" },
+    "photo.exp_btn_on": { zh: "\u2600\uFE0F \u91CD\u65B0\u5F00\u542F\u592A\u9633", en: "\u2600\uFE0F Turn Sun Back On" },
+    "photo.exp_msg_init": {
+      zh: "\u70B9\u201C\u5173\u6389\u592A\u9633\u201D\u89C2\u5BDF\uFF1A\u5149\u53CD\u5E94\u7ACB\u523B\u65AD\u7535\uFF0C\u4F46\u62FC\u7CD6\u8F66\u95F4\u5982\u4F55\u5229\u7528\u3010\u5B58\u91CF\u7535\u6C60\u3011\u72EC\u7ACB\u7EE7\u7EED\u8FD0\u8F6C\uFF01",
+      en: 'Click "Turn Off Sun": light rxn halts, but Calvin cycle keeps running on stored batteries!'
+    },
+    "photo.insp_default_title": { zh: "\u{1F4A1} \u70B9\u51FB 3D \u90E8\u4EF6\u770B\u5927\u767D\u8BDD\u6863\u6848", en: "\u{1F4A1} Click 3D Parts for Info Dossier" },
+    "photo.insp_default_tag": { zh: "\u53EF\u968F\u65F6\u70B9\u51FB", en: "Click anytime" },
+    "photo.insp_default_desc": {
+      zh: "\u62D6\u52A8\u65CB\u8F6C\u573A\u666F\uFF0C\u70B9\u51FB\u819C\u4E0A\u7684\u86CB\u767D\u8D28\u3001\u65CB\u8F6C\u7684\u6C34\u8F6E\u673A\u6216\u62FC\u7CD6\u8F66\u95F4\uFF0C\u63ED\u79D8\u5FAE\u89C2\u673A\u5668\u7684\u7CBE\u5999\u5206\u5DE5\uFF01",
+      en: "Rotate scene and click membrane proteins, rotating turbine, or Calvin cycle workshop!"
+    },
+    "photo.light_fact1": {
+      zh: "<b>\u4E3A\u4EC0\u4E48\u53EB\u201C\u62FC\u7CD6\u201D\uFF1F</b> \u7A7A\u6C14\u4E2D\u7684 CO\u2082 \u53EA\u6709 1 \u4E2A\u78B3\uFF0C\u662F\u6563\u843D\u7684\u79EF\u6728\u3002\u690D\u7269\u7528 5 \u78B3\u6293\u624B\uFF08RuBP\uFF09\u628A\u5B83\u4EEC\u6293\u7262\uFF0C\u5E76\u6D88\u8017\u5149\u53CD\u5E94\u505A\u597D\u7684\u5316\u5B66\u7535\u6C60\uFF08ATP \u4E0E NADPH\uFF09\u6CE8\u5165\u9AD8\u80FD\u91CF\uFF0C\u62FC\u5408\u6210\u771F\u6B63\u7684\u98DF\u7269\u2014\u2014\u7CD6\uFF08G3P\uFF09\u3002",
+      en: '<b>Why "Sugar Assembly"?</b> Airborne CO\u2082 has only 1 carbon atom. RuBisCO captures it with a 5-carbon acceptor (RuBP), then ATP and NADPH batteries infuse energy to forge 3-carbon sugar (G3P).'
+    },
+    "photo.light_fact2": {
+      zh: "<b>\u4E3A\u4EC0\u4E48\u8981\u5145\u4E24\u6B21\u7535\uFF1F</b> \u9633\u5149\u5355\u4E2A\u5149\u5B50\u7684\u80FD\u91CF\u4E0D\u8DB3\u4EE5\u4E00\u53E3\u6C14\u628A\u7535\u5B50\u4ECE\u6C34\u76F4\u63A5\u9876\u4E0A NADPH\u3002\u5927\u81EA\u7136\u5DE7\u5999\u8BBE\u8BA1\u4E86\u4E24\u4E2A\u201C\u9633\u5149\u5145\u7535\u7AD9\u201D\uFF08PSII \u548C PSI\uFF09\uFF0C\u63A5\u529B\u628A\u7535\u5B50\u80FD\u91CF\u63A8\u4E0A\u5DC5\u5CF0\uFF01",
+      en: "<b>Why charge twice?</b> A single photon cannot boost an electron from H\u2082O all the way to NADPH. Nature uses two tandem stations (PSII & PSI) to step up the potential in the Z-scheme."
+    },
+    "photo.light_fact3": {
+      zh: "<b>\u6697\u53CD\u5E94\u771F\u7684\u4E0D\u9700\u8981\u5149\u5417\uFF1F</b> \u6697\u53CD\u5E94\u672C\u8EAB\u4E0D\u9700\u8981\u5149\u5B50\u76F4\u63A5\u8F70\u51FB\uFF0C\u4F46\u5B83\u6781\u5176\u4F9D\u8D56\u5149\u53CD\u5E94\u9001\u6765\u7684\u65B0\u9C9C ATP \u548C NADPH \u7535\u6C60\uFF1B\u5982\u679C\u957F\u65F6\u95F4\u6CA1\u5149\uFF0C\u7535\u6C60\u8017\u5C3D\uFF0C\u62FC\u7CD6\u8F66\u95F4\u7ACB\u523B\u505C\u6446\uFF01",
+      en: "<b>Does Dark Reaction really need no light?</b> Enzymes do not directly absorb photons, but require continuous ATP/NADPH from light reactions. When stored batteries deplete, sugar synthesis stops."
+    },
+    "photo.facts_h2": { zh: "\u6570\u5B57\u4E0E\u771F\u76F8", en: "Numbers & Truth" },
+    "photo.facts_sub": { zh: "\u5168\u90E8\u6765\u81EA\u5DF2\u6838\u5B9E\u6765\u6E90", en: "Verified scientific sources" },
+    "photo.facts_p1": {
+      zh: "<b>\u4E3A\u4EC0\u4E48\u53F6\u5B50\u662F\u7EFF\u8272\u7684\uFF1F</b> \u53F6\u7EFF\u7D20\u5F3A\u5438\u6536\u84DD\u5149\uFF08\u7EA6 430 nm\uFF09\u548C\u7EA2\u5149\uFF08\u7EA6 662 nm\uFF09\uFF0C\u628A\u7EFF\u5149\uFF08\u7EA6 550 nm\uFF09\u53CD\u5C04\u56DE\u4F60\u7684\u773C\u775B\u30021882 \u5E74 Engelmann \u7528\u597D\u6C27\u83CC\u627E\u51FA\u201C\u54EA\u79CD\u989C\u8272\u7684\u5149\u6700\u7BA1\u7528\u201D\u2014\u2014\u7EA2\u5149\u548C\u84DD\u5149\u3002",
+      en: "<b>Why are leaves green?</b> Chlorophyll strongly absorbs blue (~430 nm) and red (~662 nm) light, reflecting green (~550 nm) to your eyes. In 1882 Engelmann used aerobic bacteria to map the action spectrum."
+    },
+    "photo.facts_stat1": { zh: "\u653E 1 \u4E2A O\u2082 \u7684\u5149\u5B50\u8D26\u5355", en: "Photons required per O\u2082" },
+    "photo.facts_stat1_val": { zh: "8\u201310 \u4E2A", en: "8\u201310 photons" },
+    "photo.facts_stat2": { zh: "\u690D\u7269\u7406\u8BBA\u6548\u7387\u4E0A\u9650", en: "Theoretical plant efficiency" },
+    "photo.facts_stat3": { zh: "\u5B9E\u9645\u7530\u95F4\u4F5C\u7269", en: "Field crop efficiency" },
+    "photo.facts_stat3_val": { zh: "\u7EA6 1\u20132%", en: "~1\u20132%" },
+    "photo.facts_stat4": { zh: "\u5546\u54C1\u592A\u9633\u80FD\u677F\uFF08\u5BF9\u6BD4\uFF09", en: "Commercial solar panel (comparison)" },
+    "photo.facts_stat4_val": { zh: "\u7EA6 24%", en: "~24%" },
+    "photo.facts_p2": {
+      zh: "<b>\u89C4\u6A21</b>\uFF1A\u9646\u5730\u5149\u5408\u4F5C\u7528\u6BCF\u5E74\u56FA\u78B3\u7EA6 120 Gt\uFF1B\u5927\u6C14\u91CC\u7684 O\u2082 \u81F3\u5C11\u4E00\u534A\u6765\u81EA\u6D77\u6D0B\u6D6E\u6E38\u690D\u7269\u3002\u7EA6 24 \u4EBF\u5E74\u524D\uFF0C\u5149\u5408\u7EC6\u83CC\u5F15\u53D1\u7684\u201C\u5927\u6C27\u5316\u4E8B\u4EF6\u201D\u6C38\u8FDC\u6539\u5199\u4E86\u5927\u6C14\u3002",
+      en: "<b>Global Scale</b>: Terrestrial plants fix ~120 Gt carbon yearly; at least half of atmospheric O\u2082 originates from marine phytoplankton. ~2.4 billion years ago, cyanobacteria triggered the Great Oxidation Event."
+    },
+    "photo.tl_1": { zh: "<b>1771</b> Priestley\uFF1A\u8584\u8377\u201C\u51C0\u5316\u201D\u8721\u70DB\u70E7\u574F\u7684\u7A7A\u6C14", en: "<b>1771</b> Priestley: Mint sprig restores air fouled by candle" },
+    "photo.tl_2": { zh: "<b>1779</b> Ingenhousz\uFF1A\u53EA\u6709\u7EFF\u8272\u690D\u7269\u5728\u5149\u4E0B\u624D\u8FD9\u4E48\u505A", en: "<b>1779</b> Ingenhousz: Only green parts in sunlight produce clean air" },
+    "photo.tl_3": { zh: "<b>1882</b> Engelmann\uFF1A\u7EC6\u83CC\u627E\u7EA2\u5149\u2014\u2014\u4F5C\u7528\u5149\u8C31", en: "<b>1882</b> Engelmann: Bacteria swarm blue/red zones \u2014 action spectrum" },
+    "photo.tl_4": { zh: "<b>1941</b> Ruben & Kamen\uFF1A\xB9\u2078O \u8BC1\u5B9E O\u2082 \u6765\u81EA\u6C34", en: "<b>1941</b> Ruben & Kamen: \xB9\u2078O tracer proves O\u2082 originates from H\u2082O" },
+    "photo.tl_5": { zh: "<b>1961</b> Calvin\uFF1A\xB9\u2074C \u89E3\u51FA\u56FA\u78B3\u5FAA\u73AF\uFF08\u8BFA\u8D1D\u5C14\u5956\uFF09", en: "<b>1961</b> Calvin: \xB9\u2074C tracer uncovers carbon fixation cycle (Nobel Prize)" },
+    "photo.btn_story_play": { zh: "\u25B6 \u4E00\u5206\u949F\u6545\u4E8B", en: "\u25B6 1-Min Story" },
+    "photo.btn_story_stop": { zh: "\u23F9 \u505C\u6B62\u6545\u4E8B", en: "\u23F9 Stop Story" },
+    "photo.btn_pause": { zh: "\u23F8 \u6682\u505C", en: "\u23F8 Pause" },
+    "photo.btn_resume": { zh: "\u25B6 \u7EE7\u7EED", en: "\u25B6 Resume" },
+    "photo.btn_home_view": { zh: "\u27F2 \u56DE\u5230\u5168\u666F", en: "\u27F2 Reset View" },
+    "photo.btn_leaf_tour": { zh: "\u{1F3AC} \u81EA\u52A8\u5BFC\u89C8", en: "\u{1F3AC} Auto Tour" },
+    "photo.btn_leaf_stop": { zh: "\u23F9 \u505C\u6B62\u5BFC\u89C8", en: "\u23F9 Stop Tour" },
+    "photo.btn_labels": { zh: "\u{1F3F7} \u6807\u7B7E", en: "\u{1F3F7} Labels" },
+    "photo.ctl_light": { zh: "\u5149\u5F3A", en: "Light" },
+    "photo.ctl_speed": { zh: "\u901F\u5EA6", en: "Speed" },
+    "photo.ctl_view": { zh: "\u89C6\u89D2", en: "View" },
+    "photo.view_spectrum": { zh: "\u5438\u6536\u5149\u8C31", en: "Absorption Spectrum" },
+    "photo.view_efficiency": { zh: "\u6548\u7387\u9636\u68AF", en: "Efficiency Ladder" },
+    "photo.view_scale": { zh: "\u5730\u7403\u89C4\u6A21", en: "Global Scale" },
+    "photo.badge": { zh: "\u771F\u5B9E\u751F\u5316\u8FC7\u7A0B \xB7 \u793A\u610F\u51E0\u4F55 \xB7 \u6570\u636E\u6765\u6E90\u89C1 README", en: "Realistic biochemistry \xB7 Schematic geometry \xB7 Sources in README" },
+    // 3D labels - Light tab
+    "photo.lbl_chloro_matrix": {
+      zh: "\u{1F343} \u53F6\u7EFF\u4F53\u5185\u90E8\u5FAE\u5B87\u5B99 (Chloroplast Matrix \xB7 \u7EDF\u4E00\u751F\u547D\u673A\u5668)",
+      en: "\u{1F343} Inside Chloroplast Matrix (Life Machinery)"
+    },
+    "photo.lbl_light_zone": {
+      zh: "\u{1F3ED} \u8FC7\u7A0B \u2460 \xB7 \u5149\u53CD\u5E94\u53D1\u7535\u5DE5\u573A (\u7C7B\u56CA\u4F53\u819C\u7CFB\u7EDF)",
+      en: "\u{1F3ED} Process \u2460 \xB7 Light-Dependent Power Factory (Thylakoids)"
+    },
+    "photo.lbl_light_zone_sub": {
+      zh: "\u6C34\u88C2\u53D1\u653E\u6C27 \xB7 \u8D28\u5B50\u6C34\u5E93\u5927\u575D \xB7 \u7EB3\u7C73\u6C34\u8F6E\u673A\u538B\u5236\u6EE1\u7535\u7535\u6C60",
+      en: "Water splitting O\u2082 \xB7 Proton dam \xB7 Nanoturbine synthesizing batteries"
+    },
+    "photo.lbl_lumen_dam": {
+      zh: "\u7C7B\u56CA\u4F53\u8154 \xB7 \u8D28\u5B50\u6C34\u5E93 (\u9AD8\u538B\u84C4\u6C34\u5927\u575D \xB7 \u5145\u76C8 H\u207A)",
+      en: "Thylakoid Lumen \xB7 Proton Reservoir (High-pressure Dam \xB7 H\u207A)"
+    },
+    "photo.lbl_hplus_flow": {
+      zh: "H\u207A \u987A\u6C34\u52BF\u51B2\u5411\u6C34\u8F6E\u673A \u2192",
+      en: "H\u207A rushes toward ATP synthase turbine \u2192"
+    },
+    "photo.lbl_psii": {
+      zh: "\u2460 PSII \xB7 \u62C6\u6C34\u653E\u6C27",
+      en: "\u2460 PSII \xB7 Water Splitting & O\u2082"
+    },
+    "photo.lbl_oec": {
+      zh: "OEC \u9530\u7C07 (\u62C6\u6C34\u5200)",
+      en: "OEC Mn\u2084CaO\u2085 Cluster (Water Splitter)"
+    },
+    "photo.lbl_b6f": {
+      zh: "\u2461 b6f \xB7 \u6CF5 H\u207A \u5165\u5927\u575D",
+      en: "\u2461 Cyt b\u2086f \xB7 Pumps H\u207A into Dam"
+    },
+    "photo.lbl_psi": {
+      zh: "\u2462 PSI \xB7 \u4E8C\u6B21\u5145\u80FD",
+      en: "\u2462 PSI \xB7 Second Solar Boost"
+    },
+    "photo.lbl_fnr": {
+      zh: "\u2463 FNR \xB7 \u5C01\u88C5 NADPH",
+      en: "\u2463 FNR \xB7 Packaging NADPH"
+    },
+    "photo.lbl_atp_synth": {
+      zh: "\u2464 ATP \u5408\u9176 \xB7 \u65CB\u8F6C\u53D1\u7535",
+      en: "\u2464 ATP Synthase \xB7 Rotary Generator"
+    },
+    "photo.lbl_highway_forward": {
+      zh: "\u26A1 \u6EE1\u7535\u524D\u9001 (3 ATP + 2 NADPH) \u2192",
+      en: "\u26A1 Forward Power (3 ATP + 2 NADPH) \u2192"
+    },
+    "photo.lbl_pipe_nadph": {
+      zh: "\u2463 \u8FD8\u539F\u529B\u7BA1\u9053 (NADPH \u7535\u6C60) \u2192",
+      en: "\u2463 Reducing Power Pipeline (NADPH Battery) \u2192"
+    },
+    "photo.lbl_pipe_atp": {
+      zh: "\u2464 \u80FD\u91CF\u8D27\u5E01\u7BA1\u9053 (ATP \u7535\u6C60) \u2192",
+      en: "\u2464 Energy Currency Pipeline (ATP Battery) \u2192"
+    },
+    "photo.lbl_highway_shuttle": {
+      zh: "\u21C4 \u80FD\u91CF\u4E0E\u539F\u6599\u7A7F\u68AD\u4E13\u7EBF \u21C4",
+      en: "\u21C4 Energy & Material Shuttle Line \u21C4"
+    },
+    "photo.lbl_highway_return": {
+      zh: "\u2190 \u{1FAAB} \u7A7A\u7535\u56DE\u5145 (3 ADP + 2 NADP\u207A)",
+      en: "\u2190 \u{1FAAB} Empty Recharge (3 ADP + 2 NADP\u207A)"
+    },
+    "photo.lbl_calvin_zone": {
+      zh: "\u{1F36C} \u8FC7\u7A0B \u2461 \xB7 \u78B3\u53CD\u5E94\u62FC\u7CD6\u5DE5\u573A (\u53F6\u7EFF\u4F53\u57FA\u8D28)",
+      en: "\u{1F36C} Process \u2461 \xB7 Calvin Cycle Sugar Workshop (Stroma)"
+    },
+    "photo.lbl_calvin_zone_sub": {
+      zh: "RuBisCO \u6293\u78B3 \xB7 \u6CE8\u5165\u6C22\u80FD \xB7 \u7EC4\u88C5\u4EA7\u51FA\u7CD6",
+      en: "RuBisCO fixes carbon \xB7 Injects energy \xB7 Assembles sugar"
+    },
+    "photo.lbl_calvin_fix": {
+      zh: "\u2460 \u6293\u78B3\u56FA\u5B9A (RuBisCO)",
+      en: "\u2460 Carbon Fixation (RuBisCO)"
+    },
+    "photo.lbl_calvin_red": {
+      zh: "\u2461 \u5145\u80FD\u8FD8\u539F (\u6CE8\u5165\u80FD\u91CF)",
+      en: "\u2461 Reduction (Energy Injection)"
+    },
+    "photo.lbl_calvin_reg": {
+      zh: "\u2462 \u6293\u624B\u518D\u751F (RuBP)",
+      en: "\u2462 Regeneration (RuBP)"
+    },
+    "photo.lbl_sugar_exit": {
+      zh: "\u{1F36C} \u7EAF\u8D5A 1 \u5757\u7CD6\u51FA\u5382 (G3P)",
+      en: "\u{1F36C} Net 1 Sugar Discharged (G3P)"
+    },
+    // Interactive Inspector Details
+    "photo.insp_click_tag": { zh: "\u{1F4A1} \u70B9\u51FB\u67E5\u770B\u6863\u6848", en: "\u{1F4A1} Info Dossier" },
+    "photo.insp_in_label": { zh: "\u8F93\u5165 (Inputs)\uFF1A", en: "Inputs:" },
+    "photo.insp_out_label": { zh: "\u8F93\u51FA (Outputs)\uFF1A", en: "Outputs:" },
+    "photo.comp_psii_name": { zh: "\u5149\u7CFB\u7EDF II (PSII / P680)", en: "Photosystem II (PSII / P680)" },
+    "photo.comp_psii_metaphor": { zh: "\u3010\u9633\u5149\u7535\u68AF 1 \u53F7 + \u62C6\u6C34\u653E\u6C27\u3011", en: "\u3010Sun Elevator 1 + Water Splitting\u3011" },
+    "photo.comp_psii_desc": {
+      zh: "\u53F6\u7EFF\u7D20\u5438\u6536\u5149\u5B50\uFF0C\u5C06\u7535\u5B50\u9876\u4E0A\u9AD8\u80FD\u6001\uFF1B\u5E95\u90E8\u9530\u7C07\uFF08OEC\uFF09\u4ECE\u6C34\u91CC\u593A\u8D70\u7535\u5B50\u8865\u4F4D\uFF0C\u6C34\u88AB\u62C6\u5F00\u91CA\u653E O\u2082 \u548C H\u207A\uFF01",
+      en: "Chlorophyll absorbs photons to boost electrons to high energy. The manganese cluster (OEC) strips electrons from water to replenish, releasing O\u2082 and H\u207A into lumen!"
+    },
+    "photo.comp_psii_in": {
+      zh: "\u5149\u5B50 (680 nm) + 2 H\u2082O",
+      en: "Photons (680 nm) + 2 H\u2082O"
+    },
+    "photo.comp_psii_out": {
+      zh: "4 \u9AD8\u80FD e\u207B + 4 H\u207A (\u8154\u5185) + O\u2082",
+      en: "4 high-energy e\u207B + 4 H\u207A (in lumen) + O\u2082"
+    },
+    "photo.comp_b6f_name": { zh: "\u7EC6\u80DE\u8272\u7D20 b6f \u590D\u5408\u4F53", en: "Cytochrome b\u2086f Complex" },
+    "photo.comp_b6f_metaphor": { zh: "\u3010\u8D28\u5B50\u62BD\u6C34\u6CF5\u3011", en: "\u3010Proton Water Pump\u3011" },
+    "photo.comp_b6f_desc": {
+      zh: "\u7535\u5B50\u50CF\u6ED1\u68AF\u6ED1\u7ECF\u5B83\u65F6\uFF0C\u5B83\u5229\u7528\u7535\u5B50\u4E0B\u5761\u7684\u80FD\u91CF\uFF0C\u5C06\u57FA\u8D28\u4E2D\u7684 H\u207A \u5F3A\u884C\u6CF5\u8FDB\u7C7B\u56CA\u4F53\u8154\uFF0C\u9020\u51FA\u5927\u575D\u6C34\u538B\uFF01",
+      en: "As electrons flow through, it harnesses downhill energy to pump stromal H\u207A into the thylakoid lumen, building up proton dam pressure!"
+    },
+    "photo.comp_b6f_in": {
+      zh: "\u9AD8\u80FD e\u207B (\u81EA PSII/\u8D28\u4F53\u918C PQ) + \u57FA\u8D28 H\u207A",
+      en: "High-energy e\u207B (via PQ) + Stromal H\u207A"
+    },
+    "photo.comp_b6f_out": {
+      zh: "\u4F4E\u80FD e\u207B (\u9001\u5F80\u8D28\u4F53\u84DD\u7D20 PC) + \u8154\u5185\u6D53\u7F29 H\u207A (\u6784\u5EFA \u0394pH)",
+      en: "Lower-energy e\u207B (to Plastocyanin PC) + Lumen H\u207A (building \u0394pH)"
+    },
+    "photo.comp_psi_name": { zh: "\u5149\u7CFB\u7EDF I (PSI / P700)", en: "Photosystem I (PSI / P700)" },
+    "photo.comp_psi_metaphor": { zh: "\u3010\u9633\u5149\u7535\u68AF 2 \u53F7\u3011", en: "\u3010Sun Elevator 2\u3011" },
+    "photo.comp_psi_desc": {
+      zh: "\u5230\u8FBE\u8FD9\u91CC\u7684\u7535\u5B50\u5DF2\u7ECF\u75B2\u60EB\u6CA1\u52B2\u4E86\uFF1B\u7B2C\u4E8C\u4E2A\u5149\u5B50\u6253\u5165\uFF0C\u5C06\u7535\u5B50\u518D\u6B21\u9876\u4E0A\u6781\u9AD8\u80FD\u6001\uFF0C\u51C6\u5907\u9001\u53BB\u88C5\u5305\uFF01",
+      en: "De-energized electrons arrive here. A second photon strikes P700, re-energizing electrons to peak potential for NADPH packaging!"
+    },
+    "photo.comp_psi_in": {
+      zh: "\u5149\u5B50 (700 nm) + \u4F4E\u80FD e\u207B (\u6765\u81EA PC)",
+      en: "Photons (700 nm) + De-energized e\u207B (from PC)"
+    },
+    "photo.comp_psi_out": {
+      zh: "\u6781\u9AD8\u80FD e\u207B (\u9001\u5F80\u94C1\u6C27\u8FD8\u86CB\u767D Fd)",
+      en: "Peak-energy e\u207B (transferred to Ferredoxin Fd)"
+    },
+    "photo.comp_fnr_name": { zh: "FNR (\u94C1\u6C27\u8FD8\u86CB\u767D-NADP\u207A \u8FD8\u539F\u9176)", en: "FNR (Ferredoxin-NADP\u207A Reductase)" },
+    "photo.comp_fnr_metaphor": { zh: "\u3010\u7535\u6C60\u6253\u5305\u8F66\u95F4\u3011", en: "\u3010Battery Packaging Workshop\u3011" },
+    "photo.comp_fnr_desc": {
+      zh: "\u628A\u4ECE PSI \u9001\u6765\u7684 2 \u4E2A\u9AD8\u80FD\u7535\u5B50\u4E0E\u57FA\u8D28 H\u207A \u88C5\u8FDB NADP\u207A\uFF0C\u5C01\u88C5\u6210\u6EE1\u7535\u5316\u5B66\u7535\u6C60 NADPH\uFF01",
+      en: "Transfers 2 high-energy electrons from Ferredoxin and 1 stromal H\u207A to NADP\u207A, packaging reduced coenzyme NADPH!"
+    },
+    "photo.comp_fnr_in": {
+      zh: "2 \u8FD8\u539F\u6001\u94C1\u6C27\u8FD8\u86CB\u767D (2 Fd_red, \u643A 2e\u207B) + 1 NADP\u207A + 1 \u57FA\u8D28 H\u207A",
+      en: "2 Reduced Ferredoxin (2 Fd_red, 2e\u207B) + 1 NADP\u207A + 1 Stromal H\u207A"
+    },
+    "photo.comp_fnr_out": {
+      zh: "1 NADPH (\u9AD8\u80FD\u6C22\u4E0E\u7535\u5B50\u8F7D\u4F53\u7535\u6C60) + 2 \u6C27\u5316\u6001\u94C1\u6C27\u8FD8\u86CB\u767D (2 Fd_ox)",
+      en: "1 NADPH (high-energy electron & H carrier battery) + 2 Oxidized Ferredoxin (2 Fd_ox)"
+    },
+    "photo.comp_atp_name": { zh: "ATP \u5408\u9176 (\u5206\u5B50\u6C34\u8F6E\u53D1\u7535\u673A)", en: "ATP Synthase (Molecular Hydro Turbine)" },
+    "photo.comp_atp_metaphor": { zh: "\u3010\u6C34\u8F6E\u53D1\u7535\u673A\u3011", en: "\u3010Rotary Hydro Generator\u3011" },
+    "photo.comp_atp_desc": {
+      zh: "\u7C7B\u56CA\u4F53\u8154\u5185\u9AD8\u538B H\u207A \u55B7\u6D8C\u800C\u51FA\u63A8\u7740 c \u73AF\u9AD8\u901F\u65CB\u8F6C\uFF0C\u5E26\u52A8\u8F6C\u8F74\u5728\u7403\u5934\u91CC\u5494\u54D2\u7EC4\u88C5 ADP + Pi \u2192 ATP \u6EE1\u7535\u7535\u6C60\uFF01",
+      en: "Protons trapped in lumen rush down electrochemical gradient through c-rotor, spinning F\u2081 head to synthesize ATP from ADP and Pi!"
+    },
+    "photo.comp_atp_in": {
+      zh: "\u7EA6 4.67 H\u207A (\u8154\u5185\u6C34\u5E93\u9AD8\u538B\u6D41) + 1 ADP + 1 Pi (\u65E0\u673A\u78F7\u9178)",
+      en: "~4.67 H\u207A (from lumen dam gradient) + 1 ADP + 1 Pi (inorganic phosphate)"
+    },
+    "photo.comp_atp_out": {
+      zh: "1 ATP (\u901A\u7528\u80FD\u91CF\u8D27\u5E01\u7535\u6C60) + \u7EA6 4.67 H\u207A (\u91CA\u653E\u81F3\u57FA\u8D28) + 1 H\u2082O",
+      en: "1 ATP (universal cellular energy currency) + ~4.67 H\u207A (released into stroma) + 1 H\u2082O"
+    },
+    "photo.comp_rubisco_name": { zh: "RuBisCO (\u6838\u916E\u7CD6\u4E8C\u78F7\u9178\u7FA7\u5316\u9176)", en: "RuBisCO (Ribulose-1,5-bisphosphate Carboxylase)" },
+    "photo.comp_rubisco_metaphor": { zh: "\u3010\u6293\u78B3\u673A\u68B0\u624B\u3011", en: "\u3010Carbon-Fixing Robotic Arm\u3011" },
+    "photo.comp_rubisco_desc": {
+      zh: "\u5730\u7403\u4E0A\u6700\u591A\u7684\u9176\uFF01\u8D1F\u8D23\u4ECE\u7A7A\u6C14\u4E2D\u6293\u4F4F\u53EA\u6709 1 \u4E2A\u78B3\u7684 CO\u2082\uFF0C\u5F3A\u884C\u6263\u5728 5 \u78B3\u6293\u624B RuBP \u4E0A\uFF0C\u62C9\u5F00\u62FC\u7CD6\u5E8F\u5E55\uFF01",
+      en: "The most abundant enzyme on Earth! Captures 1-carbon CO\u2082 from air and binds it onto 5-carbon RuBP, kicking off sugar synthesis!"
+    },
+    "photo.comp_rubisco_in": {
+      zh: "1 CO\u2082 + 1 RuBP (5\u78B3\u53CC\u78F7\u9178\u6838\u916E\u7CD6) + H\u2082O",
+      en: "1 CO\u2082 + 1 RuBP (5-carbon sugar) + H\u2082O"
+    },
+    "photo.comp_rubisco_out": {
+      zh: "2 \u5206\u5B50 3-PGA (3\u78B3\u7518\u6CB9\u9178-3-\u78F7\u9178)",
+      en: "2 molecules of 3-PGA (3-phosphoglycerate)"
+    },
+    "photo.comp_red_name": { zh: "\u8FD8\u539F\u5DE5\u4F4D (\u80FD\u91CF\u4E0E\u7535\u5B50\u6CE8\u5165)", en: "Reduction Workshop (Energy & Electron Injection)" },
+    "photo.comp_red_metaphor": { zh: "\u3010\u7535\u6C60\u82B1\u5728\u8FD9\u91CC\uFF01\u3011", en: "\u3010Batteries Spent Here!\u3011" },
+    "photo.comp_red_desc": {
+      zh: "3-PGA \u5438\u6536 ATP \u63D0\u4F9B\u7684\u80FD\u91CF\u78F7\u9178\uFF0C\u5E76\u541E\u4E0B NADPH \u9001\u6765\u7684\u9AD8\u80FD\u7535\u5B50\u4E0E\u6C22\uFF0C\u8715\u53D8\u4E3A\u751C\u7F8E\u7684\u9AD8\u80FD\u7CD6\u7816 G3P\uFF01",
+      en: "3-PGA absorbs high-energy phosphate from ATP and electrons/hydrogen from NADPH, converting into sweet 3-carbon G3P sugar bricks!"
+    },
+    "photo.comp_red_in": {
+      zh: "2 \xD7 3-PGA + 2 ATP + 2 NADPH",
+      en: "2 \xD7 3-PGA + 2 ATP + 2 NADPH"
+    },
+    "photo.comp_red_out": {
+      zh: "2 \xD7 G3P (3\u78B3\u7CD6) + 2 ADP + 2 Pi + 2 NADP\u207A",
+      en: "2 \xD7 G3P (3-carbon sugar) + 2 ADP + 2 Pi + 2 NADP\u207A"
+    },
+    "photo.comp_reg_name": { zh: "\u518D\u751F\u4E0E\u51FA\u7CD6\u5DE5\u4F4D", en: "Regeneration & Sugar Output Workshop" },
+    "photo.comp_reg_metaphor": { zh: "\u30101 \u5757\u51FA\u5382\uFF0C5 \u5757\u56DE\u7089\u3011", en: "\u30101 Discharged, 5 Recycled\u3011" },
+    "photo.comp_reg_desc": {
+      zh: "3 \u5708\u79EF\u6512 6 \u5757 G3P\uFF0C\u5176\u4E2D 1 \u5757\u4F5C\u4E3A\u7EAF\u6536\u5165\u79BB\u5F00\u8F66\u95F4\u53BB\u9020\u8461\u8404\u7CD6\uFF1B\u5269\u4F59 5 \u5757\u5728 ATP \u652F\u6301\u4E0B\u91CD\u65B0\u62FC\u56DE 3 \u4E2A RuBP \u6293\u624B\uFF01",
+      en: "Every 3 turns yield 6 G3P. 1 G3P exits as net harvest for glucose synthesis; 5 G3P recycle with 1 ATP to regenerate 3 RuBP acceptors!"
+    },
+    "photo.comp_reg_in": {
+      zh: "5 \xD7 G3P (\u5171 15 \u4E2A\u78B3) + 1 ATP",
+      en: "5 \xD7 G3P (15 carbons total) + 1 ATP"
+    },
+    "photo.comp_reg_out": {
+      zh: "3 \xD7 RuBP (5\u78B3\u6293\u624B\uFF0C\u5171 15 \u4E2A\u78B3) + 1 ADP",
+      en: "3 \xD7 RuBP (5-carbon acceptors, 15 carbons total) + 1 ADP"
+    },
+    // Z-Scheme 2D Canvas
+    "photo.z_title": { zh: "Z \u65B9\u6848\uFF1A\u7535\u5B50\u80FD\u91CF\u8FC7\u5C71\u8F66 (\u4E24\u6B21\u5145\u80FD)", en: "Z-Scheme: Electron Energy Coaster (Dual Excitation)" },
+    "photo.z_axis": { zh: "\u52BF\u80FD \u2191 (\u9AD8\u80FD\u91CF)", en: "Redox Potential \u2191 (High Energy)" },
+    "photo.z_node_0": { zh: "\u6C34 (H\u2082O)", en: "Water (H\u2082O)" },
+    "photo.z_node_1": { zh: "\u2600\uFE0F \u7535\u68AF 1 (P680*)", en: "\u2600\uFE0F Elevator 1 (P680*)" },
+    "photo.z_node_2": { zh: "b6f (\u6CF5 H\u207A)", en: "Cyt b\u2086f (Pumps H\u207A)" },
+    "photo.z_node_3": { zh: "\u2600\uFE0F \u7535\u68AF 2 (P700*)", en: "\u2600\uFE0F Elevator 2 (P700*)" },
+    "photo.z_node_4": { zh: "\u{1F4E6} NADPH", en: "\u{1F4E6} NADPH" },
+    // Light tour steps
+    "photo.light_tour_title_1": { zh: "\u2460 \u5168\u666F\u53F6\u7EFF\u4F53\u5FAE\u5B87\u5B99 (\u5B8F\u89C2\u603B\u63FD \xB7 \u751F\u547D\u673A\u5668)", en: "\u2460 Panoramic Chloroplast Microcosm (Overview \xB7 Life Machine)" },
+    "photo.light_tour_desc_1": {
+      zh: "\u3010\u7F6E\u8EAB\u53F6\u7EFF\u4F53\u5185\u90E8\u3011\u5DE6\u4FA7\u56FA\u6001\u819C\u7CFB\u7EDF\u9633\u5149\u5145\u7535\u653E\u6C27\uFF0C\u53F3\u4FA7\u6DB2\u6001\u57FA\u8D28\u91CC\u5403\u7535\u6C60\u62FC\u7CD6\uFF0C\u4E2D\u95F4\u662F\u6E90\u6E90\u4E0D\u65AD\u7684\u80FD\u91CF\u5BF9\u6D41\u9AD8\u94C1\u3002\u4E24\u5382\u5206\u5DE5\u660E\u786E\u3001\u6D51\u7136\u4E00\u4F53\uFF01",
+      en: "\u3010Inside the Chloroplast\u3011On the left, solid thylakoid membranes split water and charge batteries. On the right, liquid stroma consumes batteries to assemble sugar. In between, shuttle highways link the two in a seamless cycle!"
+    },
+    "photo.light_tour_title_2": { zh: "\u2461 \u8FC7\u7A0B \u2460 \xB7 \u819C\u4E0A\u53D1\u7535\u5927\u575D (\u7C7B\u56CA\u4F53\u819C\u7CFB\u7EDF)", en: "\u2461 Process \u2460 \xB7 Membrane Power Dam (Thylakoids)" },
+    "photo.light_tour_desc_2": {
+      zh: "\u3010\u72EC\u7ACB\u786C\u4EF6\uFF1A\u56FA\u6001\u819C\u673A\u5668\u3011\u9633\u5149\u6253\u5165 PSII \u548C PSI\uFF0C\u6C34\u5206\u5B50\u5728 OEC \u5200\u53E3\u88AB\u5207\u5F00\u53D1\u51FA\u6C27\u6C14\u3002\u4E0B\u5761\u7535\u5B50\u63A8\u52A8 b6f \u6CF5\u5EFA\u8D77\u8D28\u5B50\u5927\u575D\uFF0C\u9AD8\u538B\u8D28\u5B50\u51B2\u5237\u7EB3\u7C73\u6C34\u8F6E\u673A\uFF08ATP\u5408\u9176\uFF09\u98DE\u8F6C\u538B\u51FA\u6EE1\u683C\u7535\u6C60\uFF01",
+      en: "\u3010Solid-state Membrane Machinery\u3011Photons strike PSII and PSI; water splits at the OEC cluster, releasing oxygen. Downhill electrons drive b\u2086f to pump protons, forming a high-pressure dam that spins ATP synthase to produce charged batteries!"
+    },
+    "photo.light_tour_title_3": { zh: "\u2462 \u552F\u4E00\u7EBD\u5E26 \xB7 \u80FD\u91CF\u4E0E\u539F\u6599\u7A7F\u68AD\u4E13\u7EBF (\u57CE\u9645\u7269\u6D41)", en: "\u2462 The Crucial Link \xB7 Energy Shuttle Line (Inter-factory Logistics)" },
+    "photo.light_tour_desc_3": {
+      zh: "\u3010\u4E24\u5382\u751F\u6B7B\u8110\u5E26\u3011\u5149\u53CD\u5E94\u7EDD\u4E0D\u76F4\u63A5\u9020\u7CD6\uFF0C\u62FC\u7CD6\u8F66\u95F4\u7EDD\u4E0D\u76F4\u63A5\u5403\u5149\uFF01\u4E24\u5382\u7A7A\u95F4\u72EC\u7ACB\uFF0C\u5168\u9760\u4E13\u7EBF\u8FDE\u7ED3\uFF1A\u4E0A\u5C42\u7D2B\u8272\u7BA1\u9053\u4E13\u9001 \u2463 FNR \u5C01\u88C5\u7684 NADPH\uFF0C\u91D1\u9EC4\u7BA1\u9053\u4E13\u9001 \u2464 ATP\u5408\u9176\u538B\u5236\u7684 ATP\uFF1B\u4E0B\u5C42\u9752\u7070\u7BA1\u9053\u7A7A\u7535\u56DE\u819C\u5145\u7535\uFF01",
+      en: "\u3010The Vital Lifeline\u3011Light reactions never make sugar; Calvin cycle never absorbs photons directly! Connected by dedicated conduits: purple pipeline delivers \u2463 NADPH, golden pipeline delivers \u2464 ATP; gray conduit returns empty batteries below!"
+    },
+    "photo.light_tour_title_4": { zh: "\u2463 \u8FC7\u7A0B \u2461 \xB7 \u78B3\u53CD\u5E94\u62FC\u7CD6\u5DE5\u573A (\u53F6\u7EFF\u4F53\u57FA\u8D28\u6DB2\u76F8)", en: "\u2463 Process \u2461 \xB7 Calvin Cycle Sugar Workshop (Stroma)" },
+    "photo.light_tour_desc_4": {
+      zh: "\u3010\u72EC\u7ACB\u8F6F\u4EF6\uFF1A\u6DB2\u76F8\u81EA\u50AC\u5316\u5FAA\u73AF\u3011RuBisCO \u6293\u53D6\u7A7A\u6C14\u4E2D\u7684 CO\u2082\uFF0C\u541E\u4E0B\u9001\u6765\u7684\u6EE1\u7535\u7535\u6C60\u6CE8\u5165\u9AD8\u80FD\u6C22\uFF0C\u62FC\u88C5\u51FA 3\u78B3\u7CD6 G3P\uFF01\u6BCF 3 \u5708\u7EAF\u8D5A 1 \u5757\u7CD6\u51FA\u5382\uFF0C\u5176\u4F59\u56DE\u7089\u518D\u751F\u6293\u624B\uFF01",
+      en: "\u3010Liquid-phase Catalytic Cycle\u3011RuBisCO captures CO\u2082 from the air. Powered by ATP and NADPH, it synthesizes 3-carbon G3P sugar. Every 3 turns, 1 net sugar exits while the remaining 5 recycle into RuBP acceptors!"
+    },
+    // Experiment messages
+    "photo.exp_msg_dark_run": {
+      zh: '<b>\u{1F311} \u6697\u5BA4\u62FC\u7CD6\u4E2D\uFF1A</b>\u6D88\u8017\u5B58\u91CF\u7535\u6C60\uFF01\u5269\u4F59 <b style="color:var(--orange)">{atp} ATP</b> / <b style="color:var(--violet)">{nadph} NADPH</b>\uFF08\u5370\u8BC1\uFF1A\u62FC\u7CD6\u8FC7\u7A0B\u4E0D\u5403\u5149\uFF0C\u5403\u7535\u6C60\u5373\u53EF\u72EC\u7ACB\u8FD0\u884C\uFF09...',
+      en: '<b>\u{1F311} Synthesizing in the dark:</b> Consuming stored batteries! Remaining: <b style="color:var(--orange)">{atp} ATP</b> / <b style="color:var(--violet)">{nadph} NADPH</b> (proves: Calvin cycle consumes batteries, not photons)...'
+    },
+    "photo.exp_msg_depleted": {
+      zh: '<b style="color:#f43f5e">\u{1FAAB} \u5B58\u91CF\u7535\u6C60\u8017\u5C3D\uFF01</b>\u8FC7\u7A0B \u2461 \u62FC\u7CD6\u5382\u56E0\u7F3A\u7535\u505C\u5DE5\u3002<br><b>\u63ED\u793A\u672C\u8D28\uFF1A</b>\u4E24\u5382\u7269\u7406\u72EC\u7ACB\uFF0C\u4F46\u56E0\u7535\u6C60\u7EBD\u5E26\u751F\u6B7B\u4E0E\u5171\uFF01\u70B9\u201C\u91CD\u65B0\u6253\u5F00\u592A\u9633\u201D\u590D\u5DE5\u3002',
+      en: '<b style="color:#f43f5e">\u{1FAAB} Stored Batteries Depleted!</b> Sugar workshop halted due to power shortage.<br><b>Key takeaway:</b> The two processes are physically separate but interdependent through chemical batteries! Click "Turn Sun Back On".'
+    },
+    "photo.exp_msg_sun_off": {
+      zh: '<b>\u{1F311} \u592A\u9633\u5DF2\u7184\u706D\uFF01</b>\u8FC7\u7A0B \u2460 \u5149\u53CD\u5E94\u65AD\u7535\u505C\u4EA7\u3002<br>\u6B64\u65F6\u8FC7\u7A0B \u2461 \u62FC\u7CD6\u5382\u6709 <b style="color:var(--orange)">{atp} ATP</b> \u4E0E <b style="color:var(--violet)">{nadph} NADPH</b> \u5B58\u91CF\u7535\u6C60\uFF0C\u6B63\u5728\u3010\u72EC\u7ACB\u3011\u8FD0\u8F6C...',
+      en: '<b>\u{1F311} Sun Turned Off!</b> Light reaction stops immediately.<br>Sugar workshop has <b style="color:var(--orange)">{atp} ATP</b> and <b style="color:var(--violet)">{nadph} NADPH</b> stored batteries, running independently...'
+    },
+    "photo.exp_msg_sun_restored": {
+      zh: '<b style="color:var(--green)">\u26A1 \u9633\u5149\u6062\u590D\uFF01</b>\u5149\u53CD\u5E94\u91CD\u65B0\u53D1\u7535\uFF0C\u7535\u6C60\u9001\u8FBE\uFF0C\u62FC\u7CD6\u8F66\u95F4\u77AC\u95F4\u590D\u5DE5\uFF01',
+      en: '<b style="color:var(--green)">\u26A1 Sunlight Restored!</b> Light reactions generate fresh batteries, resuming sugar synthesis!'
+    },
+    // 3D labels - Story tab
+    "photo.story_lbl_leaf": { zh: "\u53F6\u5B50 = \u7CD6\u5DE5\u5382", en: "Leaf = Sugar Factory" },
+    "photo.story_lbl_sun": { zh: "\u2600 \u9633\u5149\uFF08\u80FD\u91CF\uFF09", en: "\u2600 Sunlight (Energy)" },
+    "photo.story_lbl_water": { zh: "\u{1F4A7} \u6C34\uFF08\u6839\u9001\u4E0A\u6765\uFF09", en: "\u{1F4A7} Water (From Roots)" },
+    "photo.story_lbl_co2": { zh: "\u{1F4A8} \u4E8C\u6C27\u5316\u78B3\uFF08\u4ECE\u7A7A\u6C14\uFF09", en: "\u{1F4A8} CO\u2082 (From Air)" },
+    "photo.story_lbl_o2": { zh: "\u{1F62E}\u200D\u{1F4A8} \u6C27\u6C14\uFF08\u6211\u4EEC\u547C\u5438\uFF01\uFF09", en: "\u{1F62E}\u200D\u{1F4A8} Oxygen (We Breathe!)" },
+    "photo.story_lbl_sugar": { zh: "\u{1F36C} \u7CD6\uFF08\u690D\u7269\u7684\u98DF\u7269\uFF09", en: "\u{1F36C} Sugar (Plant Food)" },
+    // Story captions
+    "photo.story_cap_0": {
+      zh: '\u770B\uFF01\u9633\u5149\u7167\u5728\u53F6\u5B50\u4E0A \u2014\u2014 \u53F6\u5B50\u91CC\u6709\u4F1A"\u5403\u5149"\u7684\u5C0F\u5DE5\u5382\u3002',
+      en: "Look! Sunlight shines on the leaf \u2014 inside are microscopic factories that harvest light."
+    },
+    "photo.story_cap_1": {
+      zh: "\u5DE5\u5382\u9700\u8981\u4E24\u6837\u539F\u6599\uFF1A\u6839\u91CC\u9001\u4E0A\u6765\u7684\u3010\u6C34\u3011\uFF0C\u548C\u7A7A\u6C14\u91CC\u6293\u6765\u7684\u3010\u4E8C\u6C27\u5316\u78B3\u3011\u3002",
+      en: "The factory needs two raw materials: water from roots and carbon dioxide captured from the air."
+    },
+    "photo.story_cap_2": {
+      zh: "\u5149\u5148\u5E72\u4E00\u4EF6\u4E8B\uFF1A\u628A\u6C34\u62C6\u5F00\uFF0C\u653E\u51FA\u3010\u6C27\u6C14\u3011\u2014\u2014 \u4F60\u547C\u5438\u7684\u6C27\uFF0C\u5C31\u662F\u690D\u7269\u653E\u51FA\u6765\u7684\uFF01",
+      en: "Light first splits water molecules, releasing oxygen \u2014 the very air you breathe!"
+    },
+    "photo.story_cap_3": {
+      zh: '\u518D\u7528\u9633\u5149\u5145\u7684"\u7535\u6C60"\u628A\u4E8C\u6C27\u5316\u78B3\u62FC\u6210\u3010\u7CD6\u3011\u2014\u2014 \u690D\u7269\u81EA\u5DF1\u7684\u98DF\u7269\u3002\u8FD9\u4EF6\u4E8B\u5C31\u53EB\uFF1A\u5149\u5408\u4F5C\u7528\uFF01',
+      en: "Then, solar-charged batteries assemble CO\u2082 into sugar \u2014 plant food. This whole wonder is Photosynthesis!"
+    },
+    // 3D labels - Leaf tab
+    "photo.leaf_lbl_section": { zh: "\u2460 \u8FD9\u662F\u4E00\u7247\u53F6\u5B50\uFF08\u6A2A\u5207\u9762\uFF09", en: "\u2460 Leaf Cross-Section" },
+    "photo.leaf_lbl_sun": { zh: "\u2600 \u9633\u5149\u4ECE\u8FD9\u91CC\u8FDB\u6765", en: "\u2600 Sunlight Enters Here" },
+    "photo.leaf_lbl_cell": { zh: "\u2461 \u653E\u5927\u5176\u4E2D\u4E00\u4E2A\u7EC6\u80DE", en: "\u2461 Zoom In: Single Cell" },
+    "photo.leaf_lbl_chloro_dots": { zh: "\u7EFF\u8272\u8C46\u8C46 = \u53F6\u7EFF\u4F53", en: "Green Granules = Chloroplasts" },
+    "photo.leaf_lbl_chloro_cut": { zh: "\u2462 \u518D\u653E\u5927\uFF1A\u53F6\u7EFF\u4F53\uFF08\u5256\u5F00\uFF09", en: "\u2462 Zoom Further: Chloroplast (Cutaway)" },
+    "photo.leaf_lbl_grana": { zh: "\u786C\u5E01\u5806 = \u57FA\u7C92\uFF08\u5149\u53CD\u5E94\u2461\u5728\u8FD9\u5C42\u819C\u4E0A\uFF09", en: "Coin Stacks = Grana (Light Rxn on Membrane)" },
+    "photo.leaf_lbl_stroma": { zh: "\u5468\u56F4\u6DB2\u4F53 = \u57FA\u8D28\uFF08\u5408\u6210\u5FAA\u73AF\u2462\u5728\u8FD9\uFF09", en: "Surrounding Liquid = Stroma (Calvin Cycle)" },
+    "photo.leaf_lbl_zoom1": { zh: "\u653E\u5927 \u2192", en: "Zoom In \u2192" },
+    "photo.leaf_lbl_zoom2": { zh: "\u518D\u653E\u5927 \u2192", en: "Zoom Further \u2192" },
+    "photo.leaf_tour_1": { zh: "\u2460 \u53F6\u7247\u6A2A\u5207", en: "\u2460 Leaf Cross-Section" },
+    "photo.leaf_tour_2": { zh: "\u2461 \u53F6\u8089\u7EC6\u80DE", en: "\u2461 Mesophyll Cell" },
+    "photo.leaf_tour_3": { zh: "\u2462 \u53F6\u7EFF\u4F53", en: "\u2462 Chloroplast" },
+    // 3D labels - Facts tab
+    "photo.facts_lbl_spectrum": { zh: "\u5438\u6536\u5149\u8C31\uFF1A\u53F6\u7EFF\u7D20\u7231\u5403\u84DD\u5149\u548C\u7EA2\u5149", en: "Absorption: Chlorophyll absorbs blue & red light" },
+    "photo.facts_lbl_green_reflect": { zh: "\u7EFF\u5149\uFF08\u7EA6550nm\uFF09\u51E0\u4E4E\u4E0D\u88AB\u5438\u6536 \u2192 \u88AB\u53CD\u5C04\u56DE\u4F60\u7684\u773C\u775B", en: "Green light (~550nm) is reflected back to your eyes" },
+    "photo.facts_lbl_blue": { zh: "\u84DD 430nm", en: "Blue 430nm" },
+    "photo.facts_lbl_red": { zh: "\u7EA2 662nm", en: "Red 662nm" },
+    "photo.facts_lbl_green": { zh: "\u7EFF 550nm\uFF08\u88AB\u53CD\u5C04\uFF09", en: "Green 550nm (Reflected)" },
+    "photo.facts_lbl_ladder": { zh: "\u5149\u5408 vs \u592A\u9633\u80FD\u677F\uFF1A\u628A\u5149\u53D8\u6210\u53EF\u50A8\u5B58\u80FD\u91CF\u7684\u6548\u7387", en: "Photosynthesis vs Solar Panels: Energy Conversion Efficiency" },
+    "photo.facts_lbl_globe_c": { zh: "\u9646\u5730\u6BCF\u5E74\u56FA\u78B3 \u2248 120 Gt", en: "Terrestrial C-fixation \u2248 120 Gt/yr" },
+    "photo.facts_lbl_globe_o2": { zh: "\u5927\u6C14 O\u2082 \u2265 \u4E00\u534A\u6765\u81EA\u6D77\u6D0B\u6D6E\u6E38\u690D\u7269\uFF08NOAA\uFF09", en: "Atmospheric O\u2082: \u226550% from Marine Phytoplankton (NOAA)" },
+    "photo.facts_lbl_globe_goe": { zh: "24 \u4EBF\u5E74\u524D\uFF1A\u5927\u6C27\u5316\u4E8B\u4EF6", en: "2.4 Billion Years Ago: Great Oxidation Event" },
+    "photo.facts_eff_crop": { zh: "\u5B9E\u9645\u4F5C\u7269\uFF08\u7530\u95F4\uFF09", en: "Field Crops" },
+    "photo.facts_eff_c3": { zh: "C3 \u7406\u8BBA\u4E0A\u9650", en: "C3 Theoretical" },
+    "photo.facts_eff_c4": { zh: "C4 \u7406\u8BBA\u4E0A\u9650", en: "C4 Theoretical" },
+    "photo.facts_eff_pv": { zh: "\u5546\u54C1\u592A\u9633\u80FD\u677F", en: "Commercial PV" },
+    "photo.facts_eff_pv_rec": { zh: "\u592A\u9633\u80FD\u677F\u7EAA\u5F55", en: "Record PV" }
+  };
+  i18n.loadDict(photoDict);
   var canvas = document.getElementById("gl");
   var renderer = new WebGLRenderer({ canvas, antialias: true });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -25738,6 +26799,29 @@
     facts: buildFacts()
   };
   var current = "story";
+  function applyI18n() {
+    i18n.bind(document.body);
+    const homeBtn = document.getElementById("homeBtn");
+    if (homeBtn) {
+      homeBtn.href = `../index.html?lang=${i18n.currentLang}`;
+      homeBtn.title = i18n.t("nav.home_tip");
+    }
+    document.title = i18n.t("meta.title");
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute("content", i18n.t("meta.description"));
+    document.documentElement.classList.remove("i18n-loading");
+    if (typeof views !== "undefined") {
+      for (const v of Object.values(views)) {
+        v.onLangChange?.(i18n.currentLang);
+      }
+    }
+  }
+  i18n.subscribe(() => {
+    applyI18n();
+  });
+  document.getElementById("btnLangZh")?.addEventListener("click", () => i18n.setLanguage("zh"));
+  document.getElementById("btnLangEn")?.addEventListener("click", () => i18n.setLanguage("en"));
+  applyI18n();
   function setView(name) {
     current = name;
     document.body.dataset.view = name;

@@ -6,7 +6,8 @@
 // ═══════════════════════════════════════════════════════
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { makeLabel, makeGlowDot } from './sprite.js';
+import { makeLabel, makeGlowDot, updateLabel } from './sprite.js';
+import { i18n } from '../../common/js/i18n.js';
 
 const C = { photon: 0xffd54a, water: 0x69b7ff, co2: 0xaab4c2, o2: 0xeaf6ff, sugar: 0xc8e86a };
 
@@ -40,7 +41,8 @@ export function buildStory() {
   const leaf = new THREE.Mesh(leafGeo, leafMat);
   leaf.position.set(0, 2.6, 0);
   scene.add(leaf);
-  const leafLabel = makeLabel('叶子 = 糖工厂', '#9ff0b5');
+  const leafLabel = makeLabel(i18n.t('photo.story_lbl_leaf'), '#9ff0b5');
+  leafLabel.userData.i18nKey = 'photo.story_lbl_leaf';
   leafLabel.position.set(0, -3.4, 0); scene.add(leafLabel);
 
   // 茎
@@ -52,19 +54,24 @@ export function buildStory() {
   const sun = new THREE.Mesh(new THREE.SphereGeometry(1.7, 24, 18),
     new THREE.MeshBasicMaterial({ color: 0xffd54a }));
   sun.position.set(-11.5, 9.5, -3); scene.add(sun);
-  const sunLabel = makeLabel('☀ 阳光（能量）', '#ffd54a');
+  const sunLabel = makeLabel(i18n.t('photo.story_lbl_sun'), '#ffd54a');
+  sunLabel.userData.i18nKey = 'photo.story_lbl_sun';
   sunLabel.position.set(-11.5, 12.2, -3); scene.add(sunLabel);
   const sunGlow = new THREE.PointLight('#ffd54a', 60, 50, 2);
   sunGlow.position.copy(sun.position); scene.add(sunGlow);
 
   // ── 标签们 ──
-  const waterLabel = makeLabel('💧 水（根送上来）', '#7dd3fc');
+  const waterLabel = makeLabel(i18n.t('photo.story_lbl_water'), '#7dd3fc');
+  waterLabel.userData.i18nKey = 'photo.story_lbl_water';
   waterLabel.position.set(-6.8, -7.6, 0); scene.add(waterLabel);
-  const co2Label = makeLabel('💨 二氧化碳（从空气）', '#cfd8e3');
+  const co2Label = makeLabel(i18n.t('photo.story_lbl_co2'), '#cfd8e3');
+  co2Label.userData.i18nKey = 'photo.story_lbl_co2';
   co2Label.position.set(9.2, 7.8, 0); scene.add(co2Label);
-  const o2Label = makeLabel('😮‍💨 氧气（我们呼吸！）', '#ffffff');
+  const o2Label = makeLabel(i18n.t('photo.story_lbl_o2'), '#ffffff');
+  o2Label.userData.i18nKey = 'photo.story_lbl_o2';
   o2Label.position.set(6.8, 12.6, 0); scene.add(o2Label);
-  const sugarLabel = makeLabel('🍬 糖（植物的食物）', '#dbe86a');
+  const sugarLabel = makeLabel(i18n.t('photo.story_lbl_sugar'), '#dbe86a');
+  sugarLabel.userData.i18nKey = 'photo.story_lbl_sugar';
   sugarLabel.position.set(-7.6, 5.6, 0); scene.add(sugarLabel);
   const allLabels = [leafLabel, sunLabel, waterLabel, co2Label, o2Label, sugarLabel];
 
@@ -111,13 +118,13 @@ export function buildStory() {
     state.captionEl.style.display = 'none';
     setDim(null);
     const b = document.getElementById('bStory');
-    b.textContent = '▶ 一分钟故事'; b.classList.remove('on');
+    b.textContent = i18n.t('photo.btn_story_play'); b.classList.remove('on');
   }
 
   function setPaused(v) {
     state.paused = v;
     const b = document.getElementById('bStoryPause');
-    b.textContent = v ? '▶ 继续' : '⏸ 暂停';
+    b.textContent = v ? i18n.t('photo.btn_resume') : i18n.t('photo.btn_pause');
     b.classList.toggle('on', v);
   }
   document.getElementById('bStoryPause').addEventListener('click', () => setPaused(!state.paused));
@@ -136,7 +143,7 @@ export function buildStory() {
     else {
       setPaused(false);
       state.story = 0; state.storyT = 0;
-      e.target.textContent = '⏹ 停止故事'; e.target.classList.add('on');
+      e.target.textContent = i18n.t('photo.btn_story_stop'); e.target.classList.add('on');
     }
   });
   document.getElementById('bStoryHome').addEventListener('click', () => {
@@ -254,7 +261,7 @@ export function buildStory() {
       camera.position.lerp(w.cam, Math.min(1, dt * 2));
       controls.target.lerp(w.target, Math.min(1, dt * 2));
       state.captionEl.style.display = 'block';
-      state.captionEl.textContent = CAPTIONS[state.story];
+      state.captionEl.textContent = i18n.t(`photo.story_cap_${state.story}`);
       setDim(STEP_FOCUS[state.story]);
       if (state.storyT > 6.5) { state.storyT = 0; state.story = (state.story + 1) % 4; }
     } else {
@@ -265,8 +272,23 @@ export function buildStory() {
     controls.update();
   }
 
+  function onLangChange(lang) {
+    allLabels.forEach(l => {
+      if (l.userData.i18nKey) {
+        updateLabel(l, i18n.t(l.userData.i18nKey));
+      }
+    });
+    const bStory = document.getElementById('bStory');
+    if (bStory) bStory.textContent = state.story >= 0 ? i18n.t('photo.btn_story_stop') : i18n.t('photo.btn_story_play');
+    const bPause = document.getElementById('bStoryPause');
+    if (bPause) bPause.textContent = state.paused ? i18n.t('photo.btn_resume') : i18n.t('photo.btn_pause');
+    if (state.story >= 0 && state.captionEl) {
+      state.captionEl.textContent = i18n.t(`photo.story_cap_${state.story}`);
+    }
+  }
+
   return {
-    scene, camera, update, refreshHUD,
+    scene, camera, update, refreshHUD, onLangChange,
     getInfo() { return { ...state.counts, story: state.story }; },
   };
 }

@@ -4,9 +4,9 @@
 // ═══════════════════════════════════════════════════════
 
 // ── 物理常数 ──
-export const H_PLANCK = 6.62607015e-34;  // J·s
-export const C_LIGHT = 2.99792458e8;     // m/s
-export const NA = 6.02214076e23;         // /mol
+export const H_PLANCK = 6.62607015e-34;  // J·s  // PROV: measured | SI 2019 精确值 | 2019 | 普朗克常数
+export const C_LIGHT = 2.99792458e8;     // m/s  // PROV: measured | SI 2019 精确值 | 2019 | 光速
+export const NA = 6.02214076e23;         // /mol  // PROV: measured | SI 2019 精确值 | 2019 | 阿伏伽德罗常数
 
 // 单个光子能量（λ 单位 nm → J）
 export function photonEnergyJ(nm) {
@@ -22,10 +22,10 @@ export function einsteinKJPerMol(nm) {
 }
 
 // ── 光反应核心数字 ──
-export const PHOTONS_PER_O2_MIN = 8;      // 理论最小值：4 e⁻ × 2 个光系统
+export const PHOTONS_PER_O2_MIN = 8;      // 理论最小值：4 e⁻ × 2 个光系统  // PROV: derived | 光反应化学计量 | - | 4 e⁻×2 光系统
 export const PHOTONS_PER_O2_MEASURED = [8, 10]; // 实测量子需求 8–10
-export const ELECTRONS_PER_O2 = 4;        // 2 H2O → O2 + 4H+ + 4e⁻
-export const NADPH_PER_O2 = 2;            // 4 e⁻ → 2 NADPH
+export const ELECTRONS_PER_O2 = 4;        // 2 H2O → O2 + 4H+ + 4e⁻  // PROV: derived | 光解水计量 | - | 2H₂O→O₂+4H⁺+4e⁻
+export const NADPH_PER_O2 = 2;            // 4 e⁻ → 2 NADPH  // PROV: derived | NADP⁺ 还原 | - | 4 e⁻→2 NADPH
 
 // 叶绿素吸收峰（nm）
 export const ABSORPTION = {
@@ -58,23 +58,23 @@ export const H_PER_ATP = ATP_SYNTHASE.hPerTurn / ATP_SYNTHASE.atpPerTurn; // ≈
 
 // ── 卡尔文循环化学计量 ──
 export const CALVIN = {
-  atpPerCO2: 3,
-  nadphPerCO2: 2,
-  g3pPerTurns: 3,        // 每 3 圈净得 1 个 G3P（5/6 回收再生）
-  co2PerGlucose: 6,
-  atpPerGlucose: 18,
-  nadphPerGlucose: 12,
-  rubiscoKcat: 3,        // 约每秒 3 次——著名地慢
+  atpPerCO2: 3,  // PROV: derived | 卡尔文循环计量 | - | 3 ATP/CO₂
+  nadphPerCO2: 2,  // PROV: derived | 卡尔文循环计量 | - | 2 NADPH/CO₂
+  g3pPerTurns: 3,  // PROV: derived | 卡尔文循环计量 | - | 3 圈净得 1 个 G3P（5/6 回收再生）  // 每 3 圈净得 1 个 G3P（5/6 回收再生）
+  co2PerGlucose: 6,  // PROV: derived | 卡尔文循环计量 | - | 6 CO₂
+  atpPerGlucose: 18,  // PROV: derived | 卡尔文循环计量 | - | 18 ATP
+  nadphPerGlucose: 12,  // PROV: derived | 卡尔文循环计量 | - | 12 NADPH
+  rubiscoKcat: 3,  // PROV: measured | Rubisco 综述 | - | ≈3 s⁻¹  // 约每秒 3 次——著名地慢
 };
 
 // ── 能量与效率 ──
-export const GLUCOSE_KJ_MOL = 2870;
+export const GLUCOSE_KJ_MOL = 2870;  // PROV: measured | 葡萄糖自由能 | - | 2870 kJ/mol
 export const EFFICIENCY = [
   { key: 'crop', zh: '实际作物（田间）', pct: 1.5, note: '1–2%' },
   { key: 'c3', zh: 'C3 理论上限', pct: 4.6, note: 'Zhu et al. 2008' },
   { key: 'c4', zh: 'C4 理论上限', pct: 6.0, note: 'Zhu et al. 2008' },
   { key: 'pv', zh: '商品太阳能板', pct: 24, note: '量产组件' },
-  { key: 'pvRecord', zh: '太阳能板纪录', pct: 27.8, note: 'LONGi HIBC 2025' },
+  { key: 'pvRecord', zh: '太阳能板纪录', pct: 28.29, note: 'LONGi HIBC 2026-09' },
 ];
 
 // ── 总反应 ──
@@ -97,9 +97,9 @@ export const TIMELINE = [
 
 // ── 全球尺度 ──
 export const GLOBAL = {
-  gppGtCPerYear: 120,          // 陆地 GPP ≈ 120 Gt C/年
+  gppGtCPerYear: 120,  // PROV: measured | 全球初级生产力 | - | Gt C/yr  // 陆地 GPP ≈ 120 Gt C/年
   oceanO2Pct: '≥50%',          // 海洋浮游植物贡献的大气 O₂（NOAA）
-  goeGa: 2.4,                  // 大氧化事件（十亿年前）
+  goeGa: 2.4,  // PROV: measured | 大氧化事件 | - | GOE 距今年数  // 大氧化事件（十亿年前）
 };
 
 // ── 校验辅助 ──

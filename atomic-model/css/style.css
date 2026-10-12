@@ -332,3 +332,55 @@
   transform: translateY(-1px);
 }
 #homeBtn:active { transform: translateY(0); }
+
+/* ── language switcher pill ── */
+.lang-switch {
+  position: fixed;
+  top: 14px;
+  left: 124px;
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  background: rgba(15, 23, 42, 0.82);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  border-radius: 19px;
+  padding: 3px;
+  height: 38px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
+.lang-btn {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 0 10px;
+  height: 30px;
+  font-size: 0.78rem;
+  font-family: inherit;
+  font-weight: 500;
+  border-radius: 15px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  line-height: 1;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.lang-btn:hover {
+  color: #f1f5f9;
+}
+
+.lang-btn.active {
+  background: rgba(251, 191, 36, 0.16);
+  color: #fbbf24;
+  font-weight: 600;
+  box-shadow: 0 0 10px rgba(251, 191, 36, 0.25);
+}
+
+.i18n-loading [data-i18n] {
+  visibility: hidden;
+}

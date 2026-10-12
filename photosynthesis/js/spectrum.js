@@ -6,8 +6,9 @@
 // ═══════════════════════════════════════════════════════
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { makeLabel } from './sprite.js';
+import { makeLabel, updateLabel } from './sprite.js';
 import { ABSORPTION, EFFICIENCY, GLOBAL } from './facts.js';
+import { i18n } from '../../common/js/i18n.js';
 
 // 吸收率示意：以吸收峰为中心的高斯混合（0..1）
 function absorption(nm, peaks) {
@@ -45,6 +46,8 @@ export function buildFacts() {
   const groups = { spectrum: new THREE.Group(), ladder: new THREE.Group(), globe: new THREE.Group() };
   scene.add(groups.spectrum, groups.ladder, groups.globe);
 
+  const labelsToUpdate = [];
+
   // ── 视角0：吸收光谱 ──
   {
     const N = 64, W = 30;
@@ -72,17 +75,36 @@ export function buildFacts() {
         groups.spectrum.add(bar);
       }
     }
-    const l1 = makeLabel('吸收光谱：叶绿素爱吃蓝光和红光', '#9ff0b5');
+    const l1 = makeLabel(i18n.t('photo.facts_lbl_spectrum'), '#9ff0b5');
     l1.position.set(0, 8.6, 0); groups.spectrum.add(l1);
-    const l2 = makeLabel('绿光（约550nm）几乎不被吸收 → 被反射回你的眼睛', '#ffe08a');
+    labelsToUpdate.push({ sp: l1, key: 'photo.facts_lbl_spectrum', color: '#9ff0b5' });
+
+    const l2 = makeLabel(i18n.t('photo.facts_lbl_green_reflect'), '#ffe08a');
     l2.position.set(0, -1.6, 3); groups.spectrum.add(l2);
-    const lBlue = makeLabel('蓝 430nm', '#7dd3fc'); lBlue.position.set(-W / 2 + (430 - 380) / 320 * W, 7.4, 0); groups.spectrum.add(lBlue);
-    const lRed = makeLabel('红 662nm', '#ff9e9e'); lRed.position.set(-W / 2 + (662 - 380) / 320 * W, 7.4, 0); groups.spectrum.add(lRed);
-    const lGreen = makeLabel('绿 550nm（被反射）', '#c9f7cf'); lGreen.position.set(-W / 2 + (550 - 380) / 320 * W, 3.4, 2.6); groups.spectrum.add(lGreen);
+    labelsToUpdate.push({ sp: l2, key: 'photo.facts_lbl_green_reflect', color: '#ffe08a' });
+
+    const lBlue = makeLabel(i18n.t('photo.facts_lbl_blue'), '#7dd3fc');
+    lBlue.position.set(-W / 2 + (430 - 380) / 320 * W, 7.4, 0); groups.spectrum.add(lBlue);
+    labelsToUpdate.push({ sp: lBlue, key: 'photo.facts_lbl_blue', color: '#7dd3fc' });
+
+    const lRed = makeLabel(i18n.t('photo.facts_lbl_red'), '#ff9e9e');
+    lRed.position.set(-W / 2 + (662 - 380) / 320 * W, 7.4, 0); groups.spectrum.add(lRed);
+    labelsToUpdate.push({ sp: lRed, key: 'photo.facts_lbl_red', color: '#ff9e9e' });
+
+    const lGreen = makeLabel(i18n.t('photo.facts_lbl_green'), '#c9f7cf');
+    lGreen.position.set(-W / 2 + (550 - 380) / 320 * W, 3.4, 2.6); groups.spectrum.add(lGreen);
+    labelsToUpdate.push({ sp: lGreen, key: 'photo.facts_lbl_green', color: '#c9f7cf' });
   }
 
   // ── 视角1：效率阶梯 ──
   {
+    const EFF_KEYS = {
+      crop: 'photo.facts_eff_crop',
+      c3: 'photo.facts_eff_c3',
+      c4: 'photo.facts_eff_c4',
+      pv: 'photo.facts_eff_pv',
+      pvRecord: 'photo.facts_eff_pv_rec',
+    };
     const W = 2.3;
     EFFICIENCY.forEach((e, i) => {
       const h = Math.max(e.pct * 0.52, 0.6);
@@ -93,13 +115,17 @@ export function buildFacts() {
         }));
       bar.position.set((i - (EFFICIENCY.length - 1) / 2) * (W + 1.3), h / 2, 0);
       groups.ladder.add(bar);
-      const top = makeLabel(e.zh, i >= 3 ? '#ffc078' : '#9ff0b5');
+      const k = EFF_KEYS[e.key];
+      const col = i >= 3 ? '#ffc078' : '#9ff0b5';
+      const top = makeLabel(k ? i18n.t(k) : e.zh, col);
       top.position.set(bar.position.x, h + 0.8, 0); groups.ladder.add(top);
+      if (k) labelsToUpdate.push({ sp: top, key: k, color: col });
       const pct = makeLabel(`${e.pct}%`, '#ffffff');
       pct.position.set(bar.position.x, h / 2, 0); pct.scale.multiplyScalar(0.7); groups.ladder.add(pct);
     });
-    const l = makeLabel('光合 vs 太阳能板：把光变成可储存能量的效率', '#9ff0b5');
-    l.position.set(0, 17, 0); groups.ladder.add(l);
+    const lLadder = makeLabel(i18n.t('photo.facts_lbl_ladder'), '#9ff0b5');
+    lLadder.position.set(0, 17, 0); groups.ladder.add(lLadder);
+    labelsToUpdate.push({ sp: lLadder, key: 'photo.facts_lbl_ladder', color: '#9ff0b5' });
   }
 
   // ── 视角2：全球尺度 ──
@@ -117,12 +143,17 @@ export function buildFacts() {
       patch.lookAt(0, 0, 0);
       groups.globe.add(patch);
     }
-    const l1 = makeLabel('陆地每年固碳 ≈ 120 Gt', '#9ff0b5');
-    l1.position.set(0, 8.4, 0); groups.globe.add(l1);
-    const l2 = makeLabel('大气 O₂ ≥ 一半来自海洋浮游植物（NOAA）', '#7dd3fc');
-    l2.position.set(0, -8.6, 0); groups.globe.add(l2);
-    const l3 = makeLabel('24 亿年前：大氧化事件', '#ffe08a');
-    l3.position.set(-9.5, 0, 4); groups.globe.add(l3);
+    const g1 = makeLabel(i18n.t('photo.facts_lbl_globe_c'), '#9ff0b5');
+    g1.position.set(0, 8.4, 0); groups.globe.add(g1);
+    labelsToUpdate.push({ sp: g1, key: 'photo.facts_lbl_globe_c', color: '#9ff0b5' });
+
+    const g2 = makeLabel(i18n.t('photo.facts_lbl_globe_o2'), '#7dd3fc');
+    g2.position.set(0, -8.6, 0); groups.globe.add(g2);
+    labelsToUpdate.push({ sp: g2, key: 'photo.facts_lbl_globe_o2', color: '#7dd3fc' });
+
+    const g3 = makeLabel(i18n.t('photo.facts_lbl_globe_goe'), '#ffe08a');
+    g3.position.set(-9.5, 0, 4); groups.globe.add(g3);
+    labelsToUpdate.push({ sp: g3, key: 'photo.facts_lbl_globe_goe', color: '#ffe08a' });
   }
 
   const CAMS = [
@@ -130,22 +161,31 @@ export function buildFacts() {
     { cam: new THREE.Vector3(-3, 12, 24), target: new THREE.Vector3(-3, 6, 0) },
     { cam: new THREE.Vector3(-3, 5, 18), target: new THREE.Vector3(-3, 0, 0) },
   ];
-  const NAMES = ['吸收光谱', '效率阶梯', '全球尺度'];
+  const VIEW_KEYS = ['photo.view_spectrum', 'photo.view_efficiency', 'photo.view_scale'];
   const state = { stage: 0, paused: false };
   function applyStage(s) {
     state.stage = s;
     Object.entries(groups).forEach(([k, g], i) => g.visible = i === s);
-    document.getElementById('oFacts').textContent = NAMES[s];
+    document.getElementById('oFacts').textContent = i18n.t(VIEW_KEYS[s]);
     camera.position.copy(CAMS[s].cam);
     controls.target.copy(CAMS[s].target);
   }
   document.getElementById('rFacts').addEventListener('input', e => applyStage(+e.target.value));
   document.getElementById('bFactsPause').addEventListener('click', e => {
     state.paused = !state.paused;
-    e.target.textContent = state.paused ? '▶ 继续' : '⏸ 暂停';
+    e.target.textContent = state.paused ? i18n.t('photo.btn_resume') : i18n.t('photo.btn_pause');
     e.target.classList.toggle('on', state.paused);
   });
   applyStage(0);
+
+  function onLangChange(lang) {
+    labelsToUpdate.forEach(({ sp, key, color, size }) => {
+      updateLabel(sp, i18n.t(key), color, size);
+    });
+    document.getElementById('oFacts').textContent = i18n.t(VIEW_KEYS[state.stage]);
+    const bPause = document.getElementById('bFactsPause');
+    bPause.textContent = state.paused ? i18n.t('photo.btn_resume') : i18n.t('photo.btn_pause');
+  }
 
   return {
     scene, camera,
@@ -153,6 +193,7 @@ export function buildFacts() {
       if (!state.paused) groups.globe.rotation.y += dt * 0.12;
       controls.update();
     },
-    getInfo() { return { stage: state.stage, name: NAMES[state.stage] }; },
+    getInfo() { return { stage: state.stage, name: i18n.t(VIEW_KEYS[state.stage]) }; },
+    onLangChange,
   };
 }

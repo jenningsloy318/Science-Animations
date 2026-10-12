@@ -6,69 +6,69 @@
 // ═══════════════════════════════════════════════════════
 
 // ── 基础物理常数 ──
-export const H_PLANCK = 6.62607015e-34;       // J·s (普朗克常数)
-export const C_LIGHT = 2.99792458e8;          // m/s (光速)
-export const Q_E = 1.602176634e-19;           // C (元电荷)
-export const K_BOLTZMANN = 1.380649e-23;      // J/K (玻尔兹曼常数)
-export const EPS_0 = 8.8541878128e-14;        // F/cm (真空介电常数)
-export const HC_EV_NM = 1239.84193;           // hc 转换系数 (eV·nm)
+export const H_PLANCK = 6.62607015e-34;       // J·s (普朗克常数)  // PROV: measured | SI 2019 精确值 | 2019 | 普朗克常数 J·s
+export const C_LIGHT = 2.99792458e8;          // m/s (光速)  // PROV: measured | SI 2019 精确值 | 2019 | 光速 m/s
+export const Q_E = 1.602176634e-19;           // C (元电荷)  // PROV: measured | SI 2019 精确值 | 2019 | 元电荷 C
+export const K_BOLTZMANN = 1.380649e-23;      // J/K (玻尔兹曼常数)  // PROV: measured | SI 2019 精确值 | 2019 | 玻尔兹曼常数 J/K
+export const EPS_0 = 8.8541878128e-14;        // F/cm (真空介电常数)  // PROV: measured | SI 2019 精确值 | 2019 | 真空介电常数 F/cm
+export const HC_EV_NM = 1239.84193;           // hc 转换系数 (eV·nm)  // PROV: derived | h·c 换算 | - | eV·nm
 
 // ── 硅材料本征物理参数 (300 K) ──
-export const EG_SI = 1.124;                   // eV (间接禁带宽度)
-export const E_DIR_SI = 3.4;                  // eV (直接光学跃迁阈值)
-export const EPS_R_SI = 11.7;                 // 相对介电常数
-export const LATTICE_CONST_A = 5.4307;        // Å (金刚石立方晶胞常数)
-export const N_INTRINSIC_SI = 1.0e10;         // cm⁻³ (300K 本征载流子浓度)
-export const MU_E_SI = 1400;                  // cm²/(V·s) (电子迁移率)
-export const MU_H_SI = 450;                   // cm²/(V·s) (空穴迁移率)
-export const D_E_SI = 36.0;                   // cm²/s (电子扩散系数)
-export const D_H_SI = 12.0;                   // cm²/s (空穴扩散系数)
+export const EG_SI = 1.124;                   // eV (间接禁带宽度)  // PROV: measured | 硅 300 K | 2019 | 间接带隙 1.124 eV
+export const E_DIR_SI = 3.4;                  // eV (直接光学跃迁阈值)  // PROV: measured | 硅 300 K | 2019 | 直接跃迁阈值 3.4 eV
+export const EPS_R_SI = 11.7;                 // 相对介电常数  // PROV: measured | 硅 300 K | 2019 | 相对介电常数 11.7
+export const LATTICE_CONST_A = 5.4307;        // Å (金刚石立方晶胞常数)  // PROV: measured | 金刚石立方 | - | 晶胞常数 5.4307 Å
+export const N_INTRINSIC_SI = 1.0e10;         // cm⁻³ (300K 本征载流子浓度)  // PROV: measured | 硅 300 K | - | 本征载流子浓度 1e10 cm⁻³
+export const MU_E_SI = 1400;                  // cm²/(V·s) (电子迁移率)  // PROV: measured | 硅 300 K | - | 电子迁移率 1400 cm²/(V·s)
+export const MU_H_SI = 450;                   // cm²/(V·s) (空穴迁移率)  // PROV: measured | 硅 300 K | - | 空穴迁移率 450 cm²/(V·s)
+export const D_E_SI = 36.0;                   // cm²/s (电子扩散系数)  // PROV: derived | 爱因斯坦关系 D=μkT/q | - | 36 cm²/s
+export const D_H_SI = 12.0;                   // cm²/s (空穴扩散系数)  // PROV: derived | 爱因斯坦关系 D=μkT/q | - | 12 cm²/s
 
 // ── 光学吸收深度数据表 (Green & Keevers 1995, 300 K) ──
 // 波长 nm -> 穿透深度 μm (1/α)
 export const OPTICAL_DEPTH_UM = {
-  365: 0.009,    // < 10 nm (深紫外垂直跃迁)
-  400: 0.105,    // 0.105 μm (近紫)
-  550: 1.56,     // 1.56 μm (绿光，在 1.5~1.6 μm 范围)
-  700: 5.26,     // 5.26 μm (红光)
-  850: 22.0,     // 22 μm (浅红外)
-  1000: 156.0,   // 156 μm (近红外，在 150~160 μm 范围，等于标准片厚)
-  1100: 2857.0,  // 2.86 mm (带隙边缘近透)
+  365: 0.009,  // PROV: measured | Green & Keevers 1995 | 1995 | 硅穿透深度 μm（400/550 nm 两行待核，见 F15）  // < 10 nm (深紫外垂直跃迁)
+  400: 0.105,  // PROV: measured | Green & Keevers 1995 | 1995 | 硅穿透深度 μm（400/550 nm 两行待核，见 F15）  // 0.105 μm (近紫)
+  550: 1.56,  // PROV: measured | Green & Keevers 1995 | 1995 | 硅穿透深度 μm（400/550 nm 两行待核，见 F15）  // 1.56 μm (绿光，在 1.5~1.6 μm 范围)
+  700: 5.26,  // PROV: measured | Green & Keevers 1995 | 1995 | 硅穿透深度 μm（400/550 nm 两行待核，见 F15）  // 5.26 μm (红光)
+  850: 22.0,  // PROV: measured | Green & Keevers 1995 | 1995 | 硅穿透深度 μm（400/550 nm 两行待核，见 F15）  // 22 μm (浅红外)
+  1000: 156.0,  // PROV: measured | Green & Keevers 1995 | 1995 | 硅穿透深度 μm（400/550 nm 两行待核，见 F15）  // 156 μm (近红外，在 150~160 μm 范围，等于标准片厚)
+  1100: 2857.0,  // PROV: measured | Green & Keevers 1995 | 1995 | 硅穿透深度 μm（400/550 nm 两行待核，见 F15）  // 2.86 mm (带隙边缘近透)
 };
 
 // ── 太阳辐射与光学陷光 ──
-export const SOLAR_AM0 = 1367;                // W/m² (太空太阳常数)
-export const SOLAR_AM15G = 1000;              // W/m² (地面标准 STC)
-export const PYRAMID_ANGLE_DEG = 54.74;       // deg (各向异性腐蚀 {111} 面倾角 arctan(sqrt(2)))
-export const R_BARE_SI = 0.35;                // 裸硅加权反射率 ≈ 35%
-export const R_TEXTURED_ARC = 0.018;          // 绒面+减反膜反射率 ≈ 1.8% (1.5%~2.0%)
+export const SOLAR_AM0 = 1367;                // W/m² (太空太阳常数)  // PROV: measured | ASTM E490 | - | 太空太阳常数 1367 W/m²
+export const SOLAR_AM15G = 1000;              // W/m² (地面标准 STC)  // PROV: measured | ASTM G173 | - | 地面 STC 1000 W/m²
+export const PYRAMID_ANGLE_DEG = 54.74;       // deg (各向异性腐蚀 {111} 面倾角 arctan(sqrt(2)))  // PROV: derived | arctan(√2) | - | {111} 面倾角 54.74°
+export const R_BARE_SI = 0.35;                // 裸硅加权反射率 ≈ 35%  // PROV: measured | 硅裸表面加权反射率 | - | ≈35%
+export const R_TEXTURED_ARC = 0.018;          // 绒面+减反膜反射率 ≈ 1.8% (1.5%~2.0%)  // PROV: measured | 绒面+减反膜 | - | ≈1.8%
 
 // ── 损耗预算与物理极限 ──
 export const LOSS_BUDGET = {
-  subBandgap: 0.19,                           // 19% 亚带隙穿透损耗
-  thermalization: 0.33,                       // 33% 载流子热化弛豫发热
-  matchedBandgap: 0.48,                       // 48% 理想带隙匹配总可用能
+  subBandgap: 0.19,  // PROV: derived | Green 能量分解 | - | 19% 亚带隙穿透  // 19% 亚带隙穿透损耗
+  thermalization: 0.33,  // PROV: derived | Green 能量分解 | - | 33% 载流子热化  // 33% 载流子热化弛豫发热
+  matchedBandgap: 0.48,  // PROV: derived | Green 能量分解 | - | 48% 理想带隙可用  // 48% 理想带隙匹配总可用能
 };
 
 export const EFFICIENCY_LADDER = {
-  idealSingleJunctionSQ: 0.337,               // 33.7% 1-sun 理想黑体辐射 SQ 极限
-  siRadiativeLimit: 0.322,                    // 32.2% 硅辐射复合极限
-  siAugerLimit: 0.2943,                       // 29.43% 硅三粒子俄歇非辐射复合极限 (Richter 2013)
-  longiHIBCRecord: 0.2781,                    // 27.81% 隆基单结单晶硅世界纪录 (ISFH 认证 2025-04)
-  commercialModule: 0.245,                    // 24.5% 现代高量产组件效率
-  longiTandemRecord: 0.3485,                  // 34.85% 钙钛矿/硅两端叠层电池纪录 (NREL 2025)
-  longiTandemLatest: 0.3550,                  // 35.50% 钙钛矿/硅两端叠层最新突破 (ESTI 2026)
-  cpvSingleJunctionLimit: 0.408,              // 40.8% 46200x 极限聚光单结 SQ 极限
-  landsbergCarnotLimit: 0.868,                // 86.8% 无限叠层热力学兰兹伯格极限
-  carnotLimit: 0.950,                         // 95.0% 太阳热机卡诺上限 (1 - 300/6000)
+  idealSingleJunctionSQ: 0.337,  // PROV: derived | SQ 极限 | - | 33.7% @最优带隙 1.34 eV  // 33.7% 1-sun 理想黑体辐射 SQ 极限
+  siRadiativeLimit: 0.322,  // PROV: derived | SQ 辐射极限 | - | 32.2%（口径待核，见 F17）  // 32.2% 硅辐射复合极限
+  siAugerLimit: 0.2943,  // PROV: derived | Richter 2013 | 2013 | 29.43% 三粒子俄歇极限  // 29.43% 硅三粒子俄歇非辐射复合极限 (Richter 2013)
+  longiHIBCRecord: 0.2829,  // PROV: certified | ISFH/Hamelin | 2026-09-28 | LONGi HIBC 单结硅纪录 28.29%（2026 年内第三次刷新：28.04→28.13→28.29）
+  commercialModule: 0.245,  // PROV: measured | 现代量产组件 | - | 24.5%  // 24.5% 现代高量产组件效率
+  longiTandemRecord: 0.3485,  // PROV: superseded | NREL | 2024-06 | 34.85% 钙钛矿/硅叠层；已被 longiTandemLatest（ESTI 2026-07, 35.50%）取代
+  longiTandemLatest: 0.3550,  // PROV: certified | ESTI | 2026-07 | 35.50% 钙钛矿/硅两端叠层最新纪录
+  cpvSingleJunctionLimit: 0.408,  // PROV: derived | SQ 极限 | - | 40.8% @46200×（口径待核，见 F02）  // 40.8% 46200x 极限聚光单结 SQ 极限
+  landsbergCarnotLimit: 0.868,  // PROV: derived | Landsberg 极限 | - | 86.8%  // 86.8% 无限叠层热力学兰兹伯格极限
+  carnotLimit: 0.950,  // PROV: derived | 卡诺上限 | - | 95% = 1−300/6000  // 95.0% 太阳热机卡诺上限 (1 - 300/6000)
 };
 
 // ── 器件物理特性 ──
-export const TEMP_COEFF_VOC = -0.0021;        // V/°C (-2.1 mV/°C)
-export const CELLS_PER_MODULE = 72;           // 典型工业组件片数
-export const CELL_OPERATING_VOLT = 0.60;      // V (工作点单片单体电压)
-export const FLEXIBLE_SI_THICKNESS_UM = 60;   // μm (Nature 2023 可折叠单晶硅极限厚度)
-export const TUNNELING_BARRIER_NM_MAX = 3.0;  // nm (场致欧姆接触量子隧穿势垒极限厚度)
+export const TEMP_COEFF_VOC = -0.0021;        // V/°C (-2.1 mV/°C)  // PROV: measured | c-Si 温度系数 | - | −2.1 mV/°C
+export const CELLS_PER_MODULE = 72;           // 典型工业组件片数  // PROV: measured | 工业组件惯例 | - | 72 片
+export const CELL_OPERATING_VOLT = 0.60;      // V (工作点单片单体电压)  // PROV: measured | 组件工作点 | - | 0.60 V/片
+export const FLEXIBLE_SI_THICKNESS_UM = 60;   // μm (Nature 2023 可折叠单晶硅极限厚度)  // PROV: measured | Nature 2023 (Liu et al.) | 2023-05 | 60 μm 可折叠单晶硅 SHJ
+export const TUNNELING_BARRIER_NM_MAX = 3.0;  // nm (场致欧姆接触量子隧穿势垒极限厚度)  // PROV: measured | 场致钝化极限 | - | 3.0 nm 隧穿势垒极限
 
 // ═══════════════════════════════════════════════════════
 // 纯物理函数与公式推导

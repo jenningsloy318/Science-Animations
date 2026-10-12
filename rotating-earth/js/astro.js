@@ -10,10 +10,10 @@ window.ASTRO = {};
 
 const D2R = Math.PI / 180, R2D = 180 / Math.PI;
 
-ASTRO.TILT = 23.44;                  // 黄赤交角（度）
+ASTRO.TILT = 23.44;                  // 黄赤交角（度）  // PROV: measured | 黄赤交角 | 2019 | 23.44°
 ASTRO.SIDEREAL_H = 23 + 56/60 + 4/3600;   // 恒星日（小时）
-ASTRO.EQ_SPEED = 465.1;              // 赤道线速度 m/s
-ASTRO.PRECESSION_YR = 25772;         // 岁差周期（年）
+ASTRO.EQ_SPEED = 465.1;              // 赤道线速度 m/s  // PROV: measured | 赤道自转线速度 | - | 465.1 m/s
+ASTRO.PRECESSION_YR = 25772;         // 岁差周期（年）  // PROV: measured | 轴向岁差 | - | 25772 年
 
 // ── 太阳赤纬 δ（度）——NOAA 近似，误差 <1° ─────────────────────
 // N = 一年中的第几天（1 月 1 日 = 1）
@@ -23,7 +23,7 @@ ASTRO.declination = function (N) {
 
 // ── 太阳直射经度（度，东经正）——忽略均时差（±16 min，注明）───
 ASTRO.subsolarLon = function (utcHours) {
-  let lon = 180 - 15 * utcHours;
+  let lon = 180 - 15 * utcHours;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
   lon = ((lon + 540) % 360) - 180;
   return lon;
 };
@@ -49,16 +49,17 @@ ASTRO.rotationSpeed = function (latDeg) {
 };
 
 // ── 季节标签 ──────────────────────────────────────────────────
-ASTRO.seasonLabel = function (N) {
+ASTRO.seasonLabel = function (N, lang) {
+  const isEn = lang === 'en' || (typeof window !== 'undefined' && window.APP_LANG === 'en');
   // 北半球节气（近似日期）：春分 3/20 (N=79) 夏至 6/21 (N=172) 秋分 9/23 (N=266) 冬至 12/21 (N=355)
-  if (N >= 76 && N <= 84) return '春分附近（3/20）';
-  if (N >= 169 && N <= 176) return '夏至附近（6/21）';
-  if (N >= 262 && N <= 270) return '秋分附近（9/23）';
-  if (N >= 351 || N <= 5) return '冬至附近（12/21）';
-  if (N > 84 && N < 169) return '北半球春季';
-  if (N > 176 && N < 262) return '北半球夏季';
-  if (N > 270 && N < 351) return '北半球秋季';
-  return '北半球冬季';
+  if (N >= 76 && N <= 84) return isEn ? 'Near Spring Equinox (Mar 20)' : '春分附近（3/20）';
+  if (N >= 169 && N <= 176) return isEn ? 'Near Summer Solstice (Jun 21)' : '夏至附近（6/21）';
+  if (N >= 262 && N <= 270) return isEn ? 'Near Autumnal Equinox (Sep 23)' : '秋分附近（9/23）';
+  if (N >= 351 || N <= 5) return isEn ? 'Near Winter Solstice (Dec 21)' : '冬至附近（12/21）';
+  if (N > 84 && N < 169) return isEn ? 'Northern Spring' : '北半球春季';
+  if (N > 176 && N < 262) return isEn ? 'Northern Summer' : '北半球夏季';
+  if (N > 270 && N < 351) return isEn ? 'Northern Autumn' : '北半球秋季';
+  return isEn ? 'Northern Winter' : '北半球冬季';
 };
 
 // ── 世界坐标太阳方向 / 地轴（供场景用，向量以数组返回）────────

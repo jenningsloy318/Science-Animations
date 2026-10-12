@@ -220,8 +220,20 @@ document.addEventListener('DOMContentLoaded', () => {
     camera.updateProjectionMatrix();
   });
 
+  // ── 语言切换事件 ──
+  const btnZh = document.getElementById('btnLangZh');
+  const btnEn = document.getElementById('btnLangEn');
+  if (btnZh) btnZh.addEventListener('click', () => APP.setLang('zh'));
+  if (btnEn) btnEn.addEventListener('click', () => APP.setLang('en'));
+  window.addEventListener('storage', e => {
+    if (e.key === 'science_lang' && (e.newValue === 'en' || e.newValue === 'zh') && e.newValue !== APP.lang) {
+      APP.setLang(e.newValue);
+    }
+  });
+
   // ── 启动：UI 初始化后进 T2（方程密度最高的页签）──────────────────
   APP.UI.init(document);
+  if (APP.setLang) APP.setLang(APP.lang);
   APP.UI.buildBeats();
   APP.UI.setActive(app.tab);
   APP.UI.setBeat(1, true);

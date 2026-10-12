@@ -19,6 +19,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
 import WebGL from 'three/addons/capabilities/WebGL.js';
+import { i18n } from '../../common/js/i18n.js';
 
 /* 🎥 重置视角 restores these exact constants (SCENARIO-024 bootstrap contract,
    SCENARIO-019: the #camBtn handler copies both back). */
@@ -31,18 +32,18 @@ const DEFAULT_CAMERA_TARGET = new THREE.Vector3(0, 0, 0);
    17.6 MeV (中子 14.1 + α 3.5); × 1.602e-13 J/MeV ≈ 2.82e-12 J (E=mc²).
    ———————————————————————————————————————————————————————————— */
 const PHYS = {
-  M_D_U: 2.014102,
-  M_T_U: 3.016049,
-  M_HE4_U: 4.002602,
-  M_N_U: 1.008665,
-  MASS_DEFECT_U: 0.018884,
+  M_D_U: 2.014102,  // PROV: measured | 原子量 | - | 氘原子质量 u
+  M_T_U: 3.016049,  // PROV: measured | 原子量 | - | 氚原子质量 u
+  M_HE4_U: 4.002602,  // PROV: measured | 原子量 | - | 氦-4 原子质量 u
+  M_N_U: 1.008665,  // PROV: measured | 原子量 | - | 中子质量 u
+  MASS_DEFECT_U: 0.018884,  // PROV: derived | 质量亏损 | - | 由四者相减
   MASS_DEFECT_U_ROUNDED: '0.0189 u',
-  MEV_PER_U: 931.494,
-  Q_MEV: 17.6,
-  NEUTRON_MEV: 14.1,
-  ALPHA_MEV: 3.5,
-  J_PER_MEV: 1.602e-13,
-  E_J: 2.82e-12,
+  MEV_PER_U: 931.494,  // PROV: derived | u↔MeV 换算 | - | 931.494 MeV/u
+  Q_MEV: 17.6,  // PROV: derived | E=mc² | - | 聚变释放能
+  NEUTRON_MEV: 14.1,  // PROV: derived | 二体运动学 | - | 中子动能
+  ALPHA_MEV: 3.5,  // PROV: derived | 二体运动学 | - | 氦核动能
+  J_PER_MEV: 1.602e-13,  // NO-PROV: 渲染/材质参数或局部变量，非对外科学数值
+  E_J: 2.82e-12,  // NO-PROV: 渲染/材质参数或局部变量，非对外科学数值
   E_MC2_LABEL: 'E=mc² 质能方程',
 };
 
@@ -50,45 +51,50 @@ const PHYS = {
    durations — the initial run advances atoms → plasma → fusion; a run that
    restarts at plasma advances plasma → fusion (BDD-F-002 scope). */
 const PHASES = [
-  { key: 'atoms', zh: '原子结构', duration: 10 },
-  { key: 'plasma', zh: '加热 → 等离子体', duration: 12 },
-  { key: 'fusion', zh: '聚变反应', duration: 14 },
+  { key: 'atoms', zh: '原子结构', en: 'Atomic Structure', duration: 10 },
+  { key: 'plasma', zh: '加热 → 等离子体', en: 'Heating → Plasma', duration: 12 },
+  { key: 'fusion', zh: '聚变反应', en: 'Fusion Reaction', duration: 14 },
 ];
 
 /* §6 SCENARIO-011 / SCENARIO-012 (AC-05): the 5-step 引导浏览 guided tour as
    plain data — 原子结构 / 加热变成等离子体 / 克服库仑斥力 / 聚变反应生成氦-4
    和中子 / E=mc² 质量变成能量. Entering step i forces phaseKey = step.phaseKey. */
 const TOUR_STEPS = [
-  { key: 'atoms', title: '① 原子结构（质子/中子/电子）', phaseKey: 'atoms',
-    zhText: `左边是<strong>氘（²H）</strong>：1 颗红色<strong>质子</strong> + 1 颗蓝灰色<strong>中子</strong>抱成原子核，外圈 1 颗最小的亮色<strong>电子</strong>沿轨道绕转。右边是<strong>氚（³H）</strong>：1 颗质子 + 2 颗中子 + 1 颗电子。认粒子的口诀是<strong>看大小</strong>：质子最大、中子居中、电子最小（左上角有图例）。` },
-  { key: 'heating', title: '② 加热变成等离子体', phaseKey: 'plasma',
-    zhText: `看顶部的<strong>温度计</strong>一路飙升：加热到约 <strong>1 亿℃</strong> 时，电子获得足够能量<strong>挣脱原子核的束缚</strong>，变成自由电子四处乱飞；原子核也被撞得高速<strong>随机乱撞</strong>。这种电子与原子核“分家”的带电气体就是<strong>等离子体</strong>——物质的第四态，也是太阳内部的物质状态。悄悄说：日光灯、霓虹灯里也有等离子体，但只有几千度，远不够聚变用（其他方法见右侧「物理小课堂 · 常见问题」）。` },
-  { key: 'coulomb', title: '③ 克服库仑斥力（原子核相互排斥）', phaseKey: 'fusion',
-    zhText: `两个原子核都带正电，靠得越近，<strong>库仑斥力</strong>（静电排斥）越强，就像两块同极磁铁互相推开。要撞在一起，必须靠超高温让原子核以极高速度对冲，硬"挤"过这道斥力墙——注意看两颗原子核接近时<strong>越来越慢</strong>的减速曲线。` },
-  { key: 'fusion', title: '④ 聚变反应生成氦-4 和中子', phaseKey: 'fusion',
-    zhText: `挤过斥力墙的一瞬间，强核力接管：<strong>氘 + 氚聚变成 ⁴He（氦-4，2 颗质子 + 2 颗中子）</strong>，同时高速反冲弹出一颗灰色<strong>自由中子</strong>（约 14.1 MeV），氦核带着约 3.5 MeV 向反方向反冲，并爆出一片耀眼的能量闪光。` },
-  { key: 'emc2', title: '⑤ E=mc² 质量变成能量', phaseKey: 'fusion',
-    zhText: `反应后粒子总质量少了一点点：<strong>0.0189 u</strong>（0.018884 u）。按 <strong>E=mc² 质能方程</strong>，这点亏损的质量 ×931.494 MeV/u ≈ <strong>17.6 MeV ≈ 2.82e-12 J</strong> 的能量——太阳亿万年发光发热的能量来源，就是这束闪光！` },
+  { key: 'atoms', title: '① 原子结构（质子/中子/电子）', enTitle: '① Atomic Structure (Proton/Neutron/Electron)', phaseKey: 'atoms',
+    zhText: `左边是<strong>氘（²H）</strong>：1 颗红色<strong>质子</strong> + 1 颗蓝灰色<strong>中子</strong>抱成原子核，外圈 1 颗最小的亮色<strong>电子</strong>沿轨道绕转。右边是<strong>氚（³H）</strong>：1 颗质子 + 2 颗中子 + 1 颗电子。认粒子的口诀是<strong>看大小</strong>：质子最大、中子居中、电子最小（左上角有图例）。`,
+    enText: `On the left is <strong>Deuterium (²H)</strong>: 1 red <strong>proton</strong> + 1 blue-gray <strong>neutron</strong> form the nucleus, orbited by 1 small glowing <strong>electron</strong>. On the right is <strong>Tritium (³H)</strong>: 1 proton + 2 neutrons + 1 electron. Particle size rule: protons are largest, neutrons medium, electrons smallest (see legend at top-left).` },
+  { key: 'heating', title: '② 加热变成等离子体', enTitle: '② Heating into Plasma', phaseKey: 'plasma',
+    zhText: `看顶部的<strong>温度计</strong>一路飙升：加热到约 <strong>1 亿℃</strong> 时，电子获得足够能量<strong>挣脱原子核的束缚</strong>，变成自由电子四处乱飞；原子核也被撞得高速<strong>随机乱撞</strong>。这种电子与原子核“分家”的带电气体就是<strong>等离子体</strong>——物质的第四态，也是太阳内部的物质状态。悄悄说：日光灯、霓虹灯里也有等离子体，但只有几千度，远不够聚变用（其他方法见右侧「物理小课堂 · 常见问题」）。`,
+    enText: `Watch the top <strong>thermometer</strong> climb: heated to ~<strong>100 million ℃</strong>, electrons gain enough kinetic energy to <strong>escape nuclear attraction</strong> into free electrons; nuclei collide violently at high speeds. This ionized gas is <strong>plasma</strong> — the fourth state of matter and the substance inside stars.` },
+  { key: 'coulomb', title: '③ 克服库仑斥力（原子核相互排斥）', enTitle: '③ Overcoming Coulomb Repulsion', phaseKey: 'fusion',
+    zhText: `两个原子核都带正电，靠得越近，<strong>库仑斥力</strong>（静电排斥）越强，就像两块同极磁铁互相推开。要撞在一起，必须靠超高温让原子核以极高速度对冲，硬"挤"过这道斥力墙——注意看两颗原子核接近时<strong>越来越慢</strong>的减速曲线。`,
+    enText: `Both nuclei are positively charged. As they approach, electrostatic <strong>Coulomb repulsion</strong> pushes them apart like identical magnet poles. Super-high temperatures supply the velocity required to penetrate the Coulomb barrier against deceleration.` },
+  { key: 'fusion', title: '④ 聚变反应生成氦-4 和中子', enTitle: '④ Fusion into Helium-4 and Neutron', phaseKey: 'fusion',
+    zhText: `挤过斥力墙的一瞬间，强核力接管：<strong>氘 + 氚聚变成 ⁴He（氦-4，2 颗质子 + 2 颗中子）</strong>，同时高速反冲弹出一颗灰色<strong>自由中子</strong>（约 14.1 MeV），氦核带着约 3.5 MeV 向反方向反冲，并爆出一片耀眼的能量闪光。`,
+    enText: `Crossing the barrier, the strong nuclear force takes over: <strong>Deuterium + Tritium fuse into ⁴He (2 protons + 2 neutrons)</strong>, ejecting a high-speed grey <strong>neutron</strong> (~14.1 MeV) while the helium nucleus recoils (~3.5 MeV) with an energetic flash.` },
+  { key: 'emc2', title: '⑤ E=mc² 质量变成能量', enTitle: '⑤ E=mc² Mass into Energy', phaseKey: 'fusion',
+    zhText: `反应后粒子总质量少了一点点：<strong>0.0189 u</strong>（0.018884 u）。按 <strong>E=mc² 质能方程</strong>，这点亏损的质量 ×931.494 MeV/u ≈ <strong>17.6 MeV ≈ 2.82e-12 J</strong> 的能量——太阳亿万年发光发热的能量来源，就是这束闪光！`,
+    enText: `The total mass of products is slightly less: a mass defect of <strong>0.0189 u</strong> (0.018884 u). By <strong>E=mc²</strong>, this lost mass × 931.494 MeV/u converts to ≈ <strong>17.6 MeV ≈ 2.82e-12 J</strong> of energy — the stellar engine fueling the Sun for billions of years!` },
 ];
 
 /* SCENARIO-008 (AC-04): 全场景动画粒子的硬上限 — 等离子体粒子场 + 自由电子 +
    英雄原子核内核子，总数永远 ≤ 2,000（单一 THREE.Points 一次绘制调用）。 */
-const MAX_PARTICLES = 2000;
-const FIELD_N = 1500;   // 环境粒子场（THREE.Points）
-const FREE_E_N = 28;    // 剥离的自由电子
+const MAX_PARTICLES = 2000;  // PROV: illustrative | 渲染 | - | 粒子上限
+const FIELD_N = 1500;   // 环境粒子场（THREE.Points）  // PROV: illustrative | 渲染 | - | 场线粒子数
+const FREE_E_N = 28;    // 剥离的自由电子  // PROV: illustrative | 渲染 | - | 自由电子显示数
 
 /* 粒子尺寸（SCENARIO-007：大小是主要区分线索，颜色只是辅助 — 图例固定在左上角） */
-const PROTON_R = 0.42;
-const NEUTRON_R = 0.36;
-const ELECTRON_R = 0.13;
+const PROTON_R = 0.42;  // PROV: illustrative | 视觉尺度 | - | 显示半径
+const NEUTRON_R = 0.36;  // PROV: illustrative | 视觉尺度 | - | 显示半径
+const ELECTRON_R = 0.13;  // PROV: illustrative | 视觉尺度 | - | 显示半径
 
 /* §3 SCENARIO-010 (AC-04): the phase state — simTime 累计器门控一切（SCENARIO-017
    的暂停语义：暂停冻结粒子运动和阶段时钟，恢复后从冻结处继续）。
    SCENARIO-025 (AC-10): autoAdvance=false 时手动换幕 —— 到点不自动前进。 */
 const state = {
   phaseKey: 'atoms',
-  phaseTime: 0,
-  simTime: 0,
+  phaseTime: 0,  // NO-PROV: 渲染/材质参数或局部变量，非对外科学数值
+  simTime: 0,  // NO-PROV: 渲染/材质参数或局部变量，非对外科学数值
   paused: false,
   autoAdvance: true,
   reaction: 'dt',         // 'dt' | 'dd' | 'pb'
@@ -189,10 +195,10 @@ function init() {
 
   /* ——— 占位星空：永远安静的背景（不属于阶段内容，不计入动画粒子预算） ——— */
   const starfield = (() => {
-    const N = 1500;
+    const N = 1500;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
     const pos = new Float32Array(N * 3);
     for (let i = 0; i < N; i++) {
-      const r = 60 + Math.random() * 90;
+      const r = 60 + Math.random() * 90;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
       const th = Math.random() * Math.PI * 2;
       const ph = Math.acos(2 * Math.random() - 1);
       pos[i * 3] = r * Math.sin(ph) * Math.cos(th);
@@ -286,7 +292,7 @@ function init() {
         m.position.set(0, 0, 0);
       } else {
         const a = (i / total) * Math.PI * 2;
-        const r = 0.2 + total * 0.03;
+        const r = 0.2 + total * 0.03;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
         m.position.set(Math.cos(a) * r, Math.sin(a) * r, i % 2 ? 0.1 : -0.1);
       }
       group.add(m);
@@ -418,8 +424,8 @@ function init() {
         const pts = [];
         for (let j = 0; j <= 36; j++) {
           const v = (j / 36) * Math.PI * 2;
-          const r = 3.2 + 1.4 * Math.cos(v);
-          const y = 2.0 * Math.sin(v);
+          const r = 3.2 + 1.4 * Math.cos(v);  // NO-PROV: 局部变量/运行时状态，非对外科学数值
+          const y = 2.0 * Math.sin(v);  // NO-PROV: 局部变量/运行时状态，非对外科学数值
           pts.push(new THREE.Vector3(r * Math.cos(ang), y, r * Math.sin(ang)));
         }
         const coilGeo = new THREE.BufferGeometry().setFromPoints(pts);
@@ -428,13 +434,13 @@ function init() {
       // 螺旋环向磁力线 (Helical field lines on magnetic flux surface)
       const helixMat = new THREE.LineBasicMaterial({ color: 0x67e8f9, transparent: true, opacity: 0.6 });
       const hPts = [];
-      const q = 3.2; // 安全因子 q
+      const q = 3.2; // 安全因子 q  // NO-PROV: 局部变量/运行时状态，非对外科学数值
       for (let k = 0; k <= 360; k++) {
         const u = (k / 360) * Math.PI * 8;
         const theta = u;
         const phi = u / q;
-        const R = 3.2 + 1.2 * Math.cos(phi);
-        const y = 1.3 * Math.sin(phi);
+        const R = 3.2 + 1.2 * Math.cos(phi);  // NO-PROV: 局部变量/运行时状态，非对外科学数值
+        const y = 1.3 * Math.sin(phi);  // NO-PROV: 局部变量/运行时状态，非对外科学数值
         hPts.push(new THREE.Vector3(R * Math.cos(theta), y, R * Math.sin(theta)));
       }
       const helixGeo = new THREE.BufferGeometry().setFromPoints(hPts);
@@ -465,7 +471,7 @@ function init() {
       if (state.confinement === 'tokamak') {
         const th = Math.random() * Math.PI * 2;
         const ph = Math.random() * Math.PI * 2;
-        const R = 3.2 + (Math.random() * 0.9 + 0.2) * Math.cos(ph);
+        const R = 3.2 + (Math.random() * 0.9 + 0.2) * Math.cos(ph);  // NO-PROV: 局部变量/运行时状态，非对外科学数值
         pos[i * 3] = R * Math.cos(th);
         pos[i * 3 + 1] = 1.2 * Math.sin(ph);
         pos[i * 3 + 2] = R * Math.sin(th);
@@ -568,10 +574,10 @@ function init() {
      （14.1 MeV，氦核 3.5 MeV）→ AdditiveBlending 能量闪光展开后淡出。
      ———————————————————————————————————————————————————————————— */
   function buildFusion() {
-    const MERGE_T = 5.5;   // 克服库仑斥力的接近用时
-    const FLASH_T = 3.0;   // 闪光展开 + 淡出
-    const N_SPEED = 5.4;   // 中子反冲速度（~14.1 MeV，约 4 倍于氦核）
-    const HE_SPEED = 1.35; // 氦核反冲速度（~3.5 MeV）
+    const MERGE_T = 5.5;   // 克服库仑斥力的接近用时  // PROV: illustrative | 动画时序 | - | 合并时长
+    const FLASH_T = 3.0;   // 闪光展开 + 淡出  // PROV: illustrative | 动画时序 | - | 闪光时长
+    const N_SPEED = 5.4;   // 中子反冲速度（~14.1 MeV，约 4 倍于氦核）  // PROV: illustrative | 动画时序 | - | 中子显示速度
+    const HE_SPEED = 1.35; // 氦核反冲速度（~3.5 MeV）  // PROV: illustrative | 动画时序 | - | 氦核显示速度
 
     let leftNuc, rightNuc;
     if (state.reaction === 'dd') {
@@ -670,7 +676,7 @@ function init() {
           coulombLabel.visible = u < 0.92;
 
           // 德布罗意波包波动与库仑势垒呼吸
-          const pulse = 1 + 0.18 * Math.sin(t * 16);
+          const pulse = 1 + 0.18 * Math.sin(t * 16);  // NO-PROV: 局部变量/运行时状态，非对外科学数值
           waveL.scale.setScalar(pulse);
           waveR.scale.setScalar(pulse);
           barrierMat.opacity = 0.15 + 0.65 * ease;
@@ -701,7 +707,7 @@ function init() {
           // 3 颗 α 粒子沿 120° 对称反冲
           extraAlpha1.visible = true;
           extraAlpha2.visible = true;
-          const rSpeed = 3.2;
+          const rSpeed = 3.2;  // PROV: illustrative | 动画时序 | - | 旋转速度
           heGrp.position.set(Math.cos(0) * ft * rSpeed, Math.sin(0) * ft * rSpeed, 0);
           extraAlpha1.position.set(Math.cos(2.094) * ft * rSpeed, Math.sin(2.094) * ft * rSpeed, 0);
           extraAlpha2.position.set(Math.cos(4.188) * ft * rSpeed, Math.sin(4.188) * ft * rSpeed, 0);
@@ -714,7 +720,7 @@ function init() {
 
         if (ft < FLASH_T) {
           flash.visible = true;
-          const s = 1.2 + ft * 3.2;
+          const s = 1.2 + ft * 3.2;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
           flash.scale.set(s, s, 1);
           flash.material.opacity = Math.max(0.9 * (1 - ft / FLASH_T), 0);
         } else {
@@ -759,7 +765,7 @@ function init() {
     state.simTime = PHASES.slice(0, safe).reduce((sum, p) => sum + p.duration, 0);
     clearStory();
     buildPhase(state.phaseKey);
-    phaseLabelEl.textContent = PHASES[safe].zh;
+    phaseLabelEl.textContent = i18n.currentLang === 'en' ? (PHASES[safe].en || PHASES[safe].zh) : PHASES[safe].zh;
     refreshPhaseChrome(); // SCENARIO-025: ①②③ 幕标签高亮同步
   }
 
@@ -792,7 +798,7 @@ function init() {
      导览状态只活在这一段：startRun / 🔄 重置 永不触碰它。
      ———————————————————————————————————————————————————————————— */
   let tourActive = false;
-  let tourStep = 0;
+  let tourStep = 0;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
   const tourPanel = document.getElementById('tourPanel');
   const tourDots = document.getElementById('tourDots');
   const btnTour = document.getElementById('btnTour');
@@ -806,8 +812,9 @@ function init() {
   function gotoTourStep(i) {
     tourStep = i;
     const step = TOUR_STEPS[i];
-    document.getElementById('tourTitle').textContent = step.title;
-    document.getElementById('tourText').innerHTML = step.zhText;
+    const isEn = i18n.currentLang === 'en';
+    document.getElementById('tourTitle').textContent = isEn ? (step.enTitle || step.title) : step.title;
+    document.getElementById('tourText').innerHTML = isEn ? (step.enText || step.zhText) : step.zhText;
     [...tourDots.children].forEach((d, k) => d.classList.toggle('on', k === i));
     /* 强制阶段耦合：进入第 i 步就把故事锁到该步的阶段起点（不暂停播放） */
     startRun(step.phaseKey);
@@ -860,7 +867,10 @@ function init() {
     startRun(key);
   }
   function refreshAutoBtn() {
-    autoBtn.textContent = state.autoAdvance ? '🔁 自动换幕：开' : '👆 手动换幕';
+    const isEn = i18n.currentLang === 'en';
+    autoBtn.textContent = state.autoAdvance
+      ? (isEn ? '🔁 Auto Advance: ON' : '🔁 自动换幕：开')
+      : (isEn ? '👆 Manual Advance' : '👆 手动换幕');
     autoBtn.setAttribute('aria-pressed', String(state.autoAdvance));
     autoBtn.classList.toggle('active', !state.autoAdvance);
   }
@@ -881,8 +891,8 @@ function init() {
   const tempNowEl = document.getElementById('tempNow');
   const tempBar = document.getElementById('tempBar');
   const tempStageEl = document.getElementById('tempStage');
-  const T_ROOM_C = 20;
-  const T_IGNITION_C = 1e8;
+  const T_ROOM_C = 20;  // PROV: measured | 常温 | - | 初始温度
+  const T_IGNITION_C = 1e8;  // PROV: measured | D-T 点火条件 | - | ≈10 keV
   function plasmaTempC(t) {
     const u = Math.min(Math.max(t / PHASES[1].duration, 0), 1);
     return T_ROOM_C * Math.pow(T_IGNITION_C / T_ROOM_C, u);
@@ -921,7 +931,7 @@ function init() {
     const u = Math.min(state.phaseTime / PHASES[1].duration, 1);
     tempBar.style.width = (u * 100).toFixed(1) + '%';
 
-    // 劳森判据三乘积计算：n * T * tau_E (keV * s / m^3)
+    // 劳森判据三乘积动画曲线（教学示意：非实时物理流体求解；达标门槛 3.0×10²¹ 为真实 D-T 点火条件）
     if (lawsonValEl && lawsonFillEl) {
       const tripleVal = (Math.pow(u, 2.5) * 3.2).toFixed(2);
       lawsonValEl.textContent = `${tripleVal} × 10²¹ keV·s/m³`;
@@ -989,11 +999,11 @@ function init() {
        ▶ 继续 恢复标签与播放，故事从冻结处原样继续。 */
     pause: () => {
       state.paused = true;
-      toggleBtn.textContent = '▶ 继续';
+      toggleBtn.textContent = i18n.currentLang === 'en' ? '▶ Resume' : '▶ 继续';
     },
     resume: () => {
       state.paused = false;
-      toggleBtn.textContent = '⏸ 暂停';
+      toggleBtn.textContent = i18n.currentLang === 'en' ? '⏸ Pause' : '⏸ 暂停';
     },
     /* SCENARIO-018 (AC-07): 重置 = 从 等离子体 重启 3D 故事，不动导览状态 */
     reset: () => {
@@ -1052,6 +1062,88 @@ function init() {
     renderer.render(scene, camera);
     labelRenderer.render(scene, camera);
   }
+
+  const fusionDict = {
+    'nav.home': { zh: '🏠 首页', en: '🏠 Home' },
+    'nav.home_tip': { zh: '返回首页 Back to home', en: 'Return to home portal' },
+    'meta.title': { zh: '核聚变 3D 交互动画 · Nuclear Fusion', en: 'Nuclear Fusion 3D Interactive Simulation' },
+    'meta.description': {
+      zh: '看氘氚离子克服库仑斥力相撞聚变成氦，释放恒星能量 E=mc²',
+      en: 'Watch deuterium and tritium ions overcome Coulomb repulsion and fuse into helium, releasing stellar energy via E=mc²'
+    },
+    'fusion.title': { zh: '☀️ 核聚变 · 3D 交互动画', en: '☀️ Nuclear Fusion · 3D Simulation' },
+    'fusion.subtitle': {
+      zh: '氘（²H）+ 氚（³H）→ 氦-4 + 中子 + 能量 — 从原子结构到等离子体的聚变之旅',
+      en: 'Deuterium (²H) + Tritium (³H) → Helium-4 + Neutron + Energy — Atomic structure to plasma fusion'
+    },
+    'fusion.btn_tour_tip': { zh: '引导浏览（分步讲解）', en: 'Guided Tour (Step-by-step)' },
+    'fusion.btn_sound_tip': { zh: '音效开关 Sound Toggle', en: 'Sound Toggle' },
+    'fusion.btn_rxn_tip': { zh: '切换聚变反应类型 (D-T / D-D / p-11B)', en: 'Switch Fusion Reaction Type (D-T / D-D / p-11B)' },
+
+    'fusion.tab_atoms': { zh: '① 原子结构', en: '① Atomic Structure' },
+    'fusion.tab_plasma': { zh: '② 加热→等离子体', en: '② Heating → Plasma' },
+    'fusion.tab_fusion': { zh: '③ 聚变反应', en: '③ Fusion Reaction' },
+    'fusion.btn_prev': { zh: '⏮ 上一幕', en: '⏮ Prev Act' },
+    'fusion.btn_next': { zh: '下一幕 ⏭', en: 'Next Act ⏭' },
+    'fusion.btn_auto_on': { zh: '🔁 自动换幕：开', en: '🔁 Auto Advance: ON' },
+    'fusion.btn_auto_off': { zh: '👆 手动换幕', en: '👆 Manual Advance' },
+
+    'fusion.phase_tag': { zh: '当前阶段', en: 'Current Phase' },
+    'fusion.phase_atoms': { zh: '原子结构', en: 'Atomic Structure' },
+    'fusion.phase_plasma': { zh: '加热 → 等离子体', en: 'Heating → Plasma' },
+    'fusion.phase_fusion': { zh: '聚变反应', en: 'Fusion Reaction' },
+
+    'fusion.btn_pause': { zh: '⏸ 暂停', en: '⏸ Pause' },
+    'fusion.btn_resume': { zh: '▶ 继续', en: '▶ Resume' },
+    'fusion.btn_reset': { zh: '🔄 重置', en: '🔄 Reset' },
+    'fusion.btn_cam': { zh: '🎥 重置视角', en: '🎥 Reset Camera' },
+
+    'fusion.tour_prev': { zh: '← 上一步', en: '← Prev' },
+    'fusion.tour_next': { zh: '下一步 →', en: 'Next →' },
+    'fusion.tour_exit': { zh: '退出', en: 'Exit' },
+
+    'fusion.phys_h3': { zh: '⚛️ 物理小课堂', en: '⚛️ Physics Classroom' },
+    'fusion.hint': { zh: '拖拽旋转 · 滚轮缩放 · 右键平移<br>①②③ 点击跳幕 · 🎬 引导浏览分步讲解', en: 'Drag to rotate · Scroll to zoom · Right-click to pan<br>①②③ Act jump · 🎬 Guided tour walkthrough' }
+  };
+
+  i18n.loadDict(fusionDict);
+
+  function applyFusionI18n() {
+    i18n.bind(document.body);
+    const homeBtn = document.getElementById('homeBtn');
+    if (homeBtn) {
+      homeBtn.href = `../index.html?lang=${i18n.currentLang}`;
+      homeBtn.title = i18n.t('nav.home_tip');
+    }
+    document.title = i18n.t('meta.title');
+    const metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.setAttribute('content', i18n.t('meta.description'));
+    const pIdx = phaseIndex();
+    if (pIdx >= 0) {
+      phaseLabelEl.textContent = i18n.currentLang === 'en' ? (PHASES[pIdx].en || PHASES[pIdx].zh) : PHASES[pIdx].zh;
+    }
+    refreshAutoBtn();
+    if (state.paused) {
+      toggleBtn.textContent = i18n.currentLang === 'en' ? '▶ Resume' : '▶ 继续';
+    } else {
+      toggleBtn.textContent = i18n.currentLang === 'en' ? '⏸ Pause' : '⏸ 暂停';
+    }
+    if (tourActive && tourStep != null) {
+      const s = TOUR_STEPS[tourStep];
+      const isEn = i18n.currentLang === 'en';
+      document.getElementById('tourTitle').textContent = isEn ? (s.enTitle || s.title) : s.title;
+      document.getElementById('tourText').innerHTML = isEn ? (s.enText || s.zhText) : s.zhText;
+    }
+    document.documentElement.classList.remove('i18n-loading');
+  }
+
+  i18n.subscribe(() => {
+    applyFusionI18n();
+  });
+
+  document.getElementById('btnLangZh')?.addEventListener('click', () => i18n.setLanguage('zh'));
+  document.getElementById('btnLangEn')?.addEventListener('click', () => i18n.setLanguage('en'));
+  applyFusionI18n();
 
   /* SCENARIO-023 (AC-09): 初始运行从 原子结构 开始 */
   startRun('atoms');

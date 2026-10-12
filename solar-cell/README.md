@@ -1,6 +1,6 @@
 # ☀️ 太阳能电池 — 从光子到电流（5 章交互旅程）
 
-一个四则混用的 three.js 教学应用：从硅原子一路讲到**世界纪录 27.81%**。
+一个四则混用的 three.js 教学应用：从硅原子一路讲到**世界纪录 28.29%**。
 第 5 章的所有数字都经过在线核实（2026-09-17），标注了认证机构。
 
 > **入口**：`index.html`（模块化，开发用）/ `solar-cell.html`（单文件离线版，`python3 build.py` 生成，~1.1 MB）
@@ -26,7 +26,7 @@
 | 光谱损耗 | **19% 亚带隙穿透 + 33% 热化** → 光谱上限 48% | Wikipedia Shockley–Queisser limit |
 | 单结理想极限 | 33.7% @ 带隙 1.34 eV；硅辐射复合极限 ≈32% | 同上（Rühle 2016 带背镜 33.16%） |
 | 硅物理极限 | **29.4%**（计入俄歇复合） | Richter et al. 2013, IEEE J. Photovoltaics |
-| 单结硅世界纪录 | **27.81%**（LONGi HIBC，ISFH 认证，2025-04-11；历程 26.81→27.30→27.81） | LONGi 官方 / taiyangnews |
+| 单结硅世界纪录 | **28.29%**（LONGi HIBC，ISFH 认证，2026-09-28；历程 26.81→27.30→27.81→28.04→28.13→28.29） | LONGi 官方 / taiyangnews |
 | 量产商用电池 | ≈24%（组件纪录 25.4%，Fraunhofer ISE） | Wikipedia Solar cell efficiency |
 | 钙钛矿/硅叠层 | **34.85%**（NREL 认证 2025-04，双结突破单结极限，理论 ~43%） | LONGi 官方 / pv-magazine |
 

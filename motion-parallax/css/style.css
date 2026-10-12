@@ -61,6 +61,21 @@ body[data-view="topo"] #topo { display: block; }
   font-weight: 700;
 }
 
+/* ── 语言切换 ── */
+.lang-switch {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: rgba(10, 14, 26, 0.6); border: 1px solid var(--line);
+  border-radius: 999px; padding: 2px 6px; margin-left: auto;
+}
+.lang-btn {
+  background: transparent; border: none; color: var(--ink-dim);
+  font: inherit; font-size: 12px; padding: 3px 7px; border-radius: 999px;
+  cursor: pointer; transition: all .15s;
+}
+.lang-btn:hover { color: var(--ink); }
+.lang-btn.active { color: #1c1607; background: var(--gold); font-weight: 700; }
+.lang-sep { color: var(--ink-dim); opacity: 0.4; font-size: 11px; }
+
 /* ── 右侧面板 ── */
 #sidePanel {
   position: fixed; top: 62px; right: 14px; z-index: 15;

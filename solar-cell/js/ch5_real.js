@@ -1,14 +1,14 @@
 /* ══════════════════════════════════════════════════
-   ch5_real.js — 第5章：真实世界：从微观物理到 27.81% 与未来叠层
+   ch5_real.js — 第5章：真实世界：从微观物理到 28.29% 与未来叠层
    四个子场景：
      A 真实结构与表面物理 — 层状截面、表面悬挂键双重钝化、60μm柔性弯曲、Nature 2025软击穿防热斑
      B 光阱与1000×聚光   — 裸抛光(35%) → 绒面(8%) → 减反膜(2%)；1000× 菲涅尔透镜消除立体角熵损失，Voc+180mV，冲破卡诺/兰兹伯格极限
      C 彩虹光谱 CT 扫描  — 蓝光查表皮(<10nm)，绿光查内脏(1.56μm)，红外查骨髓(156μm)，全谱无损探伤
-     D 效率天平与叠层未来 — 100块阳光能量分解（19%穿透+33%热化）→ 32% SQ → 29.43% 俄歇 → 27.81% HIBC纪录 → 35.5% 钙钛矿叠层
+     D 效率天平与叠层未来 — 100块阳光能量分解（19%穿透+33%热化）→ 32% SQ → 29.43% 俄歇 → 28.29% HIBC纪录 → 35.5% 钙钛矿叠层
    权威数据来源：
      · 吸收系数与深度：Green & Keevers 1995 (pveducation)
      · 单结物理极限：Richter et al. 2013 (IEEE JPV, 29.43% Auger)
-     · 世界纪录：LONGi HIBC 27.81% (ISFH 2025-04-11, Nature 2025)
+     · 世界纪录：LONGi HIBC 28.29% (ISFH 2026-09)
      · 软击穿防热斑：Nature 2025 论文 (遮光损耗-70%, 降温28%)
      · 柔性单晶硅：Nature 2023 论文 (60μm 弯折革命)
      · 叠层纪录：34.85% (NREL 2025) / 35.5% (ESTI 2026)
@@ -27,7 +27,7 @@ import {
 
 export const meta = {
   nav: '🌍 真实世界',
-  title: '🌍 太阳能电池 · 第5章：真实世界 — 从原理到 27.81%',
+  title: '🌍 太阳能电池 · 第5章：真实世界 — 从原理到 28.29%',
   sub: 'Chapter 5 · Real cells: optics, passivation, CPV, CT scan & efficiency budget',
 };
 
@@ -729,9 +729,9 @@ const BUDGET = [
     en: 'Auger recombination (Richter 2013) seals silicon physical ceiling at 29.43%',
   },
   {
-    key: 'real', label: '纪录 27.81%', cls: 'record',
-    zh: '<b>【世界纪录：隆基 HIBC 27.81% (ISFH 认证，Nature 2025)】</b><br>单结硅世界最高峰！全背接触零正面栅线遮挡，填充因子高达 <b>87.55%</b>，距离物理极限仅差 1.6 个百分点！量产商用电池已稳定在 <b>≈24.5%</b>',
-    en: 'World record 27.81% (LONGi HIBC, ISFH certified, Nature 2025); commercial ~24.5%',
+    key: 'real', label: '纪录 28.29%', cls: 'record',
+    zh: '<b>【世界纪录：隆基 HIBC 28.29% (ISFH 认证 2026-09)】</b><br>单结硅世界最高峰！全背接触零正面栅线遮挡；上一代 27.81% 纪录电池的填充因子为 <b>87.55%</b>，距离物理极限仅差 1.6 个百分点！量产商用电池已稳定在 <b>≈24.5%</b>',
+    en: 'World record 28.29% (LONGi HIBC, ISFH certified 2026-09; the prior 27.81% cell had FF 87.55%); commercial ~24.5%',
   },
   {
     key: 'tandem', label: '🚀 叠层未来 35.5%', cls: 'tandem',

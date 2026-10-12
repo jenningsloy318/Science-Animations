@@ -17,18 +17,36 @@
     }
   }
   </script>
+  <script>
+    (function() {
+      try {
+        var p = new URLSearchParams(window.location.search).get('lang');
+        var l = p || localStorage.getItem('science_lang') || ((navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en');
+        if (l !== 'zh' && l !== 'en') l = 'zh';
+        document.documentElement.lang = l === 'zh' ? 'zh-CN' : 'en';
+        window.__INITIAL_LANG__ = l;
+      } catch (e) {
+        document.documentElement.lang = 'zh-CN';
+        window.__INITIAL_LANG__ = 'zh';
+      }
+    })();
+  </script>
 </head>
 <body>
 
-  <!-- Back to home -->
-  <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
+  <!-- Back to home & Language Switcher -->
+  <a id="homeBtn" href="../index.html" title="返回首页 / Back to home">🏠 <span id="homeTxt">首页</span></a>
+  <div class="lang-switch" role="group" aria-label="Language Switcher">
+    <button class="lang-btn active" data-lang="zh">中</button>
+    <button class="lang-btn" data-lang="en">EN</button>
+  </div>
 
   <header>
     <div class="logo-group">
       <span style="font-size:1.6rem">🏎️</span>
       <div>
-        <h1>汽车是怎么跑起来的？(3D 机械透视与四冲程全解)</h1>
-        <p>致敬 Animagraffs · 交互式 4 冲程发动机、离合器变速箱、差速器转向与纯电动力对比</p>
+        <h1 id="appTitle">汽车是怎么跑起来的？(3D 机械透视与四冲程全解)</h1>
+        <p id="appSub">致敬 Animagraffs · 交互式 4 冲程发动机、离合器变速箱、差速器转向与纯电动力对比</p>
       </div>
     </div>
 
@@ -56,12 +74,12 @@
       </div>
       <h3 class="insp-title" id="inspTitle">发动机气缸体</h3>
       <p class="insp-desc" id="inspDesc">支撑4个气缸与活塞往复运动的主体框架。</p>
-      <div class="insp-hint">💡 提示：点击 3D 模型中的任何零件可查看对应原理</div>
+      <div class="insp-hint" id="inspHint">💡 提示：点击 3D 模型中的任何零件可查看对应原理</div>
     </div>
 
     <!-- Camera / View Focus Preset Bar -->
     <div class="focus-bar" id="focusBar">
-      <span class="focus-title">🔍 视角镜头 Focus:</span>
+      <span class="focus-title" id="focusTitle">🔍 视角镜头 Focus:</span>
       <button class="focus-btn active" data-focus="overview">🌐 全景 Overview</button>
       <button class="focus-btn" data-focus="engine">🔥 4冲程发动机</button>
       <button class="focus-btn" data-focus="gearbox">⚙️ 离合器与变速箱</button>
@@ -77,14 +95,14 @@
 
     <!-- Live Telemetry HUD -->
     <div class="hud-card" id="hudCard">
-      <div class="hud-title">⚡ 实时机械状态 Telemetry</div>
+      <div class="hud-title" id="hudTitle">⚡ 实时机械状态 Telemetry</div>
       <div class="hud-grid">
-        <div class="hud-item"><span class="hud-lbl">转速 RPM:</span><span class="hud-val" id="hudRpm">0 RPM</span></div>
-        <div class="hud-item"><span class="hud-lbl">挡位 Gear:</span><span class="hud-val" id="hudGear">3挡</span></div>
-        <div class="hud-item"><span class="hud-lbl">冲程 Phase:</span><span class="hud-val stroke-badge" id="hudStroke">进气 Intake</span></div>
-        <div class="hud-item"><span class="hud-lbl">差速状态 Diff:</span><span class="hud-val" id="hudDiff">直行 (同速)</span></div>
-        <div class="hud-item"><span class="hud-lbl">冷却液 Coolant:</span><span class="hud-val" id="hudCoolant">20.0 °C</span></div>
-        <div class="hud-item"><span class="hud-lbl">机油压力 Oil:</span><span class="hud-val" id="hudOil">0.00 bar</span></div>
+        <div class="hud-item"><span class="hud-lbl" id="hudLblRpm">转速 RPM:</span><span class="hud-val" id="hudRpm">0 RPM</span></div>
+        <div class="hud-item"><span class="hud-lbl" id="hudLblGear">挡位 Gear:</span><span class="hud-val" id="hudGear">3挡</span></div>
+        <div class="hud-item"><span class="hud-lbl" id="hudLblStroke">冲程 Phase:</span><span class="hud-val stroke-badge" id="hudStroke">进气 Intake</span></div>
+        <div class="hud-item"><span class="hud-lbl" id="hudLblDiff">差速状态 Diff:</span><span class="hud-val" id="hudDiff">直行 (同速)</span></div>
+        <div class="hud-item"><span class="hud-lbl" id="hudLblCoolant">冷却液 Coolant:</span><span class="hud-val" id="hudCoolant">20.0 °C</span></div>
+        <div class="hud-item"><span class="hud-lbl" id="hudLblOil">机油压力 Oil:</span><span class="hud-val" id="hudOil">0.00 bar</span></div>
       </div>
     </div>
 
@@ -93,7 +111,7 @@
 
       <!-- Start/Stop & Throttle Card -->
       <div class="panel-card">
-        <div class="card-title">🔑 驾驶操控 Cockpit Controls</div>
+        <div class="card-title" id="cockpitTitle">🔑 驾驶操控 Cockpit Controls</div>
         
         <div class="start-row">
           <button class="start-btn ice" id="startBtn">
@@ -102,19 +120,19 @@
           </button>
           
           <button class="brake-btn" id="brakeBtn">
-            <span>🛑 踩下刹车</span>
-            <small>刹车片发热磨擦</small>
+            <span id="brakeTxt">🛑 踩下刹车</span>
+            <small id="brakeSub">刹车片发热磨擦</small>
           </button>
 
           <button class="replay-btn" id="replayBtn" style="display:none">
-            <span>🔁 重新播放点火</span>
-            <small>Replay start</small>
+            <span id="replayBtnTxt">🔁 重新播放点火</span>
+            <small id="replaySubTxt">Replay start</small>
           </button>
         </div>
 
         <div class="slider-group" style="margin-top: 12px;">
           <div class="slider-label">
-            <span>⛽ 油门/加速 (Throttle / RPM)</span>
+            <span id="throttleLbl">⛽ 油门/加速 (Throttle / RPM)</span>
             <span id="rpmText" class="mono-val">800 RPM</span>
           </div>
           <input type="range" id="throttleSlider" min="800" max="6000" step="100" value="800">
@@ -123,7 +141,7 @@
 
       <!-- Gear Shift & Transmission Card -->
       <div class="panel-card ice-only">
-        <div class="card-title">⚙️ 变速箱挡位 (Gear Selector)</div>
+        <div class="card-title" id="gearTitle">⚙️ 变速箱挡位 (Gear Selector)</div>
         <div class="gear-stick-container">
           <button class="gear-btn" data-gear="1">1挡</button>
           <button class="gear-btn" data-gear="2">2挡</button>
@@ -136,10 +154,10 @@
 
       <!-- Steering Control Card -->
       <div class="panel-card">
-        <div class="card-title">☸️ 方向盘转向 (Steering & Differential)</div>
+        <div class="card-title" id="steerTitle">☸️ 方向盘转向 (Steering & Differential)</div>
         <div class="slider-group">
           <div class="slider-label">
-            <span>打方向盘 (Turn Angle)</span>
+            <span id="steerLbl">打方向盘 (Turn Angle)</span>
             <span id="steerText" class="mono-val">0° 直行</span>
           </div>
           <input type="range" id="steerSlider" min="-30" max="30" step="1" value="0">
@@ -149,7 +167,7 @@
 
       <!-- 4-Stroke Engine Step-by-Step Card -->
       <div class="panel-card ice-only">
-        <div class="card-title">🔥 四冲程单步解析 (Stroke Breakdown)</div>
+        <div class="card-title" id="strokeTitle">🔥 四冲程单步解析 (Stroke Breakdown)</div>
         <div class="stroke-mode-toggle">
           <button class="stroke-mode-btn active" id="btnModeAuto">▶ 连续运转</button>
           <button class="stroke-mode-btn" id="btnModeStep">⏸ 单步单冲程</button>
@@ -159,20 +177,20 @@
           <button class="next-stroke-btn" id="btnNextStroke">⏭ 下一冲程 Next Stroke</button>
           <div class="stroke-cards-grid">
             <div class="stroke-card" id="scIntake">
-              <div class="sc-name">1. 进气 Intake</div>
-              <div class="sc-desc">进气门打开，活塞向下，吸入汽油与空气混合气</div>
+              <div class="sc-name" id="scName1">1. 进气 Intake</div>
+              <div class="sc-desc" id="scDesc1">进气门打开，活塞向下，吸入汽油与空气混合气</div>
             </div>
             <div class="stroke-card" id="scCompress">
-              <div class="sc-name">2. 压缩 Compression</div>
-              <div class="sc-desc">气门全关，活塞向上高压压缩混合气体</div>
+              <div class="sc-name" id="scName2">2. 压缩 Compression</div>
+              <div class="sc-desc" id="scDesc2">气门全关，活塞向上高压压缩混合气体</div>
             </div>
             <div class="stroke-card" id="scPower">
-              <div class="sc-name">3. 做功 Power</div>
-              <div class="sc-desc">火花塞点火爆炸！高温高压爆发力猛推活塞向下</div>
+              <div class="sc-name" id="scName3">3. 做功 Power</div>
+              <div class="sc-desc" id="scDesc3">火花塞点火爆炸！高温高压爆发力猛推活塞向下</div>
             </div>
             <div class="stroke-card" id="scExhaust">
-              <div class="sc-name">4. 排气 Exhaust</div>
-              <div class="sc-desc">排气门打开，活塞向上把废气压出排气管</div>
+              <div class="sc-name" id="scName4">4. 排气 Exhaust</div>
+              <div class="sc-desc" id="scDesc4">排气门打开，活塞向上把废气压出排气管</div>
             </div>
           </div>
         </div>
@@ -188,19 +206,19 @@
 
       <!-- Comparison Section -->
       <div class="panel-card">
-        <div class="card-title">📊 油车 vs 电车核心区别</div>
+        <div class="card-title" id="cmpTitle">📊 油车 vs 电车核心区别</div>
         <div class="compare-box" id="compareBox">
           <div class="cmp-col">
-            <div class="cmp-h ice">🔥 燃油车 (ICE)</div>
-            <ul>
+            <div class="cmp-h ice" id="cmpIceTitle">🔥 燃油车 (ICE)</div>
+            <ul id="cmpIceList">
               <li>4冲程爆炸产生动力</li>
               <li>必须有变速箱调节扭矩</li>
               <li>机械结构多，有排气噪音</li>
             </ul>
           </div>
           <div class="cmp-col">
-            <div class="cmp-h ev">⚡ 电动车 (EV)</div>
-            <ul>
+            <div class="cmp-h ev" id="cmpEvTitle">⚡ 电动车 (EV)</div>
+            <ul id="cmpEvList">
               <li>电池直流电转三相交流电</li>
               <li>电磁旋转磁场瞬间输出最大扭矩</li>
               <li>无需复杂变速箱，安静高效</li>

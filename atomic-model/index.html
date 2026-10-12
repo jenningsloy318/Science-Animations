@@ -5,18 +5,34 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>原子模型 · 3D Interactive Atomic Model</title>
 <meta name="description" content="Interactive 3D atomic model showing electron transitions, ionization, and the difference between excitation and ion formation.">
+<script>
+  (function() {
+    try {
+      var p = new URLSearchParams(window.location.search).get('lang');
+      var s = (p === 'zh' || p === 'en') ? p : null;
+      if (!s) s = localStorage.getItem('science_lang');
+      if (!s && navigator.language) s = navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+      var lang = (s === 'en' ? 'en' : 'zh');
+      document.documentElement.lang = (lang === 'zh' ? 'zh-CN' : 'en');
+      document.documentElement.classList.add('i18n-loading');
+    } catch(e) {}
+  })();
+</script>
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-  <!-- Back to home (shared) -->
-  <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
-
+  <!-- Back to home & language switcher (shared) -->
+  <a id="homeBtn" href="../index.html" title="返回首页 Back to home" data-i18n="nav.home">🏠 首页</a>
+  <div class="lang-switch" role="group" aria-label="Language Switcher">
+    <button id="btnLangZh" class="lang-btn" data-lang-btn="zh">🇨🇳 中文</button>
+    <button id="btnLangEn" class="lang-btn" data-lang-btn="en">🇬🇧 EN</button>
+  </div>
 
 <!-- ── Header ── -->
 <header>
-  <h1>原子模型 · Atomic Model</h1>
-  <div class="subtitle">3D 交互式 — 电子跃迁 vs 电离 · 光子的吸收与发射</div>
+  <h1 data-i18n="atom.title">原子模型 · Atomic Model</h1>
+  <div class="subtitle" data-i18n="atom.sub">3D 交互式 — 电子跃迁 vs 电离 · 光子的吸收与发射</div>
 </header>
 
 <!-- ── 3D Stage ── -->
@@ -27,74 +43,80 @@
 
 <!-- ── Photon Info Badge (left) ── -->
 <div id="photonBadge">
-  <h4>💡 光子信息 Photon</h4>
-  <div class="photon-row"><span class="plabel">方向</span><span class="pval" id="pDir">—</span></div>
-  <div class="photon-row"><span class="plabel">能量 E</span><span class="pval" id="pEnergy">—</span></div>
-  <div class="photon-row"><span class="plabel">跃迁</span><span class="pval" id="pTransition">—</span></div>
-  <div class="photon-row"><span class="plabel">颜色</span><span class="pval" id="pColor">—</span></div>
+  <h4 data-i18n="atom.photon_info">💡 光子信息 Photon</h4>
+  <div class="photon-row"><span class="plabel" data-i18n="atom.p_dir">方向</span><span class="pval" id="pDir">—</span></div>
+  <div class="photon-row"><span class="plabel" data-i18n="atom.p_energy">能量 E</span><span class="pval" id="pEnergy">—</span></div>
+  <div class="photon-row"><span class="plabel" data-i18n="atom.p_trans">跃迁</span><span class="pval" id="pTransition">—</span></div>
+  <div class="photon-row"><span class="plabel" data-i18n="atom.p_color">颜色</span><span class="pval" id="pColor">—</span></div>
   <div id="photonSwatch" class="photon-color-swatch"></div>
 </div>
 
 <!-- ── Info Panel ── -->
 <div id="infoPanel">
-  <h3>⚛️ 原子状态</h3>
-  <div class="info-row"><span class="label">元素</span><span class="value" id="infoElement">Li 锂</span></div>
-  <div class="info-row"><span class="label">质子 Protons</span><span class="value" id="infoProtons">3</span></div>
-  <div class="info-row"><span class="label">中子 Neutrons</span><span class="value" id="infoNeutrons">4</span></div>
-  <div class="info-row"><span class="label">电子 Electrons</span><span class="value" id="infoElectrons">3</span></div>
-  <div class="info-row"><span class="label">净电荷 Charge</span><span class="value neutral" id="infoCharge">0</span></div>
-  <div class="info-row"><span class="label">状态 State</span><span class="value neutral" id="infoState">基态 Ground</span></div>
+  <h3 data-i18n="atom.state_title">⚛️ 原子状态</h3>
+  <div class="info-row"><span class="label" data-i18n="atom.elem">元素</span><span class="value" id="infoElement">Li 锂</span></div>
+  <div class="info-row"><span class="label" data-i18n="atom.protons">质子 Protons</span><span class="value" id="infoProtons">3</span></div>
+  <div class="info-row"><span class="label" data-i18n="atom.neutrons">中子 Neutrons</span><span class="value" id="infoNeutrons">4</span></div>
+  <div class="info-row"><span class="label" data-i18n="atom.electrons">电子 Electrons</span><span class="value" id="infoElectrons">3</span></div>
+  <div class="info-row"><span class="label" data-i18n="atom.charge">净电荷 Charge</span><span class="value neutral" id="infoCharge">0</span></div>
+  <div class="info-row"><span class="label" data-i18n="atom.state">状态 State</span><span class="value neutral" id="infoState">基态 Ground</span></div>
   <div id="equation"></div>
 </div>
 
 <!-- ── Energy Level Diagram ── -->
 <div id="energyDiagram">
-  <h4>能级图 Energy Levels</h4>
+  <h4 data-i18n="atom.energy_levels">能级图 Energy Levels</h4>
   <canvas id="energyCanvas" class="energy-canvas"></canvas>
 </div>
 
 <!-- ── Shell Distribution Diagram ── -->
 <div id="shellDiagram">
-  <h4>电子层分布 Shell Distribution</h4>
+  <h4 data-i18n="atom.shell_dist">电子层分布 Shell Distribution</h4>
   <canvas id="shellCanvas" class="shell-canvas"></canvas>
 </div>
 
 <!-- ── Bottom Bar ── -->
 <div id="bottomBar">
   <div class="row">
-    <span style="font-size:0.72rem;color:#94a3b8;align-self:center;">模型:</span>
-    <button class="ctrl-btn model-btn active" id="btnModelBohr" title="玻尔 1913: 电子在确定轨道上（简化但直观）">⚙️ 玻尔轨道</button>
-    <button class="ctrl-btn model-btn" id="btnModelCloud" title="量子力学: 电子是概率云——原子的真实画像">☁️ 电子云</button>
+    <span style="font-size:0.72rem;color:#94a3b8;align-self:center;" data-i18n="atom.model_label">模型:</span>
+    <button class="ctrl-btn model-btn active" id="btnModelBohr" title="玻尔 1913: 电子在确定轨道上（简化但直观）" data-i18n="atom.bohr_orbit">⚙️ 玻尔轨道</button>
+    <button class="ctrl-btn model-btn" id="btnModelCloud" title="量子力学: 电子是概率云——原子的真实画像" data-i18n="atom.electron_cloud">☁️ 电子云</button>
     <div class="separator"></div>
-    <span style="font-size:0.7rem;color:#64748b;align-self:center;" id="modelNote">氢的谱线/能级为里德伯公式真实值 · 多电子为示意</span>
+    <span style="font-size:0.7rem;color:#64748b;align-self:center;" id="modelNote" data-i18n="atom.model_note">氢的谱线/能级为里德伯公式真实值 · 多电子为示意</span>
   </div>
   <div class="row" id="elemRow"></div>
   <div class="row">
-    <button class="ctrl-btn absorb" id="btnAbsorb" title="光子飞入原子 → 被电子吸收 → 电子跳到高能级">
+    <button class="ctrl-btn absorb" id="btnAbsorb" title="光子飞入原子 → 被电子吸收 → 电子跳到高能级" data-i18n-html="atom.absorb_btn">
       ☀️ 吸收光子<br><span class="dir-hint">光子 → 原子 (飞入)</span>
     </button>
-    <button class="ctrl-btn release" id="btnRelease" title="电子掉回低能级 → 产生新光子 → 光子飞出原子" disabled>
+    <button class="ctrl-btn release" id="btnRelease" title="电子掉回低能级 → 产生新光子 → 光子飞出原子" disabled data-i18n-html="atom.release_btn">
       💫 释放光子<br><span class="dir-hint">原子 → 光子 (飞出)</span>
     </button>
     <div class="separator"></div>
-    <button class="ctrl-btn ionize-pos" id="btnLoseE" title="电子被完全打飞，离开原子">⚡ 失去电子 (电离)</button>
-    <button class="ctrl-btn ionize-neg" id="btnGainE" title="原子捕获一个自由电子">⚡ 获得电子</button>
+    <button class="ctrl-btn ionize-pos" id="btnLoseE" title="电子被完全打飞，离开原子" data-i18n="atom.lose_e">⚡ 失去电子 (电离)</button>
+    <button class="ctrl-btn ionize-neg" id="btnGainE" title="原子捕获一个自由电子" data-i18n="atom.gain_e">⚡ 获得电子</button>
     <div class="separator"></div>
-    <button class="ctrl-btn reset-btn" id="btnReset">↺ 重置</button>
-    <button class="ctrl-btn" id="btnPhotonInfo">💡 光子是什么?</button>
-    <button class="ctrl-btn" id="btnCompare">📊 对比表</button>
+    <button class="ctrl-btn reset-btn" id="btnReset" data-i18n="atom.reset">↺ 重置</button>
+    <button class="ctrl-btn" id="btnPhotonInfo" data-i18n="atom.what_is_photon">💡 光子是什么?</button>
+    <button class="ctrl-btn" id="btnCompare" data-i18n="atom.compare_btn">📊 对比表</button>
   </div>
 </div>
 
 <!-- ── Comparison Panel ── -->
 <div id="compPanel">
   <div class="panel-header">
-    <h3>📊 电子跃迁 vs 电离 — 对比表</h3>
+    <h3 data-i18n="atom.comp_title">📊 电子跃迁 vs 电离 — 对比表</h3>
     <button class="close-btn" id="closeComp">✕</button>
   </div>
   <table class="comp-table">
     <thead>
-      <tr><th>情况</th><th>光子方向</th><th>电子去向</th><th>原子变化</th><th>离子?</th></tr>
+      <tr>
+        <th data-i18n="atom.th_case">情况</th>
+        <th data-i18n="atom.th_photon">光子方向</th>
+        <th data-i18n="atom.th_electron">电子去向</th>
+        <th data-i18n="atom.th_atom">原子变化</th>
+        <th data-i18n="atom.th_ion">离子?</th>
+      </tr>
     </thead>
     <tbody>
       <tr class="highlight">

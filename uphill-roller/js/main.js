@@ -93,8 +93,84 @@ function makeLabel(text, color) {
   tex.minFilter = THREE.LinearFilter;
   const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, transparent: true }));
   sprite.scale.set(7, 1.75, 1);
+  sprite._cv = c;
+  sprite._color = color;
   return sprite;
 }
+
+function updateLabelText(sprite, text) {
+  const c = sprite._cv;
+  if (!c) return;
+  const g = c.getContext('2d');
+  g.clearRect(0, 0, 512, 128);
+  g.font = 'bold 44px "Helvetica Neue", sans-serif';
+  g.fillStyle = sprite._color; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.strokeStyle = 'rgba(7,11,22,0.85)'; g.lineWidth = 12;
+  g.strokeText(text, 256, 64);
+  g.fillText(text, 256, 64);
+  sprite.material.map.needsUpdate = true;
+}
+
+const ROLLER_I18N = {
+  zh: {
+    title: '锥体上滚',
+    subtitle: '双锥体在 V 型轨道上的视觉错觉 · 重心下降是驱动力',
+    badge: '物理演示 · 3D · 纯几何',
+    panelTitle: '为什么它会“上坡”<small>真实几何</small>',
+    panelDesc: '<b>接触点</b>沿轨道爬升（视觉“上坡”），<b>重心</b>却沿金色曲线实际下降。运动条件：<b>tanα &lt; tanβ·tanγ</b> —— 轨道倾角 α 越小、张口 β 越大、锥体越钝 γ 越大，越容易上坡。',
+    validOk: '✓ 条件成立 · 真实上坡',
+    validBad: '✗ 条件不成立 · 保持原位',
+    lblCoM: '重心高度',
+    lblDrop: '已下降',
+    lblX: '沿轨道行程',
+    facts: [
+      '<b>1694 年配方</b> — William Leybourn《Pleasure with Profit》原推导：tanα = 1/√143, tanβ = 3/√134, tanγ = 1/3 → 条件等价于 <b>143 &gt; 134</b>。',
+      '<b>玻璃珠同理</b> — 球在张开的 V 槽中也会沿槽“上坡”，机制相同（arXiv:2608.19541）。',
+      '<b>驱动力 = 重力</b> — 静摩擦只保证“纯滚动”，滚动摩擦只是阻力。',
+    ],
+    play: '⏸ 暂停',
+    resume: '▶ 继续',
+    reset: '↺ 重播',
+    lblAlpha: 'α 倾角',
+    lblBeta: 'β 张口',
+    lblGamma: 'γ 锥角',
+    leybourn: 'Leybourn 配方',
+    lblSpeed: '速度',
+    labelCoM: '重心 CoM（真实路径 ↓）',
+    labelContact: '接触点（视觉路径 ↑）',
+    docTitle: '锥体上滚 · 双锥体在 V 型轨道上的视觉错觉',
+  },
+  en: {
+    title: 'Uphill Roller',
+    subtitle: 'Double cone optical illusion on V-rails · Center of mass drop is the driver',
+    badge: 'Physics Sim · 3D · Pure Geometry',
+    panelTitle: 'Why Does It "Roll Uphill"?<small>True Geometry</small>',
+    panelDesc: '<b>Contact points</b> climb the rails (apparent "uphill"), while the <b>center of mass</b> strictly descends along the golden curve. Criterion: <b>tanα &lt; tanβ·tanγ</b> — smaller rail slope α, wider opening β, and blunter cone angle γ make uphill ascent easier.',
+    validOk: '✓ Criterion Met · True Ascent',
+    validBad: '✗ Criterion Not Met · At Rest',
+    lblCoM: 'CoM Height',
+    lblDrop: 'Total Drop',
+    lblX: 'Travel on Rails',
+    facts: [
+      '<b>1694 Recipe</b> — William Leybourn "Pleasure with Profit" derivation: tanα = 1/√143, tanβ = 3/√134, tanγ = 1/3 → condition equivalent to <b>143 &gt; 134</b>.',
+      '<b>Same for Marbles</b> — A marble in an opening V-groove also climbs via the identical mechanism (arXiv:2608.19541).',
+      '<b>Driving Force = Gravity</b> — Static friction only enforces pure rolling; rolling friction is purely resistive.',
+    ],
+    play: '⏸ Pause',
+    resume: '▶ Resume',
+    reset: '↺ Replay',
+    lblAlpha: 'α Rail Slope',
+    lblBeta: 'β Opening',
+    lblGamma: 'γ Cone Angle',
+    leybourn: 'Leybourn Recipe',
+    lblSpeed: 'Speed',
+    labelCoM: 'CoM (True Path ↓)',
+    labelContact: 'Contact (Visual Path ↑)',
+    docTitle: 'Uphill Roller · Double Cone on V-Rails Optical Illusion',
+  }
+};
+
+let currentLang = 'zh';
 
 // ── 轨道（两根直线，从原点 O 沿倾斜面发散）──
 function buildRail(zSign) {
@@ -242,12 +318,16 @@ els.hSpeedIn.addEventListener('input', () => {
 });
 els.play.addEventListener('click', () => {
   state.playing = !state.playing;
-  els.play.textContent = state.playing ? '⏸ 暂停' : '▶ 继续';
+  els.play.textContent = state.playing ? ROLLER_I18N[currentLang].play : ROLLER_I18N[currentLang].resume;
   els.play.classList.toggle('on', !state.playing);
 });
 els.reset.addEventListener('click', resetSim);
 
-function resetSim() { state.x = 0; state.t = 0; state.playing = true; els.play.textContent = '⏸ 暂停'; els.play.classList.remove('on'); }
+function resetSim() {
+  state.x = 0; state.t = 0; state.playing = true;
+  els.play.textContent = ROLLER_I18N[currentLang].play;
+  els.play.classList.remove('on');
+}
 
 const Leyburn = { alphaDeg: 4.6, betaDeg: 15.3, gammaDeg: 25.4 };
 $('bLeybourn').addEventListener('click', () => {
@@ -256,10 +336,105 @@ $('bLeybourn').addEventListener('click', () => {
   updateParamReadouts(); rebuild(); resetSim();
 });
 
+// ── 语言状态与国际化 ──
+const paramsUrl = new URLSearchParams(window.location.search);
+const qLang = paramsUrl.get('lang');
+if (qLang === 'zh' || qLang === 'en') {
+  currentLang = qLang;
+} else {
+  const saved = localStorage.getItem('science_lang');
+  if (saved === 'zh' || saved === 'en') {
+    currentLang = saved;
+  } else if (navigator.language && !navigator.language.startsWith('zh')) {
+    currentLang = 'en';
+  }
+}
+
+function setLang(lang) {
+  if (lang !== 'zh' && lang !== 'en') return;
+  currentLang = lang;
+  document.documentElement.lang = lang;
+  try {
+    localStorage.setItem('science_lang', lang);
+  } catch (e) {}
+
+  const u = new URL(window.location.href);
+  u.searchParams.set('lang', lang);
+  window.history.replaceState({}, '', u.toString());
+
+  const homeBtn = document.getElementById('homeBtn');
+  if (homeBtn) {
+    homeBtn.href = '../index.html?lang=' + lang;
+    const homeTxt = document.getElementById('homeTxt');
+    if (homeTxt) homeTxt.textContent = lang === 'en' ? 'Home' : '首页';
+  }
+
+  document.querySelectorAll('.lang-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.lang === lang);
+  });
+
+  const t = ROLLER_I18N[lang];
+  document.title = t.docTitle;
+
+  const appTitle = document.getElementById('appTitle');
+  if (appTitle) {
+    appTitle.innerHTML = `${t.title}<small id="appSubtitle">${t.subtitle}</small>`;
+  }
+  const appBadge = document.getElementById('appBadge');
+  if (appBadge) appBadge.textContent = t.badge;
+
+  const panelTitle = document.getElementById('panelTitle');
+  if (panelTitle) panelTitle.innerHTML = t.panelTitle;
+
+  const panelDesc = document.getElementById('panelDesc');
+  if (panelDesc) panelDesc.innerHTML = t.panelDesc;
+
+  const lblCoM = document.getElementById('lblCoM');
+  if (lblCoM) lblCoM.textContent = t.lblCoM;
+  const lblDrop = document.getElementById('lblDrop');
+  if (lblDrop) lblDrop.textContent = t.lblDrop;
+  const lblX = document.getElementById('lblX');
+  if (lblX) lblX.textContent = t.lblX;
+
+  const factsBox = document.getElementById('factsBox');
+  if (factsBox && t.facts) {
+    factsBox.innerHTML = t.facts.map(f => `<div class="fact">${f}</div>`).join('');
+  }
+
+  const lblAlpha = document.getElementById('lblAlpha');
+  if (lblAlpha) lblAlpha.textContent = t.lblAlpha;
+  const lblBeta = document.getElementById('lblBeta');
+  if (lblBeta) lblBeta.textContent = t.lblBeta;
+  const lblGamma = document.getElementById('lblGamma');
+  if (lblGamma) lblGamma.textContent = t.lblGamma;
+  const bLeybourn = document.getElementById('bLeybourn');
+  if (bLeybourn) bLeybourn.textContent = t.leybourn;
+  const lblSpeed = document.getElementById('lblSpeed');
+  if (lblSpeed) lblSpeed.textContent = t.lblSpeed;
+
+  els.play.textContent = state.playing ? t.play : t.resume;
+  els.reset.textContent = t.reset;
+
+  updateLabelText(comLabel, t.labelCoM);
+  updateLabelText(contactLabel, t.labelContact);
+
+  updateHUD();
+}
+
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => setLang(btn.dataset.lang));
+});
+
+window.addEventListener('storage', e => {
+  if (e.key === 'science_lang' && (e.newValue === 'zh' || e.newValue === 'en') && e.newValue !== currentLang) {
+    setLang(e.newValue);
+  }
+});
+
 // ── HUD 更新 ──
 function updateHUD() {
   const v = isValid(params);
-  els.hValid.textContent = v ? '✓ 条件成立 · 真实上坡' : '✗ 条件不成立 · 保持原位';
+  els.hValid.textContent = v ? ROLLER_I18N[currentLang].validOk : ROLLER_I18N[currentLang].validBad;
   els.hValid.className = v ? 'ok' : 'bad';
   const curY = y(state.x, params);
   els.hCoM.textContent = `${curY.toFixed(2)} m`;
@@ -310,6 +485,7 @@ addEventListener('resize', () => {
   renderer.setSize(innerWidth, innerHeight);
 });
 
+setLang(currentLang);
 updateParamReadouts();
 updateHUD();
 

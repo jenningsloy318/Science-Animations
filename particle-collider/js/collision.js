@@ -16,7 +16,7 @@
   const COL = { hadron: 0xbfd8ea, electron: 0x6fe3c4, muon: 0xe8c874, jet: 0xd8b25c, photon: 0xf2ecdc };
   const R_STOP = { pixel: 2.4, sct: 3.8, trt: 5.2, em: 8.3, had: 11.0, muon: 14.6 };
   const K_SCALE = 4.86;   /* scene units per metre (TRT 1.07 m ↔ 5.2 units) */
-  const HELIX = 0.3 * 2.0 /* B[T] */ ;   /* r[m] = pT/(0.3B) = pT/6 */
+  const HELIX = 0.3 * 2.0 /* B[T] */ ;   /* r[m] = pT/(0.3B) = pT/0.6 */
   const SHELLS = [
     { r: 2.4, mat: { color: 0x1f3a35, emissive: 0x6fe3c4, emissiveIntensity: 0.12 } },
     { r: 3.8, mat: { color: 0x1f3038, emissive: 0x6fd3e8, emissiveIntensity: 0.10 } },

@@ -10,8 +10,14 @@
 window.APP = window.APP || {};
 
 /* language: 'zh' | 'en' — defaults to 'zh', persisted in localStorage */
-const savedLang = (typeof localStorage !== 'undefined' && localStorage.getItem('collider_lang'));
-APP.lang = (savedLang === 'en' || savedLang === 'zh') ? savedLang : 'zh';
+const savedLang = (() => {
+  try {
+    const p = new URLSearchParams(window.location.search).get('lang');
+    if (p === 'zh' || p === 'en') return p;
+    return localStorage.getItem('science_lang') || localStorage.getItem('collider_lang');
+  } catch (e) { return null; }
+})();
+APP.lang = (savedLang === 'en' || savedLang === 'zh') ? savedLang : ((typeof navigator !== 'undefined' && (navigator.language || '').toLowerCase().startsWith('zh')) ? 'zh' : 'en');
 APP.L = () => (APP.lang === 'zh' ? APP.DATA.zh : APP.DATA);
 APP.tr = (k) => {
   const e = APP.DATA.ui[k];
@@ -198,7 +204,7 @@ APP.DATA = {
     body:'A schematic cut-away of the detector showing events generated from REAL Standard Model processes \u2014 '
        + 'PDG masses and branching ratios, exact two-body decay kinematics, invariant-mass reconstruction. '
        + 'The detector response (resolutions, showers) is still simulated schematically.',
-    facts:['Curvature is REAL: radius r = p\u209C/(0.3B) = p\u209C/6 metres in the 2 T solenoid \u2014 Z muons (45 GeV) barely bend',
+    facts:['Curvature is REAL: radius r = p\u209C/(0.3B) = p\u209C/0.6 metres in the 2 T solenoid \u2014 Z muons (45 GeV) bend with r \u2248 75 m (barely bend)',
            'Sprays of hadrons = \u201Cjets\u201D, shown as energy towers on the calorimeter skins',
            'Gold tracks reaching the outer rings are muons \u2014 they traverse the whole detector'],
     /* captions for the "clean" processes (no hadrons in the decay itself) */
@@ -215,7 +221,7 @@ APP.DATA = {
         capEnd:'A QCD multijet event. Inelastic pp collisions (\u03C3 \u2248 80 mb) occur ~1.6 billion times per second at peak luminosity.' },
       z_mumu:{ chip:'Z\u2192\u03BC\u207A\u03BC\u207B', sigma:'\u03C3\u00D7BR \u2248 2.0 nb',
         cap0:'A Z\u2070 boson (mass 91.188 GeV, PDG) is born and decays into two muons \u2014 note the two nearly straight gold tracks: 45 GeV of transverse momentum barely bends in a 2 T field.',
-        capEnd:'Reconstructed m(\u03BC\u03BC) \u2248 91.2 GeV \u2014 exactly the Z mass. At peak luminosity Z\u2192\u03BC\u03BC happens about 40 times per second.' },
+        capEnd:'Reconstructed m(\u03BC\u03BC) \u2248 91.2 GeV \u2014 exactly the Z mass. At peak luminosity Z\u2192\u03BC\u03BC happens about 20 times per second.' },
       z_ee:{ chip:'Z\u2192e\u207Ae\u207B', sigma:'\u03C3\u00D7BR \u2248 2.0 nb',
         cap0:'The Z\u2070 also decays into an electron pair (BR 3.363%) \u2014 watch the cyan tracks end in EM showers inside the calorimeter.',
         capEnd:'m(ee) \u2248 91.2 GeV. W and Z bosons were discovered at CERN in 1983 \u2014 today they are everyday tools.' },

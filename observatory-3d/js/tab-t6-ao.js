@@ -5,7 +5,7 @@
 
 APP.Tabs = APP.Tabs || {};
 
-const SEEING_GOOD = 0.8;             // VLT 典型 seeing（角秒）
+const SEEING_GOOD = 0.8;             // VLT 典型 seeing（角秒）  // PROV: measured | VLT 常态 | - | 0.8″ 视宁度
 
 APP.Tabs['t6-ao'] = {
   built: false, st: null, pipe: null, hud: null, lastBeat: 0, _cur: null,
@@ -221,8 +221,8 @@ APP.Tabs['t6-ao'] = {
   },
 
   applyState() {
-    const seeing = 0.3 + this.turb * 1.2;                 // 角秒（示意读数）
-    const aoRes = 0.02 + (1 - Math.min(1, this.turb)) * 0.03;
+    const seeing = 0.3 + this.turb * 1.2;                 // 角秒（示意读数）  // NO-PROV: 局部变量/运行时状态，非对外科学数值
+    const aoRes = 0.02 + (1 - Math.min(1, this.turb)) * 0.03;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
     const see = document.getElementById('t6See');
     if (see) see.innerHTML = 'seeing ≈ <b>' + seeing.toFixed(2) + '″</b>（无 AO）' +
       (this.aoOn ? ' → <b>' + aoRes.toFixed(3) + '″</b>（AO 后，接近衍射极限）' : ' → AO 关闭，保持模糊');
@@ -283,7 +283,7 @@ APP.Tabs['t6-ao'] = {
       d.scale.setScalar(0.8 + 0.4 * Math.sin(st.t * 5 + i * 1.3));
     });
     // 恒星呼吸
-    const s = 1 + 0.08 * Math.sin(st.t * 1.7);
+    const s = 1 + 0.08 * Math.sin(st.t * 1.7);  // NO-PROV: 局部变量/运行时状态，非对外科学数值
     st.starGlow.scale.set(1.6 * s, 1.6 * s, 1);
   },
 

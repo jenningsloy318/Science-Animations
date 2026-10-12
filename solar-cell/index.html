@@ -4,28 +4,44 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>太阳能电池 · 从光子到电流 Solar Cell: Photon to Current</title>
-<meta name="description" content="Interactive 3-chapter journey: from atoms to crystal, the PN junction separator, and the life of one photon — how light becomes electricity.">
+<meta name="description" content="Interactive 5-chapter journey: from atoms to crystal, the PN junction separator, the life of one photon, and 28.29% efficiency budget — how light becomes electricity.">
+<script>
+  (function() {
+    try {
+      var p = new URLSearchParams(window.location.search).get('lang');
+      var s = (p === 'zh' || p === 'en') ? p : null;
+      if (!s) s = localStorage.getItem('science_lang');
+      if (!s && navigator.language) s = navigator.language.toLowerCase().startsWith('zh') ? 'zh' : 'en';
+      var lang = (s === 'en' ? 'en' : 'zh');
+      document.documentElement.lang = (lang === 'zh' ? 'zh-CN' : 'en');
+      document.documentElement.classList.add('i18n-loading');
+    } catch(e) {}
+  })();
+</script>
 <style>/* styles in css/style.css */</style>
-<link rel="stylesheet" href="css/style.css?v=5">
+<link rel="stylesheet" href="css/style.css?v=6">
 </head>
 <body>
 
-  <!-- Back to home (shared) -->
-  <a id="homeBtn" href="../index.html" title="返回首页 Back to home">🏠 首页</a>
-
+  <!-- Back to home & language switcher (shared) -->
+  <a id="homeBtn" href="../index.html" title="返回首页 Back to home" data-i18n="nav.home">🏠 首页</a>
+  <div class="lang-switch" role="group" aria-label="Language Switcher">
+    <button id="btnLangZh" class="lang-btn" data-lang-btn="zh">🇨🇳 中文</button>
+    <button id="btnLangEn" class="lang-btn" data-lang-btn="en">🇬🇧 EN</button>
+  </div>
 
   <!-- ══ 3D Stage ══ -->
   <div id="stage"><canvas id="c3d"></canvas></div>
 
   <!-- ══ Header ══ -->
   <header>
-    <h1 id="chapterTitle">☀️ 太阳能电池：光子 → 电能</h1>
-    <div class="subtitle" id="chapterSub">Solar Cell: from photons to current · 5 章微观之旅</div>
+    <h1 id="chapterTitle" data-i18n="solar.title">☀️ 太阳能电池：光子 → 电能</h1>
+    <div class="subtitle" id="chapterSub" data-i18n="solar.sub">Solar Cell: from photons to current · 5 章微观之旅</div>
   </header>
 
   <!-- ══ Chapter Navigation (left) ══ -->
   <nav id="chapters">
-    <div class="nav-title">章节 Chapters</div>
+    <div class="nav-title" data-i18n="solar.nav_title">章节 Chapters</div>
     <!-- built by main.js -->
   </nav>
 
@@ -34,14 +50,14 @@
 
   <!-- ══ Info Panel (top-right) ══ -->
   <aside id="infoPanel">
-    <h3>⚡ 电路 Circuit</h3>
-    <div class="info-row"><span class="label">电压 Voltage</span><span class="value" id="mVolt">0.00 V</span></div>
-    <div class="info-row"><span class="label">电流 Current</span><span class="value" id="mAmp">0.0 A</span></div>
+    <h3 data-i18n="solar.circuit">⚡ 电路 Circuit</h3>
+    <div class="info-row"><span class="label" data-i18n="solar.voltage">电压 Voltage</span><span class="value" id="mVolt">0.00 V</span></div>
+    <div class="info-row"><span class="label" data-i18n="solar.current">电流 Current</span><span class="value" id="mAmp">0.0 A</span></div>
   </aside>
 
   <!-- ══ Energy Band Panel (all chapters, zoomable) ══ -->
   <canvas id="bandCanvas" width="600" height="600" class="hidden"></canvas>
-  <button id="bandZoom" class="hidden">⤢ 放大</button>
+  <button id="bandZoom" class="hidden" data-i18n="solar.zoom_in">⤢ 放大</button>
 
   <!-- ══ Action Bar (bottom) ══ -->
   <div id="actionBar">
@@ -50,8 +66,8 @@
   </div>
 
   <div id="prevNext">
-    <button id="btnPrev">← 上一章</button>
-    <button id="btnNext">下一章 →</button>
+    <button id="btnPrev" data-i18n="solar.prev_ch">← 上一章</button>
+    <button id="btnNext" data-i18n="solar.next_ch">下一章 →</button>
   </div>
 
   <script type="importmap">

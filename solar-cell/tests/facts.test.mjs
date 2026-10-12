@@ -42,6 +42,18 @@ test('3. 吸收深度数据精度：550nm 在 1.5~1.6 μm，1000nm 在 150~160 �
   assert.ok(d1000 >= 150 && d1000 <= 160, `1000nm 深度应在 150~160 μm, 得到 ${d1000}`);
 });
 
+test('3b. G13 · 吸收深度严格随波长单调递增（波长越长穿透越深，无异常波动）', () => {
+  const wavelengths = Object.keys(OPTICAL_DEPTH_UM).map(Number).sort((a, b) => a - b);
+  for (let i = 0; i < wavelengths.length - 1; i++) {
+    const w1 = wavelengths[i];
+    const w2 = wavelengths[i + 1];
+    assert.ok(
+      OPTICAL_DEPTH_UM[w1] < OPTICAL_DEPTH_UM[w2],
+      `波长 ${w1}nm 深度 (${OPTICAL_DEPTH_UM[w1]} μm) 应严格小于 ${w2}nm 深度 (${OPTICAL_DEPTH_UM[w2]} μm)`
+    );
+  }
+});
+
 // 4. 减反射膜相消干涉断言
 test('4. 减反射膜相消干涉：n = 2.05, λ0 = 600 nm => d = 600 / (4 * 2.05) ≈ 73.17 nm', () => {
   const d = arcThicknessNm(2.05, 600);

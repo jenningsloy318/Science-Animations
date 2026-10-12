@@ -11,7 +11,7 @@ import * as THREE from 'three';
 export const TORQUE_FLOW_SCENARIO_TAGS = Object.freeze(['SCENARIO-015', 'SCENARIO-024']);
 
 // Gold torque color: r ≥ g ≥ b so the energy path reads as "gold" at a glance.
-export const TORQUE_GOLD = 0xffc832;
+export const TORQUE_GOLD = 0xffc832;  // NO-PROV: 局部变量/运行时状态，非对外科学数值
 
 // The ordered power path: battery → starter → engine → transmission → wheels.
 // Positions match the car layout used by the legacy PATH_ICE particle track.
@@ -23,9 +23,9 @@ const WAYPOINT_DEFS = [
   { name: 'wheels', position: [4.1, 0.0, 0] },
 ];
 
-const PARTICLE_COUNT = 24; // bounded set: ≥8 visible, ≤600 for the FPS budget
-const FLOW_SPEED = 0.4;    // full battery→wheels sweep every 2.5 s
-const MAX_STEP = 0.25;     // clamp dt after tab-switch stalls so nothing jumps
+const PARTICLE_COUNT = 24; // bounded set: ≥8 visible, ≤600 for the FPS budget  // PROV: illustrative | 渲染 | - | 粒子数
+const FLOW_SPEED = 0.4;    // full battery→wheels sweep every 2.5 s  // PROV: illustrative | 渲染 | - | 流速
+const MAX_STEP = 0.25;     // clamp dt after tab-switch stalls so nothing jumps  // PROV: illustrative | 渲染 | - | 步长上限
 
 let activeFlow = null;
 let lastTime = null;
