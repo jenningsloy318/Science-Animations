@@ -1,0 +1,53 @@
+// printing-press-age/js/dict.js — 蒸汽与热金属双语字典
+'use strict';
+
+export const PRESSAGE_I18N = {
+  'app.title':    { zh: '蒸汽与热金属 · 机器接管', en: 'Steam & Hot Metal · Machines take over' },
+  'nav.gallery':     { zh: '动画库', en: 'Gallery' },
+  'nav.family':   { zh: '印刷史', en: 'Printing History' },
+  'btn.prev':     { zh: '← 上一景', en: '← Prev' },
+  'btn.next':     { zh: '下一景 →', en: 'Next →' },
+  'footer.back':  { zh: '↑ 回到门户', en: '↑ Back to portal' },
+  'scene.a1.title': { zh: '🔥 加压方式进化', en: '🔥 Pressure evolves' },
+  'scene.a1.hint':  { zh: '平压平 → 平压圆 → 圆压圆：机构一变，速度三级跳', en: 'Platen → cylinder → rotary: change the mechanism, triple the speed' },
+  'scene.a2.title': { zh: '⌨️ 整行铸排机', en: '⌨️ The Linotype' },
+  'scene.a2.hint':  { zh: '敲键盘 → 字模排队 → 整行浇铸 → 回炉重用', en: 'Type → matrices queue → cast a whole line → remelt' },
+  'scene.a3.title': { zh: '🕯️ 单字铸排与谢幕', en: '🕯️ Monotype & farewell' },
+  'scene.a3.hint':  { zh: '纸带编码逐字铸；1978，热金属时代谢幕', en: 'Paper-tape Monotype; 1978, the hot-metal era bows out' },
+  'a1.platen':    { zh: '平压平（手工机）', en: 'Platen (hand press)' },
+  'a1.cylinder':  { zh: '平压圆（蒸汽 1814）', en: 'Flat-cylinder (steam 1814)' },
+  'a1.rotary':    { zh: '圆压圆（轮转 1847）', en: 'Rotary (1847)' },
+  'a1.speed':     { zh: '速度（页/时）', en: 'Speed (sheets/hr)' },
+  'a1.tap':       { zh: '点机构看它动', en: 'Tap a mechanism' },
+  'a2.type':      { zh: '敲 6 个键', en: 'Type 6 keys' },
+  'a2.pour':      { zh: '浇铸整行', en: 'Cast the line' },
+  'a2.remlt':     { zh: '回炉', en: 'Remelt' },
+  'a2.queue':     { zh: '字模队列', en: 'Matrix queue' },
+  'a2.slugs':     { zh: '已铸行数', en: 'Lines cast' },
+  'a2.wedge':     { zh: '空格也是零件：一对黄铜楔（space band）撑开词距', en: 'Even spaces are parts: brass wedges (space bands) spread word gaps' },
+  'a3.tape':      { zh: '纸带编码', en: 'Paper tape' },
+  'a3.farewell':  { zh: 'Farewell, Etaoin Shrdlu', en: 'Farewell, Etaoin Shrdlu' },
+  'a3.farewell.d': { zh: '1978 年《纽约时报》排完最后一个铅版——排字工人用莱诺键盘最容易敲出的字母序列作别。', en: 'In 1978 the NYT set its last hot-metal page — compositors signed off with the easiest sequence on a Linotype keyboard.' },
+
+  // ── 讲解面板:场景/流程/原理/复刻（v2.4） ──
+  'scene.a1.what': { zh: '加压方式的进化:平压→滚压→轮转,速度从 250 页/时一路到 90,000 份/时。', en: 'Pressing evolves: platen → cylinder → rotary; speed climbs from 250 to 90,000 sheets/hour.' },
+  'scene.a1.steps': { zh: '① 手工木印机:整版同时平压,~250 页/时 ② 科尼希蒸汽辊筒 1814:线接触滚动,1,100 ③ 霍伊轮转 1847:滚筒对滚+连续纸,8,000 ④ 现代单张胶印 20,000 ⑤ 卷筒轮转 90,000', en: '① Hand press: full-face platen, ~250/h ② Koenig steam cylinder 1814: line contact, 1,100 ③ Hoe rotary 1847: cylinder-on-cylinder + continuous paper, 8,000 ④ Modern sheetfed 20,000 ⑤ Web offset 90,000' },
+  'scene.a1.why': { zh: '平压是"面接触",压力摊在全版;滚筒变"线接触",压力集中且能连续滚动;轮转再加上连续纸——接触几何决定产能。', en: 'Platen presses the whole face at once; a cylinder concentrates force into a moving line; a rotary adds continuous web. Contact geometry sets throughput.' },
+  'scene.a1.diy': { zh: '手掌平压印章 vs 擀面杖滚印:同样力气,哪种更省力、更快?亲手验证"线接触"优势。', en: 'Press a stamp with your palm vs roll it with a rolling pin: which is faster and easier? Verify line contact yourself.' },
+  'scene.a2.what': { zh: '1886 莱诺整行铸排机:像打字一样按键,字模排队,一整行一次铸出来。', en: 'The 1886 Linotype: press keys, matrices queue up, and a whole line is cast in one pour.' },
+  'scene.a2.steps': { zh: '① 按键释放对应字模 ② 字模滑入组装器排满一行 ③ 黄铜楔片顶出字距 ④ 浇铅液 ⑤ 整行铅条(铅字-字模一体)落出 ⑥ 字模自动回字库', en: '① Keys release matrices ② Matrices queue into the assembler ③ Brass wedge space bands set spacing ④ Pour hot metal ⑤ A one-piece line slug drops ⑥ Matrices return to the magazine' },
+  'scene.a2.why': { zh: '以"行"为单位铸造,把几千次拣字变成几十次按键——3–5 倍于手工排字;90 键对应 90 通道字模库。', en: 'Casting by the line replaces thousands of pick-ups with dozens of keystrokes — 3–5× hand composition; 90 keys read a 90-channel magazine.' },
+  'scene.a2.diy': { zh: '冰格倒融蜡,用字母章压出一排"字模行",凝固取出一整条——理解"整行一体"。', en: 'Pour wax into an ice-cube tray, stamp a row of letters, demould one line slug — a Linotype line on your desk.' },
+  'scene.a3.what': { zh: '1887 蒙诺单字铸排机用打孔纸带指挥铸字;1978《纽约时报》最后一个铅版下班:Etaoin Shrdlu。', en: 'The 1887 Monotype cast from punched paper tape; in 1978 the NYT’s last hot-metal page signed off: Etaoin Shrdlu.' },
+  'scene.a3.steps': { zh: '① 键盘在纸带打孔(字母+宽度码) ② 铸字机读孔,逐字铸出 ③ 排版进入"光电时代" ④ 热排退场 ⑤ 1978 告别铅与火', en: '① Keyboard punches tape (letter + width codes) ② Caster reads holes, casts sort by sort ③ Composition goes photoelectric ④ Hot metal retires ⑤ 1978 farewell' },
+  'scene.a3.why': { zh: '打孔纸带是"机器可读的指令"——排版信息第一次与铸字动作分离,这就是数字化的起点。', en: 'Punched tape is machine-readable instruction: composition data separates from casting — the seed of digitization.' },
+  'scene.a3.diy': { zh: '在纸条上按自定编码打孔"写"一个单词,请同伴"读孔"还原——体验指令与执行分离。', en: 'Punch your own code into a paper strip to spell a word; let a friend decode it — instruction separated from execution.' },
+
+  // ── 步骤轨道 + 结构解剖（v2.5） ──
+  'scene.a1.stepLabels': { zh: '平压250页/时|辊筒1,100|轮转8,000|单张胶印2万|卷筒9万', en: 'Platen 250/h|Cylinder 1,100|Rotary 8,000|Sheetfed 20k|Web 90k' },
+  'scene.a1.struct': { zh: '四代压印机构:木螺杆(整面接触)→ 蒸汽辊筒(线接触)→ 滚筒对滚(连续面)→ 胶印机组;接触几何逐代升级。', en: 'Four press mechanisms: screw (face contact) → steam cylinder (line) → roller pair (continuous) → offset units; contact geometry upgrades each era.' },
+  'scene.a2.stepLabels': { zh: '按键落字模|字模排队|楔片定字距|浇铅液|整行出条|字模回架', en: 'Keys drop matrices|Matrices queue|Wedges space|Pour metal|Slug drops|Matrices return' },
+  'scene.a2.struct': { zh: '整行铸排机解剖:90 键键盘 + 90 通道字模库 + 组装器 + 铅锅 + 回模轨道——一条环形流水线。', en: 'Linotype anatomy: 90-key keyboard, 90-channel magazine, assembler, metal pot, matrix-return rail — a circular pipeline.' },
+  'scene.a3.stepLabels': { zh: '纸带打孔|读孔铸字|转光电排版|1978 谢幕', en: 'Punch tape|Cast from tape|Go photo-set|1978 farewell' },
+  'scene.a3.struct': { zh: '单字铸排 = 键盘 + 打孔纸带 + 铸字机三件分离;“排版信息”第一次独立于“铸字动作”。', en: 'Monotype = keyboard + punched tape + caster, separated; composition data first becomes independent of the casting action.' },
+};

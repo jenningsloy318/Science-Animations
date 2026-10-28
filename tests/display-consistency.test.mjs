@@ -40,6 +40,8 @@ const SCAN = [
   'nuclear-fission-3d/js/', 'nuclear-fission-3d/index.html',
   'docs/requirements/06-solar-cell-system-integration-spec.md',
   'docs/requirements/08-site-wide-bilingual-i18n-spec.md',
+  // printing 家族（spec 10 v2.0 多页架构）：全项目目录（含全部单景页面，防陈旧展示值）
+  'printing/',  // 递归覆盖 printing/printing-*/ 全部子项目
 ];
 
 function walk(dir, out = []) {

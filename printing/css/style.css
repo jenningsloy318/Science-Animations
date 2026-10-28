@@ -1,0 +1,131 @@
+/* printing/css/style.css — 枢纽纸张风格（米白 #faf6ee + 五段代际色，spec 10 §6） */
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --paper: #faf6ee;
+  --ink: #1a1a1a;
+  --muted: #6b6357;
+  --line: rgba(0, 0, 0, 0.1);
+  --accent: #b5651d;
+  --gen1: #8d6e63; --gen2: #b5651d; --gen3: #4a6274; --gen4: #4f46e5; --gen5: #059669;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(181, 101, 29, 0.06), transparent 42%),
+    radial-gradient(circle at 88% 90%, rgba(79, 70, 229, 0.05), transparent 42%),
+    var(--paper);
+  color: var(--ink);
+  font-family: 'Outfit', -apple-system, 'Noto Sans SC', 'PingFang SC', sans-serif;
+  display: flex; flex-direction: column;
+}
+
+main { flex: 1; width: min(1080px, 94vw); margin: 0 auto; padding: 26px 0 40px; }
+
+h1 { font-size: clamp(24px, 4vw, 34px); letter-spacing: 0.01em; }
+.subtitle { color: var(--muted); margin: 6px 0 18px; font-size: 15px; }
+
+/* ── 场景 ─────────────────────────────────────────── */
+.scene { display: none; min-height: 60vh; }
+.scene.active { display: block; animation: sceneIn 0.45s ease; }
+@keyframes sceneIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+.scene-title { font-size: 21px; margin-bottom: 2px; }
+.scene-hint { color: var(--muted); font-size: 13.5px; margin-bottom: 14px; }
+
+.tl-canvas { width: 100%; border-radius: 14px; background: #fffdf7; border: 1px solid var(--line); touch-action: pan-y; }
+
+.tl-card {
+  margin-top: 12px; padding: 14px 16px; border-radius: 12px;
+  background: #fff; border: 1px solid var(--line); border-left: 4px solid var(--accent);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+.tl-card-head { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.tl-card-head b { font-size: 17px; }
+.tl-gen { font-size: 12px; padding: 2px 8px; border-radius: 9999px; font-weight: 600; }
+.tl-card-title { font-size: 15.5px; font-weight: 600; margin-bottom: 4px; }
+.tl-card-prov { font-size: 12px; color: var(--muted); margin-bottom: 8px; word-break: break-all; }
+.tl-go {
+  display: inline-block; padding: 5px 12px; border-radius: 9px;
+  background: var(--accent); color: #fff; font-size: 13px; text-decoration: none;
+}
+.tl-go.is-off { background: transparent; color: var(--muted); border: 1px dashed var(--line); }
+
+/* ── 四大印版 ──────────────────────────────────────── */
+.fm-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.fm-panel { background: #fffdf7; border: 1px solid var(--line); border-radius: 14px; padding: 10px; }
+.fm-panel.fm-hit { outline: 3px solid #f9a825; }
+.fm-name { font-weight: 700; font-size: 14.5px; margin-bottom: 6px; }
+.fm-panel canvas { width: 100%; height: auto; background: #f4efe4; border-radius: 8px; }
+.fm-key { font-size: 12px; color: var(--muted); margin: 6px 0; min-height: 2.4em; }
+.fm-steps { display: flex; gap: 6px; }
+.fm-steps button {
+  flex: 1; border: 1px solid var(--line); background: #fff; border-radius: 8px;
+  font-size: 12px; padding: 4px 2px; cursor: pointer; color: inherit;
+}
+.fm-steps button.on { background: var(--ink); color: #fff; border-color: var(--ink); }
+
+.fm-quiz { margin-top: 16px; padding: 14px 16px; border-radius: 12px; background: #fff8e1; border-left: 4px solid #f9a825; }
+.fm-q { font-weight: 600; margin-bottom: 8px; }
+.fm-reveal {
+  border: none; background: var(--accent); color: #fff; padding: 7px 14px;
+  border-radius: 9px; cursor: pointer; font-size: 13.5px;
+}
+.fm-a { font-size: 14px; line-height: 1.6; }
+
+/* ── 三大规律 ──────────────────────────────────────── */
+.laws-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+.law-card {
+  position: relative; min-height: 130px; padding: 16px; text-align: left;
+  border: 1px solid var(--line); border-radius: 14px; background: #fffdf7;
+  cursor: pointer; font: inherit; color: inherit; overflow: hidden;
+}
+.law-card .law-front { display: block; font-size: 17px; font-weight: 700; }
+.law-card .law-front b { display: block; font-size: 30px; margin-bottom: 8px; }
+.law-card .law-back {
+  position: absolute; inset: 0; padding: 16px; display: grid; place-items: center;
+  background: var(--ink); color: #fffdf7; font-size: 13.5px; line-height: 1.6;
+  opacity: 0; transition: opacity 0.3s ease;
+}
+.law-card.open .law-back { opacity: 1; }
+.law-card.open { border-color: var(--ink); }
+
+.laws-fusion {
+  margin-top: 14px; padding: 14px 16px; border-radius: 12px;
+  background: linear-gradient(90deg, rgba(141,110,99,0.12), rgba(181,101,29,0.12), rgba(79,70,229,0.12), rgba(5,150,105,0.12));
+  font-size: 14.5px; line-height: 1.7;
+}
+.laws-fusion.show { animation: fusionIn 0.6s ease; }
+@keyframes fusionIn { from { opacity: 0; transform: scale(0.97); } to { opacity: 1; transform: none; } }
+
+.crafts { margin-top: 22px; }
+.crafts h3 { font-size: 16px; margin-bottom: 8px; }
+.craft-table { width: 100%; border-collapse: collapse; background: #fffdf7; border-radius: 12px; overflow: hidden; font-size: 13px; }
+.craft-table th, .craft-table td { border: 1px solid var(--line); padding: 8px 10px; text-align: left; vertical-align: top; }
+.craft-table th { background: rgba(0, 0, 0, 0.045); }
+
+/* ── 步进导航 ──────────────────────────────────────── */
+.scene-nav { display: flex; align-items: center; justify-content: center; gap: 18px; margin-top: 26px; }
+.scene-nav button {
+  border: 1px solid var(--line); background: #fff; color: inherit;
+  padding: 8px 16px; border-radius: 10px; cursor: pointer; font-size: 14px;
+}
+.scene-nav button:hover { background: rgba(0, 0, 0, 0.04); }
+#dots { display: flex; gap: 8px; }
+#dots button { width: 10px; height: 10px; padding: 0; border-radius: 50%; background: rgba(0, 0, 0, 0.18); border: none; }
+#dots button.on { background: var(--accent); transform: scale(1.25); }
+
+footer {
+  padding: 14px 20px; display: flex; gap: 16px; align-items: center;
+  border-top: 1px solid var(--line); color: var(--muted); font-size: 13px;
+}
+footer a { color: inherit; }
+
+@media (prefers-reduced-motion: reduce) {
+  .scene.active { animation: none; }
+  html { scroll-behavior: auto; }
+}

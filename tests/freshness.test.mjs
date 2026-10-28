@@ -47,6 +47,25 @@ const SCIENTIFIC_MODULES = [
   'solar-system/js/flight.js',
   'solar-system/js/data.js',
   'uphill-roller/js/roller.js',
+  // printing 家族（spec 10 §5.4）：facts SSOT + 纯函数模型
+  'common/js/printing/speedLadder.js',
+  'printing/printing-woodblock/js/facts.js',
+  'printing/printing-woodblock/js/model/mirror.js',
+  'printing/printing-movable-type/js/facts.js',
+  'printing/printing-movable-type/js/model/recombination.js',
+  'printing/printing-movable-type/js/model/wheel.js',
+  'printing/printing-gutenberg/js/facts.js',
+  'printing/printing-gutenberg/js/model/alloy.js',
+  'printing/printing-press-age/js/facts.js',
+  'printing/printing-offset/js/facts.js',
+  'printing/printing-offset/js/model/halftone.js',
+  'printing/printing-offset/js/model/screenAngle.js',
+  'printing/printing-digital/js/facts.js',
+  'printing/printing-digital/js/model/xerography.js',
+  'printing/printing-digital/js/model/glyphSize.js',
+  'printing/printing-frontier/js/facts.js',
+  'printing/printing-frontier/js/model/slicing.js',
+  'printing/printing-frontier/js/model/euv.js',
 ];
 
 /** 合法的来源标签（CONTEXT.md「科学数值的来源」） */

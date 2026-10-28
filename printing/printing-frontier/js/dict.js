@@ -1,0 +1,51 @@
+// printing-frontier/js/dict.js — 从印到造双语字典
+'use strict';
+
+export const FRONTIER_I18N = {
+  'app.title':      { zh: '从印到造 · 3D 打印与光刻', en: 'Print to Make · 3D printing & lithography' },
+  'nav.gallery':     { zh: '动画库', en: 'Gallery' },
+  'nav.family':     { zh: '印刷史', en: 'Printing History' },
+  'btn.prev':       { zh: '← 上一景', en: '← Prev' },
+  'btn.next':       { zh: '下一景 →', en: 'Next →' },
+  'footer.back':    { zh: '↑ 回到门户', en: '↑ Back to portal' },
+  'scene.f1.title': { zh: '🧱 把层当活字', en: '🧱 Layers as type' },
+  'scene.f1.hint':  { zh: 'SLA / FDM / SLS：一层一层长出实物——拖动高度切片', en: 'SLA / FDM / SLS: objects grow one layer at a time — slice it' },
+  'scene.f2.title': { zh: '🔭 光刻：终极印刷', en: '🔭 Lithography: final printing' },
+  'scene.f2.hint':  { zh: '丝网→掩膜，油墨→光刻胶；波长和镜头决定能印多细', en: 'Screen becomes mask, ink becomes resist; wavelength & lens set the limit' },
+  'scene.f3.title': { zh: '🌱 从复制到创造', en: '🌱 From copying to creating' },
+  'scene.f3.hint':  { zh: '纳米压印 + 未来展望：文字 → 图案 → 物质本身', en: 'Nanoimprint + what’s next: text → images → matter itself' },
+  'f1.height':      { zh: '模型高度', en: 'Height' },
+  'f1.layer':       { zh: '层高', en: 'Layer height' },
+  'f1.layers':      { zh: '层数', en: 'Layers' },
+  'f1.time':        { zh: '预计耗时', en: 'Est. time' },
+  'f1.apps':        { zh: 'GE 喷嘴 20 件并 1 · 2023"人族 1 号"85% 打印入轨 · 2022 首例生物打印耳', en: 'GE nozzle 20→1 · Terran 1 (85% printed) to orbit 2023 · first bioprinted ear 2022' },
+  'f2.wavelength':  { zh: '波长', en: 'Wavelength' },
+  'f2.na':          { zh: '数值孔径 NA', en: 'Numerical aperture NA' },
+  'f2.res':         { zh: '分辨率 (k₁λ/NA)', en: 'Resolution (k₁λ/NA)' },
+  'f2.anchor':      { zh: '锚点：0.33 NA → ~13 nm；0.55 → 8 nm（ASML）', en: 'Anchors: 0.33 NA → ~13 nm; 0.55 → 8 nm (ASML)' },
+  'f3.nil':         { zh: '纳米压印 NIL（1995）：像盖印章一样把纳米图案"压"进材料', en: 'Nanoimprint lithography (1995): stamp nano patterns like a seal' },
+  'f3.finale':      { zh: '复制文字 → 复制图案 → 复制物质本身', en: 'Copy text → copy images → copy matter itself' },
+  'f3.replay':      { zh: '重演三级跳', en: 'Replay the leap' },
+
+  // ── 讲解面板:场景/流程/原理/复刻（v2.4） ──
+  'scene.f1.what': { zh: '3D 打印把"造物"变成"复印":1986 SLA 光固化、1989 FDM 熔融堆积——一层一层长出实物。', en: '3D printing turns making into copying: SLA (1986) cures resin, FDM (1989) extrudes melt — objects grow layer by layer.' },
+  'scene.f1.steps': { zh: '① 3D 建模 ② 切片软件按 0.2 mm 层高切成千层 ③ 逐层固化树脂/挤丝堆叠 ④ 层与层融合 ⑤ 去支撑后处理', en: '① Model in 3D ② Slicer cuts it into thousands of 0.2 mm layers ③ Cure/extrude layer after layer ④ Layers fuse ⑤ Remove supports & finish' },
+  'scene.f1.why': { zh: '把任意复杂的三维问题分解为千百次相同的二维动作;层高决定台阶精度与耗时(层数 = 高度 ÷ 层高)。', en: 'Any 3D problem becomes thousands of identical 2D moves; layer height sets stair-stepping and time (layers = ⌈h/l⌉).' },
+  'scene.f1.diy': { zh: '热熔胶枪在纸上画圈,趁热叠第二层、第三层——堆出一个"胶枪花瓶",这就是 FDM。', en: 'Draw spirals with a hot glue gun and stack layer on layer — a glue-gun vase is FDM in your hand.' },
+  'scene.f2.what': { zh: '光刻是印刷的极致:光穿过掩膜,把电路图形"印"到硅片上,13.5 nm EUV 一层一层造芯片。', en: 'Lithography is printing at its extreme: light through a mask prints circuit patterns onto silicon, 13.5 nm EUV layer by layer.' },
+  'scene.f2.steps': { zh: '① 硅片涂光刻胶 ② 掩膜版(电路图形)就位 ③ EUV 光投影曝光(Rayleigh 公式决定最细线宽) ④ 显影溶掉曝光处 ⑤ 刻蚀把图形刻进材料 ⑥ 去胶,叠下一层,重复几十次', en: '① Coat wafer with photoresist ② Position the mask (circuit artwork) ③ Expose through EUV optics — Rayleigh criterion sets the finest line ④ Develop away exposed resist ⑤ Etch pattern into the layer ⑥ Strip & repeat for dozens of layers' },
+  'scene.f2.why': { zh: 'Rayleigh 判据 R = k₁λ/NA:波长 λ 越短(EUV 13.5 nm)、数值孔径 NA 越大(0.33→0.55),能印越细(13 nm→8 nm)。印刷的"网角防龟纹"思想,在光刻里变成"光源优化"。', en: 'R = k₁λ/NA: shorter wavelength (13.5 nm EUV) and higher NA (0.33→0.55) print finer lines (13 nm→8 nm). The same "print finer" game as halftone, played with light.' },
+  'scene.f2.diy': { zh: '镂空卡片当掩膜+手电投影到墙上,掩膜图案=墙上的图形——你就是一台光刻机。', en: 'Cut a stencil (mask), shine a flashlight through onto a wall — the pattern on the wall is your "wafer". You are the lithography machine.' },
+  'scene.f3.what': { zh: '1995 纳米压印把"盖印章"做到纳米级;印刷思想走到尽头:从复制文字,到复制图案,再到复制物质本身。', en: 'Nanoimprint (1995) takes stamping to nanometers; the printing idea completes its arc: copy words → images → matter itself.' },
+  'scene.f3.steps': { zh: '① 印文字(雕版/活字) ② 印图案(网点/多色) ③ 印电路(光刻) ④ 印器官与火箭(生物打印/增材制造) ⑤ 归纳:模板+转移,万物皆可印', en: '① Print words (blocks/type) ② Print images (halftone/color) ③ Print circuits (lithography) ④ Print organs & rockets (bioprinting/additive) ⑤ The pattern: template + transfer — everything printable' },
+  'scene.f3.why': { zh: '印刷的本质从未变过:做一个模板,把介质转移到该在的位置。区别只是模板精度与介质种类。', en: 'Printing never changed: make a template, transfer medium to position. Only template precision and medium have evolved.' },
+  'scene.f3.diy': { zh: '拿橡皮章连盖三张纸:文字、图案、再用刻花章"印"在蜡上做一个浮雕——体验模板+转移的万能。', en: 'Stamp three sheets: text, pattern, then press a carved stamp into wax for a relief — template + transfer, everywhere.' },
+
+  // ── 步骤轨道 + 结构解剖（v2.5） ──
+  'scene.f1.stepLabels': { zh: '3D建模|切片0.2mm|逐层固化/挤丝|层间融合|去支撑后处理', en: 'Model|Slice 0.2 mm|Stack layers|Fuse|Remove supports' },
+  'scene.f1.struct': { zh: 'FDM 打印机解剖:加热喷头 + X/Y/Z 三轴 + 热床;SLA 则是树脂槽 + 紫外光固化——两条技术路线同一思想。', en: 'FDM anatomy: heated nozzle + X/Y/Z axes + heated bed; SLA: resin vat + UV cure — two routes, one idea.' },
+  'scene.f2.stepLabels': { zh: '涂光刻胶|掩膜就位|EUV曝光|显影|刻蚀图形|叠下一层', en: 'Coat resist|Load mask|EUV expose|Develop|Etch|Next layer' },
+  'scene.f2.struct': { zh: '光刻机解剖:EUV 光源(13.5 nm)+ 投影物镜(NA 0.33/0.55)+ 掩膜台 + 晶圆台——一台“打印整个城市电路”的机器。', en: 'Scanner anatomy: EUV source (13.5 nm) + projection optics (NA 0.33/0.55) + mask stage + wafer stage — a printer for city-scale circuits.' },
+  'scene.f3.stepLabels': { zh: '印文字|印图案|印电路|印器官与火箭|归纳:万物可印', en: 'Words|Images|Circuits|Organs & rockets|Everything printable' },
+  'scene.f3.struct': { zh: '纳米压印结构 = 纳米图形模板 + 压力 + 固化;与盖印章同构,只是尺度到了纳米。', en: 'Nanoimprint structure = nano-pattern template + pressure + curing — structurally identical to a rubber stamp, at nanoscale.' },
+};
