@@ -1,4 +1,4 @@
-# printing-woodblock · 雕版印刷（W1–W3）
+# printing-frontier · 从印到造（F1–F3）
 
 印刷史家族第 8 个开发动画（spec 10 §3 P7）。从印到造：SLA/FDM/SLS 切片、EUV 光刻、纳米压印与三级跳收束。
 
