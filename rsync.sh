@@ -17,13 +17,7 @@ DEST=/var/www/html/
 
 # Server-only content that does NOT come from this repo. Never deleted.
 # Add an entry here before deploying anything else into $DEST by hand.
-PROTECT=(
-  /workbench-robot/
-  /forest-road/
-  /caddy
-  /ws-*.png
-  /uphill-mid.png
-)
+PROTECT=()
 
 MODE=ask
 case "${1:-}" in
