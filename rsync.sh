@@ -18,7 +18,6 @@ DEST=/var/www/html/
 # Server-only content that does NOT come from this repo. Never deleted.
 # Add an entry here before deploying anything else into $DEST by hand.
 PROTECT=(
-  /temple-of-heaven/
   /workbench-robot/
   /forest-road/
   /caddy
