@@ -3,7 +3,7 @@
 'use strict';
 
 import * as THREE from 'three';
-import { stage3d, sound } from '../../../../common/js/printing/sceneKit.js';
+import { stage3d, sound, drawMacroInset } from '../../../../common/js/printing/sceneKit.js';
 import { metalCanvas } from '../../../../common/js/printing/textures.js';
 import { slice } from '../model/slicing.js';
 import { GE_NOZZLE_PARTS, TERRAN_PRINTED_PCT, EAR_YEAR } from '../facts.js';
@@ -172,6 +172,23 @@ export function create(root, kit) {
     );
     st.label3D([0, 0.9, 1.1], '🧱 冷却固化层堆 (把二维薄层当三维“活字”)', { dx: 18, dy: 14, color: '#34d399' });
     st.label3D([0, -0.07, 2.0], '🔧 精密升降成型平台 (Build Plate)', { dx: 0, dy: 22, color: '#a78bfa' });
+
+    const g = st.g, W = st.w;
+    const isEn = kit.lang && kit.lang() === 'en';
+    const mw = 158, mh = 132;
+    drawMacroInset(g, W - mw - 12, 14, mw, mh, isEn ? 'Layer Slicing (Δz)' : '层厚 Δz 切片融合微视', (mg, iw) => {
+      const cx = iw / 2;
+      for (let i = 0; i < 5; i++) {
+        const ly = 68 - i * 11;
+        const lw = 76 - Math.abs(i - 2) * 10;
+        mg.fillStyle = i === 4 ? '#fbbf24' : '#e0688b';
+        mg.fillRect(cx - lw / 2, ly, lw, 9);
+      }
+      mg.fillStyle = '#fde68a';
+      mg.font = '600 9.5px system-ui';
+      mg.textAlign = 'center';
+      mg.fillText(isEn ? `Layer ${currentLayerIdx}/${targetLayers} · 2D → 3D` : `第 ${currentLayerIdx}/${targetLayers} 层 · 二维切片叠成三维`, cx, 94);
+    });
   });
 
   return {

@@ -191,9 +191,45 @@ test('G26: 全部 25 幕正片（W1–F3）100% 使用 Three.js (THREE / stage3d
         /new\s+THREE\.|createReliefPlate3D|createMovableType3D|createDeformablePaper3D|createRoller3D/.test(src),
         `${proj}/js/scenes/${id}.js 缺少真实 3D 几何体或 3D 机构构建`
       );
+      assert.ok(
+        src.includes('drawMacroInset('),
+        `${proj}/js/scenes/${id}.js 缺少右上角微观原理剖面画中画 drawMacroInset`
+      );
       count++;
     }
   }
   assert.equal(count, 25);
 });
+
+// ── G27 全宽播放器 + 下方双列解说 + 慢速精讲播控台门禁（v3.2） ──
+test('G27: sceneKit v3.2 具备全宽 3D 播放器、下方 2 列解说卡片、慢速倍速控制与实时解说栏', () => {
+  const kitSrc = fs.readFileSync(path.join(ROOT, 'common/js/printing/sceneKit.js'), 'utf8');
+  // 1. 全宽上下布局 + 下方 2 列网格解说
+  assert.ok(
+    /\.scene-layout\s*\{[^}]*flex-direction:\s*column/.test(kitSrc),
+    'scene-layout 应为上下垂直堆叠（播放器全宽在上、解说在下）'
+  );
+  assert.ok(
+    /\.explain-col\s+\.explain\s*\{[^}]*grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*1fr\)\)/.test(kitSrc),
+    '下方说明与解说区应为 2 列网格布局'
+  );
+  // 2. 实时分步解说栏 + 播放控制台（暂停/步进/镜头预设/倍速）
+  assert.ok(kitSrc.includes('live-narrator'), '缺少实时同步解说栏 .live-narrator');
+  assert.ok(kitSrc.includes('player-toolbar'), '缺少交互式播放控制台 .player-toolbar');
+  for (const act of ['toggle-pause', 'prev-step', 'next-step', 'replay', 'toggle-inset', 'toggle-labels']) {
+    assert.ok(kitSrc.includes(`data-act="${act}"`), `播控台缺少动作按钮 ${act}`);
+  }
+  for (const cam of ['overview', 'closeup', 'topdown']) {
+    assert.ok(kitSrc.includes(`data-cam="${cam}"`), `播控台缺少视角按钮 ${cam}`);
+  }
+  for (const spd of ['0.5', '1', '1.6', '2.4']) {
+    assert.ok(kitSrc.includes(`data-spd="${spd}"`), `播控台缺少倍速档位 ${spd}`);
+  }
+  // 3. 横向可分叉东西方并行时间轴（消除 W1/M1/G1 晦涩前缀，改为年代 + 地域 + 分叉支线）
+  assert.ok(kitSrc.includes('TIMELINE_TOPOLOGY'), '缺少横向分叉时间轴拓扑定义 TIMELINE_TOPOLOGY');
+  assert.ok(kitSrc.includes('SCENE_TIMELINE_META'), '缺少 25 幕历史年代与支线元数据 SCENE_TIMELINE_META');
+  assert.ok(kitSrc.includes('tl-bifurcate'), '缺少横向可分叉时间轴容器样式 .tl-bifurcate');
+  assert.ok(!kitSrc.includes('`${mods[i].id} ${t(mods[i].titleKey)}`'), '不应再向用户直接展示晦涩的 W1/M1/G1 内部代号前缀');
+});
+
 

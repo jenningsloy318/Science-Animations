@@ -3,7 +3,7 @@
 'use strict';
 
 import * as THREE from 'three';
-import { stage3d, tween, sound, createMovableType3D } from '../../../../common/js/printing/sceneKit.js';
+import { stage3d, tween, sound, createMovableType3D, drawMacroInset } from '../../../../common/js/printing/sceneKit.js';
 import { woodCanvas, metalCanvas, toTexture } from '../../../../common/js/printing/textures.js';
 import { wheelRetrievalTime, shelfWalkTime } from '../model/wheel.js';
 import { WHEEL_DIAMETER_CHI, WHEEL_HEIGHT_CHI } from '../facts.js';
@@ -229,6 +229,30 @@ export function create(root, kit) {
       { dx: 18, dy: -24, color: '#34d399' }
     );
     st.label3D([0, -0.05, 2.75], `🧱 拣字员排字盘 (已取「${found}」)`, { dx: 0, dy: 24, color: '#a78bfa' });
+
+    const g = st.g, W = st.w;
+    const isEn = kit.lang && kit.lang() === 'en';
+    const mw = 156, mh = 132;
+    drawMacroInset(g, W - mw - 12, 14, mw, mh, isEn ? '24-Rhyme Sector Radar' : '24韵部扇区寻字微视', (mg, iw) => {
+      const cx = iw / 2, cy = 46, r = 32;
+      mg.strokeStyle = 'rgba(217, 119, 6, 0.55)';
+      mg.lineWidth = 1.4;
+      mg.beginPath(); mg.arc(cx, cy, r, 0, Math.PI * 2); mg.stroke();
+      mg.beginPath(); mg.arc(cx, cy, r * 0.42, 0, Math.PI * 2); mg.stroke();
+      for (let s = 0; s < 12; s++) {
+        const a = (s / 12) * Math.PI * 2 + wheel.rotation.y;
+        mg.beginPath();
+        mg.moveTo(cx + Math.cos(a) * r * 0.42, cy + Math.sin(a) * r * 0.42);
+        mg.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+        mg.stroke();
+      }
+      mg.fillStyle = '#34d399';
+      mg.beginPath(); mg.arc(cx, cy + r - 5, 4.5, 0, Math.PI * 2); mg.fill();
+      mg.fillStyle = '#fde68a';
+      mg.font = '600 9.5px system-ui';
+      mg.textAlign = 'center';
+      mg.fillText(isEn ? `Picked: "${found}" · Zero Walk` : `当前取字：「${found}」· 坐取免走动`, cx, 96);
+    });
   });
 
   return {

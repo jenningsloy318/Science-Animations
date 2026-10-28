@@ -3,7 +3,7 @@
 'use strict';
 
 import * as THREE from 'three';
-import { stage3d, tween, sound } from '../../../../common/js/printing/sceneKit.js';
+import { stage3d, tween, sound, drawMacroInset } from '../../../../common/js/printing/sceneKit.js';
 import { metalCanvas } from '../../../../common/js/printing/textures.js';
 
 export function create(root, kit) {
@@ -167,6 +167,26 @@ export function create(root, kit) {
     st.label3D([-0.55, 1.52, 0.3], '💧 疏水斥离：润版水被橡皮布甩出不湿纸', { dx: -20, dy: -18, color: '#38bdf8' });
     st.label3D([0, -0.22, 0.5], '🧱 弹性橡皮布滚筒 Blanket (承接反向油墨)', { dx: 0, dy: 22, color: '#34d399' });
     st.label3D([1.32, 2.02, 0], '⚙️ 压印滚筒 Impression + 连续纸带 (还原正字)', { dx: 16, dy: -22, color: '#a78bfa' });
+
+    const g = st.g, W = st.w;
+    const isEn = kit.lang && kit.lang() === 'en';
+    const mw = 158, mh = 132;
+    drawMacroInset(g, W - mw - 12, 14, mw, mh, isEn ? 'Double Mirror Transfer' : '二次镜像与疏水剥离', (mg, iw) => {
+      const y0 = 42;
+      mg.textAlign = 'center';
+      mg.font = '700 10px system-ui';
+      // Plate
+      mg.fillStyle = '#64748b'; mg.beginPath(); mg.arc(iw * 0.22, y0, 16, 0, Math.PI * 2); mg.fill();
+      mg.fillStyle = '#f8fafc'; mg.fillText('正', iw * 0.22, y0 + 3);
+      // Blanket
+      mg.fillStyle = '#0f766e'; mg.beginPath(); mg.arc(iw * 0.5, y0 + 12, 17, 0, Math.PI * 2); mg.fill();
+      mg.fillStyle = '#fde68a'; mg.fillText('反', iw * 0.5, y0 + 15);
+      // Paper + Impression
+      mg.fillStyle = '#475569'; mg.beginPath(); mg.arc(iw * 0.78, y0, 16, 0, Math.PI * 2); mg.fill();
+      mg.fillStyle = '#34d399'; mg.fillText('正', iw * 0.78, y0 + 3);
+      mg.fillStyle = '#bae6fd'; mg.font = '600 9.5px system-ui';
+      mg.fillText(isEn ? 'Plate(+) → Blanket(−) → Paper(+)' : '印版(正) → 橡皮(反) → 纸面(正)', iw / 2, 92);
+    });
   });
 
   return {
